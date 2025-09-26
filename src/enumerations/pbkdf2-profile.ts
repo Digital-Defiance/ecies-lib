@@ -1,0 +1,5 @@
+export enum Pbkdf2ProfileEnum {
+  BROWSER_PASSWORD = 'BROWSER_PASSWORD',
+  HIGH_SECURITY = 'HIGH_SECURITY',
+  TEST_FAST = 'TEST_FAST',
+}

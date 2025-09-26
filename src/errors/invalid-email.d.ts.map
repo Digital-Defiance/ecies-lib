@@ -1,0 +1,1 @@
+{"version":3,"file":"invalid-email.d.ts","sourceRoot":"","sources":["invalid-email.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,qBAAqB,EAAE,MAAM,oCAAoC,CAAC;AAC3E,OAAO,EAAE,UAAU,EAAE,MAAM,SAAS,CAAC;AAErC,qBAAa,iBAAkB,SAAQ,UAAU,CAAC,qBAAqB,CAAC;gBAC1D,IAAI,EAAE,qBAAqB,EAAE,OAAO,CAAC,EAAE,MAAM;CAK1D"}
