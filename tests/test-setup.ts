@@ -1,4 +1,4 @@
-import { PluginI18nEngine } from '@digitaldefiance/i18n-lib';
+import { PluginI18nEngine, resetAllI18nEngines } from '@digitaldefiance/i18n-lib';
 import { webcrypto } from 'crypto';
 import { resetEciesI18nForTests } from '../src/i18n-setup';
 import { toThrowType } from './matchers/error-matchers';
@@ -12,23 +12,15 @@ export { toThrowType };
 
 // Clean up I18n engine before each test
 beforeEach(() => {
-  try {
-    // Clear the plugin instance registry
-    (PluginI18nEngine as any)._instances?.clear?.();
-  } catch (error) {
-    // Ignore errors if the property doesn't exist
-  }
+  // Use the new cleanup mechanism from @digitaldefiance/i18n-lib v1.1.2
+  resetAllI18nEngines();
   resetEciesI18nForTests();
 });
 
 // Clean up I18n engine after each test
 afterEach(() => {
-  try {
-    // Clear the plugin instance registry
-    (PluginI18nEngine as any)._instances?.clear?.();
-  } catch (error) {
-    // Ignore errors if the property doesn't exist
-  }
+  // Use the new cleanup mechanism from @digitaldefiance/i18n-lib v1.1.2
+  resetAllI18nEngines();
   resetEciesI18nForTests();
 });
 

@@ -244,10 +244,21 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
-### Sat Oct 11 2025 18:38:00 GMT-0700 (Pacific Daylight Time)
+### v1.0.22: Upgrade to i18n v1.1.2 with some new cleanup functionality
 
-- v1.0.21: Upgrade to i18n v1.1.1 with new plugin architecture
+- Sat Oct 11 2025 19:39:00 GMT-0700 (Pacific Daylight Time)
 
-### Fri Sep 26 2025 10:21:00 GMT-0700 (Pacific Daylight Time)
+  - Bump `i18n` dependency to v1.1.2
 
-- v1.0.20: Initial release of @digitaldefiance/ecies-lib
+### v1.0.21: Upgrade to i18n v1.1.1 with new plugin architecture
+
+- Sat Oct 11 2025 18:38:00 GMT-0700 (Pacific Daylight Time)
+
+  - Bump `i18n` dependency to v1.1.1
+  - Refactor localization to use new plugin system
+
+### v1.0.20: Initial release of @digitaldefiance/ecies-lib
+
+- Fri Sep 26 2025 10:21:00 GMT-0700 (Pacific Daylight Time)
+
+  - Initial release of the ECIES library with multi-recipient support, AES-GCM helpers, PBKDF2 profiles, and password-login tooling
