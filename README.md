@@ -244,6 +244,11 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.0.23: Patch release to fix constant exports
+
+- Sun Oct 12 2025 16:20:00 GMT-0700 (Pacific Daylight Time)
+  - Fix `Constants` export to be properly frozen and typed
+
 ### v1.0.22: Upgrade to i18n v1.1.2 with some new cleanup functionality
 
 - Sat Oct 11 2025 19:39:00 GMT-0700 (Pacific Daylight Time)

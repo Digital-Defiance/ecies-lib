@@ -26,7 +26,7 @@ export const GUID_SIZE: number = 16 as const;
  * These values are critical for data integrity and MUST NOT be changed
  * in an already established system as it will break all existing checksums.
  */
-export const CHECKSUM: IChecksumConsts = {
+export const CHECKSUM: IChecksumConsts = Object.freeze({
   /** Default hash bits for SHA3 */
   SHA3_DEFAULT_HASH_BITS: 512 as const,
 
@@ -38,9 +38,9 @@ export const CHECKSUM: IChecksumConsts = {
 
   /** encoding to use for checksum */
   ENCODING: 'hex' as const,
-} as const;
+} as const);
 
-export const PBKDF2: IPBkdf2Consts = {
+export const PBKDF2: IPBkdf2Consts = Object.freeze({
   ALGORITHM: 'SHA-256' as const,
   SALT_BYTES: 32 as const,
   /**
@@ -48,28 +48,28 @@ export const PBKDF2: IPBkdf2Consts = {
    * This is the high-security default for user login operations.
    */
   ITERATIONS_PER_SECOND: 1304000 as const,
-} as const;
+} as const);
 
-export const PBKDF2_PROFILES: Pbkdf2Profiles = {
-  [Pbkdf2ProfileEnum.BROWSER_PASSWORD]: {
+export const PBKDF2_PROFILES: Pbkdf2Profiles = Object.freeze({
+  [Pbkdf2ProfileEnum.BROWSER_PASSWORD]: Object.freeze({
     hashBytes: 32 as const,
     saltBytes: 64 as const,
     iterations: 2000000 as const,
     algorithm: 'SHA-512' as const,
-  } as const,
-  [Pbkdf2ProfileEnum.HIGH_SECURITY]: {
+  } as const),
+  [Pbkdf2ProfileEnum.HIGH_SECURITY]: Object.freeze({
     hashBytes: 64 as const,
     saltBytes: 32 as const,
     iterations: 5000000 as const,
     algorithm: 'SHA-256' as const,
-  } as const,
-  [Pbkdf2ProfileEnum.TEST_FAST]: {
+  } as const),
+  [Pbkdf2ProfileEnum.TEST_FAST]: Object.freeze({
     hashBytes: 32 as const,
     saltBytes: 64 as const,
     iterations: 1000 as const,
     algorithm: 'SHA-512' as const,
-  } as const,
-};
+  } as const),
+} as const);
 
 const ECIES_SYMMETRIC_KEY_SIZE = 32 as const;
 const ECIES_PUBLIC_KEY_LENGTH = 65 as const;
@@ -94,7 +94,7 @@ const expectedMultipleEncryptedKeySize =
   ECIES_AUTH_TAG_SIZE +
   ECIES_SYMMETRIC_KEY_SIZE;
 
-export const ECIES: IECIESConstants = {
+export const ECIES: IECIESConstants = Object.freeze({
   /** The elliptic curve to use for all ECDSA operations */
   CURVE_NAME: 'secp256k1' as const,
 
@@ -118,12 +118,12 @@ export const ECIES: IECIESConstants = {
   MNEMONIC_STRENGTH: 256 as const,
 
   /** Symmetric encryption algorithm configuration */
-  SYMMETRIC: {
+  SYMMETRIC: Object.freeze({
     ALGORITHM: 'aes' as const,
     MODE: 'gcm' as const,
     KEY_BITS: 256 as const,
     KEY_SIZE: ECIES_SYMMETRIC_KEY_SIZE, // KEY_BITS / 8
-  } as const,
+  } as const),
 
   IV_SIZE: ECIES_IV_SIZE,
   AUTH_TAG_SIZE: ECIES_AUTH_TAG_SIZE,
@@ -132,40 +132,40 @@ export const ECIES: IECIESConstants = {
   /**
    * Message encrypts without data length or crc
    */
-  SIMPLE: {
+  SIMPLE: Object.freeze({
     FIXED_OVERHEAD_SIZE: expectedSimpleOverhead, // type (1) + public key (65) + IV (16) + auth tag (16)
     DATA_LENGTH_SIZE: 0 as const,
-  } as const,
+  } as const),
 
   /**
    * Message encrypts with data length but no CRC (AES-GCM provides authentication)
    */
-  SINGLE: {
+  SINGLE: Object.freeze({
     FIXED_OVERHEAD_SIZE: 106 as const, // type (1) + public key (65) + IV (16) + auth tag (16) + data length (8)
     DATA_LENGTH_SIZE: 8,
-  } as const,
+  } as const),
 
   /**
    * Message encrypts for multiple recipients
    */
-  MULTIPLE: {
+  MULTIPLE: Object.freeze({
     FIXED_OVERHEAD_SIZE: expectedMultipleOverhead, // type (1) + IV (16) + auth tag (16), no CRC
     ENCRYPTED_KEY_SIZE: expectedMultipleEncryptedKeySize, // 129
     MAX_RECIPIENTS: 65535,
     RECIPIENT_ID_SIZE: ECIES_MULTIPLE_RECIPIENT_ID_SIZE,
     RECIPIENT_COUNT_SIZE: 2,
     DATA_LENGTH_SIZE: 8,
-  } as const,
+  } as const),
 
-  ENCRYPTION_TYPE: {
+  ENCRYPTION_TYPE: Object.freeze({
     SIMPLE: 33 as const,
     SINGLE: 66 as const,
     MULTIPLE: 99 as const,
-  } as const,
-};
+  } as const),
+});
 const objectIdLength = new ObjectId().toHexString().length / 2;
 
-export const Constants: IConstants = {
+export const Constants: IConstants = Object.freeze({
   /**
    * The length of a raw object ID (not the hex string representation)
    */
@@ -211,7 +211,7 @@ export const Constants: IConstants = {
    * Matches a 64-character hexadecimal string (SHA-256).
    */
   HmacRegex: /^[a-f0-9]{64}$/,
-} as const;
+} as const);
 
 if (
   CHECKSUM.SHA3_BUFFER_LENGTH !== CHECKSUM.SHA3_DEFAULT_HASH_BITS / 8 ||
