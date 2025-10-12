@@ -6,7 +6,7 @@ import { ECIESService } from '../src/services/ecies/service';
 import { PasswordLoginService } from '../src/services/password-login';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
 import { hexToUint8Array, uint8ArrayToHex } from '../src/utils';
-import { getEciesI18nEngine } from '../src/i18n-setup';
+import { getCompatibleEciesEngine } from '../src/i18n-setup';
 
 // Mock dependencies
 jest.mock('../src/services/pbkdf2');
@@ -96,7 +96,7 @@ describe('PasswordLoginService', () => {
       getProfileConfig: jest.fn(),
     } as any;
 
-    passwordLoginService = new PasswordLoginService(mockEciesService, mockPbkdf2Service, getEciesI18nEngine());
+    passwordLoginService = new PasswordLoginService(mockEciesService, mockPbkdf2Service, getCompatibleEciesEngine());
 
     mockEciesService.walletAndSeedFromMnemonic.mockReturnValue({
       wallet: mockWallet,

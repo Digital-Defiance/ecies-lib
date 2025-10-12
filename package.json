@@ -1,12 +1,13 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "Digital Defiance ECIES Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "yarn tsc",
     "test": "yarn jest",
+    "test:stream": "yarn test --outputStyle=stream",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "prettier:check": "prettier --check 'src/**/*.{ts,tsx}'",
@@ -50,7 +51,7 @@
   "license": "MIT",
   "packageManager": "yarn@4.10.3",
   "dependencies": {
-    "@digitaldefiance/i18n-lib": "^1.0.33",
+    "@digitaldefiance/i18n-lib": "^1.1.1",
     "@ethereumjs/wallet": "^10.0.0",
     "@noble/curves": "^2.0.1",
     "@noble/hashes": "^2.0.1",

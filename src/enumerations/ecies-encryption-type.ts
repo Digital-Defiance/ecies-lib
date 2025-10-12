@@ -1,5 +1,5 @@
-import { getEciesI18nEngine } from '../i18n-setup';
 import { ECIESError } from '../errors/ecies';
+import { getCompatibleEciesEngine } from '../i18n-setup';
 import { ECIESErrorTypeEnum } from './ecies-error-type';
 
 export type EciesEncryptionType = 'simple' | 'single' | 'multiple';
@@ -52,14 +52,20 @@ export function encryptionTypeToString(
   if (typeof type === 'number') {
     resultType = EciesEncryptionTypeEnumTypeMap[type];
     if (resultType === undefined) {
-      throw new ECIESError(ECIESErrorTypeEnum.InvalidEncryptionType, getEciesI18nEngine());
+      throw new ECIESError(
+        ECIESErrorTypeEnum.InvalidEncryptionType,
+        getCompatibleEciesEngine() as any,
+      );
     }
   } else {
     resultType = type;
   }
   const result = EciesEncryptionTypeStringMap[resultType];
   if (result === undefined) {
-    throw new ECIESError(ECIESErrorTypeEnum.InvalidEncryptionType, getEciesI18nEngine());
+    throw new ECIESError(
+      ECIESErrorTypeEnum.InvalidEncryptionType,
+      getCompatibleEciesEngine() as any,
+    );
   }
   return result;
 }
@@ -69,7 +75,10 @@ export function encryptionTypeEnumToType(
 ): EciesEncryptionType {
   const result = EciesEncryptionTypeEnumTypeMap[type];
   if (result === undefined) {
-    throw new ECIESError(ECIESErrorTypeEnum.InvalidEncryptionType, getEciesI18nEngine());
+    throw new ECIESError(
+      ECIESErrorTypeEnum.InvalidEncryptionType,
+      getCompatibleEciesEngine() as any,
+    );
   }
   return result;
 }
@@ -84,7 +93,10 @@ export function ensureEciesEncryptionTypeEnum(
   type: EciesEncryptionTypeEnum,
 ): EciesEncryptionTypeEnum {
   if (!validateEciesEncryptionTypeEnum(type)) {
-    throw new ECIESError(ECIESErrorTypeEnum.InvalidEncryptionType, getEciesI18nEngine());
+    throw new ECIESError(
+      ECIESErrorTypeEnum.InvalidEncryptionType,
+      getCompatibleEciesEngine() as any,
+    );
   }
   return type;
 }

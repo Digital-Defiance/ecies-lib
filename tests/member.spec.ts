@@ -7,12 +7,13 @@ import MemberErrorType from '../src/enumerations/member-error-type';
 import MemberType from '../src/enumerations/member-type';
 import { InvalidEmailError } from '../src/errors/invalid-email';
 import { MemberError } from '../src/errors/member';
-import { Member } from '../src/member';
 import { IECIESConfig } from '../src/interfaces/ecies-config';
 import { IMemberWithMnemonic } from '../src/interfaces/member-with-mnemonic';
+import { Member } from '../src/member';
 import { SecureString } from '../src/secure-string';
 import { ECIESService } from '../src/services/ecies/service';
 import { uint8ArrayToHex } from '../src/utils';
+import { spyContains, withConsoleMocks } from './support/console';
 
 describe('brightchain', () => {
   let alice: IMemberWithMnemonic,
@@ -58,13 +59,18 @@ describe('brightchain', () => {
       const verified = alice.member.verify(signature, message);
       expect(verified).toBeTruthy();
       expect(
-        alice.member.verify(signature, new TextEncoder().encode('hello worldx')),
+        alice.member.verify(
+          signature,
+          new TextEncoder().encode('hello worldx'),
+        ),
       ).toBeFalsy();
     });
 
     it('should fail to sign when there is no signing key', () => {
       expect(() =>
-        noKeyCharlie.member.sign(new TextEncoder().encode(faker.lorem.sentence())),
+        noKeyCharlie.member.sign(
+          new TextEncoder().encode(faker.lorem.sentence()),
+        ),
       ).toThrowType(MemberError, (error: MemberError) => {
         expect(error.type).toBe(MemberErrorType.MissingPrivateKey);
       });
@@ -120,39 +126,59 @@ describe('brightchain', () => {
       });
     });
 
-    it('should fail to create a user with no email', () => {
-      expect(() =>
-        Member.newMember(
-          eciesService,
-          MemberType.User,
-          'alice',
-          new EmailString(''),
-        ),
-      ).toThrowType(InvalidEmailError, (error: InvalidEmailError) => {
-        expect(error.type).toBe(InvalidEmailErrorType.Missing);
+    it('should fail to create a user with no email', async () => {
+      await withConsoleMocks({ mute: true }, (spies) => {
+        expect(() =>
+          Member.newMember(
+            eciesService,
+            MemberType.User,
+            'alice',
+            new EmailString(''),
+          ),
+        ).toThrowType(InvalidEmailError, (error: InvalidEmailError) => {
+          expect(error.type).toBe(InvalidEmailErrorType.Missing);
+        });
+
+        // Verify the expected warning about missing translation key
+        expect(
+          spyContains(
+            spies.warn,
+            'Translation failed for key Error_InvalidEmailError_Missing',
+          ),
+        ).toBe(true);
       });
     });
 
-    it('should fail to create a user with an email that has whitespace at the start or end', () => {
-      expect(() =>
-        Member.newMember(
-          eciesService,
-          MemberType.User,
-          'alice',
-          new EmailString(' alice@example.com'),
-        ),
-      ).toThrowType(InvalidEmailError, (error: InvalidEmailError) => {
-        expect(error.type).toBe(InvalidEmailErrorType.Whitespace);
-      });
-      expect(() =>
-        Member.newMember(
-          eciesService,
-          MemberType.User,
-          'alice',
-          new EmailString('alice@example.com '),
-        ),
-      ).toThrowType(InvalidEmailError, (error: InvalidEmailError) => {
-        expect(error.type).toBe(InvalidEmailErrorType.Whitespace);
+    it('should fail to create a user with an email that has whitespace at the start or end', async () => {
+      await withConsoleMocks({ mute: true }, (spies) => {
+        expect(() =>
+          Member.newMember(
+            eciesService,
+            MemberType.User,
+            'alice',
+            new EmailString(' alice@example.com'),
+          ),
+        ).toThrowType(InvalidEmailError, (error: InvalidEmailError) => {
+          expect(error.type).toBe(InvalidEmailErrorType.Whitespace);
+        });
+        expect(() =>
+          Member.newMember(
+            eciesService,
+            MemberType.User,
+            'alice',
+            new EmailString('alice@example.com '),
+          ),
+        ).toThrowType(InvalidEmailError, (error: InvalidEmailError) => {
+          expect(error.type).toBe(InvalidEmailErrorType.Whitespace);
+        });
+
+        // Verify the expected warnings about missing translation keys
+        expect(
+          spyContains(
+            spies.warn,
+            'Translation failed for key Error_InvalidEmailError_Whitespace',
+          ),
+        ).toBe(true);
       });
     });
 
@@ -306,10 +332,7 @@ describe('brightchain', () => {
   describe('json', () => {
     it('should serialize and deserialize correctly', async () => {
       const memberJson = alice.member.toJson();
-      const reloadedMember = Member.fromJson(
-        memberJson,
-        eciesService,
-      );
+      const reloadedMember = Member.fromJson(memberJson, eciesService);
       reloadedMember.loadWallet(alice.mnemonic);
       const encrypted = await eciesService.encryptSimpleOrSingle(
         false,

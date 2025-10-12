@@ -1,7 +1,7 @@
 import { LengthEncodingType } from './enumerations/length-encoding-type';
 import { LengthErrorType } from './enumerations/length-error-type';
 import { LengthError } from './errors';
-import { getEciesI18nEngine } from './i18n-setup';
+import { getCompatibleEciesEngine } from './i18n-setup';
 
 /**
  * Encodes the length of the data in the buffer
@@ -15,7 +15,7 @@ export function lengthEncodeData(buffer: Uint8Array): Uint8Array {
   const lengthTypeSize: number = getLengthForLengthType(lengthType);
   const result = new Uint8Array(1 + lengthTypeSize + buffer.length);
   const view = new DataView(result.buffer);
-  
+
   view.setUint8(0, lengthType);
   switch (lengthType) {
     case LengthEncodingType.UInt8:
@@ -35,24 +35,32 @@ export function lengthEncodeData(buffer: Uint8Array): Uint8Array {
   return result;
 }
 
-export function decodeLengthEncodedData(
-  buffer: Uint8Array,
-): {
+export function decodeLengthEncodedData(buffer: Uint8Array): {
   data: Uint8Array;
   totalLength: number;
 } {
   if (buffer.length < 1) {
-    throw new LengthError(LengthErrorType.LengthIsTooShort, getEciesI18nEngine());
+    throw new LengthError(
+      LengthErrorType.LengthIsTooShort,
+      getCompatibleEciesEngine() as any,
+    );
   }
-  
-  const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+
+  const view = new DataView(
+    buffer.buffer,
+    buffer.byteOffset,
+    buffer.byteLength,
+  );
   const lengthType: LengthEncodingType = getLengthEncodingTypeFromValue(
     view.getUint8(0),
   );
   const lengthTypeSize: number = getLengthForLengthType(lengthType);
 
   if (buffer.length < 1 + lengthTypeSize) {
-    throw new LengthError(LengthErrorType.LengthIsTooShort, getEciesI18nEngine());
+    throw new LengthError(
+      LengthErrorType.LengthIsTooShort,
+      getCompatibleEciesEngine() as any,
+    );
   }
 
   let length: number | BigInt;
@@ -69,16 +77,25 @@ export function decodeLengthEncodedData(
     case LengthEncodingType.UInt64:
       length = view.getBigUint64(1, false); // big-endian
       if (length.valueOf() > BigInt(Number.MAX_SAFE_INTEGER)) {
-        throw new LengthError(LengthErrorType.LengthIsTooLong, getEciesI18nEngine());
+        throw new LengthError(
+          LengthErrorType.LengthIsTooLong,
+          getCompatibleEciesEngine() as any,
+        );
       }
       break;
     default:
-      throw new LengthError(LengthErrorType.LengthIsInvalidType, getEciesI18nEngine());
+      throw new LengthError(
+        LengthErrorType.LengthIsInvalidType,
+        getCompatibleEciesEngine() as any,
+      );
   }
 
   const totalLength = 1 + lengthTypeSize + Number(length);
   if (totalLength > buffer.length) {
-    throw new LengthError(LengthErrorType.LengthIsTooShort, getEciesI18nEngine());
+    throw new LengthError(
+      LengthErrorType.LengthIsTooShort,
+      getCompatibleEciesEngine() as any,
+    );
   }
   return {
     data: buffer.subarray(1 + lengthTypeSize, totalLength),
@@ -224,7 +241,10 @@ export function getLengthEncodingTypeForLength<
     } else if (length < Number.MAX_SAFE_INTEGER) {
       return LengthEncodingType.UInt64;
     } else {
-      throw new LengthError(LengthErrorType.LengthIsTooLong, getEciesI18nEngine());
+      throw new LengthError(
+        LengthErrorType.LengthIsTooLong,
+        getCompatibleEciesEngine() as any,
+      );
     }
   } else if (typeof length === 'bigint') {
     if (length < 256n) {
@@ -236,10 +256,16 @@ export function getLengthEncodingTypeForLength<
     } else if (length < 18446744073709551616n) {
       return LengthEncodingType.UInt64;
     } else {
-      throw new LengthError(LengthErrorType.LengthIsTooLong, getEciesI18nEngine());
+      throw new LengthError(
+        LengthErrorType.LengthIsTooLong,
+        getCompatibleEciesEngine() as any,
+      );
     }
   } else {
-    throw new LengthError(LengthErrorType.LengthIsInvalidType, getEciesI18nEngine());
+    throw new LengthError(
+      LengthErrorType.LengthIsInvalidType,
+      getCompatibleEciesEngine() as any,
+    );
   }
 }
 
@@ -257,7 +283,10 @@ export function getLengthEncodingTypeFromValue<
       return length;
     }
   }
-  throw new LengthError(LengthErrorType.LengthIsInvalidType, getEciesI18nEngine());
+  throw new LengthError(
+    LengthErrorType.LengthIsInvalidType,
+    getCompatibleEciesEngine() as any,
+  );
 }
 
 /**
@@ -294,6 +323,9 @@ export function getLengthForLengthType<
     case LengthEncodingType.UInt64:
       return 8;
     default:
-      throw new LengthError(LengthErrorType.LengthIsInvalidType, getEciesI18nEngine());
+      throw new LengthError(
+        LengthErrorType.LengthIsInvalidType,
+        getCompatibleEciesEngine() as any,
+      );
   }
 }

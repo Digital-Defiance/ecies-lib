@@ -211,10 +211,12 @@ Continuous integration mirrors these gates, and the repository currently passes 
 ## Browser vs. Node tips
 
 - **Node**: Node 18+ exposes `globalThis.crypto`. If you target older runtimes, polyfill before importing the library:
+
   ```ts
   import { webcrypto } from 'crypto';
   globalThis.crypto = webcrypto as unknown as Crypto;
   ```
+
 - **Browser bundlers**: the package ships TypeScript sources; rely on your bundler (Vite, Webpack, Next.js) to tree-shake unused exports. All external dependencies are ESM-friendly.
 - **Memory hygiene**: many helpers (e.g., `SecureBuffer`) provide `.dispose()` to zero sensitive data. Call them when you’re done.
 
@@ -230,7 +232,7 @@ Bug reports and feature requests are welcome—open an issue with reproduction s
 
 ## Security
 
-If you discover a vulnerability, please **do not** open a public issue. Email security@digitaldefiance.io with details so we can coordinate a fix and responsible disclosure timeline.
+If you discover a vulnerability, please **do not** open a public issue. Email <security@digitaldefiance.io> with details so we can coordinate a fix and responsible disclosure timeline.
 
 ## License
 
@@ -239,3 +241,13 @@ MIT © Digital Defiance
 ## Repository
 
 [https://github.com/Digital-Defiance/ecies-lib](https://github.com/Digital-Defiance/ecies-lib)
+
+## ChangeLog
+
+### Sat Oct 11 2025 18:38:00 GMT-0700 (Pacific Daylight Time)
+
+- v1.0.21: Upgrade to i18n v1.1.1 with new plugin architecture
+
+### Fri Sep 26 2025 10:21:00 GMT-0700 (Pacific Daylight Time)
+
+- v1.0.20: Initial release of @digitaldefiance/ecies-lib

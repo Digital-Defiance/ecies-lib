@@ -2,7 +2,7 @@ import { SecureStorageErrorType } from './enumerations/secure-storage-error-type
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
 import { GuidV4 } from './guid';
-import { getEciesI18nEngine } from './i18n-setup';
+import { getCompatibleEciesEngine } from './i18n-setup';
 import { XorService } from './services/xor';
 import { FullHexGuid, RawGuidUint8Array } from './types';
 import { uint8ArrayToHex } from './utils';
@@ -86,12 +86,14 @@ export class SecureBuffer {
       const deobfuscatedResult = this.deobfuscateData(this._obfuscatedValue);
       if (deobfuscatedResult.length !== this._length) {
         throw new SecureStorageError(
-          SecureStorageErrorType.DecryptedValueLengthMismatch, getEciesI18nEngine()
+          SecureStorageErrorType.DecryptedValueLengthMismatch,
+          getCompatibleEciesEngine() as any,
         );
       }
       if (!this.validateObfuscatedChecksum(deobfuscatedResult)) {
         throw new SecureStorageError(
-          SecureStorageErrorType.DecryptedValueChecksumMismatch, getEciesI18nEngine()
+          SecureStorageErrorType.DecryptedValueChecksumMismatch,
+          getCompatibleEciesEngine() as any,
         );
       }
       return deobfuscatedResult;
@@ -102,7 +104,8 @@ export class SecureBuffer {
       }
       // Convert any other error (including AES-GCM authentication errors) to SecureStorageError
       throw new SecureStorageError(
-        SecureStorageErrorType.DecryptedValueChecksumMismatch, getEciesI18nEngine()
+        SecureStorageErrorType.DecryptedValueChecksumMismatch,
+        getCompatibleEciesEngine() as any,
       );
     }
   }

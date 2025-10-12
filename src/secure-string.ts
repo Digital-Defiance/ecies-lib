@@ -2,7 +2,7 @@ import { SecureStorageErrorType } from './enumerations/secure-storage-error-type
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
 import { GuidV4 } from './guid';
-import { getEciesI18nEngine } from './i18n-setup';
+import { getCompatibleEciesEngine } from './i18n-setup';
 import { XorService } from './services/xor';
 import { FullHexGuid, RawGuidUint8Array } from './types';
 import { uint8ArrayToHex } from './utils';
@@ -88,7 +88,8 @@ export class SecureString {
       const deobfuscatedResult = this.deobfuscateData(this._obfuscatedValue);
       if (deobfuscatedResult.length !== this._length) {
         throw new SecureStorageError(
-          SecureStorageErrorType.DecryptedValueLengthMismatch, getEciesI18nEngine()
+          SecureStorageErrorType.DecryptedValueLengthMismatch,
+          getCompatibleEciesEngine() as any,
         );
       }
 
@@ -102,7 +103,8 @@ export class SecureString {
       const storedBytes = new TextEncoder().encode(storedChecksum);
       if (!this.timingSafeEqual(expectedBytes, storedBytes)) {
         throw new SecureStorageError(
-          SecureStorageErrorType.DecryptedValueChecksumMismatch, getEciesI18nEngine()
+          SecureStorageErrorType.DecryptedValueChecksumMismatch,
+          getCompatibleEciesEngine() as any,
         );
       }
 
@@ -115,7 +117,7 @@ export class SecureString {
       // Convert any other error to SecureStorageError
       throw new SecureStorageError(
         SecureStorageErrorType.DecryptedValueChecksumMismatch,
-        getEciesI18nEngine()
+        getCompatibleEciesEngine() as any,
       );
     }
   }
@@ -129,7 +131,10 @@ export class SecureString {
   public get notNullValue(): string {
     this.assertNotDisposed();
     if (this._isNull) {
-      throw new SecureStorageError(SecureStorageErrorType.ValueIsNull, getEciesI18nEngine());
+      throw new SecureStorageError(
+        SecureStorageErrorType.ValueIsNull,
+        getCompatibleEciesEngine() as any,
+      );
     }
     return new TextDecoder().decode(this.valueAsUint8Array);
   }

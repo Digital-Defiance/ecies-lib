@@ -1,12 +1,16 @@
-import { DefaultLanguage, I18nEngine, Language, StringKey } from '@digitaldefiance/i18n-lib';
-import { TranslatableError } from '../../src/errors/translatable';
-import { HandleableErrorOptions } from '../../src/interfaces/handleable-error-options';
-import { EciesI18nEngineKey, getEciesI18nEngine } from '../../src/i18n-setup';
+import {
+  DefaultLanguage,
+  I18nEngine,
+  Language,
+} from '@digitaldefiance/i18n-lib';
 import { EciesStringKey } from '../../src/enumerations';
+import { TranslatableError } from '../../src/errors/translatable';
+import { getCompatibleEciesEngine } from '../../src/i18n-setup';
+import { HandleableErrorOptions } from '../../src/interfaces/handleable-error-options';
 
-// Mock the getEciesI18nEngine function
+// Mock the getCompatibleEciesEngine function
 jest.mock('../../src/i18n-setup', () => ({
-  getEciesI18nEngine: jest.fn(() => ({
+  getCompatibleEciesEngine: jest.fn(() => ({
     translate: jest.fn(
       (
         key: string,
@@ -34,7 +38,7 @@ describe('TranslatableError', () => {
 
   beforeEach(() => {
     // Mock is already set up, just get the mocked engine
-    engine = getEciesI18nEngine();
+    engine = getCompatibleEciesEngine();
   });
   it('should create error with string key only', () => {
     const error = new TranslatableError('ERROR_KEY' as EciesStringKey, engine);
@@ -55,7 +59,12 @@ describe('TranslatableError', () => {
   });
 
   it('should create error with language', () => {
-    const error = new TranslatableError('ERROR_KEY' as EciesStringKey, engine, undefined, 'es' as Language);
+    const error = new TranslatableError(
+      'ERROR_KEY' as EciesStringKey,
+      engine,
+      undefined,
+      'es' as Language,
+    );
 
     expect(error.StringName).toBe('ERROR_KEY');
     expect(error.message).toBe('ERROR_KEY[es]');

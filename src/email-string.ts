@@ -1,7 +1,7 @@
 import validator from 'validator';
 import { InvalidEmailErrorType } from './enumerations/invalid-email-type';
 import { InvalidEmailError } from './errors/invalid-email';
-import { getEciesI18nEngine } from './i18n-setup';
+import { getCompatibleEciesEngine } from './i18n-setup';
 
 /**
  * EmailString represents a validated email address.
@@ -19,13 +19,22 @@ export class EmailString {
   constructor(email: string) {
     const trimmedEmail = email.trim();
     if (trimmedEmail.length == 0) {
-      throw new InvalidEmailError(InvalidEmailErrorType.Missing, getEciesI18nEngine());
+      throw new InvalidEmailError(
+        InvalidEmailErrorType.Missing,
+        getCompatibleEciesEngine() as any,
+      );
     }
     if (trimmedEmail.length != email.length) {
-      throw new InvalidEmailError(InvalidEmailErrorType.Whitespace, getEciesI18nEngine());
+      throw new InvalidEmailError(
+        InvalidEmailErrorType.Whitespace,
+        getCompatibleEciesEngine() as any,
+      );
     }
     if (!validator.isEmail(trimmedEmail)) {
-      throw new InvalidEmailError(InvalidEmailErrorType.Invalid, getEciesI18nEngine());
+      throw new InvalidEmailError(
+        InvalidEmailErrorType.Invalid,
+        getCompatibleEciesEngine() as any,
+      );
     }
     this.email = trimmedEmail;
   }

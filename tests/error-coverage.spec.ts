@@ -5,11 +5,11 @@ import { LengthErrorType } from '../src/enumerations/length-error-type';
 import { Pbkdf2ErrorType } from '../src/enumerations/pbkdf2-error-type';
 import { SecureStorageErrorType } from '../src/enumerations/secure-storage-error-type';
 import { EciesStringKey } from '../src/enumerations/ecies-string-key';
-import { getEciesI18nEngine } from '../src/i18n-setup';
+import { getCompatibleEciesEngine } from '../src/i18n-setup';
 
 describe('Error Coverage Validation', () => {
   beforeAll(() => {
-    getEciesI18nEngine();
+    getCompatibleEciesEngine();
   });
 
   it('should have string keys for all ECIES error types', () => {

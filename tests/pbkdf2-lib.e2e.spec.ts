@@ -2,7 +2,7 @@ import { Pbkdf2ErrorType, Pbkdf2ProfileEnum } from '../src/enumerations';
 import { Pbkdf2Error } from '../src/errors';
 import { SecureString } from '../src/secure-string';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
-import { getEciesI18nEngine } from '../src/i18n-setup';
+import { getCompatibleEciesEngine } from '../src/i18n-setup';
 
 describe('Pbkdf2Service Lib E2E', () => {
   jest.setTimeout(60000);
@@ -14,7 +14,7 @@ describe('Pbkdf2Service Lib E2E', () => {
   const testSalt = new Uint8Array(32).fill(42);
 
   beforeEach(() => {
-    pbkdf2Service = new Pbkdf2Service(getEciesI18nEngine());
+    pbkdf2Service = new Pbkdf2Service(getCompatibleEciesEngine());
   });
 
   describe('Browser-Compatible Key Derivation', () => {

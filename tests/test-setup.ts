@@ -1,8 +1,8 @@
+import { PluginI18nEngine } from '@digitaldefiance/i18n-lib';
 import { webcrypto } from 'crypto';
-import { I18nEngine } from '@digitaldefiance/i18n-lib';
+import { resetEciesI18nForTests } from '../src/i18n-setup';
 import { toThrowType } from './matchers/error-matchers';
 import { LocalStorageMock } from './support/localStorage-mock';
-import { EciesI18nEngineKey, resetEciesI18nEngine } from '../src/i18n-setup';
 
 // Extend expect with custom matchers
 expect.extend({ toThrowType });
@@ -12,14 +12,24 @@ export { toThrowType };
 
 // Clean up I18n engine before each test
 beforeEach(() => {
-  I18nEngine.removeInstance(EciesI18nEngineKey);
-  resetEciesI18nEngine();
+  try {
+    // Clear the plugin instance registry
+    (PluginI18nEngine as any)._instances?.clear?.();
+  } catch (error) {
+    // Ignore errors if the property doesn't exist
+  }
+  resetEciesI18nForTests();
 });
 
 // Clean up I18n engine after each test
 afterEach(() => {
-  I18nEngine.removeInstance(EciesI18nEngineKey);
-  resetEciesI18nEngine();
+  try {
+    // Clear the plugin instance registry
+    (PluginI18nEngine as any)._instances?.clear?.();
+  } catch (error) {
+    // Ignore errors if the property doesn't exist
+  }
+  resetEciesI18nForTests();
 });
 
 // Polyfill Web Crypto API for Node.js test environment

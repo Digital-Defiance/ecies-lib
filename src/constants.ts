@@ -2,12 +2,12 @@ import { ObjectId } from 'bson';
 import { ECIESErrorTypeEnum } from './enumerations';
 import { Pbkdf2ProfileEnum } from './enumerations/pbkdf2-profile';
 import { ECIESError } from './errors/ecies';
+import { getCompatibleEciesEngine } from './i18n-setup';
 import { IChecksumConsts } from './interfaces';
 import { IConstants } from './interfaces/constants';
 import { IECIESConstants } from './interfaces/ecies-consts';
 import { IPBkdf2Consts } from './interfaces/pbkdf2-consts';
 import { Pbkdf2Profiles } from './pbkdf2-profiles';
-import { getEciesI18nEngine } from './i18n-setup';
 
 export const UINT8_SIZE: number = 1 as const;
 export const UINT16_SIZE: number = 2 as const;
@@ -228,23 +228,36 @@ if (objectIdLength !== 12) {
 }
 
 if (ECIES.MULTIPLE.ENCRYPTED_KEY_SIZE !== 129) {
-  throw new ECIESError(ECIESErrorTypeEnum.InvalidECIESMultipleEncryptedKeySize, getEciesI18nEngine());
+  throw new ECIESError(
+    ECIESErrorTypeEnum.InvalidECIESMultipleEncryptedKeySize,
+    getCompatibleEciesEngine() as any,
+  );
 }
 
 if (ECIES.PUBLIC_KEY_LENGTH !== ECIES.RAW_PUBLIC_KEY_LENGTH + 1) {
-  throw new ECIESError(ECIESErrorTypeEnum.InvalidECIESPublicKeyLength, getEciesI18nEngine());
+  throw new ECIESError(
+    ECIESErrorTypeEnum.InvalidECIESPublicKeyLength,
+    getCompatibleEciesEngine() as any,
+  );
 }
 
 if (ECIES.MULTIPLE.RECIPIENT_COUNT_SIZE !== UINT16_SIZE) {
   throw new ECIESError(
-    ECIESErrorTypeEnum.InvalidECIESMultipleRecipientCountSize, getEciesI18nEngine()
+    ECIESErrorTypeEnum.InvalidECIESMultipleRecipientCountSize,
+    getCompatibleEciesEngine() as any,
   );
 }
 
 if (ECIES.MULTIPLE.DATA_LENGTH_SIZE !== UINT64_SIZE) {
-  throw new ECIESError(ECIESErrorTypeEnum.InvalidECIESMultipleDataLengthSize, getEciesI18nEngine());
+  throw new ECIESError(
+    ECIESErrorTypeEnum.InvalidECIESMultipleDataLengthSize,
+    getCompatibleEciesEngine() as any,
+  );
 }
 
 if (ECIES.MULTIPLE.RECIPIENT_ID_SIZE !== GUID_SIZE) {
-  throw new ECIESError(ECIESErrorTypeEnum.InvalidECIESMultipleRecipientIdSize, getEciesI18nEngine());
+  throw new ECIESError(
+    ECIESErrorTypeEnum.InvalidECIESMultipleRecipientIdSize,
+    getCompatibleEciesEngine() as any,
+  );
 }

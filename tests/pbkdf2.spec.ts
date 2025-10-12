@@ -5,7 +5,7 @@ import { Pbkdf2Error } from '../src/errors/pbkdf2';
 import { IPbkdf2Config } from '../src/interfaces/pbkdf2-config';
 import { IPbkdf2Result } from '../src/interfaces/pbkdf2-result';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
-import { getEciesI18nEngine } from '../src/i18n-setup';
+import { getCompatibleEciesEngine } from '../src/i18n-setup';
 
 // Mock crypto.subtle for testing
 const mockCrypto = {
@@ -28,7 +28,7 @@ describe('Pbkdf2Service', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    pbkdf2Service = new Pbkdf2Service(getEciesI18nEngine());
+    pbkdf2Service = new Pbkdf2Service(getCompatibleEciesEngine());
 
     // Default mock implementations
     mockCrypto.getRandomValues.mockImplementation((array: Uint8Array) => {

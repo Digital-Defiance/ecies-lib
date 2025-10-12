@@ -2,6 +2,7 @@ import * as uuid from 'uuid';
 import { GuidBrandType } from './enumerations/guid-brand-type';
 import { GuidErrorType } from './enumerations/guid-error-type';
 import { GuidError } from './errors/guid';
+import { getCompatibleEciesEngine } from './i18n-setup';
 import { IGuidV4 } from './interfaces/guid';
 import {
   Base64Guid,
@@ -11,7 +12,6 @@ import {
   ShortHexGuid,
 } from './types';
 import { base64ToUint8Array, uint8ArrayToHex } from './utils';
-import { getEciesI18nEngine } from './i18n-setup';
 
 // Re-export Base64Guid so it's available to importers of guid.ts
 export type { Base64Guid };
@@ -59,7 +59,10 @@ export class GuidV4 implements IGuidV4 {
           value instanceof Uint8Array &&
           error.type === GuidErrorType.UnknownLength
         ) {
-          throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+          throw new GuidError(
+            GuidErrorType.Invalid,
+            getCompatibleEciesEngine() as any,
+          );
         }
         throw error; // Let UnknownLength/UnknownBrand bubble up for other types
       }
@@ -70,13 +73,19 @@ export class GuidV4 implements IGuidV4 {
     if (brandCheckPassed) {
       try {
         if (!GuidV4.isValid(value as any)) {
-          throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+          throw new GuidError(
+            GuidErrorType.Invalid,
+            getCompatibleEciesEngine() as any,
+          );
         }
       } catch (error) {
         if (error instanceof GuidError) {
           throw error;
         }
-        throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+        throw new GuidError(
+          GuidErrorType.Invalid,
+          getCompatibleEciesEngine() as any,
+        );
       }
     }
 
@@ -176,7 +185,10 @@ export class GuidV4 implements IGuidV4 {
     try {
       const uuidStr = uuid.v4();
       if (!uuidStr) {
-        throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+        throw new GuidError(
+          GuidErrorType.Invalid,
+          getCompatibleEciesEngine() as any,
+        );
       }
       return new GuidV4(uuidStr as FullHexGuid);
     } catch (error) {
@@ -184,7 +196,10 @@ export class GuidV4 implements IGuidV4 {
       if (error instanceof GuidError) {
         throw error;
       }
-      throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+      throw new GuidError(
+        GuidErrorType.Invalid,
+        getCompatibleEciesEngine() as any,
+      );
     }
   }
   /**
@@ -261,7 +276,11 @@ export class GuidV4 implements IGuidV4 {
   >(guidBrand: GuidBrandType): number {
     const length = GuidV4.LengthMap[guidBrand];
     if (length <= 0) {
-      throw new GuidError(GuidErrorType.UnknownBrand, getEciesI18nEngine(), guidBrand);
+      throw new GuidError(
+        GuidErrorType.UnknownBrand,
+        getCompatibleEciesEngine() as any,
+        guidBrand,
+      );
     }
     return length as number;
   }
@@ -277,7 +296,12 @@ export class GuidV4 implements IGuidV4 {
     TLanguage extends string,
   >(length: number, isUint8Array: boolean): GuidBrandType {
     if (length <= 0) {
-      throw new GuidError(GuidErrorType.UnknownLength, getEciesI18nEngine(), undefined, length);
+      throw new GuidError(
+        GuidErrorType.UnknownLength,
+        getCompatibleEciesEngine() as any,
+        undefined,
+        length,
+      );
     }
     const keys = Object.keys(GuidV4.ReverseLengthMap);
     const values = Object.values(GuidV4.ReverseLengthMap);
@@ -293,7 +317,12 @@ export class GuidV4 implements IGuidV4 {
         return brand;
       }
     }
-    throw new GuidError(GuidErrorType.UnknownLength, getEciesI18nEngine(), undefined, length);
+    throw new GuidError(
+      GuidErrorType.UnknownLength,
+      getCompatibleEciesEngine() as any,
+      undefined,
+      length,
+    );
   }
 
   /**
@@ -490,7 +519,10 @@ export class GuidV4 implements IGuidV4 {
    */
   public static whichBrand(value: GuidInput): GuidBrandType {
     if (value === null || value === undefined) {
-      throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+      throw new GuidError(
+        GuidErrorType.Invalid,
+        getCompatibleEciesEngine() as any,
+      );
     }
     if (typeof value === 'bigint') {
       return GuidBrandType.BigIntGuid;
@@ -543,7 +575,10 @@ export class GuidV4 implements IGuidV4 {
       | string,
   ): FullHexGuid {
     if (!guid) {
-      throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+      throw new GuidError(
+        GuidErrorType.Invalid,
+        getCompatibleEciesEngine() as any,
+      );
     } else if (typeof guid === 'bigint') {
       return GuidV4.toFullHexFromBigInt(guid);
     } else if (
@@ -553,7 +588,10 @@ export class GuidV4 implements IGuidV4 {
       const shortHex = uint8ArrayToHex(guid) as ShortHexGuid;
       return GuidV4.shortGuidToFullGuid(shortHex);
     } else if (guid instanceof Uint8Array) {
-      throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+      throw new GuidError(
+        GuidErrorType.Invalid,
+        getCompatibleEciesEngine() as any,
+      );
     }
     // all remaining cases are string types
     const strValue = String(guid);
@@ -574,7 +612,10 @@ export class GuidV4 implements IGuidV4 {
       const shortGuid = uint8ArrayToHex(base64ToUint8Array(strValue));
       return GuidV4.shortGuidToFullGuid(shortGuid);
     } else {
-      throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+      throw new GuidError(
+        GuidErrorType.Invalid,
+        getCompatibleEciesEngine() as any,
+      );
     }
   }
 
@@ -591,7 +632,10 @@ export class GuidV4 implements IGuidV4 {
       | string,
   ): ShortHexGuid {
     if (!guid) {
-      throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+      throw new GuidError(
+        GuidErrorType.Invalid,
+        getCompatibleEciesEngine() as any,
+      );
     } else if (typeof guid === 'bigint') {
       const fullHex = GuidV4.toFullHexFromBigInt(guid);
       return fullHex.replace(/-/g, '') as ShortHexGuid;
@@ -601,7 +645,10 @@ export class GuidV4 implements IGuidV4 {
     ) {
       return uint8ArrayToHex(guid) as ShortHexGuid;
     } else if (guid instanceof Uint8Array) {
-      throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+      throw new GuidError(
+        GuidErrorType.Invalid,
+        getCompatibleEciesEngine() as any,
+      );
     }
     // all remaining cases are string types
     const strValue = String(guid);
@@ -622,7 +669,10 @@ export class GuidV4 implements IGuidV4 {
       // base64 guid
       return uint8ArrayToHex(base64ToUint8Array(strValue)) as ShortHexGuid;
     } else {
-      throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+      throw new GuidError(
+        GuidErrorType.Invalid,
+        getCompatibleEciesEngine() as any,
+      );
     }
   }
 
@@ -636,11 +686,17 @@ export class GuidV4 implements IGuidV4 {
     TLanguage extends string,
   >(bigInt: bigint): FullHexGuid {
     if (bigInt < 0n) {
-      throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+      throw new GuidError(
+        GuidErrorType.Invalid,
+        getCompatibleEciesEngine() as any,
+      );
     }
     const uuidBigInt = bigInt.toString(16).padStart(32, '0');
     if (uuidBigInt.length !== 32) {
-      throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+      throw new GuidError(
+        GuidErrorType.Invalid,
+        getCompatibleEciesEngine() as any,
+      );
     }
     const rebuiltUuid =
       uuidBigInt.slice(0, 8) +
@@ -690,7 +746,10 @@ export class GuidV4 implements IGuidV4 {
             Array.from(binaryString).map((c) => c.charCodeAt(0)),
           ) as RawGuidUint8Array;
         } else {
-          throw new GuidError(GuidErrorType.Invalid, getEciesI18nEngine());
+          throw new GuidError(
+            GuidErrorType.Invalid,
+            getCompatibleEciesEngine() as any,
+          );
         }
         break;
       case GuidBrandType.RawGuidUint8Array:
@@ -705,7 +764,10 @@ export class GuidV4 implements IGuidV4 {
         ) as RawGuidUint8Array;
         break;
       default:
-        throw new GuidError(GuidErrorType.UnknownBrand, getEciesI18nEngine());
+        throw new GuidError(
+          GuidErrorType.UnknownBrand,
+          getCompatibleEciesEngine() as any,
+        );
     }
     if (
       rawGuidUint8ArrayResult.length !==
@@ -713,7 +775,7 @@ export class GuidV4 implements IGuidV4 {
     ) {
       throw new GuidError(
         GuidErrorType.UnknownLength,
-        getEciesI18nEngine(),
+        getCompatibleEciesEngine() as any,
         undefined,
         rawGuidUint8ArrayResult.length,
       );
