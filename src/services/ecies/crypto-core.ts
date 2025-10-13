@@ -12,16 +12,19 @@ import { SecureString } from '../../secure-string';
 import { ISimpleKeyPair, IWalletSeed } from './interfaces';
 
 import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { IECIESConstants } from '../../interfaces/ecies-consts';
 
 /**
  * Browser-compatible crypto core for ECIES operations
  * Uses @scure libraries for browser compatibility
  */
 export class EciesCryptoCore {
-  private readonly _config: IECIESConfig;
+  protected readonly _config: IECIESConfig;
+  protected readonly _eciesConsts: IECIESConstants;
 
-  constructor(config: IECIESConfig) {
+  constructor(config: IECIESConfig, eciesParams?: IECIESConstants) {
     this._config = config;
+    this._eciesConsts = eciesParams ?? ECIES;
   }
 
 
@@ -42,16 +45,16 @@ export class EciesCryptoCore {
 
     // Already in correct format (65 bytes with 0x04 prefix)
     if (
-      keyLength === ECIES.PUBLIC_KEY_LENGTH &&
-      publicKey[0] === ECIES.PUBLIC_KEY_MAGIC
+      keyLength === this._eciesConsts.PUBLIC_KEY_LENGTH &&
+      publicKey[0] === this._eciesConsts.PUBLIC_KEY_MAGIC
     ) {
       return publicKey;
     }
 
     // Raw key without prefix (64 bytes) - add the 0x04 prefix
-    if (keyLength === ECIES.RAW_PUBLIC_KEY_LENGTH) {
-      const result = new Uint8Array(ECIES.PUBLIC_KEY_LENGTH);
-      result[0] = ECIES.PUBLIC_KEY_MAGIC;
+    if (keyLength === this._eciesConsts.RAW_PUBLIC_KEY_LENGTH) {
+      const result = new Uint8Array(this._eciesConsts.PUBLIC_KEY_LENGTH);
+      result[0] = this._eciesConsts.PUBLIC_KEY_MAGIC;
       result.set(publicKey, 1);
       return result;
     }

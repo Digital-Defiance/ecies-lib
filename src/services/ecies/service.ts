@@ -1,3 +1,4 @@
+import { IECIESConstants } from '../../interfaces/ecies-consts';
 import { ECIES } from '../../constants';
 import {
   EciesEncryptionType,
@@ -16,24 +17,26 @@ import { EciesSingleRecipient } from './single-recipient';
  * Uses Web Crypto API and @scure/@noble libraries for browser compatibility
  */
 export class ECIESService {
-  private readonly _config: IECIESConfig;
-  private readonly cryptoCore: EciesCryptoCore;
-  private readonly signature: EciesSignature;
-  private readonly singleRecipient: EciesSingleRecipient;
+  protected readonly _config: IECIESConfig;
+  protected readonly cryptoCore: EciesCryptoCore;
+  protected readonly signature: EciesSignature;
+  protected readonly singleRecipient: EciesSingleRecipient;
+  protected readonly eciesConsts: IECIESConstants;
 
-  constructor(config?: Partial<IECIESConfig>) {
+  constructor(config?: Partial<IECIESConfig>, eciesParams?: IECIESConstants) {
+    this.eciesConsts = eciesParams ?? ECIES;
     this._config = {
-      curveName: ECIES.CURVE_NAME,
-      primaryKeyDerivationPath: ECIES.PRIMARY_KEY_DERIVATION_PATH,
-      mnemonicStrength: ECIES.MNEMONIC_STRENGTH,
-      symmetricAlgorithm: ECIES.SYMMETRIC.ALGORITHM,
-      symmetricKeyBits: ECIES.SYMMETRIC.KEY_BITS,
-      symmetricKeyMode: ECIES.SYMMETRIC.MODE,
+      curveName: this.eciesConsts.CURVE_NAME,
+      primaryKeyDerivationPath: this.eciesConsts.PRIMARY_KEY_DERIVATION_PATH,
+      mnemonicStrength: this.eciesConsts.MNEMONIC_STRENGTH,
+      symmetricAlgorithm: this.eciesConsts.SYMMETRIC.ALGORITHM,
+      symmetricKeyBits: this.eciesConsts.SYMMETRIC.KEY_BITS,
+      symmetricKeyMode: this.eciesConsts.SYMMETRIC.MODE,
       ...config,
     };
 
     // Initialize components
-    this.cryptoCore = new EciesCryptoCore(this._config);
+    this.cryptoCore = new EciesCryptoCore(this._config, this.eciesConsts);
     this.signature = new EciesSignature(this.cryptoCore);
     this.singleRecipient = new EciesSingleRecipient(this._config);
   }

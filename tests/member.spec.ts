@@ -15,7 +15,7 @@ import { ECIESService } from '../src/services/ecies/service';
 import { uint8ArrayToHex } from '../src/utils';
 import { spyContains, withConsoleMocks } from './support/console';
 
-describe('brightchain', () => {
+describe('member', () => {
   let alice: IMemberWithMnemonic,
     bob: IMemberWithMnemonic,
     noKeyCharlie: IMemberWithMnemonic;

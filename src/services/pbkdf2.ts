@@ -6,6 +6,8 @@ import { Pbkdf2Error } from '../errors/pbkdf2';
 import { IPbkdf2Config } from '../interfaces/pbkdf2-config';
 import { IPbkdf2Result } from '../interfaces/pbkdf2-result';
 import { EciesStringKey } from '../enumerations';
+import { IECIESConstants } from '../interfaces/ecies-consts';
+import { IPBkdf2Consts } from '../interfaces/pbkdf2-consts';
 
 /**
  * Service for handling PBKDF2 (Password-Based Key Derivation Function 2) operations.
@@ -17,8 +19,20 @@ import { EciesStringKey } from '../enumerations';
  */
 export class Pbkdf2Service {
   protected readonly engine: I18nEngine<EciesStringKey, Language, any, any>;
-  constructor(engine: I18nEngine<EciesStringKey, Language, any, any>) {
+  protected readonly profiles: Record<string, IPbkdf2Config>;
+  protected readonly eciesConsts: IECIESConstants;
+  protected readonly pbkdf2Consts: IPBkdf2Consts;
+  
+  constructor(
+    engine: I18nEngine<EciesStringKey, Language, any, any>,
+    profiles?: Record<string, IPbkdf2Config>,
+    eciesParams?: IECIESConstants,
+    pbkdf2Params?: IPBkdf2Consts,
+  ) {
     this.engine = engine;
+    this.profiles = profiles ?? PBKDF2_PROFILES;
+    this.eciesConsts = eciesParams ?? ECIES;
+    this.pbkdf2Consts = pbkdf2Params ?? PBKDF2;
   }
   /**
    * Get a predefined configuration profile for common use cases
@@ -26,9 +40,12 @@ export class Pbkdf2Service {
    * @returns Configuration object for the specified profile
    */
   public getProfileConfig(
-    profile: keyof typeof PBKDF2_PROFILES,
+    profile: string,
   ): IPbkdf2Config {
-    const profileConfig = PBKDF2_PROFILES[profile];
+    const profileConfig = this.profiles[profile];
+    if (!profileConfig) {
+      throw new Pbkdf2Error(Pbkdf2ErrorType.InvalidProfile, this.engine);
+    }
     return {
       hashBytes: profileConfig.hashBytes,
       saltBytes: profileConfig.saltBytes,
@@ -54,17 +71,17 @@ export class Pbkdf2Service {
     // larger numbers mean better security, less
     return {
       // size of the generated hash
-      hashBytes: hashBytes ?? ECIES.SYMMETRIC.KEY_SIZE,
+      hashBytes: hashBytes ?? this.eciesConsts.SYMMETRIC.KEY_SIZE,
       // larger salt means hashed passwords are more resistant to rainbow table, but
       // you get diminishing returns pretty fast
-      saltBytes: saltBytes ?? PBKDF2.SALT_BYTES,
+      saltBytes: saltBytes ?? this.pbkdf2Consts.SALT_BYTES,
       // more iterations means an attacker has to take longer to brute force an
       // individual password, so larger is better. however, larger also means longer
       // to hash the password. tune so that hashing the password takes about a
       // second
-      iterations: iterations ?? PBKDF2.ITERATIONS_PER_SECOND,
+      iterations: iterations ?? this.pbkdf2Consts.ITERATIONS_PER_SECOND,
       // hash algorithm
-      algorithm: algorithm ?? PBKDF2.ALGORITHM,
+      algorithm: algorithm ?? this.pbkdf2Consts.ALGORITHM,
     };
   }
 

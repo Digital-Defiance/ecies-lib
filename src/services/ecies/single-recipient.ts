@@ -1,3 +1,4 @@
+import { IECIESConstants } from '../../interfaces/ecies-consts';
 import { ECIES } from '../../constants';
 import {
   EciesEncryptionType,
@@ -13,12 +14,14 @@ import { IDecryptionResult, ISingleEncryptedParsedHeader } from './interfaces';
  * Browser-compatible single recipient ECIES encryption/decryption
  */
 export class EciesSingleRecipient {
-  private readonly cryptoCore: EciesCryptoCore;
-  private readonly config: IECIESConfig;
+  protected readonly cryptoCore: EciesCryptoCore;
+  protected readonly config: IECIESConfig;
+  protected readonly eciesConsts: IECIESConstants;
 
-  constructor(config: IECIESConfig) {
+  constructor(config: IECIESConfig, eciesParams?: IECIESConstants) {
     this.config = config;
-    this.cryptoCore = new EciesCryptoCore(config);
+    this.eciesConsts = eciesParams ?? ECIES;
+    this.cryptoCore = new EciesCryptoCore(config, this.eciesConsts);
   }
 
   /**
@@ -35,11 +38,11 @@ export class EciesSingleRecipient {
       : 'single';
     const encryptionTypeArray = new Uint8Array([
       encryptionType === 'simple'
-        ? ECIES.ENCRYPTION_TYPE.SIMPLE
-        : ECIES.ENCRYPTION_TYPE.SINGLE,
+        ? this.eciesConsts.ENCRYPTION_TYPE.SIMPLE
+        : this.eciesConsts.ENCRYPTION_TYPE.SINGLE,
     ]);
 
-    if (message.length > ECIES.MAX_RAW_DATA_SIZE) {
+    if (message.length > this.eciesConsts.MAX_RAW_DATA_SIZE) {
       throw new Error(
         `Message length exceeds maximum allowed size: ${message.length}`,
       );
@@ -59,10 +62,10 @@ export class EciesSingleRecipient {
     );
 
     // Use first 32 bytes as symmetric key
-    const symKey = sharedSecret.slice(0, ECIES.SYMMETRIC.KEY_SIZE);
+    const symKey = sharedSecret.slice(0, this.eciesConsts.SYMMETRIC.KEY_SIZE);
 
     // Encrypt using AES-GCM
-    const encryptResult = await AESGCMService.encrypt(message, symKey, true);
+    const encryptResult = await AESGCMService.encrypt(message, symKey, true, this.eciesConsts);
     const { encrypted, iv } = encryptResult;
     const authTag = encryptResult.tag;
 
@@ -126,13 +129,13 @@ export class EciesSingleRecipient {
     let actualEncryptionType: EciesEncryptionTypeEnum;
 
     switch (actualEncryptionTypeByte) {
-      case ECIES.ENCRYPTION_TYPE.SIMPLE:
+      case this.eciesConsts.ENCRYPTION_TYPE.SIMPLE:
         actualEncryptionType = EciesEncryptionTypeEnum.Simple;
         break;
-      case ECIES.ENCRYPTION_TYPE.SINGLE:
+      case this.eciesConsts.ENCRYPTION_TYPE.SINGLE:
         actualEncryptionType = EciesEncryptionTypeEnum.Single;
         break;
-      case ECIES.ENCRYPTION_TYPE.MULTIPLE:
+      case this.eciesConsts.ENCRYPTION_TYPE.MULTIPLE:
         throw new Error(
           'Multiple encryption type not supported in single recipient mode',
         );
@@ -152,8 +155,8 @@ export class EciesSingleRecipient {
     const includeLengthAndCrc =
       actualEncryptionType === EciesEncryptionTypeEnum.Single;
     const requiredSize = includeLengthAndCrc
-      ? ECIES.SINGLE.FIXED_OVERHEAD_SIZE
-      : ECIES.SIMPLE.FIXED_OVERHEAD_SIZE;
+      ? this.eciesConsts.SINGLE.FIXED_OVERHEAD_SIZE
+      : this.eciesConsts.SIMPLE.FIXED_OVERHEAD_SIZE;
 
     if (data.length < requiredSize) {
       throw new Error(
@@ -170,26 +173,25 @@ export class EciesSingleRecipient {
     // Extract header components
     const ephemeralPublicKey = data.slice(
       offset,
-      offset + ECIES.PUBLIC_KEY_LENGTH,
+      offset + this.eciesConsts.PUBLIC_KEY_LENGTH,
     );
-    offset += ECIES.PUBLIC_KEY_LENGTH;
+    offset += this.eciesConsts.PUBLIC_KEY_LENGTH;
 
     const normalizedKey =
       this.cryptoCore.normalizePublicKey(ephemeralPublicKey);
 
-    const iv = data.slice(offset, offset + ECIES.IV_SIZE);
-    offset += ECIES.IV_SIZE;
+    const iv = data.slice(offset, offset + this.eciesConsts.IV_SIZE);
+    offset += this.eciesConsts.IV_SIZE;
 
-    const authTag = data.slice(offset, offset + ECIES.AUTH_TAG_SIZE);
-    offset += ECIES.AUTH_TAG_SIZE;
-
+    const authTag = data.slice(offset, offset + this.eciesConsts.AUTH_TAG_SIZE);
+    offset += this.eciesConsts.AUTH_TAG_SIZE;
     // Extract length for single mode
     const dataLengthArray = includeLengthAndCrc
-      ? data.slice(offset, offset + ECIES.SINGLE.DATA_LENGTH_SIZE)
+      ? data.slice(offset, offset + this.eciesConsts.SINGLE.DATA_LENGTH_SIZE)
       : new Uint8Array(0);
 
     if (includeLengthAndCrc) {
-      offset += ECIES.SINGLE.DATA_LENGTH_SIZE;
+      offset += this.eciesConsts.SINGLE.DATA_LENGTH_SIZE;
     }
 
     const dataLength = includeLengthAndCrc
@@ -230,8 +232,8 @@ export class EciesSingleRecipient {
         authTag,
         dataLength,
         headerSize: includeLengthAndCrc
-          ? ECIES.SINGLE.FIXED_OVERHEAD_SIZE
-          : ECIES.SIMPLE.FIXED_OVERHEAD_SIZE,
+          ? this.eciesConsts.SINGLE.FIXED_OVERHEAD_SIZE
+          : this.eciesConsts.SIMPLE.FIXED_OVERHEAD_SIZE,
       },
       data: encryptedData,
       remainder,
@@ -310,7 +312,7 @@ export class EciesSingleRecipient {
     );
 
     // Use first 32 bytes as symmetric key
-    const symKey = sharedSecret.slice(0, ECIES.SYMMETRIC.KEY_SIZE);
+    const symKey = sharedSecret.slice(0, this.eciesConsts.SYMMETRIC.KEY_SIZE);
 
     // Combine encrypted data with auth tag for AES-GCM
     const encryptedWithTag = AESGCMService.combineEncryptedDataAndTag(
@@ -319,7 +321,7 @@ export class EciesSingleRecipient {
     );
 
     // Decrypt
-    return await AESGCMService.decrypt(iv, encryptedWithTag, symKey, true);
+    return await AESGCMService.decrypt(iv, encryptedWithTag, symKey, true, this.eciesConsts);
   }
 
   private arraysEqual(a: Uint8Array, b: Uint8Array): boolean {

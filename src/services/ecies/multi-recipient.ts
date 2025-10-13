@@ -1,3 +1,4 @@
+import { IECIESConstants } from '../../interfaces/ecies-consts';
 import { ECIES } from '../../constants';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { concatUint8Arrays } from '../../utils';
@@ -13,10 +14,12 @@ import {
  * Browser-compatible multi-recipient ECIES encryption/decryption
  */
 export class EciesMultiRecipient {
-  private readonly cryptoCore: EciesCryptoCore;
+  protected readonly cryptoCore: EciesCryptoCore;
+  protected readonly eciesConsts: IECIESConstants;
 
-  constructor(config: IECIESConfig) {
-    this.cryptoCore = new EciesCryptoCore(config);
+  constructor(config: IECIESConfig, eciesParams?: IECIESConstants) {
+    this.cryptoCore = new EciesCryptoCore(config, eciesParams);
+    this.eciesConsts = eciesParams ?? ECIES;
   }
 
   /**
@@ -24,10 +27,10 @@ export class EciesMultiRecipient {
    */
   public getHeaderSize(recipientCount: number): number {
     return (
-      ECIES.MULTIPLE.DATA_LENGTH_SIZE +
-      ECIES.MULTIPLE.RECIPIENT_COUNT_SIZE +
-      recipientCount * ECIES.MULTIPLE.RECIPIENT_ID_SIZE +
-      recipientCount * ECIES.MULTIPLE.ENCRYPTED_KEY_SIZE
+      this.eciesConsts.MULTIPLE.DATA_LENGTH_SIZE +
+      this.eciesConsts.MULTIPLE.RECIPIENT_COUNT_SIZE +
+      recipientCount * this.eciesConsts.MULTIPLE.RECIPIENT_ID_SIZE +
+      recipientCount * this.eciesConsts.MULTIPLE.ENCRYPTED_KEY_SIZE
     );
   }
 
@@ -47,12 +50,13 @@ export class EciesMultiRecipient {
       receiverPublicKey,
     );
 
-    const symKey = sharedSecret.slice(0, ECIES.SYMMETRIC.KEY_SIZE);
+    const symKey = sharedSecret.slice(0, this.eciesConsts.SYMMETRIC.KEY_SIZE);
 
     const encryptResult = await AESGCMService.encrypt(
       messageSymmetricKey,
       symKey,
       true,
+      this.eciesConsts
     );
     const { encrypted, iv } = encryptResult;
     const authTag = encryptResult.tag;
@@ -79,30 +83,30 @@ export class EciesMultiRecipient {
     privateKey: Uint8Array,
     encryptedKey: Uint8Array,
   ): Promise<Uint8Array> {
-    if (encryptedKey.length !== ECIES.MULTIPLE.ENCRYPTED_KEY_SIZE) {
+    if (encryptedKey.length !== this.eciesConsts.MULTIPLE.ENCRYPTED_KEY_SIZE) {
       throw new Error(
-        `Invalid encrypted key length: expected ${ECIES.MULTIPLE.ENCRYPTED_KEY_SIZE}, got ${encryptedKey.length}`,
+        `Invalid encrypted key length: expected ${this.eciesConsts.MULTIPLE.ENCRYPTED_KEY_SIZE}, got ${encryptedKey.length}`,
       );
     }
 
-    const ephemeralPublicKey = encryptedKey.slice(0, ECIES.PUBLIC_KEY_LENGTH);
+    const ephemeralPublicKey = encryptedKey.slice(0, this.eciesConsts.PUBLIC_KEY_LENGTH);
     const iv = encryptedKey.slice(
-      ECIES.PUBLIC_KEY_LENGTH,
-      ECIES.PUBLIC_KEY_LENGTH + ECIES.IV_SIZE,
+      this.eciesConsts.PUBLIC_KEY_LENGTH,
+      this.eciesConsts.PUBLIC_KEY_LENGTH + this.eciesConsts.IV_SIZE,
     );
     const authTag = encryptedKey.slice(
-      ECIES.PUBLIC_KEY_LENGTH + ECIES.IV_SIZE,
-      ECIES.PUBLIC_KEY_LENGTH + ECIES.IV_SIZE + ECIES.AUTH_TAG_SIZE,
+      this.eciesConsts.PUBLIC_KEY_LENGTH + this.eciesConsts.IV_SIZE,
+      this.eciesConsts.PUBLIC_KEY_LENGTH + this.eciesConsts.IV_SIZE + this.eciesConsts.AUTH_TAG_SIZE,
     );
     const encrypted = encryptedKey.slice(
-      ECIES.PUBLIC_KEY_LENGTH + ECIES.IV_SIZE + ECIES.AUTH_TAG_SIZE,
+      this.eciesConsts.PUBLIC_KEY_LENGTH + this.eciesConsts.IV_SIZE + this.eciesConsts.AUTH_TAG_SIZE,
     );
 
     const sharedSecret = await this.cryptoCore.computeSharedSecret(
       privateKey,
       ephemeralPublicKey,
     );
-    const symKey = sharedSecret.slice(0, ECIES.SYMMETRIC.KEY_SIZE);
+    const symKey = sharedSecret.slice(0, this.eciesConsts.SYMMETRIC.KEY_SIZE);
 
     const encryptedWithTag = AESGCMService.combineEncryptedDataAndTag(
       encrypted,
@@ -115,8 +119,9 @@ export class EciesMultiRecipient {
         encryptedWithTag,
         symKey,
         true,
+        this.eciesConsts
       );
-      if (decrypted.length !== ECIES.SYMMETRIC.KEY_SIZE) {
+      if (decrypted.length !== this.eciesConsts.SYMMETRIC.KEY_SIZE) {
         throw new Error('Invalid data length');
       }
       return decrypted;
@@ -134,17 +139,17 @@ export class EciesMultiRecipient {
     message: Uint8Array,
     preamble: Uint8Array = new Uint8Array(0),
   ): Promise<IMultiEncryptedMessage> {
-    if (recipients.length > ECIES.MULTIPLE.MAX_RECIPIENTS) {
+    if (recipients.length > this.eciesConsts.MULTIPLE.MAX_RECIPIENTS) {
       throw new Error(`Too many recipients: ${recipients.length}`);
     }
 
-    if (message.length > ECIES.MAX_RAW_DATA_SIZE) {
+    if (message.length > this.eciesConsts.MAX_RAW_DATA_SIZE) {
       throw new Error(`Message too large: ${message.length}`);
     }
 
     // Generate symmetric key
     const symmetricKey = crypto.getRandomValues(
-      new Uint8Array(ECIES.SYMMETRIC.KEY_SIZE),
+      new Uint8Array(this.eciesConsts.SYMMETRIC.KEY_SIZE),
     );
 
     // Encrypt message with symmetric key
@@ -152,6 +157,7 @@ export class EciesMultiRecipient {
       message,
       symmetricKey,
       true,
+      this.eciesConsts
     );
     const { encrypted, iv } = encryptResult;
     const authTag = encryptResult.tag;
@@ -217,15 +223,15 @@ export class EciesMultiRecipient {
     let offset = 0;
     const iv = encryptedData.encryptedMessage.slice(
       offset,
-      offset + ECIES.IV_SIZE,
+      offset + this.eciesConsts.IV_SIZE,
     );
-    offset += ECIES.IV_SIZE;
+    offset += this.eciesConsts.IV_SIZE;
 
     const authTag = encryptedData.encryptedMessage.slice(
       offset,
-      offset + ECIES.AUTH_TAG_SIZE,
+      offset + this.eciesConsts.AUTH_TAG_SIZE,
     );
-    offset += ECIES.AUTH_TAG_SIZE;
+    offset += this.eciesConsts.AUTH_TAG_SIZE;
 
     const encrypted = encryptedData.encryptedMessage.slice(offset);
 
@@ -242,6 +248,7 @@ export class EciesMultiRecipient {
       encryptedWithTag,
       symmetricKey,
       true,
+      this.eciesConsts
     );
 
     // Verify length
@@ -260,7 +267,7 @@ export class EciesMultiRecipient {
       throw new Error('Recipient count mismatch');
     }
 
-    if (data.dataLength < 0 || data.dataLength > ECIES.MAX_RAW_DATA_SIZE) {
+    if (data.dataLength < 0 || data.dataLength > this.eciesConsts.MAX_RAW_DATA_SIZE) {
       throw new Error('Invalid data length');
     }
 
@@ -310,7 +317,7 @@ export class EciesMultiRecipient {
     const dataLength = Number(view.getBigUint64(offset, false));
     offset += 8;
 
-    if (dataLength <= 0 || dataLength > ECIES.MAX_RAW_DATA_SIZE) {
+    if (dataLength <= 0 || dataLength > this.eciesConsts.MAX_RAW_DATA_SIZE) {
       throw new Error('Invalid data length');
     }
 
@@ -318,7 +325,7 @@ export class EciesMultiRecipient {
     const recipientCount = view.getUint16(offset, false);
     offset += 2;
 
-    if (recipientCount <= 0 || recipientCount > ECIES.MULTIPLE.MAX_RECIPIENTS) {
+    if (recipientCount <= 0 || recipientCount > this.eciesConsts.MULTIPLE.MAX_RECIPIENTS) {
       throw new Error('Invalid recipient count');
     }
 
@@ -326,18 +333,18 @@ export class EciesMultiRecipient {
     const recipientIds: Uint8Array[] = [];
     for (let i = 0; i < recipientCount; i++) {
       recipientIds.push(
-        data.slice(offset, offset + ECIES.MULTIPLE.RECIPIENT_ID_SIZE),
+        data.slice(offset, offset + this.eciesConsts.MULTIPLE.RECIPIENT_ID_SIZE),
       );
-      offset += ECIES.MULTIPLE.RECIPIENT_ID_SIZE;
+      offset += this.eciesConsts.MULTIPLE.RECIPIENT_ID_SIZE;
     }
 
     // Read encrypted keys
     const recipientKeys: Uint8Array[] = [];
     for (let i = 0; i < recipientCount; i++) {
       recipientKeys.push(
-        data.slice(offset, offset + ECIES.MULTIPLE.ENCRYPTED_KEY_SIZE),
+        data.slice(offset, offset + this.eciesConsts.MULTIPLE.ENCRYPTED_KEY_SIZE),
       );
-      offset += ECIES.MULTIPLE.ENCRYPTED_KEY_SIZE;
+      offset += this.eciesConsts.MULTIPLE.ENCRYPTED_KEY_SIZE;
     }
 
     return {

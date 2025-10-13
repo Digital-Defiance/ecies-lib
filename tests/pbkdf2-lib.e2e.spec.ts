@@ -1,12 +1,15 @@
+import { ECIES, PBKDF2 } from '../src/constants';
 import { Pbkdf2ErrorType, Pbkdf2ProfileEnum } from '../src/enumerations';
 import { Pbkdf2Error } from '../src/errors';
 import { SecureString } from '../src/secure-string';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
-import { getCompatibleEciesEngine } from '../src/i18n-setup';
+import { EciesStringKey } from '../src/enumerations/ecies-string-key';
+import { I18nEngine, Language } from '@digitaldefiance/i18n-lib';
 
 describe('Pbkdf2Service Lib E2E', () => {
   jest.setTimeout(60000);
   let pbkdf2Service: Pbkdf2Service;
+  let mockEngine: jest.Mocked<I18nEngine<EciesStringKey, Language, any, any>>;
 
   const testPassword = new Uint8Array([
     116, 101, 115, 116, 45, 112, 97, 115, 115, 119, 111, 114, 100,
@@ -14,7 +17,36 @@ describe('Pbkdf2Service Lib E2E', () => {
   const testSalt = new Uint8Array(32).fill(42);
 
   beforeEach(() => {
-    pbkdf2Service = new Pbkdf2Service(getCompatibleEciesEngine());
+    // Create a proper mock of I18nEngine
+    mockEngine = {
+      translate: jest.fn().mockImplementation((key: string) => {
+        // Return specific error messages for the keys used in tests
+        if (key === 'Error_Pbkdf2Error_InvalidSaltLength') {
+          return 'Salt length does not match expected length';
+        }
+        if (key === 'Error_Pbkdf2Error_InvalidHashLength') {
+          return 'Hash length does not match expected length';
+        }
+        if (key === 'Error_Pbkdf2Error_InvalidProfile') {
+          return 'Invalid PBKDF2 profile specified';
+        }
+        return 'Mock translation';
+      }),
+      safeTranslate: jest.fn().mockReturnValue('Mock safe translation'),
+      translateEnum: jest.fn(),
+      registerEnum: jest.fn(),
+      getLanguageCode: jest.fn(),
+      getLanguageFromCode: jest.fn(),
+      getAllLanguageCodes: jest.fn(),
+      getAvailableLanguages: jest.fn(),
+      isLanguageAvailable: jest.fn(),
+      config: {} as any,
+      context: {} as any,
+      enumRegistry: {} as any,
+      t: jest.fn(),
+    } as any;
+    
+    pbkdf2Service = new Pbkdf2Service(mockEngine);
   });
 
   describe('Browser-Compatible Key Derivation', () => {
@@ -67,12 +99,18 @@ describe('Pbkdf2Service Lib E2E', () => {
         testPassword,
         salt1,
         1000,
+        undefined,
+        undefined,
+        undefined,
       );
 
       const result2 = await pbkdf2Service.deriveKeyFromPasswordAsync(
         testPassword,
         salt2,
         1000,
+        undefined,
+        undefined,
+        undefined,
       );
 
       expect(result1.hash).not.toEqual(result2.hash);
@@ -83,9 +121,19 @@ describe('Pbkdf2Service Lib E2E', () => {
     it('should handle random salt generation', async () => {
       const result1 = await pbkdf2Service.deriveKeyFromPasswordAsync(
         testPassword,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
       );
       const result2 = await pbkdf2Service.deriveKeyFromPasswordAsync(
         testPassword,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
       );
 
       expect(result1.salt).not.toEqual(result2.salt);
@@ -131,6 +179,9 @@ describe('Pbkdf2Service Lib E2E', () => {
           password,
           testSalt,
           1000,
+          undefined,
+          undefined,
+          undefined,
         );
 
         expect(result.hash).toBeInstanceOf(Uint8Array);
@@ -147,6 +198,9 @@ describe('Pbkdf2Service Lib E2E', () => {
             testPassword,
             testSalt,
             iter,
+            undefined,
+            undefined,
+            undefined,
           ),
         ),
       );
@@ -252,18 +306,18 @@ describe('Pbkdf2Service Lib E2E', () => {
       const shortSalt = new Uint8Array(15); // Too short for default config
 
       await expect(
-        pbkdf2Service.deriveKeyFromPasswordAsync(testPassword, shortSalt),
+        pbkdf2Service.deriveKeyFromPasswordAsync(testPassword, shortSalt, undefined, undefined, undefined, undefined),
       ).rejects.toThrow(Pbkdf2Error);
     });
 
     it('should handle invalid inputs gracefully', async () => {
       // Invalid iterations
       await expect(
-        pbkdf2Service.deriveKeyFromPasswordAsync(testPassword, testSalt, -1),
+        pbkdf2Service.deriveKeyFromPasswordAsync(testPassword, testSalt, -1, undefined, undefined, undefined),
       ).rejects.toThrow();
 
       await expect(
-        pbkdf2Service.deriveKeyFromPasswordAsync(testPassword, testSalt, 0),
+        pbkdf2Service.deriveKeyFromPasswordAsync(testPassword, testSalt, 0, undefined, undefined, undefined),
       ).rejects.toThrow();
     });
 
@@ -271,7 +325,7 @@ describe('Pbkdf2Service Lib E2E', () => {
       const shortSalt = new Uint8Array(15);
 
       try {
-        await pbkdf2Service.deriveKeyFromPasswordAsync(testPassword, shortSalt);
+        await pbkdf2Service.deriveKeyFromPasswordAsync(testPassword, shortSalt, undefined, undefined, undefined, undefined);
         fail('Should have thrown Pbkdf2Error');
       } catch (error) {
         expect(error).toBeInstanceOf(Pbkdf2Error);
@@ -436,6 +490,9 @@ describe('Pbkdf2Service Lib E2E', () => {
         securePassword.valueAsUint8Array,
         testSalt,
         1000,
+        undefined,
+        undefined,
+        undefined,
       );
 
       const result2 = await pbkdf2Service.deriveKeyFromPasswordAsync(

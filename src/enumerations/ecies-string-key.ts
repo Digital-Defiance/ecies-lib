@@ -64,6 +64,7 @@ export enum EciesStringKey {
   Error_LengthError_LengthIsInvalidType = 'Error_LengthError_LengthIsInvalidType',
 
   // PBKDF2 Error Types - buildReasonMap(Pbkdf2ErrorType, 'Error', 'Pbkdf2Error')
+  Error_Pbkdf2Error_InvalidProfile = 'Error_Pbkdf2Error_InvalidProfile',
   Error_Pbkdf2Error_InvalidSaltLength = 'Error_Pbkdf2Error_InvalidSaltLength',
   Error_Pbkdf2Error_InvalidHashLength = 'Error_Pbkdf2Error_InvalidHashLength',
 

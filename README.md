@@ -131,15 +131,35 @@ See `src/services/ecies/file.ts` and `tests/services/ecies/file.spec.ts` for str
 The library also addresses user authentication workflows. `PasswordLoginService` manages PBKDF2 hashing, login challenges, and secure storage, while `Pbkdf2Service` exposes low-level derivation utilities and hardened presets.
 
 ```ts
-import { PasswordLoginService, Pbkdf2Service } from '@digitaldefiance/ecies-lib';
+import { 
+  PasswordLoginService, 
+  Pbkdf2Service, 
+  Pbkdf2ProfileEnum,
+  I18nEngine 
+} from '@digitaldefiance/ecies-lib';
 
 const passwordService = new PasswordLoginService();
 
+// Create a PBKDF2 service with default profiles
+const engine = new I18nEngine(); // Your i18n engine instance
+const pbkdf2Service = new Pbkdf2Service(engine);
+
+// Or create with custom profiles
+const customProfiles = {
+  CUSTOM_PROFILE: {
+    hashBytes: 32,
+    saltBytes: 16,
+    iterations: 100000,
+    algorithm: 'SHA-256'
+  }
+};
+const customPbkdf2Service = new Pbkdf2Service(engine, customProfiles);
+
 // Derive a login hash with a hardened profile
 const passwordBytes = new TextEncoder().encode('xX_password_Xx!');
-const pbkdf2 = await Pbkdf2Service.deriveKeyFromPasswordWithProfileAsync(
+const pbkdf2Result = await pbkdf2Service.deriveKeyFromPasswordWithProfileAsync(
   passwordBytes,
-  'BROWSER_PASSWORD',
+  Pbkdf2ProfileEnum.BROWSER_PASSWORD,
 );
 
 const loginPayload = await passwordService.generateLoginPayload({
@@ -149,6 +169,43 @@ const loginPayload = await passwordService.generateLoginPayload({
 ```
 
 Check `src/services/password-login.ts` and the comprehensive spec files in `tests/password-login*.spec.ts` and `tests/pbkdf2*.spec.ts` for concrete edge cases.
+
+### PBKDF2 Service Configuration
+
+The `Pbkdf2Service` constructor accepts an optional profiles parameter, allowing you to customize or extend the default PBKDF2 configurations:
+
+```ts
+import { Pbkdf2Service, IPbkdf2Config } from '@digitaldefiance/ecies-lib';
+
+// Using default profiles from constants
+const pbkdf2Service = new Pbkdf2Service(engine);
+
+// Using custom profiles
+const customProfiles: Record<string, IPbkdf2Config> = {
+  HIGH_SECURITY: {
+    hashBytes: 64,
+    saltBytes: 32, 
+    iterations: 200000,
+    algorithm: 'SHA-512'
+  },
+  FAST_TESTING: {
+    hashBytes: 32,
+    saltBytes: 16,
+    iterations: 1000,
+    algorithm: 'SHA-256'
+  }
+};
+
+const customPbkdf2Service = new Pbkdf2Service(engine, customProfiles);
+
+// Use a custom profile
+const result = await customPbkdf2Service.deriveKeyFromPasswordWithProfileAsync(
+  passwordBytes,
+  'HIGH_SECURITY'
+);
+```
+
+This design allows for dependency injection of PBKDF2 profiles while maintaining backward compatibility with the default configurations.
 
 ## Secure primitives & value objects
 
@@ -243,6 +300,27 @@ MIT © Digital Defiance
 [https://github.com/Digital-Defiance/ecies-lib](https://github.com/Digital-Defiance/ecies-lib)
 
 ## ChangeLog
+
+### v1.0.24: Rework pbdkf2 services, and other things and provide ways of overriding constants
+
+- Sun Oct 12 2025 18:25:00 GMT-0700 (Pacific Daylight Time)
+  - Refactor Pbkdf2Service to accept custom profiles via constructor instead of using static constants
+  - Add dependency injection support for ECIES constants across all crypto services
+  - Update all service classes (AESGCMService, ECIESService, etc.) to accept configurable parameters
+  - Add new InvalidProfile error type with multilingual support (en, fr, zh, es, uk)
+  - Update Member class to support custom ECIES parameters in wallet operations
+  - Refactor tests to use mocked I18nEngine instead of global instance
+  - Maintain backward compatibility with default constants when no custom params provided
+  - Update README with examples showing custom profile configuration
+  - Bump version to 1.0.24
+
+  Breaking Changes:
+  - Pbkdf2Service constructor now requires I18nEngine as first parameter
+  - Service classes now accept optional parameter objects for customization
+  - Test setup requires explicit I18nEngine mocking
+
+  This change enables better testability, configurability, and dependency injection
+  while maintaining existing API compatibility for default use cases.
 
 ### v1.0.23: Patch release to fix constant exports
 

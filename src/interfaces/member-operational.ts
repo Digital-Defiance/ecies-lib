@@ -5,6 +5,7 @@ import { GuidV4 } from '../guid';
 import { SecureBuffer } from '../secure-buffer';
 import { SecureString } from '../secure-string';
 import { SignatureUint8Array } from '../types';
+import { IECIESConstants } from './ecies-consts';
 
 /**
  * Operational interface for member - defines getters and methods
@@ -39,7 +40,7 @@ export interface IMemberOperational<
   toJson(): string;
 
   // Private key management
-  loadWallet(mnemonic: SecureString): void;
+  loadWallet(mnemonic: SecureString, eciesParams?: IECIESConstants): void;
   unloadPrivateKey(): void;
   unloadWallet(): void;
   unloadWalletAndPrivateKey(): void;
@@ -48,6 +49,6 @@ export interface IMemberOperational<
 /**
  * Extended operational interface for test members
  */
-export interface ITestBrightChainMemberOperational extends IMemberOperational {
+export interface ITestMemberOperational extends IMemberOperational {
   get mnemonic(): SecureString | undefined;
 }

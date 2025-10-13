@@ -14,7 +14,7 @@ describe('AESGCMService', () => {
 
   describe('encrypt', () => {
     it('should encrypt data without auth tag', async () => {
-      const result = await AESGCMService.encrypt(testData, key256, false);
+      const result = await AESGCMService.encrypt(testData, key256, false, ECIES);
       
       expect(result.encrypted).toBeInstanceOf(Uint8Array);
       expect(result.iv).toBeInstanceOf(Uint8Array);
@@ -24,7 +24,7 @@ describe('AESGCMService', () => {
     });
 
     it('should encrypt data with auth tag', async () => {
-      const result = await AESGCMService.encrypt(testData, key256, true);
+      const result = await AESGCMService.encrypt(testData, key256, true, ECIES);
       
       expect(result.encrypted).toBeInstanceOf(Uint8Array);
       expect(result.iv).toBeInstanceOf(Uint8Array);
@@ -34,29 +34,29 @@ describe('AESGCMService', () => {
     });
 
     it('should work with 128-bit key', async () => {
-      const result = await AESGCMService.encrypt(testData, key128, false);
+      const result = await AESGCMService.encrypt(testData, key128, false, ECIES);
       
       expect(result.encrypted).toBeInstanceOf(Uint8Array);
       expect(result.iv).toBeInstanceOf(Uint8Array);
     });
 
     it('should generate different IVs for each encryption', async () => {
-      const result1 = await AESGCMService.encrypt(testData, key256, false);
+      const result1 = await AESGCMService.encrypt(testData, key256, false, ECIES);
       const result2 = await AESGCMService.encrypt(testData, key256, false);
       
       expect(result1.iv).not.toEqual(result2.iv);
     });
 
     it('should produce different ciphertext with different IVs', async () => {
-      const result1 = await AESGCMService.encrypt(testData, key256, false);
-      const result2 = await AESGCMService.encrypt(testData, key256, false);
+      const result1 = await AESGCMService.encrypt(testData, key256, false, ECIES);
+      const result2 = await AESGCMService.encrypt(testData, key256, false, ECIES);
       
       expect(result1.encrypted).not.toEqual(result2.encrypted);
     });
 
     it('should handle empty data', async () => {
       const emptyData = new Uint8Array(0);
-      const result = await AESGCMService.encrypt(emptyData, key256, false);
+      const result = await AESGCMService.encrypt(emptyData, key256, false, ECIES);
       
       expect(result.encrypted).toBeInstanceOf(Uint8Array);
       expect(result.iv).toBeInstanceOf(Uint8Array);
@@ -66,77 +66,77 @@ describe('AESGCMService', () => {
       const invalidKey = new Uint8Array(15); // Invalid key size
       
       await expect(
-        AESGCMService.encrypt(testData, invalidKey, false)
+        AESGCMService.encrypt(testData, invalidKey, false, ECIES)
       ).rejects.toThrow();
     });
   });
 
   describe('decrypt', () => {
     it('should decrypt data without auth tag', async () => {
-      const { encrypted, iv } = await AESGCMService.encrypt(testData, key256, false);
-      const decrypted = await AESGCMService.decrypt(iv, encrypted, key256, false);
+      const { encrypted, iv } = await AESGCMService.encrypt(testData, key256, false, ECIES);
+      const decrypted = await AESGCMService.decrypt(iv, encrypted, key256, false, ECIES);
       
       expect(decrypted).toEqual(testData);
     });
 
     it('should decrypt data with auth tag', async () => {
-      const { encrypted, iv, tag } = await AESGCMService.encrypt(testData, key256, true);
+      const { encrypted, iv, tag } = await AESGCMService.encrypt(testData, key256, true, ECIES);
       const encryptedWithTag = AESGCMService.combineEncryptedDataAndTag(encrypted, tag!);
-      const decrypted = await AESGCMService.decrypt(iv, encryptedWithTag, key256, true);
+      const decrypted = await AESGCMService.decrypt(iv, encryptedWithTag, key256, true, ECIES);
       
       expect(decrypted).toEqual(testData);
     });
 
     it('should work with 128-bit key', async () => {
-      const { encrypted, iv } = await AESGCMService.encrypt(testData, key128, false);
-      const decrypted = await AESGCMService.decrypt(iv, encrypted, key128, false);
+      const { encrypted, iv } = await AESGCMService.encrypt(testData, key128, false, ECIES);
+      const decrypted = await AESGCMService.decrypt(iv, encrypted, key128, false, ECIES);
       
       expect(decrypted).toEqual(testData);
     });
 
     it('should handle empty data', async () => {
       const emptyData = new Uint8Array(0);
-      const { encrypted, iv } = await AESGCMService.encrypt(emptyData, key256, false);
-      const decrypted = await AESGCMService.decrypt(iv, encrypted, key256, false);
+      const { encrypted, iv } = await AESGCMService.encrypt(emptyData, key256, false, ECIES);
+      const decrypted = await AESGCMService.decrypt(iv, encrypted, key256, false, ECIES);
       
       expect(decrypted).toEqual(emptyData);
     });
 
     it('should fail with wrong key', async () => {
-      const { encrypted, iv } = await AESGCMService.encrypt(testData, key256, false);
+      const { encrypted, iv } = await AESGCMService.encrypt(testData, key256, false, ECIES);
       const wrongKey = crypto.getRandomValues(new Uint8Array(32));
       
       await expect(
-        AESGCMService.decrypt(iv, encrypted, wrongKey, false)
+        AESGCMService.decrypt(iv, encrypted, wrongKey, false, ECIES)
       ).rejects.toThrow();
     });
 
     it('should fail with wrong IV', async () => {
-      const { encrypted } = await AESGCMService.encrypt(testData, key256, false);
+      const { encrypted } = await AESGCMService.encrypt(testData, key256, false, ECIES);
       const wrongIv = crypto.getRandomValues(new Uint8Array(ECIES.IV_SIZE));
       
       await expect(
-        AESGCMService.decrypt(wrongIv, encrypted, key256, false)
+        AESGCMService.decrypt(wrongIv, encrypted, key256, false, ECIES)
       ).rejects.toThrow();
     });
 
     it('should fail with corrupted ciphertext', async () => {
-      const { encrypted, iv } = await AESGCMService.encrypt(testData, key256, false);
+      const { encrypted, iv } = await AESGCMService.encrypt(testData, key256, false, ECIES);
       const corrupted = new Uint8Array(encrypted);
       corrupted[0] ^= 1; // Flip a bit
       
       await expect(
-        AESGCMService.decrypt(iv, corrupted, key256, false)
+        AESGCMService.decrypt(iv, corrupted, key256, false, ECIES)
       ).rejects.toThrow();
     });
 
     it('should fail with wrong auth tag', async () => {
-      const { encrypted, iv, tag } = await AESGCMService.encrypt(testData, key256, true);
+      const { encrypted, iv, tag } = await AESGCMService.encrypt(testData, key256, true, ECIES);
       const wrongTag = crypto.getRandomValues(new Uint8Array(ECIES.AUTH_TAG_SIZE));
       const encryptedWithWrongTag = AESGCMService.combineEncryptedDataAndTag(encrypted, wrongTag);
       
       await expect(
-        AESGCMService.decrypt(iv, encryptedWithWrongTag, key256, true)
+        AESGCMService.decrypt(iv, encryptedWithWrongTag, key256, true, ECIES)
       ).rejects.toThrow();
     });
 
@@ -147,7 +147,7 @@ describe('AESGCMService', () => {
       const encryptedWithCorruptedTag = AESGCMService.combineEncryptedDataAndTag(encrypted, corruptedTag);
       
       await expect(
-        AESGCMService.decrypt(iv, encryptedWithCorruptedTag, key256, true)
+        AESGCMService.decrypt(iv, encryptedWithCorruptedTag, key256, true, ECIES)
       ).rejects.toThrow();
     });
   });
@@ -233,7 +233,7 @@ describe('AESGCMService', () => {
       const originalTag = crypto.getRandomValues(new Uint8Array(ECIES.AUTH_TAG_SIZE));
       
       const combined = AESGCMService.combineIvTagAndEncryptedData(originalIv, originalEncrypted, originalTag);
-      const { iv, encryptedDataWithTag } = AESGCMService.splitEncryptedData(combined, true);
+      const { iv, encryptedDataWithTag } = AESGCMService.splitEncryptedData(combined, true, ECIES);
       
       expect(iv).toEqual(originalIv);
       expect(encryptedDataWithTag).toEqual(AESGCMService.combineEncryptedDataAndTag(originalEncrypted, originalTag));
@@ -244,7 +244,7 @@ describe('AESGCMService', () => {
       const originalEncrypted = new Uint8Array([1, 2, 3, 4, 5]);
       
       const combined = AESGCMService.combineIvAndEncryptedData(originalIv, originalEncrypted);
-      const { iv, encryptedDataWithTag } = AESGCMService.splitEncryptedData(combined, false);
+      const { iv, encryptedDataWithTag } = AESGCMService.splitEncryptedData(combined, false, ECIES);
       
       expect(iv).toEqual(originalIv);
       expect(encryptedDataWithTag).toEqual(originalEncrypted);
@@ -256,7 +256,7 @@ describe('AESGCMService', () => {
       const originalTag = crypto.getRandomValues(new Uint8Array(ECIES.AUTH_TAG_SIZE));
       
       const combined = AESGCMService.combineIvTagAndEncryptedData(originalIv, originalEncrypted, originalTag);
-      const { iv, encryptedDataWithTag } = AESGCMService.splitEncryptedData(combined, true);
+      const { iv, encryptedDataWithTag } = AESGCMService.splitEncryptedData(combined, true, ECIES);
       
       expect(iv).toEqual(originalIv);
       expect(encryptedDataWithTag).toEqual(originalTag); // Only tag since encrypted data is empty
@@ -266,7 +266,7 @@ describe('AESGCMService', () => {
       const tooShort = new Uint8Array(10); // Less than IV length (16)
       
       expect(() => {
-        AESGCMService.splitEncryptedData(tooShort, true);
+        AESGCMService.splitEncryptedData(tooShort, true, ECIES);
       }).toThrow('Combined data is too short to contain required components');
     });
 
@@ -274,7 +274,7 @@ describe('AESGCMService', () => {
       const tooShort = new Uint8Array(20); // Less than IV (16) + tag (16) = 32
       
       expect(() => {
-        AESGCMService.splitEncryptedData(tooShort, true);
+        AESGCMService.splitEncryptedData(tooShort, true, ECIES);
       }).toThrow('Combined data is too short to contain required components');
     });
   });
@@ -282,40 +282,40 @@ describe('AESGCMService', () => {
   describe('Integration tests', () => {
     it('should encrypt and decrypt large data', async () => {
       const largeData = crypto.getRandomValues(new Uint8Array(64 * 1024)); // 64KB
-      
-      const { encrypted, iv, tag } = await AESGCMService.encrypt(largeData, key256, true);
+
+      const { encrypted, iv, tag } = await AESGCMService.encrypt(largeData, key256, true, ECIES);
       const encryptedWithTag = AESGCMService.combineEncryptedDataAndTag(encrypted, tag!);
-      const decrypted = await AESGCMService.decrypt(iv, encryptedWithTag, key256, true);
-      
+      const decrypted = await AESGCMService.decrypt(iv, encryptedWithTag, key256, true, ECIES);
+
       expect(decrypted).toEqual(largeData);
     });
 
     it('should work with combined data format', async () => {
-      const { encrypted, iv, tag } = await AESGCMService.encrypt(testData, key256, true);
+      const { encrypted, iv, tag } = await AESGCMService.encrypt(testData, key256, true, ECIES);
       const encryptedWithTag = AESGCMService.combineEncryptedDataAndTag(encrypted, tag!);
-      const decrypted = await AESGCMService.decrypt(iv, encryptedWithTag, key256, true);
+      const decrypted = await AESGCMService.decrypt(iv, encryptedWithTag, key256, true, ECIES);
       
       expect(decrypted).toEqual(testData);
     });
 
     it('should work with full combined format', async () => {
-      const { encrypted, iv, tag } = await AESGCMService.encrypt(testData, key256, true);
+      const { encrypted, iv, tag } = await AESGCMService.encrypt(testData, key256, true, ECIES);
       const fullCombined = AESGCMService.combineIvTagAndEncryptedData(iv, encrypted, tag!);
       
       // Extract components back using new split method
-      const { iv: extractedIv, encryptedDataWithTag } = AESGCMService.splitEncryptedData(fullCombined, true);
-      const decrypted = await AESGCMService.decrypt(extractedIv, encryptedDataWithTag, key256, true);
+      const { iv: extractedIv, encryptedDataWithTag } = AESGCMService.splitEncryptedData(fullCombined, true, ECIES);
+      const decrypted = await AESGCMService.decrypt(extractedIv, encryptedDataWithTag, key256, true, ECIES);
       
       expect(decrypted).toEqual(testData);
     });
 
     it('should work with splitEncryptedData for data without auth tag', async () => {
-      const { encrypted, iv } = await AESGCMService.encrypt(testData, key256, false);
+      const { encrypted, iv } = await AESGCMService.encrypt(testData, key256, false, ECIES);
       const combined = AESGCMService.combineIvAndEncryptedData(iv, encrypted);
       
       // Split using new method
-      const { iv: extractedIv, encryptedDataWithTag } = AESGCMService.splitEncryptedData(combined, false);
-      const decrypted = await AESGCMService.decrypt(extractedIv, encryptedDataWithTag, key256, false);
+      const { iv: extractedIv, encryptedDataWithTag } = AESGCMService.splitEncryptedData(combined, false, ECIES);
+      const decrypted = await AESGCMService.decrypt(extractedIv, encryptedDataWithTag, key256, false, ECIES);
       
       expect(decrypted).toEqual(testData);
     });
@@ -324,9 +324,9 @@ describe('AESGCMService', () => {
       let data: Uint8Array = testData;
       
       for (let i = 0; i < 5; i++) {
-        const { encrypted, iv, tag } = await AESGCMService.encrypt(data, key256, true);
+        const { encrypted, iv, tag } = await AESGCMService.encrypt(data, key256, true, ECIES);
         const encryptedWithTag = AESGCMService.combineEncryptedDataAndTag(encrypted, tag!);
-        data = await AESGCMService.decrypt(iv, encryptedWithTag, key256, true);
+        data = await AESGCMService.decrypt(iv, encryptedWithTag, key256, true, ECIES);
       }
       
       expect(data).toEqual(testData);
@@ -334,10 +334,10 @@ describe('AESGCMService', () => {
 
     it('should handle different key sizes correctly', async () => {
       const key192 = crypto.getRandomValues(new Uint8Array(24)); // 192-bit key
-      
-      const { encrypted, iv } = await AESGCMService.encrypt(testData, key192, false);
-      const decrypted = await AESGCMService.decrypt(iv, encrypted, key192, false);
-      
+
+      const { encrypted, iv } = await AESGCMService.encrypt(testData, key192, false, ECIES);
+      const decrypted = await AESGCMService.decrypt(iv, encrypted, key192, false, ECIES);
+
       expect(decrypted).toEqual(testData);
     });
   });
@@ -345,26 +345,26 @@ describe('AESGCMService', () => {
   describe('Error handling', () => {
     it('should handle invalid key inputs', async () => {
       await expect(
-        AESGCMService.encrypt(testData, null as any, false)
+        AESGCMService.encrypt(testData, null as any, false, ECIES)
       ).rejects.toThrow();
     });
 
     it('should handle invalid IV length', async () => {
-      const { encrypted } = await AESGCMService.encrypt(testData, key256, false);
+      const { encrypted } = await AESGCMService.encrypt(testData, key256, false, ECIES);
       const invalidIv = new Uint8Array(10); // Wrong length
       
       await expect(
-        AESGCMService.decrypt(invalidIv, encrypted, key256, false)
+        AESGCMService.decrypt(invalidIv, encrypted, key256, false, ECIES)
       ).rejects.toThrow();
     });
 
     it('should handle invalid tag length', async () => {
-      const { encrypted, iv } = await AESGCMService.encrypt(testData, key256, true);
+      const { encrypted, iv } = await AESGCMService.encrypt(testData, key256, true, ECIES);
       const invalidTag = new Uint8Array(10); // Wrong length
       const encryptedWithInvalidTag = AESGCMService.combineEncryptedDataAndTag(encrypted, invalidTag);
       
       await expect(
-        AESGCMService.decrypt(iv, encryptedWithInvalidTag, key256, true)
+        AESGCMService.decrypt(iv, encryptedWithInvalidTag, key256, true, ECIES)
       ).rejects.toThrow();
     });
 
@@ -379,7 +379,7 @@ describe('AESGCMService', () => {
 
       for (const invalidKey of invalidKeys) {
         await expect(
-          AESGCMService.encrypt(testData, invalidKey, false)
+          AESGCMService.encrypt(testData, invalidKey, false, ECIES)
         ).rejects.toThrow();
       }
     });

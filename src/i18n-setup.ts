@@ -133,6 +133,8 @@ export function initEciesI18nEngine() {
       'Length is of an invalid type.',
 
     // PBKDF2 Error Types - buildReasonMap(Pbkdf2ErrorType, 'Error', 'Pbkdf2Error')
+    [EciesStringKey.Error_Pbkdf2Error_InvalidProfile]:
+      'Invalid PBKDF2 profile specified',
     [EciesStringKey.Error_Pbkdf2Error_InvalidSaltLength]:
       'Salt length does not match expected length',
     [EciesStringKey.Error_Pbkdf2Error_InvalidHashLength]:
@@ -266,6 +268,8 @@ export function initEciesI18nEngine() {
       'La longueur est d’un type invalide.',
 
     // PBKDF2 Error Types - buildReasonMap(Pbkdf2ErrorType, 'Error', 'Pbkdf2Error')
+    [EciesStringKey.Error_Pbkdf2Error_InvalidProfile]:
+      'Profil PBKDF2 invalide spécifié',
     [EciesStringKey.Error_Pbkdf2Error_InvalidSaltLength]:
       'La longueur du sel ne correspond pas à celle attendue',
     [EciesStringKey.Error_Pbkdf2Error_InvalidHashLength]:
@@ -373,6 +377,7 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_LengthError_LengthIsInvalidType]: '长度类型无效。',
 
     // PBKDF2 Error Types - buildReasonMap(Pbkdf2ErrorType, 'Error', 'Pbkdf2Error')
+    [EciesStringKey.Error_Pbkdf2Error_InvalidProfile]: '指定的PBKDF2配置文件无效',
     [EciesStringKey.Error_Pbkdf2Error_InvalidSaltLength]: '盐值长度与预期不符',
     [EciesStringKey.Error_Pbkdf2Error_InvalidHashLength]: '哈希长度与预期不符',
 
@@ -505,6 +510,8 @@ export function initEciesI18nEngine() {
       'La longitud es de un tipo no válido.',
 
     // PBKDF2 Error Types - buildReasonMap(Pbkdf2ErrorType, 'Error', 'Pbkdf2Error')
+    [EciesStringKey.Error_Pbkdf2Error_InvalidProfile]:
+      'Perfil PBKDF2 inválido especificado',
     [EciesStringKey.Error_Pbkdf2Error_InvalidSaltLength]:
       'La longitud de la sal no coincide con la esperada',
     [EciesStringKey.Error_Pbkdf2Error_InvalidHashLength]:
@@ -639,6 +646,8 @@ export function initEciesI18nEngine() {
       'Довжина має недійсний тип.',
 
     // PBKDF2 Error Types - buildReasonMap(Pbkdf2ErrorType, 'Error', 'Pbkdf2Error')
+    [EciesStringKey.Error_Pbkdf2Error_InvalidProfile]:
+      'Вказано недійсний профіль PBKDF2',
     [EciesStringKey.Error_Pbkdf2Error_InvalidSaltLength]:
       'Довжина солі не відповідає очікуваній',
     [EciesStringKey.Error_Pbkdf2Error_InvalidHashLength]:

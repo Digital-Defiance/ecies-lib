@@ -1,3 +1,4 @@
+import { IECIESConstants } from '../interfaces/ecies-consts';
 import { ECIES } from '../constants';
 
 export abstract class AESGCMService {
@@ -12,6 +13,7 @@ export abstract class AESGCMService {
     data: Uint8Array,
     key: Uint8Array,
     authTag: boolean = false,
+    eciesParams?: IECIESConstants,
   ): Promise<{ encrypted: Uint8Array; iv: Uint8Array; tag?: Uint8Array }> {
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
@@ -21,12 +23,13 @@ export abstract class AESGCMService {
       ['encrypt'],
     );
 
-    const iv = crypto.getRandomValues(new Uint8Array(ECIES.IV_SIZE));
+    const eciesConsts = eciesParams ?? ECIES;
+    const iv = crypto.getRandomValues(new Uint8Array(eciesConsts.IV_SIZE));
     const encryptedResult = await crypto.subtle.encrypt(
       {
         name: AESGCMService.ALGORITHM_NAME,
         iv,
-        ...(authTag && { tagLength: ECIES.AUTH_TAG_SIZE * 8 }),
+        ...(authTag && { tagLength: eciesConsts.AUTH_TAG_SIZE * 8 }),
       },
       cryptoKey,
       new Uint8Array(data),
@@ -36,7 +39,7 @@ export abstract class AESGCMService {
     if (!authTag) {
       return { encrypted: encryptedArray, iv };
     }
-    const authTagLengthBytes = ECIES.AUTH_TAG_SIZE;
+    const authTagLengthBytes = eciesConsts.AUTH_TAG_SIZE;
     const encryptedBytes = encryptedArray.slice(0, -authTagLengthBytes); // Remove auth tag
     const authTagBytes = encryptedArray.slice(-authTagLengthBytes); // Last 16 bytes are auth tag
 
@@ -103,9 +106,11 @@ export abstract class AESGCMService {
   public static splitEncryptedData(
     combinedData: Uint8Array,
     hasAuthTag: boolean = true,
+    eciesParams?: IECIESConstants,
   ): { iv: Uint8Array; encryptedDataWithTag: Uint8Array } {
-    const ivLength = ECIES.IV_SIZE;
-    const tagLength = hasAuthTag ? ECIES.AUTH_TAG_SIZE : 0;
+    const eciesConsts = eciesParams ?? ECIES;
+    const ivLength = eciesConsts.IV_SIZE;
+    const tagLength = hasAuthTag ? eciesConsts.AUTH_TAG_SIZE : 0;
 
     if (combinedData.length < ivLength + tagLength) {
       throw new Error(
@@ -132,7 +137,9 @@ export abstract class AESGCMService {
     encryptedData: Uint8Array,
     key: Uint8Array,
     authTag: boolean = false,
+    eciesParams?: IECIESConstants,
   ): Promise<Uint8Array> {
+    const eciesConsts = eciesParams ?? ECIES;
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
       new Uint8Array(key),
@@ -156,7 +163,7 @@ export abstract class AESGCMService {
       {
         name: AESGCMService.ALGORITHM_NAME,
         iv: new Uint8Array(iv),
-        tagLength: ECIES.AUTH_TAG_SIZE * 8,
+        tagLength: eciesConsts.AUTH_TAG_SIZE * 8,
       },
       cryptoKey,
       new Uint8Array(encryptedData),

@@ -5,7 +5,8 @@ import { Pbkdf2Error } from '../src/errors/pbkdf2';
 import { IPbkdf2Config } from '../src/interfaces/pbkdf2-config';
 import { IPbkdf2Result } from '../src/interfaces/pbkdf2-result';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
-import { getCompatibleEciesEngine } from '../src/i18n-setup';
+import { EciesStringKey } from '../src/enumerations/ecies-string-key';
+import { I18nEngine, Language } from '@digitaldefiance/i18n-lib';
 
 // Mock crypto.subtle for testing
 const mockCrypto = {
@@ -25,10 +26,41 @@ Object.defineProperty(global, 'crypto', {
 
 describe('Pbkdf2Service', () => {
   let pbkdf2Service: Pbkdf2Service;
+  let mockEngine: jest.Mocked<I18nEngine<EciesStringKey, Language, any, any>>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    pbkdf2Service = new Pbkdf2Service(getCompatibleEciesEngine());
+    
+    // Create a proper mock of I18nEngine
+    mockEngine = {
+      translate: jest.fn().mockImplementation((key: string) => {
+        // Return specific error messages for the keys used in tests
+        if (key === 'Error_Pbkdf2Error_InvalidSaltLength') {
+          return 'Salt length does not match expected length';
+        }
+        if (key === 'Error_Pbkdf2Error_InvalidHashLength') {
+          return 'Hash length does not match expected length';
+        }
+        if (key === 'Error_Pbkdf2Error_InvalidProfile') {
+          return 'Invalid PBKDF2 profile specified';
+        }
+        return 'Mock translation';
+      }),
+      safeTranslate: jest.fn().mockReturnValue('Mock safe translation'),
+      translateEnum: jest.fn(),
+      registerEnum: jest.fn(),
+      getLanguageCode: jest.fn(),
+      getLanguageFromCode: jest.fn(),
+      getAllLanguageCodes: jest.fn(),
+      getAvailableLanguages: jest.fn(),
+      isLanguageAvailable: jest.fn(),
+      config: {} as any,
+      context: {} as any,
+      enumRegistry: {} as any,
+      t: jest.fn(),
+    } as any;
+    
+    pbkdf2Service = new Pbkdf2Service(mockEngine);
 
     // Default mock implementations
     mockCrypto.getRandomValues.mockImplementation((array: Uint8Array) => {

@@ -9,21 +9,25 @@ import { Pbkdf2Service } from './pbkdf2';
 import { TranslatableError, TypedHandleableError } from '../errors';
 import { EciesStringKey, PasswordLoginErrorTypeEnum } from '../enumerations';
 import { buildReasonMap, I18nEngine, Language } from '@digitaldefiance/i18n-lib';
+import { IECIESConstants } from '../interfaces/ecies-consts';
+import { ECIES } from '../constants';
 
 
 export class PasswordLoginService {
   protected readonly eciesService: ECIESService;
   protected readonly pbkdf2Service: Pbkdf2Service;
   protected readonly engine: I18nEngine<EciesStringKey, Language, any, any>;
+  protected readonly eciesConsts: IECIESConstants;
   public static readonly privateKeyStorageKey = 'encryptedPrivateKey';
   public static readonly saltStorageKey = 'passwordLoginSalt';
   public static readonly encryptedMnemonicStorageKey = 'encryptedMnemonic';
   public static readonly profileStorageKey = 'pbkdf2Profile';
 
-  constructor(eciesService: ECIESService, pbkdf2Service: Pbkdf2Service, engine: I18nEngine<EciesStringKey, Language, any, any>) {
+  constructor(eciesService: ECIESService, pbkdf2Service: Pbkdf2Service, engine: I18nEngine<EciesStringKey, Language, any, any>, eciesParams?: IECIESConstants) {
     this.eciesService = eciesService;
     this.pbkdf2Service = pbkdf2Service;
     this.engine = engine;
+    this.eciesConsts = eciesParams ?? ECIES;
   }
 
   public async createPasswordLoginBundle(
@@ -134,12 +138,14 @@ export class PasswordLoginService {
     const { iv, encryptedDataWithTag } = AESGCMService.splitEncryptedData(
       encryptedPrivateKey,
       true,
+      this.eciesConsts,
     );
     const privateKeyBytes = await AESGCMService.decrypt(
       iv,
       encryptedDataWithTag,
       derivedKey.hash,
       true,
+      this.eciesConsts,
     );
 
     const wallet = Wallet.fromPrivateKey(privateKeyBytes);

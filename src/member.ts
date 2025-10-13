@@ -1,5 +1,4 @@
 import { Wallet } from '@ethereumjs/wallet';
-
 import { ECIES } from './constants';
 import { EmailString } from './email-string';
 import MemberErrorType from './enumerations/member-error-type';
@@ -19,14 +18,12 @@ import {
   uint8ArrayToBase64,
   uint8ArrayToHex,
 } from './utils';
+import { IECIESConstants } from './interfaces/ecies-consts';
 
 /**
- * A member of Brightchain.
- * In the Owner Free Filesystem (OFF), members are used to:
- * 1. Sign and verify data
- * 2. Encrypt and decrypt data
- * 3. Participate in voting
- * 4. Establish ownership of data
+ * Represents a member with cryptographic capabilities.
+ * This class provides methods for signing, verifying, encrypting, and decrypting data.
+ * It also manages the member's keys and wallet.
  */
 export class Member implements IMemberOperational {
   private readonly _eciesService: ECIESService;
@@ -152,18 +149,19 @@ export class Member implements IMemberOperational {
     this.unloadPrivateKey();
   }
 
-  public loadWallet(mnemonic: SecureString): void {
+  public loadWallet(mnemonic: SecureString, eciesParams?: IECIESConstants): void {
     if (this._wallet) {
       throw new MemberError(
         MemberErrorType.WalletAlreadyLoaded,
         getCompatibleEciesEngine() as any,
       );
     }
+    const eciesConsts = eciesParams ?? ECIES;
     const { wallet } = this._eciesService.walletAndSeedFromMnemonic(mnemonic);
     const privateKey = wallet.getPrivateKey();
     const publicKey = wallet.getPublicKey();
     const publicKeyWithPrefix = new Uint8Array(publicKey.length + 1);
-    publicKeyWithPrefix[0] = ECIES.PUBLIC_KEY_MAGIC;
+    publicKeyWithPrefix[0] = eciesConsts.PUBLIC_KEY_MAGIC;
     publicKeyWithPrefix.set(publicKey, 1);
 
     if (
@@ -337,12 +335,14 @@ export class Member implements IMemberOperational {
   public static fromMnemonic(
     mnemonic: SecureString,
     eciesService: ECIESService,
+    eciesParams?: IECIESConstants,
   ): Member {
+    const eciesConsts = eciesParams ?? ECIES;
     const { wallet } = eciesService.walletAndSeedFromMnemonic(mnemonic);
     const privateKey = wallet.getPrivateKey();
     const publicKey = wallet.getPublicKey();
     const publicKeyWithPrefix = new Uint8Array(publicKey.length + 1);
-    publicKeyWithPrefix[0] = ECIES.PUBLIC_KEY_MAGIC;
+    publicKeyWithPrefix[0] = eciesConsts.PUBLIC_KEY_MAGIC;
     publicKeyWithPrefix.set(publicKey, 1);
 
     return new Member(
@@ -365,6 +365,7 @@ export class Member implements IMemberOperational {
     email: EmailString,
     forceMnemonic?: SecureString,
     createdBy?: GuidV4,
+    eciesParams?: IECIESConstants,
   ): IMemberWithMnemonic {
     // Validate inputs first
     if (!name || name.length == 0) {
@@ -392,6 +393,7 @@ export class Member implements IMemberOperational {
       );
     }
 
+    const eciesConsts = eciesParams ?? ECIES;
     // Use injected services
     const mnemonic = forceMnemonic ?? eciesService.generateNewMnemonic();
     const { wallet } = eciesService.walletAndSeedFromMnemonic(mnemonic);
@@ -401,7 +403,7 @@ export class Member implements IMemberOperational {
     // Get public key with 0x04 prefix
     const publicKey = wallet.getPublicKey();
     const publicKeyWithPrefix = new Uint8Array(publicKey.length + 1);
-    publicKeyWithPrefix[0] = ECIES.PUBLIC_KEY_MAGIC;
+    publicKeyWithPrefix[0] = eciesConsts.PUBLIC_KEY_MAGIC;
     publicKeyWithPrefix.set(publicKey, 1);
 
     const newId = GuidV4.new();
