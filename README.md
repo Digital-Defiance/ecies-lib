@@ -345,6 +345,11 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.0.26: Quick bump, export IConstants
+
+- Sun Oct 12 2025 21:11:00 GMT-0700 (Pacific Daylight Time)
+  - export IConstants
+
 ### v1.0.25: Rework configuration system again
 
 - Sun Oct 12 2025 21:02:00 GMT-0700 (Pacific Daylight Time)
