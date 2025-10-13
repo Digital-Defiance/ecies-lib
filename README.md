@@ -216,6 +216,7 @@ import {
   DefaultsRegistry,
   registerRuntimeConfiguration,
   getRuntimeConfiguration,
+  unregisterRuntimeConfiguration,
   ECIESService,
   Pbkdf2Service,
 } from '@digitaldefiance/ecies-lib';
@@ -247,9 +248,24 @@ const perfEcies = new ECIESService(undefined, perfDefaults.ECIES);
 
 // 3. Optional: create throwaway profiles without registering them
 const temporaryDefaults = DefaultsRegistry.create({ BcryptRounds: 8 });
+
+// 4. Clean up when a profile is no longer needed
+unregisterRuntimeConfiguration('performance-first');
 ```
 
-Every profile returned by the registry is deeply frozen and validated so the low-level invariants (public key sizes, checksum parameters, etc.) stay consistent. Use `clearRuntimeConfigurations()` in tests to reset to the library defaults.
+### Available helpers
+
+All helpers live in `src/defaults.ts` and are re-exported from the package entry point:
+
+- **`Defaults`** – immutable snapshot of the baked-in configuration. It exposes `Defaults.ECIES`, `Defaults.PBKDF2`, regexes, and other primitives used across the library.
+- **`createRuntimeConfiguration(overrides, base?)`** – clones a base configuration, applies partial overrides (deep merge), validates invariants, and returns a deeply frozen instance without touching the registry.
+- **`DefaultsRegistry`** – registry API with `get`, `register`, `create`, `listKeys`, `has`, `unregister`, and `clear`. Registered profiles are validated and frozen, so consumers can safely share references.
+- **Convenience functions** – `getRuntimeConfiguration`, `registerRuntimeConfiguration`, `unregisterRuntimeConfiguration`, and `clearRuntimeConfigurations` wrap the registry for common flows.
+- **Regex exports** – `PASSWORD_REGEX` and `MNEMONIC_REGEX` are exported alongside the defaults for consumers that need the raw patterns.
+
+Every configuration produced by these helpers is deeply frozen and validated so low-level invariants (public key length, recipient counts, checksum parameters, etc.) stay consistent. Use `clearRuntimeConfigurations()` in tests to reset back to the default profile.
+
+> **Tip:** Services such as `ECIESService`, `Pbkdf2Service`, `AESGCMService`, and `PasswordLoginService` accept their respective configuration slices as constructor parameters. Wire them up with values from `getRuntimeConfiguration(key)` to scope behavior per feature area or tenant.
 
 ## Secure primitives & value objects
 
