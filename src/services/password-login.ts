@@ -10,7 +10,7 @@ import { TranslatableError, TypedHandleableError } from '../errors';
 import { EciesStringKey, PasswordLoginErrorTypeEnum } from '../enumerations';
 import { buildReasonMap, I18nEngine, Language } from '@digitaldefiance/i18n-lib';
 import { IECIESConstants } from '../interfaces/ecies-consts';
-import { ECIES } from '../constants';
+import { ECIES } from '../defaults';
 
 
 export class PasswordLoginService {

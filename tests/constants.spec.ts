@@ -1,14 +1,15 @@
 import {
   Constants,
-  ECIES,
   GUID_SIZE,
-  PBKDF2,
-  PBKDF2_PROFILES,
   UINT16_SIZE,
   UINT32_SIZE,
   UINT64_SIZE,
 } from '../src/constants';
-
+import {
+  ECIES,
+  PBKDF2,
+  PBKDF2_PROFILES,
+} from '../src/defaults';
 const sampleMnemonic =
   'ability ability ability ability ability ability ability ability ability ability ability able';
 
@@ -36,7 +37,6 @@ describe('constants module', () => {
   });
 
   it('should aggregate values on the Constants object', () => {
-    expect(Constants.ECIES).toBe(ECIES);
     expect(Constants.OBJECT_ID_LENGTH).toBe(12);
     expect(Constants.UINT16_SIZE).toBe(UINT16_SIZE);
     expect(Constants.UINT32_SIZE).toBe(UINT32_SIZE);

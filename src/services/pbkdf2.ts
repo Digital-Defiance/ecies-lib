@@ -1,5 +1,5 @@
 import { I18nEngine, Language } from '@digitaldefiance/i18n-lib';
-import { ECIES, PBKDF2, PBKDF2_PROFILES } from '../constants';
+import { ECIES, PBKDF2, PBKDF2_PROFILES } from '../defaults';
 import { Pbkdf2ErrorType } from '../enumerations/pbkdf2-error-type';
 import { Pbkdf2ProfileEnum } from '../enumerations/pbkdf2-profile';
 import { Pbkdf2Error } from '../errors/pbkdf2';

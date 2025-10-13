@@ -1,5 +1,5 @@
 import { IECIESConstants } from '../../interfaces/ecies-consts';
-import { ECIES } from '../../constants';
+import { ECIES } from '../../defaults';
 import {
   EciesEncryptionType,
   EciesEncryptionTypeEnum,
@@ -245,15 +245,15 @@ export class ECIESService {
 
     switch (encryptionMode) {
       case 'simple':
-        return dataLength + ECIES.SIMPLE.FIXED_OVERHEAD_SIZE;
+        return dataLength + this.eciesConsts.SIMPLE.FIXED_OVERHEAD_SIZE;
       case 'single':
-        return dataLength + ECIES.SINGLE.FIXED_OVERHEAD_SIZE;
+        return dataLength + this.eciesConsts.SINGLE.FIXED_OVERHEAD_SIZE;
       case 'multiple':
         // Basic calculation for multiple recipients
         return (
           dataLength +
-          ECIES.MULTIPLE.FIXED_OVERHEAD_SIZE +
-          (recipientCount ?? 1) * ECIES.MULTIPLE.ENCRYPTED_KEY_SIZE
+          this.eciesConsts.MULTIPLE.FIXED_OVERHEAD_SIZE +
+          (recipientCount ?? 1) * this.eciesConsts.MULTIPLE.ENCRYPTED_KEY_SIZE
         );
       default:
         throw new Error('Invalid encryption type');
@@ -271,7 +271,7 @@ export class ECIESService {
       throw new Error('Invalid encrypted data length');
     }
 
-    const overhead = ECIES.SINGLE.FIXED_OVERHEAD_SIZE;
+  const overhead = this.eciesConsts.SINGLE.FIXED_OVERHEAD_SIZE;
     const actualPadding = padding !== undefined ? padding : 0;
     const decryptedLength = encryptedDataLength - overhead - actualPadding;
 

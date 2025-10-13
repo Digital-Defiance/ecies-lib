@@ -1,4 +1,4 @@
-import { ECIES } from '../../src/constants';
+import { ECIES } from '../../src/defaults';
 import { AESGCMService } from '../../src/services/aes-gcm';
 
 describe('AESGCMService', () => {

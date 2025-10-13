@@ -1,5 +1,5 @@
 import { IECIESConstants } from '../interfaces/ecies-consts';
-import { ECIES } from '../constants';
+import { ECIES } from '../defaults';
 
 export abstract class AESGCMService {
   public static readonly ALGORITHM_NAME = 'AES-GCM';

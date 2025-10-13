@@ -6,7 +6,7 @@ import {
   validateMnemonic,
 } from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
-import { ECIES } from '../../constants';
+import { ECIES } from '../../defaults';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { SecureString } from '../../secure-string';
 import { ISimpleKeyPair, IWalletSeed } from './interfaces';

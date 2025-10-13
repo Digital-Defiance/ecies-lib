@@ -1,6 +1,6 @@
 import { Wallet } from '@ethereumjs/wallet';
 import { faker } from '@faker-js/faker';
-import { Constants, ECIES } from '../src/constants';
+import { Defaults, ECIES } from '../src/defaults';
 import { EmailString } from '../src/email-string';
 import { InvalidEmailErrorType } from '../src/enumerations/invalid-email-type';
 import MemberErrorType from '../src/enumerations/member-error-type';
@@ -23,12 +23,12 @@ describe('member', () => {
 
   beforeAll(() => {
     const config: IECIESConfig = {
-      curveName: Constants.ECIES.CURVE_NAME,
-      primaryKeyDerivationPath: Constants.ECIES.PRIMARY_KEY_DERIVATION_PATH,
-      mnemonicStrength: Constants.ECIES.MNEMONIC_STRENGTH,
-      symmetricAlgorithm: Constants.ECIES.SYMMETRIC_ALGORITHM_CONFIGURATION,
-      symmetricKeyBits: Constants.ECIES.SYMMETRIC.KEY_BITS,
-      symmetricKeyMode: Constants.ECIES.SYMMETRIC.MODE,
+      curveName: Defaults.ECIES.CURVE_NAME,
+      primaryKeyDerivationPath: Defaults.ECIES.PRIMARY_KEY_DERIVATION_PATH,
+      mnemonicStrength: Defaults.ECIES.MNEMONIC_STRENGTH,
+      symmetricAlgorithm: Defaults.ECIES.SYMMETRIC_ALGORITHM_CONFIGURATION,
+      symmetricKeyBits: Defaults.ECIES.SYMMETRIC.KEY_BITS,
+      symmetricKeyMode: Defaults.ECIES.SYMMETRIC.MODE,
     };
     eciesService = new ECIESService(config);
     alice = Member.newMember(

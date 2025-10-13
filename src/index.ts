@@ -1,4 +1,5 @@
 export * from './constants';
+export * from './defaults';
 export * from './email-string';
 export * from './enumerations';
 export * from './errors';

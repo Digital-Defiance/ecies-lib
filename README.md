@@ -207,6 +207,50 @@ const result = await customPbkdf2Service.deriveKeyFromPasswordWithProfileAsync(
 
 This design allows for dependency injection of PBKDF2 profiles while maintaining backward compatibility with the default configurations.
 
+## Runtime configuration registry
+
+Many applications need different cryptographic trade-offs for different surfaces—e.g., a login form that prioritizes speed versus an administrative workflow that prefers extreme iteration counts. The library ships a registry that lets you register, retrieve, and extend immutable configuration profiles without mutating the global defaults.
+
+```ts
+import {
+  DefaultsRegistry,
+  registerRuntimeConfiguration,
+  getRuntimeConfiguration,
+  ECIESService,
+  Pbkdf2Service,
+} from '@digitaldefiance/ecies-lib';
+
+// 1. Register two named profiles
+registerRuntimeConfiguration('security-first', {
+  PBKDF2: {
+    ITERATIONS_PER_SECOND: 3_000_000,
+  },
+});
+
+registerRuntimeConfiguration(
+  'performance-first',
+  {
+    PBKDF2: {
+      ITERATIONS_PER_SECOND: 250_000,
+    },
+  },
+  { baseKey: DefaultsRegistry.DEFAULT_KEY },
+);
+
+// 2. Spin up services that honor those profiles
+const secureDefaults = getRuntimeConfiguration('security-first');
+const secureEcies = new ECIESService(undefined, secureDefaults.ECIES);
+const securePbkdf2 = new Pbkdf2Service(engine, secureDefaults.PBKDF2_PROFILES, secureDefaults.ECIES, secureDefaults.PBKDF2);
+
+const perfDefaults = getRuntimeConfiguration('performance-first');
+const perfEcies = new ECIESService(undefined, perfDefaults.ECIES);
+
+// 3. Optional: create throwaway profiles without registering them
+const temporaryDefaults = DefaultsRegistry.create({ BcryptRounds: 8 });
+```
+
+Every profile returned by the registry is deeply frozen and validated so the low-level invariants (public key sizes, checksum parameters, etc.) stay consistent. Use `clearRuntimeConfigurations()` in tests to reset to the library defaults.
+
 ## Secure primitives & value objects
 
 - `SecureString` / `SecureBuffer`: auto-zero, opt-in disposal, and helper methods for dealing with sensitive material.
@@ -235,7 +279,7 @@ try {
 
 ## Project structure
 
-```
+```text
 packages/digitaldefiance-ecies-lib/
 ├─ src/
 │  ├─ services/          # ECIES, AES-GCM, PBKDF2, password login
@@ -300,6 +344,11 @@ MIT © Digital Defiance
 [https://github.com/Digital-Defiance/ecies-lib](https://github.com/Digital-Defiance/ecies-lib)
 
 ## ChangeLog
+
+### v1.0.25: Rework configuration system again
+
+- Sun Oct 12 2025 21:02:00 GMT-0700 (Pacific Daylight Time)
+  - Rework various services to support user-provided configurations
 
 ### v1.0.24: Rework pbdkf2 services, and other things and provide ways of overriding constants
 

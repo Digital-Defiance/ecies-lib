@@ -1,5 +1,5 @@
 import { IECIESConstants } from '../../interfaces/ecies-consts';
-import { ECIES } from '../../constants';
+import { ECIES } from '../../defaults';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { concatUint8Arrays } from '../../utils';
 import { AESGCMService } from '../aes-gcm';

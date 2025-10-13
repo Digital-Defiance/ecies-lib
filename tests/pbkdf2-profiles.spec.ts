@@ -1,4 +1,4 @@
-import { PBKDF2_PROFILES } from '../src/constants';
+import { PBKDF2_PROFILES } from '../src/defaults';
 import { Pbkdf2ProfileEnum } from '../src/enumerations';
 
 describe('PBKDF2 Profiles', () => {

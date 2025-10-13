@@ -1,4 +1,4 @@
-import { ECIES, PBKDF2 } from '../src/constants';
+import { ECIES, PBKDF2 } from '../src/defaults';
 import { Pbkdf2ErrorType, Pbkdf2ProfileEnum } from '../src/enumerations';
 import { Pbkdf2Error } from '../src/errors';
 import { SecureString } from '../src/secure-string';
