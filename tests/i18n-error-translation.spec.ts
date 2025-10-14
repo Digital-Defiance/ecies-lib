@@ -18,12 +18,9 @@ describe('I18n Error Translation', () => {
     });
 
     it('should translate ECIES errors to Spanish', () => {
-      const engine = getCompatibleEciesEngine();
-      engine.context = { language: DefaultLanguage.Spanish };
-
       const error = new ECIESError(
         ECIESErrorTypeEnum.DecryptionFailed,
-        engine,
+        getCompatibleEciesEngine(),
         undefined,
         DefaultLanguage.Spanish,
       );
@@ -31,12 +28,9 @@ describe('I18n Error Translation', () => {
     });
 
     it('should fallback to English for missing translations', () => {
-      const engine = getCompatibleEciesEngine();
-      engine.context = { language: DefaultLanguage.French };
-
       const error = new ECIESError(
         ECIESErrorTypeEnum.DecryptionFailed,
-        engine,
+        getCompatibleEciesEngine(),
         undefined,
         DefaultLanguage.French,
       );
@@ -66,12 +60,9 @@ describe('I18n Error Translation', () => {
     });
 
     it('should translate Member errors to Spanish', () => {
-      const engine = getCompatibleEciesEngine();
-      engine.context = { language: DefaultLanguage.Spanish };
-
       const error = new MemberError(
         MemberErrorType.MissingMemberName,
-        engine,
+        getCompatibleEciesEngine(),
         undefined,
         DefaultLanguage.Spanish,
       );
@@ -146,7 +137,6 @@ describe('I18n Error Translation', () => {
       const engine = getCompatibleEciesEngine();
 
       // Test English
-      engine.context = { language: DefaultLanguage.EnglishUS };
       let error = new ECIESError(
         ECIESErrorTypeEnum.DecryptionFailed,
         engine,
@@ -155,8 +145,7 @@ describe('I18n Error Translation', () => {
       );
       expect(error.message).toBe('Decryption operation failed');
 
-      // Switch to Spanish
-      engine.context = { language: DefaultLanguage.Spanish };
+      // Test Spanish
       error = new ECIESError(
         ECIESErrorTypeEnum.DecryptionFailed,
         engine,

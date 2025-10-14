@@ -361,6 +361,11 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.0.27
+
+- Tue Oct 14 2025 15:03:00 GMT-0700 (Pacific Daylight Time)
+  - Pull in i18n GlobalActiveContext updates and make reflexive changes
+
 ### v1.0.26: Quick bump, export IConstants
 
 - Sun Oct 12 2025 21:11:00 GMT-0700 (Pacific Daylight Time)
