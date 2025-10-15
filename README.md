@@ -361,6 +361,11 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.0.28
+
+- Tu Oct 14 2025 17:14:00 GMT-0700 (Pacific Daylight Time)
+  - Version buno of i18n lib to 1.1.6
+
 ### v1.0.27
 
 - Tue Oct 14 2025 15:03:00 GMT-0700 (Pacific Daylight Time)
