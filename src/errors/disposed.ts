@@ -1,7 +1,9 @@
+import { CoreStringKey, I18nEngine, Language } from '@digitaldefiance/i18n-lib';
+
 export class DisposedError extends Error {
   constructor() {
-    super('Object has been disposed');
+    const engine = I18nEngine.getInstance();
+    super(engine.translate(CoreStringKey.Common_Disposed));
     this.name = 'DisposedError';
-    Object.setPrototypeOf(this, new.target.prototype);
   }
 }

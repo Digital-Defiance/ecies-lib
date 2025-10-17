@@ -1,4 +1,4 @@
-import { I18nEngine, CompleteReasonMap, Language, DefaultLanguage } from '@digitaldefiance/i18n-lib';
+import { I18nEngine, CompleteReasonMap, Language, DefaultLanguage, CoreStringKey } from '@digitaldefiance/i18n-lib';
 import { HandleableErrorOptions } from '../interfaces/handleable-error-options';
 import { HandleableError } from './handleable';
 
@@ -19,11 +19,13 @@ export class TypedHandleableError<
     language?: Language,
     otherVars?: Record<string, string | number>,
     options?: HandleableErrorOptions,
-    source?: Error,
   ) {
     const key = reasonMap[type];
     if (!key) {
-      throw new Error(`Missing translation key for type: ${type}`);
+      const coreEngine = I18nEngine.getInstance<I18nEngine<CoreStringKey, DefaultLanguage, any, any, any>>();
+      throw new Error(coreEngine.translate(CoreStringKey.Error_MissingTranslationKeyTemplate, {
+        stringKey: key as string,
+      }));
     }
     
     let message: string = String(type);
@@ -35,7 +37,7 @@ export class TypedHandleableError<
       message = String(type);
     }
     
-    super(message, options, source instanceof Error ? source : undefined);
+    super(message, options);
     
     this.type = type;
     this.reasonMap = reasonMap;
@@ -52,7 +54,9 @@ export class TypedHandleableError<
       cause:
         this.cause instanceof HandleableError
           ? this.cause.toJSON()
-          : this.cause?.message,
+          : this.cause instanceof Error
+            ? this.cause.message
+            : undefined,
     };
   }
 }

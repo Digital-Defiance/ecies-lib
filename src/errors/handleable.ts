@@ -6,24 +6,20 @@ export class HandleableError extends Error {
   public readonly sourceData?: unknown;
   private _handled: boolean;
 
-  constructor(message: string, options?: HandleableErrorOptions, source?: Error) {
-    super(String(message), { cause: source });
-    this.name = this.constructor.name;
+  constructor(message: string, options?: HandleableErrorOptions) {
+    super(message, { cause: options?.cause });
     this.cause = options?.cause;
+    this.name = this.constructor.name;
     this.statusCode = options?.statusCode ?? 500;
     this._handled = options?.handled ?? false;
     this.sourceData = options?.sourceData;
 
-    // Note: Removed Object.setPrototypeOf as it was corrupting the Error message property
-
-    // Maintains proper stack trace for where our error was thrown (only available on V8)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
     }
 
-    // If there's a cause, append its stack to this error's stack
-    if (this.cause && this.cause.stack) {
-      this.stack = this.stack + '\nCaused by: ' + this.cause.stack;
+    if (this.cause instanceof Error && this.cause.stack) {
+      this.stack = `${this.stack}\nCaused by: ${this.cause.stack}`;
     }
   }
 
@@ -45,7 +41,9 @@ export class HandleableError extends Error {
       cause:
         this.cause instanceof HandleableError
           ? this.cause.toJSON()
-          : this.cause?.message,
+          : this.cause instanceof Error
+            ? this.cause.message
+            : undefined,
       ...(this.sourceData ? { sourceData: this.sourceData } : {}),
     };
   }

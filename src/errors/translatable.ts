@@ -11,9 +11,8 @@ export class TranslatableError extends HandleableError {
     otherVars?: Record<string, string | number>,
     language?: Language,
     options?: HandleableErrorOptions,
-    source?: Error,
   ) {
-    super(engine.translate(string, otherVars, language), options, source);
+    super(engine.translate(string, otherVars, language), options);
     this.name = 'TranslatableError';
     this.StringName = string;
   }

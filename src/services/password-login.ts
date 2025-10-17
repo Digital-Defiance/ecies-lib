@@ -111,7 +111,7 @@ export class PasswordLoginService {
         profile,
       );
     } catch (error) {
-      throw new TypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum.FailedToStoreLoginData, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), this.engine, undefined, undefined, undefined, error instanceof Error ? error : undefined);
+      throw new TypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum.FailedToStoreLoginData, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), this.engine, undefined, undefined, { cause: error instanceof Error ? error : undefined });
     }
     return wallet;
   }
