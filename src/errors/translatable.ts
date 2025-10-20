@@ -12,7 +12,7 @@ export class TranslatableError extends HandleableError {
     language?: Language,
     options?: HandleableErrorOptions,
   ) {
-    super(engine.translate(string, otherVars, language), options);
+    super(new Error(engine.translate(string, otherVars, language)), options);
     this.name = 'TranslatableError';
     this.StringName = string;
   }

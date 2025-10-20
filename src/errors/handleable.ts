@@ -1,25 +1,27 @@
 import { HandleableErrorOptions } from '../interfaces/handleable-error-options';
+import { IHandleable } from '../interfaces/handleable';
 
-export class HandleableError extends Error {
+export class HandleableError extends Error implements IHandleable {
   public readonly cause?: Error;
   public readonly statusCode: number;
   public readonly sourceData?: unknown;
   private _handled: boolean;
 
-  constructor(message: string, options?: HandleableErrorOptions) {
-    super(message, { cause: options?.cause });
-    this.cause = options?.cause;
+  constructor(source: Error, options?: HandleableErrorOptions) {
+    super(source.message);
     this.name = this.constructor.name;
+    this.cause = options?.cause ?? source;
     this.statusCode = options?.statusCode ?? 500;
     this._handled = options?.handled ?? false;
     this.sourceData = options?.sourceData;
 
-    if (Error.captureStackTrace) {
+    // Capture stack trace - prioritize source stack, then capture new one
+    if (source.stack) {
+      this.stack = source.stack;
+    } else if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
-    }
-
-    if (this.cause instanceof Error && this.cause.stack) {
-      this.stack = `${this.stack}\nCaused by: ${this.cause.stack}`;
+    } else {
+      this.stack = new Error().stack;
     }
   }
 
@@ -31,6 +33,24 @@ export class HandleableError extends Error {
     this._handled = value;
   }
 
+  private serializeValue(value: unknown): unknown {
+    if (value && typeof value === 'object' && 'toJSON' in value && typeof value.toJSON === 'function') {
+      return value.toJSON();
+    }
+    if (value instanceof Error) {
+      return value.message;
+    }
+    if (Array.isArray(value)) {
+      return value.map(item => this.serializeValue(item));
+    }
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(
+        Object.entries(value).map(([k, v]) => [k, this.serializeValue(v)])
+      );
+    }
+    return value;
+  }
+
   public toJSON(): Record<string, unknown> {
     return {
       name: this.name,
@@ -38,13 +58,8 @@ export class HandleableError extends Error {
       statusCode: this.statusCode,
       handled: this.handled,
       stack: this.stack,
-      cause:
-        this.cause instanceof HandleableError
-          ? this.cause.toJSON()
-          : this.cause instanceof Error
-            ? this.cause.message
-            : undefined,
-      ...(this.sourceData ? { sourceData: this.sourceData } : {}),
+      cause: this.serializeValue(this.cause),
+      ...(this.sourceData ? { sourceData: this.serializeValue(this.sourceData) } : {}),
     };
   }
 }

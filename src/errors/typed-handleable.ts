@@ -1,11 +1,12 @@
 import { I18nEngine, CompleteReasonMap, Language, DefaultLanguage, CoreStringKey } from '@digitaldefiance/i18n-lib';
 import { HandleableErrorOptions } from '../interfaces/handleable-error-options';
+import { IHandleable } from '../interfaces/handleable';
 import { HandleableError } from './handleable';
 
 export class TypedHandleableError<
   TEnum extends Record<string, string>,
   TStringKey extends string,
-> extends HandleableError {
+> extends HandleableError implements IHandleable {
   public readonly type: TEnum[keyof TEnum];
   public readonly reasonMap: CompleteReasonMap<TEnum, TStringKey>;
   public readonly engine: I18nEngine<any, any, any, any>;
@@ -37,7 +38,7 @@ export class TypedHandleableError<
       message = String(type);
     }
     
-    super(message, options);
+    super(new Error(message), options);
     
     this.type = type;
     this.reasonMap = reasonMap;
@@ -51,12 +52,6 @@ export class TypedHandleableError<
     return {
       ...baseJson,
       type: this.type,
-      cause:
-        this.cause instanceof HandleableError
-          ? this.cause.toJSON()
-          : this.cause instanceof Error
-            ? this.cause.message
-            : undefined,
     };
   }
 }

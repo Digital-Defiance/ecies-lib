@@ -361,6 +361,11 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.0.32
+
+- Mon Oct 20 2025 12:50:00 GMT-0700 (Pacific Daylight Time)
+  - Improve handled error
+
 ### v1.0.30
 
 - Wed Oct 15 2025 16:47:00 GMT-0700 (Pacific Daylight Time)
