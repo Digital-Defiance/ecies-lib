@@ -2,7 +2,9 @@ import { HandleableError } from '../../src/errors/handleable';
 import { TypedHandleableError } from '../../src/errors/typed-handleable';
 import { EciesI18nEngineKey } from '../../src/i18n-setup';
 import { HandleableErrorOptions } from '../../src/interfaces/handleable-error-options';
-import { DefaultLanguage, CompleteReasonMap, I18nEngine, I18nConfig, Language, Timezone, CurrencyCode } from '@digitaldefiance/i18n-lib';
+import { LanguageCodes, CompleteReasonMap, I18nEngine, I18nConfig, Timezone, CurrencyCode } from '@digitaldefiance/i18n-lib';
+
+type TestLanguageCode = typeof LanguageCodes.EN_US | typeof LanguageCodes.EN_GB | typeof LanguageCodes.FR | typeof LanguageCodes.ES | typeof LanguageCodes.ZH_CN | typeof LanguageCodes.UK;
 
 enum TestErrorType {
   Simple = 'Simple',
@@ -22,58 +24,58 @@ const testReasonMap: CompleteReasonMap<typeof TestErrorType, TestStringKeys> = {
 class TestTypedError extends TypedHandleableError<typeof TestErrorType, TestStringKeys> {
   constructor(
     type: TestErrorType,
-    language?: DefaultLanguage,
+    language?: TestLanguageCode,
     otherVars?: Record<string, string | number>,
     options?: HandleableErrorOptions
   ) {
-    let engine: I18nEngine<TestStringKeys, DefaultLanguage, any, any>;
+    let engine: I18nEngine<TestStringKeys, TestLanguageCode, any, any>;
     try {
-    engine = I18nEngine.getInstance<I18nEngine<TestStringKeys, DefaultLanguage, any, any>>('testEngine');
+    engine = I18nEngine.getInstance<I18nEngine<TestStringKeys, TestLanguageCode, any, any>>('testEngine');
     }
     catch {
-      const config: I18nConfig<TestStringKeys, DefaultLanguage, any, any> = {
+      const config: I18nConfig<TestStringKeys, TestLanguageCode, any, any> = {
         stringNames: 
           [TestStringKeys.Common_Test, TestStringKeys.Error_MissingTranslationTemplate],
           strings: {
-            [DefaultLanguage.EnglishUS]: {
+            [LanguageCodes.EN_US]: {
               [TestStringKeys.Common_Test]: 'This is a test error message.',
               [TestStringKeys.Error_MissingTranslationTemplate]: 'Missing template variable: {key} in language {language}.',
-            }, [DefaultLanguage.EnglishUK]: {
+            }, [LanguageCodes.EN_GB]: {
               [TestStringKeys.Common_Test]: 'This is a test error message (UK).',
               [TestStringKeys.Error_MissingTranslationTemplate]: 'Missing template variable: {key} in language {language} (UK).',
-            }, [DefaultLanguage.French]: {
+            }, [LanguageCodes.FR]: {
               [TestStringKeys.Common_Test]: "Ceci est un message d'erreur de test.",
               [TestStringKeys.Error_MissingTranslationTemplate]: 'Variable de modèle manquante : {key} dans la langue {language}.',
-            }, [DefaultLanguage.Spanish]: {
+            }, [LanguageCodes.ES]: {
               [TestStringKeys.Common_Test]: "Este es un mensaje de error de prueba.",
               [TestStringKeys.Error_MissingTranslationTemplate]: 'Falta la variable de plantilla: {key} en el idioma {language}.',
-            }, [DefaultLanguage.MandarinChinese]: {
+            }, [LanguageCodes.ZH_CN]: {
               [TestStringKeys.Common_Test]: "这是一个测试错误消息。",
               [TestStringKeys.Error_MissingTranslationTemplate]: '缺少模板变量：{key} 在语言 {language} 中。',
-            }, [DefaultLanguage.Ukrainian]: {
+            }, [LanguageCodes.UK]: {
               [TestStringKeys.Common_Test]: "Це тестове повідомлення про помилку.",
               [TestStringKeys.Error_MissingTranslationTemplate]: 'Відсутня змінна шаблону: {key} мовою {language}.',
             },
             
           },
-          defaultLanguage: DefaultLanguage.EnglishUS,
+          defaultLanguage: LanguageCodes.EN_US,
           adminTimezone: new Timezone('UTC'),
           timezone: new Timezone('UTC'),
           defaultCurrencyCode: new CurrencyCode('USD'),
           defaultTranslationContext: {},
           languageCodes: {
-            [DefaultLanguage.EnglishUS]: 'en',
-            [DefaultLanguage.EnglishUK]: 'en-GB',
-            [DefaultLanguage.French]: 'fr',
-            [DefaultLanguage.MandarinChinese]: 'zh-CN',
-            [DefaultLanguage.Spanish]: 'es',
-            [DefaultLanguage.Ukrainian]: 'uk',
+            [LanguageCodes.EN_US]: 'en-US',
+            [LanguageCodes.EN_GB]: 'en-GB',
+            [LanguageCodes.FR]: 'fr',
+            [LanguageCodes.ZH_CN]: 'zh-CN',
+            [LanguageCodes.ES]: 'es',
+            [LanguageCodes.UK]: 'uk',
           },
-          languages: Object.values(DefaultLanguage),
+          languages: [LanguageCodes.EN_US, LanguageCodes.EN_GB, LanguageCodes.FR, LanguageCodes.ES, LanguageCodes.ZH_CN, LanguageCodes.UK],
           enumName: 'TestStringKeys',
           constants: {},
       }
-      engine = new I18nEngine<TestStringKeys, DefaultLanguage, any, any>(config, 'testEngine');
+      engine = new I18nEngine<TestStringKeys, TestLanguageCode, any, any>(config, 'testEngine');
     }
     super(type, testReasonMap, engine, language, otherVars, options);
     this.name = 'TestTypedError';
@@ -97,7 +99,7 @@ describe('TypedError', () => {
   it('should create typed error with templated translation', () => {
     const error = new TestTypedError(
       TestErrorType.Templated,
-      DefaultLanguage.EnglishUS,
+      LanguageCodes.EN_US,
       { key: 'testKey', language: 'English' }
     );
     
@@ -149,7 +151,7 @@ describe('TypedError', () => {
     const nestedError = new TestTypedError(TestErrorType.Simple);
     const error = new TestTypedError(
       TestErrorType.Templated,
-      DefaultLanguage.EnglishUS,
+      LanguageCodes.EN_US,
       { key: 'test', language: 'English' },
       { cause: nestedError }
     );
@@ -161,7 +163,7 @@ describe('TypedError', () => {
 
 
   it('should create error in different language', () => {
-    const error = new TestTypedError(TestErrorType.Simple, DefaultLanguage.French);
+    const error = new TestTypedError(TestErrorType.Simple, LanguageCodes.FR);
     expect(error.type).toBe(TestErrorType.Simple);
   });
 

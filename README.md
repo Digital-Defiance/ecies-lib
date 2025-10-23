@@ -361,6 +361,11 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.0
+
+- Thu Oct 23 2025 14:25:00 GMT-0700 (Pacific Daylight Time)
+  - Update to new i18n lib without Core Language
+
 ### v1.0.32
 
 - Mon Oct 20 2025 12:50:00 GMT-0700 (Pacific Daylight Time)

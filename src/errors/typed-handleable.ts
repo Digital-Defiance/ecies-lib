@@ -1,4 +1,4 @@
-import { I18nEngine, CompleteReasonMap, Language, DefaultLanguage, CoreStringKey } from '@digitaldefiance/i18n-lib';
+import { I18nEngine, CompleteReasonMap, Language, DefaultLanguageCode, CoreStringKey } from '@digitaldefiance/i18n-lib';
 import { HandleableErrorOptions } from '../interfaces/handleable-error-options';
 import { IHandleable } from '../interfaces/handleable';
 import { HandleableError } from './handleable';
@@ -23,7 +23,7 @@ export class TypedHandleableError<
   ) {
     const key = reasonMap[type];
     if (!key) {
-      const coreEngine = I18nEngine.getInstance<I18nEngine<CoreStringKey, DefaultLanguage, any, any, any>>();
+      const coreEngine = I18nEngine.getInstance<I18nEngine<CoreStringKey, DefaultLanguageCode, any, any, any>>();
       throw new Error(coreEngine.translate(CoreStringKey.Error_MissingTranslationKeyTemplate, {
         stringKey: key as string,
       }));

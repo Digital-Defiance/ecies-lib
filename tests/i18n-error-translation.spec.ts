@@ -1,4 +1,4 @@
-import { DefaultLanguage } from '@digitaldefiance/i18n-lib';
+import { LanguageCodes } from '@digitaldefiance/i18n-lib';
 import { ECIESErrorTypeEnum } from '../src/enumerations/ecies-error-type';
 import { GuidErrorType } from '../src/enumerations/guid-error-type';
 import MemberErrorType from '../src/enumerations/member-error-type';
@@ -22,7 +22,7 @@ describe('I18n Error Translation', () => {
         ECIESErrorTypeEnum.DecryptionFailed,
         getCompatibleEciesEngine(),
         undefined,
-        DefaultLanguage.Spanish,
+        LanguageCodes.ES,
       );
       expect(error.message).toBe('Falló la operación de descifrado');
     });
@@ -32,7 +32,7 @@ describe('I18n Error Translation', () => {
         ECIESErrorTypeEnum.DecryptionFailed,
         getCompatibleEciesEngine(),
         undefined,
-        DefaultLanguage.French,
+        LanguageCodes.FR,
       );
       expect(error.message).toBe("Échec de l'opération de déchiffrement"); // French translation available
     });
@@ -64,7 +64,7 @@ describe('I18n Error Translation', () => {
         MemberErrorType.MissingMemberName,
         getCompatibleEciesEngine(),
         undefined,
-        DefaultLanguage.Spanish,
+        LanguageCodes.ES,
       );
       expect(error.message).toBe('Se requiere el nombre del miembro');
     });
@@ -141,7 +141,7 @@ describe('I18n Error Translation', () => {
         ECIESErrorTypeEnum.DecryptionFailed,
         engine,
         undefined,
-        DefaultLanguage.EnglishUS,
+        LanguageCodes.EN_US,
       );
       expect(error.message).toBe('Decryption operation failed');
 
@@ -150,7 +150,7 @@ describe('I18n Error Translation', () => {
         ECIESErrorTypeEnum.DecryptionFailed,
         engine,
         undefined,
-        DefaultLanguage.Spanish,
+        LanguageCodes.ES,
       );
       expect(error.message).toBe('Falló la operación de descifrado');
     });

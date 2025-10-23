@@ -1,15 +1,25 @@
 import {
   ComponentDefinition,
   ComponentRegistration,
-  CoreLanguage,
+  CoreLanguageCode,
   createCoreI18nEngine,
-  DefaultLanguage,
+  DefaultLanguageCode,
   PluginI18nEngine,
+  LanguageCodes,
 } from '@digitaldefiance/i18n-lib';
 import { EciesStringKey } from './enumerations/ecies-string-key';
 
 export const EciesI18nEngineKey = 'DigitalDefiance.Ecies.I18nEngine' as const;
 export const EciesComponentId = 'ecies' as const;
+
+// ECIES only supports a subset of core languages
+export type EciesSupportedLanguageCode = 
+  | typeof LanguageCodes.EN_US
+  | typeof LanguageCodes.EN_GB
+  | typeof LanguageCodes.FR
+  | typeof LanguageCodes.ES
+  | typeof LanguageCodes.ZH_CN
+  | typeof LanguageCodes.UK;
 
 export function initEciesI18nEngine() {
   // Create unique instance key for test environments
@@ -671,19 +681,20 @@ export function initEciesI18nEngine() {
   };
 
   // Create engine with core components
-  const engine = createCoreI18nEngine(instanceKey);
+  // Cast to EciesSupportedLanguageCode since we only use a subset of core languages
+  const engine = createCoreI18nEngine(instanceKey) as PluginI18nEngine<EciesSupportedLanguageCode>;
 
   // Define the ECIES component registration with specified languages only
   const eciesComponentStrings = {
-    [CoreLanguage.EnglishUS]: englishTranslations,
-    [CoreLanguage.EnglishUK]: englishTranslations, // UK uses same strings as US
-    [CoreLanguage.French]: frenchTranslations,
-    [CoreLanguage.MandarinChinese]: mandarinChineseTranslations,
-    [CoreLanguage.Spanish]: spanishTranslations,
-    [CoreLanguage.Ukrainian]: ukrainianTranslations,
+    [LanguageCodes.EN_US]: englishTranslations,
+    [LanguageCodes.EN_GB]: englishTranslations, // UK uses same strings as US
+    [LanguageCodes.FR]: frenchTranslations,
+    [LanguageCodes.ZH_CN]: mandarinChineseTranslations,
+    [LanguageCodes.ES]: spanishTranslations,
+    [LanguageCodes.UK]: ukrainianTranslations,
   };
 
-  const eciesRegistration: ComponentRegistration<EciesStringKey, CoreLanguage> =
+  const eciesRegistration: ComponentRegistration<EciesStringKey, EciesSupportedLanguageCode> =
     {
       component: EciesComponent,
       strings: eciesComponentStrings,
@@ -693,19 +704,19 @@ export function initEciesI18nEngine() {
   const validationResult = engine.registerComponent(eciesRegistration);
 
   if (!validationResult.isValid) {
-    // Define the languages we actually support using enum values - filter out German and Japanese warnings
+    // Define the languages we actually support using language codes - filter out German and Japanese warnings
     const supportedLanguages = [
-      CoreLanguage.EnglishUS,
-      CoreLanguage.EnglishUK,
-      CoreLanguage.French,
-      CoreLanguage.MandarinChinese,
-      CoreLanguage.Spanish,
-      CoreLanguage.Ukrainian,
+      LanguageCodes.EN_US,
+      LanguageCodes.EN_GB,
+      LanguageCodes.FR,
+      LanguageCodes.ZH_CN,
+      LanguageCodes.ES,
+      LanguageCodes.UK,
     ];
 
     // Only warn about missing translations for languages we actually support
     const relevantMissingKeys = validationResult.missingKeys.filter((key) =>
-      supportedLanguages.includes(key.languageId as CoreLanguage),
+      supportedLanguages.includes(key.languageId as EciesSupportedLanguageCode),
     );
 
     if (relevantMissingKeys.length > 0) {
@@ -719,12 +730,12 @@ export function initEciesI18nEngine() {
   return engine;
 }
 
-let _eciesI18nEngine: PluginI18nEngine<CoreLanguage> | null = null;
-export function getEciesI18nEngine(): PluginI18nEngine<CoreLanguage> {
+let _eciesI18nEngine: PluginI18nEngine<EciesSupportedLanguageCode> | null = null;
+export function getEciesI18nEngine(): PluginI18nEngine<EciesSupportedLanguageCode> {
   if (!_eciesI18nEngine) {
     _eciesI18nEngine = initEciesI18nEngine();
   }
-  return _eciesI18nEngine;
+  return _eciesI18nEngine!;
 }
 
 // Test helper to reset instances
@@ -738,7 +749,7 @@ export const EciesI18nEngine = getEciesI18nEngine();
 export function getEciesTranslation(
   key: EciesStringKey,
   variables?: Record<string, string | number>,
-  language?: CoreLanguage,
+  language?: EciesSupportedLanguageCode,
 ): string {
   return getEciesI18nEngine().translate(
     EciesComponentId,
@@ -752,7 +763,7 @@ export function getEciesTranslation(
 export function safeEciesTranslation(
   key: EciesStringKey,
   variables?: Record<string, string | number>,
-  language?: CoreLanguage,
+  language?: EciesSupportedLanguageCode,
 ): string {
   return getEciesI18nEngine().safeTranslate(
     EciesComponentId,
@@ -766,7 +777,7 @@ export function safeEciesTranslation(
 export function translateEciesString(
   key: EciesStringKey,
   variables?: Record<string, string | number>,
-  language?: CoreLanguage,
+  language?: EciesSupportedLanguageCode,
 ): string {
   return getEciesI18nEngine().translate(
     EciesComponentId,
@@ -776,23 +787,15 @@ export function translateEciesString(
   );
 }
 
-// Create enum-based language mapping
-const DefaultLanguageToCoreLanguageMap = new Map<string, CoreLanguage>([
-  // Map DefaultLanguage enum values to CoreLanguage
-  [DefaultLanguage.EnglishUS, CoreLanguage.EnglishUS],
-  [DefaultLanguage.EnglishUK, CoreLanguage.EnglishUK],
-  [DefaultLanguage.French, CoreLanguage.French],
-  [DefaultLanguage.MandarinChinese, CoreLanguage.MandarinChinese],
-  [DefaultLanguage.Spanish, CoreLanguage.Spanish],
-  [DefaultLanguage.Ukrainian, CoreLanguage.Ukrainian],
-
-  // Also map CoreLanguage values to themselves for direct compatibility
-  [CoreLanguage.EnglishUS, CoreLanguage.EnglishUS],
-  [CoreLanguage.EnglishUK, CoreLanguage.EnglishUK],
-  [CoreLanguage.French, CoreLanguage.French],
-  [CoreLanguage.MandarinChinese, CoreLanguage.MandarinChinese],
-  [CoreLanguage.Spanish, CoreLanguage.Spanish],
-  [CoreLanguage.Ukrainian, CoreLanguage.Ukrainian],
+// Create language code mapping
+const DefaultLanguageToCoreLanguageMap = new Map<string, EciesSupportedLanguageCode>([
+  // Map language codes to themselves
+  [LanguageCodes.EN_US, LanguageCodes.EN_US],
+  [LanguageCodes.EN_GB, LanguageCodes.EN_GB],
+  [LanguageCodes.FR, LanguageCodes.FR],
+  [LanguageCodes.ZH_CN, LanguageCodes.ZH_CN],
+  [LanguageCodes.ES, LanguageCodes.ES],
+  [LanguageCodes.UK, LanguageCodes.UK],
 ]);
 
 // Create a full adapter that perfectly mimics the old I18nEngine interface
@@ -805,12 +808,12 @@ export function getCompatibleEciesEngine() {
       variables?: Record<string, string | number>,
       language?: any,
     ) => {
-      // Map any legacy language parameter to CoreLanguage using enum-based mapping
-      let coreLanguage: CoreLanguage = CoreLanguage.EnglishUS; // Default fallback
+      // Map any legacy language parameter to EciesSupportedLanguageCode
+      let coreLanguage: EciesSupportedLanguageCode = LanguageCodes.EN_US; // Default fallback
 
       if (language) {
         const langStr = String(language);
-        // Try direct enum mapping first
+        // Try direct mapping first
         const mappedLanguage = DefaultLanguageToCoreLanguageMap.get(langStr);
         if (mappedLanguage) {
           coreLanguage = mappedLanguage;
