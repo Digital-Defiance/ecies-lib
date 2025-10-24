@@ -1,4 +1,4 @@
-import { buildReasonMap, Language } from '@digitaldefiance/i18n-lib';
+import { buildReasonMap, Language, TranslationEngine } from '@digitaldefiance/i18n-lib';
 import { ECIESErrorTypeEnum } from '../enumerations/ecies-error-type';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
 import { getCompatibleEciesEngine } from '../i18n-setup';
@@ -11,7 +11,7 @@ export class ECIESError extends TypedHandleableError<
 > {
   constructor(
     type: ECIESErrorTypeEnum,
-    engine?: any,
+    engine?: TranslationEngine<EciesStringKey>,
     options?: HandleableErrorOptions,
     language?: Language,
     otherVars?: Record<string, string | number>,
@@ -23,7 +23,7 @@ export class ECIESError extends TypedHandleableError<
         ECIESErrorTypeEnum,
         ['Error', 'ECIESError'],
       ),
-      engineAdapter as any,
+      engineAdapter,
       language,
       otherVars,
       options,

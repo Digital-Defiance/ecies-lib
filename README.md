@@ -361,6 +361,11 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.2
+
+- Fri Oct 24 2025 13:32:00 GMT-0700 (Pacific Daylight Time)
+  - Minor update to Ecies error file to avoid any type
+
 ### v1.1.1
 
 - Thu Oct 23 2025 19:16:00 GMT-0700 (Pacific Daylight Time)
