@@ -1,4 +1,4 @@
-import { I18nEngine, CompleteReasonMap, Language, DefaultLanguageCode, CoreStringKey } from '@digitaldefiance/i18n-lib';
+import { I18nEngine, CompleteReasonMap, Language, DefaultLanguageCode, CoreStringKey, TranslationEngine } from '@digitaldefiance/i18n-lib';
 import { HandleableErrorOptions } from '../interfaces/handleable-error-options';
 import { IHandleable } from '../interfaces/handleable';
 import { HandleableError } from './handleable';
@@ -9,14 +9,14 @@ export class TypedHandleableError<
 > extends HandleableError implements IHandleable {
   public readonly type: TEnum[keyof TEnum];
   public readonly reasonMap: CompleteReasonMap<TEnum, TStringKey>;
-  public readonly engine: I18nEngine<any, any, any, any>;
+  public readonly engine: TranslationEngine<TStringKey>;
   public readonly language?: Language;
   public readonly otherVars?: Record<string, string | number>;
 
   constructor(
     type: TEnum[keyof TEnum],
     reasonMap: CompleteReasonMap<TEnum, TStringKey>,
-    engine: I18nEngine<TStringKey, any, any, any>,
+    engine: TranslationEngine<TStringKey>,
     language?: Language,
     otherVars?: Record<string, string | number>,
     options?: HandleableErrorOptions,
@@ -32,7 +32,7 @@ export class TypedHandleableError<
     let message: string = String(type);
     try {
       const keyString = key as TStringKey;
-      const translated = engine.translate?.(keyString, otherVars, language);
+      const translated = engine.translate(keyString, otherVars, language);
       message = String(translated || type);
     } catch (error) {
       message = String(type);
