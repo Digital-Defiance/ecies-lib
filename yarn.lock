@@ -1323,7 +1323,7 @@ __metadata:
     "@babel/core": "npm:^7.28.4"
     "@babel/preset-env": "npm:^7.28.3"
     "@babel/preset-typescript": "npm:^7.27.1"
-    "@digitaldefiance/i18n-lib": "npm:1.2.3"
+    "@digitaldefiance/i18n-lib": "npm:1.2.4"
     "@ethereumjs/wallet": "npm:^10.0.0"
     "@noble/curves": "npm:^2.0.1"
     "@noble/hashes": "npm:^2.0.1"
@@ -1349,13 +1349,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@digitaldefiance/i18n-lib@npm:1.2.3":
-  version: 1.2.3
-  resolution: "@digitaldefiance/i18n-lib@npm:1.2.3"
+"@digitaldefiance/i18n-lib@npm:1.2.4":
+  version: 1.2.4
+  resolution: "@digitaldefiance/i18n-lib@npm:1.2.4"
   dependencies:
     moment: "npm:^2.30.1"
     moment-timezone: "npm:^0.6.0"
-  checksum: 10c0/c85344b3157c4d0a4962f6583be8e439499b3c7cfa90a489e09e0d46e30ad3673337b7f33ee29e788af28fe398040173468e1b0893e7877fd4219bb593131515
+  checksum: 10c0/6e07457ffbd46c8f3c8acc7e50789d1323c6848cb670dc7ccad3c38214c70914228b463a0806b1d124920482b058ef24599f773b1a2671f1110cb7b00cb4e670
   languageName: node
   linkType: hard
 
