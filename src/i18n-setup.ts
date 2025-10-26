@@ -1,9 +1,7 @@
 import {
   ComponentDefinition,
   ComponentRegistration,
-  CoreLanguageCode,
   createCoreI18nEngine,
-  DefaultLanguageCode,
   PluginI18nEngine,
   LanguageCodes,
 } from '@digitaldefiance/i18n-lib';
