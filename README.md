@@ -782,6 +782,10 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.9
+
+- Update i18n
+
 ### v1.1.8
 
 - Sun Oct 26 2026 21:14:00 GMT-0700 (Pacific Daylight Time)
