@@ -1,6 +1,6 @@
 # @digitaldefiance/ecies-lib
 
-A production-ready, browser-friendly implementation of Elliptic Curve Integrated Encryption Scheme (ECIES) and related cryptographic primitives for modern TypeScript runtimes. Built on Web Crypto API and @noble/curves, this library provides comprehensive encryption, key management, and authentication services with full internationalization support.
+A production-ready, browser-friendly implementation of Elliptic Curve Integrated Encryption Scheme (ECIES) and related cryptographic primitives for modern TypeScript runtimes. Built on Web Crypto API and @noble/curves, this library provides comprehensive encryption, key management, and authentication services with full internationalization support. This package is also binary compatible with @digitaldefiance/node-ecies-lib, enabling seamless cross-platform cryptographic operations.
 
 ## Key Features
 
@@ -781,6 +781,11 @@ MIT © Digital Defiance
 [https://github.com/Digital-Defiance/ecies-lib](https://github.com/Digital-Defiance/ecies-lib)
 
 ## ChangeLog
+
+### v1.1.8
+
+- Sun Oct 26 2026 21:14:00 GMT-0700 (Pacific Daylight Time)
+  - Update readme
 
 ### v1.1.7
 
