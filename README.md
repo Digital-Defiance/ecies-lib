@@ -600,6 +600,10 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.14
+
+- Update readme
+
 ### v1.1.13
 
 - Upgrade i18n to plugin engine
