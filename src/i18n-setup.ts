@@ -1,23 +1,28 @@
 import {
   ComponentDefinition,
   ComponentRegistration,
-  createCoreI18nEngine,
   PluginI18nEngine,
-  LanguageCodes,
+  LanguageRegistry,
+  createLanguageDefinition,
 } from '@digitaldefiance/i18n-lib';
 import { EciesStringKey } from './enumerations/ecies-string-key';
 
 export const EciesI18nEngineKey = 'DigitalDefiance.Ecies.I18nEngine' as const;
 export const EciesComponentId = 'ecies' as const;
 
-// ECIES only supports a subset of core languages
-export type EciesSupportedLanguageCode = 
-  | typeof LanguageCodes.EN_US
-  | typeof LanguageCodes.EN_GB
-  | typeof LanguageCodes.FR
-  | typeof LanguageCodes.ES
-  | typeof LanguageCodes.ZH_CN
-  | typeof LanguageCodes.UK;
+// ECIES supported language codes
+export const EciesLanguageCodes = {
+  EN_US: 'en-US',
+  EN_GB: 'en-GB',
+  FR: 'fr',
+  ES: 'es',
+  DE: 'de',
+  ZH_CN: 'zh-CN',
+  JA: 'ja',
+  UK: 'uk',
+} as const;
+
+export type EciesSupportedLanguageCode = typeof EciesLanguageCodes[keyof typeof EciesLanguageCodes];
 
 export function initEciesI18nEngine() {
   // Create unique instance key for test environments
@@ -49,6 +54,7 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_ECIESError_CRCError]: 'CRC error',
     [EciesStringKey.Error_ECIESError_InvalidEncryptionType]:
       'Invalid encryption type',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate]: 'Invalid encryption type: {encryptionType}',
     [EciesStringKey.Error_ECIESError_InvalidIVLength]: 'Invalid IV length',
     [EciesStringKey.Error_ECIESError_InvalidAuthTagLength]:
       'Invalid auth tag length',
@@ -86,6 +92,29 @@ export function initEciesI18nEngine() {
       'Invalid recipient public key provided for encryption',
     [EciesStringKey.Error_ECIESError_SecretComputationFailed]:
       'Failed to compute shared secret during ECIES operation',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption]:
+      'Authentication tag is required for key encryption',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLengthTemplate]:
+      'Invalid encrypted key length: expected {keySize}, got {encryptedKeyLength}',
+    [EciesStringKey.Error_ECIESError_FailedToDecryptKey]: 'Failed to decrypt key',
+    [EciesStringKey.Error_ECIESError_TooManyRecipientsTemplate]: 'Too many recipients: {recipientsCount}',
+    [EciesStringKey.Error_ECIESError_MessageTooLargeTemplate]: 'Message too large: {length}',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption]: 'Authentication tag is required for ECIES encryption',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption]: 'Authentication tag is required for multi-recipient ECIES encryption',
+    [EciesStringKey.Error_ECIESError_DecryptedDataLengthMismatch]: 'Decrypted data length mismatch',
+    [EciesStringKey.Error_ECIESError_RecipientCountMismatch]: 'Recipient count mismatch',
+    [EciesStringKey.Error_ECIESError_DataTooShortForMultiRecipientHeader]: 'Data too short for multi-recipient header',
+    [EciesStringKey.Error_ECIESError_FailedToDecryptChallengeTemplate]: 'Failed to decrypt challenge: {error}',
+    [EciesStringKey.Error_ECIESError_InvalidChallengeSignature]: 'Invalid challenge signature',
+    [EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey]: 'Failed to derive private key',
+    [EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate]: 'Invalid public key format or length: {keyLength}',
+    [EciesStringKey.Error_ECIESError_ReceivedNullOrUndefinedPublicKey]: 'Received null or undefined public key',
+    [EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate]: 'Message length exceeds maximum allowed size: {messageLength}',
+    [EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode]: 'Multiple encryption type not supported in single recipient mode',
+    [EciesStringKey.Error_ECIESError_EncryptionTypeMismatchTemplate]: 'Encryption type mismatch: expected {encryptionType}, got {actualEncryptionType}',
+    [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: 'Data too short: required {requiredSize}, got {dataLength}',
+    [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: 'Data length mismatch: expected {expectedDataLength}, got {receivedDataLength}',
+    [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Combined data is too short to contain required components',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:
@@ -179,6 +208,7 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_ECIESError_CRCError]: 'Erreur CRC',
     [EciesStringKey.Error_ECIESError_InvalidEncryptionType]:
       'Type de chiffrement invalide',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate]: 'Type de chiffrement invalide : {encryptionType}',
     [EciesStringKey.Error_ECIESError_InvalidIVLength]: 'Longueur d’IV invalide',
     [EciesStringKey.Error_ECIESError_InvalidAuthTagLength]:
       'Longueur de balise d’authentification invalide',
@@ -219,6 +249,29 @@ export function initEciesI18nEngine() {
       'Clé publique de destinataire invalide fournie pour le chiffrement',
     [EciesStringKey.Error_ECIESError_SecretComputationFailed]:
       'Échec du calcul du secret partagé lors de l’opération ECIES',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption]:
+      'Une balise d’authentification est requise pour le chiffrement de clé',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLengthTemplate]:
+      'Longueur de clé chiffrée invalide : attendu {keySize}, obtenu {encryptedKeyLength}',
+    [EciesStringKey.Error_ECIESError_FailedToDecryptKey]: 'Échec du déchiffrement de la clé',
+    [EciesStringKey.Error_ECIESError_TooManyRecipientsTemplate]: 'Trop de destinataires : {recipientsCount}',
+    [EciesStringKey.Error_ECIESError_MessageTooLargeTemplate]: 'Message trop volumineux : {length}',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption]: 'Une balise d’authentification est requise pour le chiffrement ECIES.',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption]: 'Une balise d’authentification est requise pour le chiffrement ECIES à plusieurs destinataires.',
+    [EciesStringKey.Error_ECIESError_DecryptedDataLengthMismatch]: 'Incohérence de longueur de données déchiffrées',
+    [EciesStringKey.Error_ECIESError_RecipientCountMismatch]: 'Incohérence du nombre de destinataires',
+    [EciesStringKey.Error_ECIESError_DataTooShortForMultiRecipientHeader]: 'Données trop courtes pour l’en-tête à plusieurs destinataires',
+    [EciesStringKey.Error_ECIESError_FailedToDecryptChallengeTemplate]: 'Échec du déchiffrement du défi : {error}',
+    [EciesStringKey.Error_ECIESError_InvalidChallengeSignature]: 'Signature de défi invalide',
+    [EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey]: 'Échec de la dérivation de la clé privée',
+    [EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate]: 'Format ou longueur de clé publique invalide : {keyLength}',
+    [EciesStringKey.Error_ECIESError_ReceivedNullOrUndefinedPublicKey]: 'Clé publique reçue nulle ou indéfinie',
+    [EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate]: 'La longueur du message dépasse la taille maximale autorisée : {messageLength}',
+    [EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode]: 'Le type de chiffrement multiple n’est pas pris en charge en mode à un seul destinataire.',
+    [EciesStringKey.Error_ECIESError_EncryptionTypeMismatchTemplate]: 'Incohérence de type de chiffrement : attendu {encryptionType}, obtenu {actualEncryptionType}',
+    [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: 'Données trop courtes : requises {requiredSize}, obtenues {dataLength}.',
+    [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: 'Incohérence de longueur de données : attendu {expectedDataLength}, obtenu {receivedDataLength}.',
+    [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Les données combinées sont trop courtes pour contenir les composants requis.',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:
@@ -313,6 +366,7 @@ export function initEciesI18nEngine() {
       'ECIES 多重收件人 ID 大小无效',
     [EciesStringKey.Error_ECIESError_CRCError]: 'CRC 错误',
     [EciesStringKey.Error_ECIESError_InvalidEncryptionType]: '加密类型无效',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate]: '无效的加密类型：{encryptionType}',
     [EciesStringKey.Error_ECIESError_InvalidIVLength]: 'IV 长度无效',
     [EciesStringKey.Error_ECIESError_InvalidAuthTagLength]: '认证标签长度无效',
     [EciesStringKey.Error_ECIESError_InvalidHeaderLength]: '头部长度无效',
@@ -343,6 +397,29 @@ export function initEciesI18nEngine() {
       '用于加密的收件人公钥无效',
     [EciesStringKey.Error_ECIESError_SecretComputationFailed]:
       '在 ECIES 操作期间计算共享密钥失败',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption]:
+      '密钥加密需要身份验证标签',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLengthTemplate]:
+      '无效的加密密钥长度：预期 {keySize}，实际 {encryptedKeyLength}。',
+    [EciesStringKey.Error_ECIESError_FailedToDecryptKey]: '解密密钥失败',
+    [EciesStringKey.Error_ECIESError_TooManyRecipientsTemplate]: '收件人过多：{recipientsCount}',
+    [EciesStringKey.Error_ECIESError_MessageTooLargeTemplate]: '消息过大：{length}',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption]: 'ECIES 加密需要身份验证标签',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption]: '多重收件人 ECIES 加密需要身份验证标签',
+    [EciesStringKey.Error_ECIESError_DecryptedDataLengthMismatch]: '解密数据长度不匹配',
+    [EciesStringKey.Error_ECIESError_RecipientCountMismatch]: '收件人数不匹配',
+    [EciesStringKey.Error_ECIESError_DataTooShortForMultiRecipientHeader]: '多重收件人头部数据过短',
+    [EciesStringKey.Error_ECIESError_FailedToDecryptChallengeTemplate]: '解密挑战失败：{error}',
+    [EciesStringKey.Error_ECIESError_InvalidChallengeSignature]: '无效的挑战签名',
+    [EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey]: '派生私钥失败',
+    [EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate]: '无效的公钥格式或长度：{keyLength}',
+    [EciesStringKey.Error_ECIESError_ReceivedNullOrUndefinedPublicKey]: '接收到的公钥为 null 或未定义',
+    [EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate]: '消息长度超过最大允许大小：{messageLength}',
+    [EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode]: '不支持在单一收件人模式下使用多重加密类型',
+    [EciesStringKey.Error_ECIESError_EncryptionTypeMismatchTemplate]: '加密类型不匹配：预期 {encryptionType}，实际 {actualEncryptionType}。',
+    [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: '数据过短：需要 {requiredSize}，实际 {dataLength}。',
+    [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: '数据长度不匹配：预期 {expectedDataLength}，实际 {receivedDataLength}。',
+    [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: '组合数据过短，无法包含所需组件',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]: '缺少成员名称。',
@@ -418,6 +495,7 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_ECIESError_CRCError]: 'Error CRC',
     [EciesStringKey.Error_ECIESError_InvalidEncryptionType]:
       'Tipo de cifrado no válido',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate]: 'Tipo de cifrado no válido: {encryptionType}',
     [EciesStringKey.Error_ECIESError_InvalidIVLength]:
       'Longitud de IV no válida',
     [EciesStringKey.Error_ECIESError_InvalidAuthTagLength]:
@@ -459,6 +537,29 @@ export function initEciesI18nEngine() {
       'Clave pública del destinatario no válida proporcionada para el cifrado',
     [EciesStringKey.Error_ECIESError_SecretComputationFailed]:
       'Error al calcular el secreto compartido durante la operación ECIES',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption]:
+      'Se requiere una etiqueta de autenticación para el cifrado de claves',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLengthTemplate]:
+      'Longitud de clave cifrada no válida: se esperaba {keySize}, se obtuvo {encryptedKeyLength}.',
+    [EciesStringKey.Error_ECIESError_FailedToDecryptKey]: 'Error al descifrar la clave',
+    [EciesStringKey.Error_ECIESError_TooManyRecipientsTemplate]: 'Demasiados destinatarios: {recipientsCount}',
+    [EciesStringKey.Error_ECIESError_MessageTooLargeTemplate]: 'Mensaje demasiado grande: {length}',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption]: 'Se requiere una etiqueta de autenticación para el cifrado ECIES.',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption]: 'Se requiere una etiqueta de autenticación para el cifrado ECIES a múltiples destinatarios.',
+    [EciesStringKey.Error_ECIESError_DecryptedDataLengthMismatch]: 'Incoherencia de longitud de datos descifrados',
+    [EciesStringKey.Error_ECIESError_RecipientCountMismatch]: 'Incoherencia del número de destinatarios',
+    [EciesStringKey.Error_ECIESError_DataTooShortForMultiRecipientHeader]: 'Datos demasiado cortos para el encabezado de múltiples destinatarios',
+    [EciesStringKey.Error_ECIESError_FailedToDecryptChallengeTemplate]: 'Error al descifrar el desafío: {error}',
+    [EciesStringKey.Error_ECIESError_InvalidChallengeSignature]: 'Firma de desafío no válida',
+    [EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey]: 'Error al derivar la clave privada',
+    [EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate]: 'Formato o longitud de clave pública no válidos: {keyLength}',
+    [EciesStringKey.Error_ECIESError_ReceivedNullOrUndefinedPublicKey]: 'Se recibió una clave pública nula o indefinida',
+    [EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate]: 'La longitud del mensaje excede el tamaño máximo permitido: {messageLength}',
+    [EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode]: 'No se admite el tipo de cifrado múltiple en el modo de un solo destinatario.',
+    [EciesStringKey.Error_ECIESError_EncryptionTypeMismatchTemplate]: 'Incoherencia de tipo de cifrado: se esperaba {encryptionType}, se obtuvo {actualEncryptionType}.',
+    [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: 'Datos demasiado cortos: se requiere {requiredSize}, se obtuvo {dataLength}.',
+    [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: 'Incoherencia de longitud de datos: se esperaba {expectedDataLength}, se obtuvo {receivedDataLength}.',
+    [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Los datos combinados son demasiado cortos para contener los componentes requeridos.',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:
@@ -556,6 +657,7 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_ECIESError_CRCError]: 'Помилка CRC',
     [EciesStringKey.Error_ECIESError_InvalidEncryptionType]:
       'Недійсний тип шифрування',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate]: 'Недійсний тип шифрування: {encryptionType}',
     [EciesStringKey.Error_ECIESError_InvalidIVLength]: 'Недійсна довжина IV',
     [EciesStringKey.Error_ECIESError_InvalidAuthTagLength]:
       'Недійсна довжина тега автентифікації',
@@ -596,6 +698,29 @@ export function initEciesI18nEngine() {
       'Надано недійсний відкритий ключ одержувача для шифрування',
     [EciesStringKey.Error_ECIESError_SecretComputationFailed]:
       'Не вдалося обчислити спільний секрет під час операції ECIES',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption]:
+      'Для шифрування ключа потрібен тег автентифікації',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLengthTemplate]:
+      'Недійсна довжина зашифрованого ключа: очікувалося {keySize}, отримано {encryptedKeyLength}.',
+    [EciesStringKey.Error_ECIESError_FailedToDecryptKey]: 'Не вдалося розшифрувати ключ',
+    [EciesStringKey.Error_ECIESError_TooManyRecipientsTemplate]: 'Занадто багато одержувачів: {recipientsCount}',
+    [EciesStringKey.Error_ECIESError_MessageTooLargeTemplate]: 'Повідомлення занадто велике: {length}',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption]: 'Тег автентифікації потрібен для шифрування ECIES',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption]: 'Тег автентифікації потрібен для шифрування ECIES з кількома одержувачами',
+    [EciesStringKey.Error_ECIESError_DecryptedDataLengthMismatch]: 'Невідповідність довжини розшифрованих даних',
+    [EciesStringKey.Error_ECIESError_RecipientCountMismatch]: 'Невідповідність кількості одержувачів',
+    [EciesStringKey.Error_ECIESError_DataTooShortForMultiRecipientHeader]: 'Дані занадто короткі для заголовка з кількома одержувачами',
+    [EciesStringKey.Error_ECIESError_FailedToDecryptChallengeTemplate]: 'Не вдалося розшифрувати виклик: {error}',
+    [EciesStringKey.Error_ECIESError_InvalidChallengeSignature]: 'Недійсна підписка на виклик',
+    [EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey]: 'Не вдалося вивести приватний ключ',
+    [EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate]: 'Недійсний формат або довжина відкритого ключа: {keyLength}',
+    [EciesStringKey.Error_ECIESError_ReceivedNullOrUndefinedPublicKey]: 'Отримано null або undefined відкритий ключ',
+    [EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate]: 'Довжина повідомлення перевищує максимально допустимий розмір: {messageLength}',
+    [EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode]: 'Типи кількісного шифрування не підтримуються в режимі одного одержувача',
+    [EciesStringKey.Error_ECIESError_EncryptionTypeMismatchTemplate]: 'Невідповідність типу шифрування: очікувалося {encryptionType}, отримано {actualEncryptionType}',
+    [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: 'Дані занадто короткі: потрібно {requiredSize}, отримано {dataLength}',
+    [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: 'Невідповідність довжини даних: очікувалося {expectedDataLength}, отримано {receivedDataLength}.',
+    [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Обʼєднані дані занадто короткі, щоб містити необхідні компоненти',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:
@@ -678,18 +803,342 @@ export function initEciesI18nEngine() {
       'Вхід за допомогою пароля не налаштовано',
   };
 
-  // Create engine with core components
-  // Cast to EciesSupportedLanguageCode since we only use a subset of core languages
-  const engine = createCoreI18nEngine(instanceKey) as PluginI18nEngine<EciesSupportedLanguageCode>;
+ const germanTranslations: Record<EciesStringKey, string> = {
+    // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
+    [EciesStringKey.Error_ECIESError_InvalidECIESMultipleEncryptedKeySize]:
+      'Ungültige ECIES mehrfache verschlüsselte Schlüssellänge',
+    [EciesStringKey.Error_ECIESError_InvalidECIESPublicKeyLength]:
+      'Ungültige ECIES öffentliche Schlüssellänge',
+    [EciesStringKey.Error_ECIESError_InvalidECIESMultipleRecipientCountSize]:
+      'Ungültige ECIES mehrere Empfängeranzahlgröße',
+    [EciesStringKey.Error_ECIESError_InvalidECIESMultipleDataLengthSize]:
+      'Ungültige ECIES mehrere Datenlängen',
+    [EciesStringKey.Error_ECIESError_InvalidECIESMultipleRecipientIdSize]:
+      'Ungültige ECIES mehrere Empfänger-ID-Größe',
+    [EciesStringKey.Error_ECIESError_CRCError]: 'CRC-Fehler',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptionType]:
+      'Ungültiger Verschlüsselungstyp',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate]: 'Ungültiger Verschlüsselungstyp: {encryptionType}',
+    [EciesStringKey.Error_ECIESError_InvalidIVLength]: 'Ungültige IV-Länge',
+    [EciesStringKey.Error_ECIESError_InvalidAuthTagLength]:
+      'Ungültige Auth-Tag-Länge',
+    [EciesStringKey.Error_ECIESError_InvalidHeaderLength]:
+      'Ungültige Header-Länge',
+    [EciesStringKey.Error_ECIESError_InvalidDataLength]: 'Ungültige Datenlänge',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptedDataLength]:
+      'Ungültige verschlüsselte Datenlänge',
+    [EciesStringKey.Error_ECIESError_InvalidMessageCrc]: 'Ungültige Nachrichten-CRC',
+    [EciesStringKey.Error_ECIESError_InvalidMnemonic]: 'Ungültige Mnemonik',
+    [EciesStringKey.Error_ECIESError_InvalidOperation]: 'Ungültige Operation',
+    [EciesStringKey.Error_ECIESError_MessageLengthMismatch]:
+      'Längenabweichung der Nachricht',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLength]:
+      'Ungültige verschlüsselte Schlüssellänge',
+    [EciesStringKey.Error_ECIESError_InvalidEphemeralPublicKey]:
+      'Ungültiger ephemerer öffentlicher Schlüssel',
+    [EciesStringKey.Error_ECIESError_RecipientNotFound]:
+      'Empfänger nicht in den Empfänger-IDs gefunden',
+    [EciesStringKey.Error_ECIESError_InvalidSignature]: 'Ungültige Signatur',
+    [EciesStringKey.Error_ECIESError_InvalidSenderPublicKey]:
+      'Ungültiger Sender-öffentlicher Schlüssel',
+    [EciesStringKey.Error_ECIESError_TooManyRecipients]:
+      'Zu viele Empfänger: Überschreitung der maximalen Anzahl',
+    [EciesStringKey.Error_ECIESError_PrivateKeyNotLoaded]:
+      'Privater Schlüssel nicht geladen',
+    [EciesStringKey.Error_ECIESError_RecipientKeyCountMismatch]:
+      'Anzahl der Empfänger stimmt nicht mit der Anzahl der Schlüssel überein',
+    [EciesStringKey.Error_ECIESError_InvalidRecipientCount]:
+      'Ungültige Empfängeranzahl',
+    [EciesStringKey.Error_ECIESError_FileSizeTooLarge]: 'Dateigröße zu groß',
+    [EciesStringKey.Error_ECIESError_DecryptionFailed]:
+      'Entschlüsselungsoperation fehlgeschlagen',
+    [EciesStringKey.Error_ECIESError_InvalidRecipientPublicKey]:
+      'Ungültiger Empfänger-öffentlicher Schlüssel für die Verschlüsselung bereitgestellt',
+    [EciesStringKey.Error_ECIESError_SecretComputationFailed]:
+      'Fehler bei der Berechnung des gemeinsamen Schlüssels während der ECIES-Operation',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption]:
+      'Authentifizierungstag ist für die Schlüsselverschlüsselung erforderlich',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLengthTemplate]:
+      'Ungültige verschlüsselte Schlüssellänge: erwartet {keySize}, erhalten {encryptedKeyLength}',
+    [EciesStringKey.Error_ECIESError_FailedToDecryptKey]: 'Fehler beim Entschlüsseln des Schlüssels',
+    [EciesStringKey.Error_ECIESError_TooManyRecipientsTemplate]: 'Zu viele Empfänger: {recipientsCount}',
+    [EciesStringKey.Error_ECIESError_MessageTooLargeTemplate]: 'Nachricht zu groß: {length}',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption]: 'Authentifizierungstag ist für die ECIES-Verschlüsselung erforderlich',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption]: 'Authentifizierungstag ist für die Multi-Recipient-ECIES-Verschlüsselung erforderlich',
+    [EciesStringKey.Error_ECIESError_DecryptedDataLengthMismatch]: 'Länge der entschlüsselten Daten stimmt nicht überein',
+    [EciesStringKey.Error_ECIESError_RecipientCountMismatch]: 'Anzahl der Empfänger stimmt nicht überein',
+    [EciesStringKey.Error_ECIESError_DataTooShortForMultiRecipientHeader]: 'Daten zu kurz für den Multi-Recipient-Header',
+    [EciesStringKey.Error_ECIESError_FailedToDecryptChallengeTemplate]: 'Fehler beim Entschlüsseln der Herausforderung: {error}',
+    [EciesStringKey.Error_ECIESError_InvalidChallengeSignature]: 'Ungültige Herausforderungsunterschrift',
+    [EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey]: 'Fehler beim Ableiten des privaten Schlüssels',
+    [EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate]: 'Ungültiges Format oder Länge des öffentlichen Schlüssels: {keyLength}',
+    [EciesStringKey.Error_ECIESError_ReceivedNullOrUndefinedPublicKey]: 'Öffentlicher Schlüssel ist null oder undefiniert',
+    [EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate]: 'Nachrichtenlänge überschreitet die maximal zulässige Größe: {messageLength}',
+    [EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode]: 'Mehrere Verschlüsselungstypen werden im Einzelempfängermodus nicht unterstützt',
+    [EciesStringKey.Error_ECIESError_EncryptionTypeMismatchTemplate]: 'Verschlüsselungstyp stimmt nicht überein: erwartet {encryptionType}, erhalten {actualEncryptionType}',
+    [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: 'Daten zu kurz: erforderlich {requiredSize}, erhalten {dataLength}',
+    [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: 'Datenlängenübereinstimmung: erwartet {expectedDataLength}, erhalten {receivedDataLength}',
+    [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Kombinierte Daten sind zu kurz, um die erforderlichen Komponenten zu enthalten',
+
+    // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
+    [EciesStringKey.Error_MemberError_MissingMemberName]:
+      'Mitgliedsname ist erforderlich',
+    [EciesStringKey.Error_MemberError_InvalidMemberNameWhitespace]:
+      'Mitgliedsname enthält führende oder nachfolgende Leerzeichen.',
+    [EciesStringKey.Error_MemberError_InvalidEmail]: 'Ungültige E-Mail.',
+    [EciesStringKey.Error_MemberError_InvalidMemberName]:
+      'Ungültiger Mitgliedsname.',
+    [EciesStringKey.Error_MemberError_InvalidMemberStatus]:
+      'Ungültiger Mitgliedsstatus.',
+    [EciesStringKey.Error_MemberError_MissingEmail]: 'Fehlende E-Mail.',
+    [EciesStringKey.Error_MemberError_InvalidEmailWhitespace]:
+      'E-Mail enthält führende oder nachfolgende Leerzeichen.',
+    [EciesStringKey.Error_MemberError_MissingPrivateKey]:
+      'Fehlender privater Schlüssel.',
+    [EciesStringKey.Error_MemberError_NoWallet]: 'Keine Wallet geladen.',
+    [EciesStringKey.Error_MemberError_WalletAlreadyLoaded]:
+      'Wallet bereits geladen.',
+    [EciesStringKey.Error_MemberError_InvalidMnemonic]:
+      'Ungültige Wallet-Mnemonik.',
+    [EciesStringKey.Error_MemberError_IncorrectOrInvalidPrivateKey]:
+      'Falscher oder ungültiger privater Schlüssel für öffentlichen Schlüssel',
+    [EciesStringKey.Error_MemberError_MemberNotFound]: 'Mitglied nicht gefunden.',
+    [EciesStringKey.Error_MemberError_MemberAlreadyExists]:
+      'Mitglied existiert bereits.',
+    [EciesStringKey.Error_MemberError_FailedToHydrateMember]:
+      'Fehler beim Hydratisieren des Mitglieds.',
+    [EciesStringKey.Error_MemberError_InvalidMemberData]:
+      'Ungültige Mitgliedsdaten.',
+    [EciesStringKey.Error_MemberError_FailedToConvertMemberData]:
+      'Fehler beim Konvertieren der Mitgliedsdaten.',
+    [EciesStringKey.Error_MemberError_MissingEncryptionData]:
+      'Fehlende Verschlüsselungsdaten.',
+    [EciesStringKey.Error_MemberError_EncryptionDataTooLarge]:
+      'Verschlüsselungsdaten zu groß.',
+    [EciesStringKey.Error_MemberError_InvalidEncryptionData]:
+      'Ungültige Verschlüsselungsdaten.',
+
+    // GUID Error Types - buildReasonMap(GuidErrorType, 'Error', 'GuidError')
+    [EciesStringKey.Error_GuidError_Invalid]: 'Ungültiges GUID-Format',
+    [EciesStringKey.Error_GuidError_InvalidWithGuidTemplate]:
+      'Ungültige GUID: {GUID}',
+    [EciesStringKey.Error_GuidError_UnknownBrandTemplate]:
+      'Unbekannte GUID-Marke: {BRAND}.',
+    [EciesStringKey.Error_GuidError_UnknownLengthTemplate]:
+      'Ungültige GUID-Länge: {LENGTH}.',
+
+    // Length Error Types - buildReasonMap(LengthErrorType, 'Error', 'LengthError')
+    [EciesStringKey.Error_LengthError_LengthIsTooShort]: 'Länge ist zu kurz.',
+    [EciesStringKey.Error_LengthError_LengthIsTooLong]: 'Länge ist zu lang.',
+    [EciesStringKey.Error_LengthError_LengthIsInvalidType]:
+      'Länge hat einen ungültigen Typ.',
+
+    // PBKDF2 Error Types - buildReasonMap(Pbkdf2ErrorType, 'Error', 'Pbkdf2Error')
+    [EciesStringKey.Error_Pbkdf2Error_InvalidProfile]:
+      'Ungültiges PBKDF2-Profil angegeben',
+    [EciesStringKey.Error_Pbkdf2Error_InvalidSaltLength]:
+      'Salt-Länge entspricht nicht der erwarteten Länge',
+    [EciesStringKey.Error_Pbkdf2Error_InvalidHashLength]:
+      'Hash-Länge entspricht nicht der erwarteten Länge',
+
+    // Secure Storage Error Types - buildReasonMap(SecureStorageErrorType, 'Error', 'SecureStorageError')
+    [EciesStringKey.Error_SecureStorageError_DecryptedValueLengthMismatch]:
+      'Länge des entschlüsselten Werts entspricht nicht der erwarteten Länge',
+    [EciesStringKey.Error_SecureStorageError_DecryptedValueChecksumMismatch]:
+      'Prüfsumme des entschlüsselten Werts stimmt nicht überein',
+    [EciesStringKey.Error_SecureStorageError_ValueIsNull]:
+      'Sicherer Speicherwert ist null',
+    [EciesStringKey.Error_InvalidEmailError_Invalid]: 'Ungültige E-Mail-Adresse.',
+    [EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag]:
+      'Verschlüsselung fehlgeschlagen: kein Authentifizierungstag generiert',
+    [EciesStringKey.Error_PasswordLoginError_FailedToStoreLoginData]:
+      'Fehler beim Speichern der Passwort-Anmeldedaten',
+    [EciesStringKey.Error_PasswordLoginError_PasswordLoginNotSetUp]:
+      'Passwort-Anmeldung ist nicht eingerichtet',
+  };
+
+  const japaneseTranslations: Record<EciesStringKey, string> = {
+    // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
+    [EciesStringKey.Error_ECIESError_InvalidECIESMultipleEncryptedKeySize]:
+      '無効なECIES複数暗号化キーサイズ',
+    [EciesStringKey.Error_ECIESError_InvalidECIESPublicKeyLength]:
+      '無効なECIES公開鍵長さ',
+    [EciesStringKey.Error_ECIESError_InvalidECIESMultipleRecipientCountSize]:
+      '無効なECIES複数受信者カウントサイズ',
+    [EciesStringKey.Error_ECIESError_InvalidECIESMultipleDataLengthSize]:
+      '無効なECIES複数データ長さサイズ',
+    [EciesStringKey.Error_ECIESError_InvalidECIESMultipleRecipientIdSize]:
+      '無効なECIES複数受信者IDサイズ',
+    [EciesStringKey.Error_ECIESError_CRCError]: 'CRCエラー',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptionType]:
+      '無効な暗号化タイプ',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate]: '無効な暗号化タイプ: {encryptionType}',
+    [EciesStringKey.Error_ECIESError_InvalidIVLength]: '無効なIV長さ',
+    [EciesStringKey.Error_ECIESError_InvalidAuthTagLength]:
+      '無効な認証タグ長さ',
+    [EciesStringKey.Error_ECIESError_InvalidHeaderLength]:
+      '無効なヘッダー長さ',
+    [EciesStringKey.Error_ECIESError_InvalidDataLength]: '無効なデータ長さ',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptedDataLength]:
+      '無効な暗号化データ長さ',
+    [EciesStringKey.Error_ECIESError_InvalidMessageCrc]: '無効なメッセージCRC',
+    [EciesStringKey.Error_ECIESError_InvalidMnemonic]: '無効なニーモニック',
+    [EciesStringKey.Error_ECIESError_InvalidOperation]: '無効な操作',
+    [EciesStringKey.Error_ECIESError_MessageLengthMismatch]:
+      'メッセージ長さが一致しません',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLength]:
+      '無効な暗号化キー長さ',
+    [EciesStringKey.Error_ECIESError_InvalidEphemeralPublicKey]:
+      '無効な一時公開鍵',
+    [EciesStringKey.Error_ECIESError_RecipientNotFound]:
+      '受信者IDに受信者が見つかりません',
+    [EciesStringKey.Error_ECIESError_InvalidSignature]: '無効な署名',
+    [EciesStringKey.Error_ECIESError_InvalidSenderPublicKey]:
+      '無効な送信者公開鍵',
+    [EciesStringKey.Error_ECIESError_TooManyRecipients]:
+      '受信者が多すぎます: 最大許可数を超えています',
+    [EciesStringKey.Error_ECIESError_PrivateKeyNotLoaded]:
+      '秘密鍵が読み込まれていません',
+    [EciesStringKey.Error_ECIESError_RecipientKeyCountMismatch]:
+      '受信者数がキー数と一致しません',
+    [EciesStringKey.Error_ECIESError_InvalidRecipientCount]:
+      '無効な受信者数',
+    [EciesStringKey.Error_ECIESError_FileSizeTooLarge]: 'ファイルサイズが大きすぎます',
+    [EciesStringKey.Error_ECIESError_DecryptionFailed]:
+      '復号化操作に失敗しました',
+    [EciesStringKey.Error_ECIESError_InvalidRecipientPublicKey]:
+      '無効な受信者公開鍵が暗号化に提供されました',
+    [EciesStringKey.Error_ECIESError_SecretComputationFailed]:
+      'ECIES操作中に共有秘密の計算に失敗しました',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption]:
+      '鍵暗号化には認証タグが必要です',
+    [EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLengthTemplate]:
+      '無効な暗号化キー長さ: 期待される {keySize}, 実際の {encryptedKeyLength}',
+    [EciesStringKey.Error_ECIESError_FailedToDecryptKey]: '鍵の復号化に失敗しました',
+    [EciesStringKey.Error_ECIESError_TooManyRecipientsTemplate]: '受信者が多すぎます: {recipientsCount}',
+    [EciesStringKey.Error_ECIESError_MessageTooLargeTemplate]: 'メッセージが大きすぎます: {length}',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption]: 'ECIES暗号化には認証タグが必要です',
+    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption]: 'マルチ受信者ECIES暗号化には認証タグが必要です',
+    [EciesStringKey.Error_ECIESError_DecryptedDataLengthMismatch]: '復号化データの長さが一致しません',
+    [EciesStringKey.Error_ECIESError_RecipientCountMismatch]: '受信者数が一致しません',
+    [EciesStringKey.Error_ECIESError_DataTooShortForMultiRecipientHeader]: 'マルチ受信者ヘッダー用のデータが短すぎます',
+    [EciesStringKey.Error_ECIESError_FailedToDecryptChallengeTemplate]: 'チャレンジの復号化に失敗しました: {error}',
+    [EciesStringKey.Error_ECIESError_InvalidChallengeSignature]: '無効なチャレンジ署名',
+    [EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey]: '秘密鍵の導出に失敗しました',
+    [EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate]: '無効な公開鍵の形式または長さ: {keyLength}',
+    [EciesStringKey.Error_ECIESError_ReceivedNullOrUndefinedPublicKey]: 'nullまたは未定義の公開鍵を受信しました',
+    [EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate]: 'メッセージの長さが許可されている最大サイズを超えています: {messageLength}',
+    [EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode]: '単一受信者モードでは複数の暗号化タイプはサポートされていません',
+    [EciesStringKey.Error_ECIESError_EncryptionTypeMismatchTemplate]: '暗号化タイプが一致しません: 期待される {encryptionType}, 実際の {actualEncryptionType}',
+    [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: 'データが短すぎます: 必要な {requiredSize}, 実際の {dataLength}',
+    [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: 'データの長さが一致しません: 期待される {expectedDataLength}, 実際の {receivedDataLength}',
+    [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: '結合データが必要なコンポーネントを含むには短すぎます',
+
+    // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
+    [EciesStringKey.Error_MemberError_MissingMemberName]:
+      'メンバー名は必須です。',
+    [EciesStringKey.Error_MemberError_InvalidMemberNameWhitespace]:
+      'メンバー名に前後の空白が含まれています。',
+    [EciesStringKey.Error_MemberError_InvalidEmail]: '無効なメールアドレスです。',
+    [EciesStringKey.Error_MemberError_InvalidMemberName]:
+      '無効なメンバー名です。',
+    [EciesStringKey.Error_MemberError_InvalidMemberStatus]:
+      '無効なメンバーステータスです。',
+    [EciesStringKey.Error_MemberError_MissingEmail]: 'メールアドレスがありません。',
+    [EciesStringKey.Error_MemberError_InvalidEmailWhitespace]:
+      'メールアドレスに前後の空白が含まれています。',
+    [EciesStringKey.Error_MemberError_MissingPrivateKey]:
+      '秘密鍵がありません。',
+    [EciesStringKey.Error_MemberError_NoWallet]: 'ウォレットが読み込まれていません。',
+    [EciesStringKey.Error_MemberError_WalletAlreadyLoaded]:
+      'ウォレットはすでに読み込まれています。',
+    [EciesStringKey.Error_MemberError_InvalidMnemonic]:
+      '無効なウォレットのニーモニックです。',
+    [EciesStringKey.Error_MemberError_IncorrectOrInvalidPrivateKey]:
+      '公開鍵に対する秘密鍵が不正確または無効です。',
+    [EciesStringKey.Error_MemberError_MemberNotFound]: 'メンバーが見つかりません。',
+    [EciesStringKey.Error_MemberError_MemberAlreadyExists]:
+      'メンバーはすでに存在します。',
+    [EciesStringKey.Error_MemberError_FailedToHydrateMember]:
+      'メンバーの水分補給に失敗しました。',
+    [EciesStringKey.Error_MemberError_InvalidMemberData]:
+      '無効なメンバーデータです。',
+    [EciesStringKey.Error_MemberError_FailedToConvertMemberData]:
+      'メンバーデータの変換に失敗しました。',
+    [EciesStringKey.Error_MemberError_MissingEncryptionData]:
+      '暗号化データがありません。',
+    [EciesStringKey.Error_MemberError_EncryptionDataTooLarge]:
+      '暗号化データが大きすぎます。',
+    [EciesStringKey.Error_MemberError_InvalidEncryptionData]:
+      '無効な暗号化データです。',
+
+    // GUID Error Types - buildReasonMap(GuidErrorType, 'Error', 'GuidError')
+    [EciesStringKey.Error_GuidError_Invalid]: '無効なGUID形式です。',
+    [EciesStringKey.Error_GuidError_InvalidWithGuidTemplate]:
+      '無効なGUID: {GUID}',
+    [EciesStringKey.Error_GuidError_UnknownBrandTemplate]:
+      '不明なGUIDブランド: {BRAND}.',
+    [EciesStringKey.Error_GuidError_UnknownLengthTemplate]:
+      '無効なGUID長: {LENGTH}.',
+
+    // Length Error Types - buildReasonMap(LengthErrorType, 'Error', 'LengthError')
+    [EciesStringKey.Error_LengthError_LengthIsTooShort]: '長さが短すぎます。',
+    [EciesStringKey.Error_LengthError_LengthIsTooLong]: '長さが長すぎます。',
+    [EciesStringKey.Error_LengthError_LengthIsInvalidType]:
+      '長さが無効な型です。',
+
+    // PBKDF2 Error Types - buildReasonMap(Pbkdf2ErrorType, 'Error', 'Pbkdf2Error')
+    [EciesStringKey.Error_Pbkdf2Error_InvalidProfile]:
+      '無効なPBKDF2プロファイルが指定されました。',
+    [EciesStringKey.Error_Pbkdf2Error_InvalidSaltLength]:
+      'ソルトの長さが期待される長さと一致しません',
+    [EciesStringKey.Error_Pbkdf2Error_InvalidHashLength]:
+      'ハッシュの長さが期待される長さと一致しません',
+
+    // Secure Storage Error Types - buildReasonMap(SecureStorageErrorType, 'Error', 'SecureStorageError')
+    [EciesStringKey.Error_SecureStorageError_DecryptedValueLengthMismatch]:
+      '復号化された値の長さが期待される長さと一致しません',
+    [EciesStringKey.Error_SecureStorageError_DecryptedValueChecksumMismatch]:
+      '復号化された値のチェックサムが一致しません',
+    [EciesStringKey.Error_SecureStorageError_ValueIsNull]:
+      'セキュアストレージの値がnullです',
+    [EciesStringKey.Error_InvalidEmailError_Invalid]: '無効なメールアドレスです。',
+    [EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag]:
+      '暗号化に失敗しました: 認証タグが生成されませんでした',
+    [EciesStringKey.Error_PasswordLoginError_FailedToStoreLoginData]:
+      'パスワードログインデータの保存に失敗しました',
+    [EciesStringKey.Error_PasswordLoginError_PasswordLoginNotSetUp]:
+      'パスワードログインが設定されていません',
+  };
+
+  // Define languages for ECIES
+  const eciesLanguages = [
+    createLanguageDefinition('en-US', 'English (US)', EciesLanguageCodes.EN_US, true),
+    createLanguageDefinition('en-GB', 'English (UK)', EciesLanguageCodes.EN_GB),
+    createLanguageDefinition('fr', 'French', EciesLanguageCodes.FR),
+    createLanguageDefinition('es', 'Spanish', EciesLanguageCodes.ES),
+    createLanguageDefinition('de', 'Deutsch', EciesLanguageCodes.DE),
+    createLanguageDefinition('zh-CN', 'Chinese (Simplified)', EciesLanguageCodes.ZH_CN),
+    createLanguageDefinition('ja', '日本語', EciesLanguageCodes.JA),
+    createLanguageDefinition('uk', 'Ukrainian', EciesLanguageCodes.UK),
+  ];
+
+  // Create engine with ECIES languages
+  const engine = new PluginI18nEngine<EciesSupportedLanguageCode>(eciesLanguages, {
+    defaultLanguage: EciesLanguageCodes.EN_US,
+    fallbackLanguage: EciesLanguageCodes.EN_US,
+  });
 
   // Define the ECIES component registration with specified languages only
   const eciesComponentStrings = {
-    [LanguageCodes.EN_US]: englishTranslations,
-    [LanguageCodes.EN_GB]: englishTranslations, // UK uses same strings as US
-    [LanguageCodes.FR]: frenchTranslations,
-    [LanguageCodes.ZH_CN]: mandarinChineseTranslations,
-    [LanguageCodes.ES]: spanishTranslations,
-    [LanguageCodes.UK]: ukrainianTranslations,
+    [EciesLanguageCodes.EN_US]: englishTranslations,
+    [EciesLanguageCodes.EN_GB]: englishTranslations, // UK uses same strings as US
+    [EciesLanguageCodes.FR]: frenchTranslations,
+    [EciesLanguageCodes.ES]: spanishTranslations,
+    [EciesLanguageCodes.DE]: germanTranslations,
+    [EciesLanguageCodes.ZH_CN]: mandarinChineseTranslations,
+    [EciesLanguageCodes.JA]: japaneseTranslations,
+    [EciesLanguageCodes.UK]: ukrainianTranslations,
   };
 
   const eciesRegistration: ComponentRegistration<EciesStringKey, EciesSupportedLanguageCode> =
@@ -701,28 +1150,11 @@ export function initEciesI18nEngine() {
   // Register the ECIES component
   const validationResult = engine.registerComponent(eciesRegistration);
 
-  if (!validationResult.isValid) {
-    // Define the languages we actually support using language codes - filter out German and Japanese warnings
-    const supportedLanguages = [
-      LanguageCodes.EN_US,
-      LanguageCodes.EN_GB,
-      LanguageCodes.FR,
-      LanguageCodes.ZH_CN,
-      LanguageCodes.ES,
-      LanguageCodes.UK,
-    ];
-
-    // Only warn about missing translations for languages we actually support
-    const relevantMissingKeys = validationResult.missingKeys.filter((key) =>
-      supportedLanguages.includes(key.languageId as EciesSupportedLanguageCode),
+  if (!validationResult.isValid && validationResult.missingKeys.length > 0) {
+    console.warn(
+      'ECIES component registration has missing translations:',
+      validationResult.missingKeys,
     );
-
-    if (relevantMissingKeys.length > 0) {
-      console.warn(
-        'ECIES component registration has missing translations for supported languages:',
-        relevantMissingKeys,
-      );
-    }
   }
 
   return engine;
@@ -788,12 +1220,14 @@ export function translateEciesString(
 // Create language code mapping
 const DefaultLanguageToCoreLanguageMap = new Map<string, EciesSupportedLanguageCode>([
   // Map language codes to themselves
-  [LanguageCodes.EN_US, LanguageCodes.EN_US],
-  [LanguageCodes.EN_GB, LanguageCodes.EN_GB],
-  [LanguageCodes.FR, LanguageCodes.FR],
-  [LanguageCodes.ZH_CN, LanguageCodes.ZH_CN],
-  [LanguageCodes.ES, LanguageCodes.ES],
-  [LanguageCodes.UK, LanguageCodes.UK],
+  [EciesLanguageCodes.EN_US, EciesLanguageCodes.EN_US],
+  [EciesLanguageCodes.EN_GB, EciesLanguageCodes.EN_GB],
+  [EciesLanguageCodes.FR, EciesLanguageCodes.FR],
+  [EciesLanguageCodes.ES, EciesLanguageCodes.ES],
+  [EciesLanguageCodes.DE, EciesLanguageCodes.DE],
+  [EciesLanguageCodes.ZH_CN, EciesLanguageCodes.ZH_CN],
+  [EciesLanguageCodes.JA, EciesLanguageCodes.JA],
+  [EciesLanguageCodes.UK, EciesLanguageCodes.UK],
 ]);
 
 // Create a full adapter that perfectly mimics the old I18nEngine interface
@@ -807,7 +1241,7 @@ export function getCompatibleEciesEngine() {
       language?: any,
     ) => {
       // Map any legacy language parameter to EciesSupportedLanguageCode
-      let coreLanguage: EciesSupportedLanguageCode = LanguageCodes.EN_US; // Default fallback
+      let coreLanguage: EciesSupportedLanguageCode = EciesLanguageCodes.EN_US; // Default fallback
 
       if (language) {
         const langStr = String(language);

@@ -1,16 +1,16 @@
 import {
-  Defaults,
-  DefaultsRegistry,
+  Constants,
+  ConstantsRegistry,
   createRuntimeConfiguration,
   getRuntimeConfiguration,
   registerRuntimeConfiguration,
   unregisterRuntimeConfiguration,
   clearRuntimeConfigurations,
   ConfigurationKey,
-} from '../src/defaults';
+} from '../src/constants';
 import { ECIESError } from '../src/errors/ecies';
 
-describe('DefaultsRegistry', () => {
+describe('ConstantsRegistry', () => {
   const performanceKey: ConfigurationKey = 'performance-profile';
   const securityKey: ConfigurationKey = 'security-profile';
 
@@ -34,22 +34,22 @@ describe('DefaultsRegistry', () => {
   it('creates configurations that inherit from other registrations', () => {
     registerRuntimeConfiguration(securityKey, {
       PBKDF2: {
-        ITERATIONS_PER_SECOND: Defaults.PBKDF2.ITERATIONS_PER_SECOND * 2,
+        ITERATIONS_PER_SECOND: Constants.PBKDF2.ITERATIONS_PER_SECOND * 2,
       },
     });
 
-    const inherited = DefaultsRegistry.register(
+    const inherited = ConstantsRegistry.register(
       performanceKey,
       {
         PBKDF2: {
-          ITERATIONS_PER_SECOND: Defaults.PBKDF2.ITERATIONS_PER_SECOND / 2,
+          ITERATIONS_PER_SECOND: Constants.PBKDF2.ITERATIONS_PER_SECOND / 2,
         },
       },
       { baseKey: securityKey },
     );
 
     expect(inherited.PBKDF2.ITERATIONS_PER_SECOND).toBe(
-      Defaults.PBKDF2.ITERATIONS_PER_SECOND / 2,
+      Constants.PBKDF2.ITERATIONS_PER_SECOND / 2,
     );
     expect(inherited.PBKDF2.ALGORITHM).toBe(
       getRuntimeConfiguration(securityKey).PBKDF2.ALGORITHM,
@@ -58,7 +58,7 @@ describe('DefaultsRegistry', () => {
 
   it('does not allow overwriting the default configuration key', () => {
     expect(() =>
-      registerRuntimeConfiguration(DefaultsRegistry.DEFAULT_KEY, {
+      registerRuntimeConfiguration(ConstantsRegistry.DEFAULT_KEY, {
         BcryptRounds: 4,
       } as any),
     ).toThrow('Cannot overwrite the default configuration');
@@ -84,6 +84,6 @@ describe('DefaultsRegistry', () => {
     });
 
     expect(unregisterRuntimeConfiguration(performanceKey)).toBe(true);
-    expect(getRuntimeConfiguration(performanceKey)).toBe(Defaults);
+    expect(getRuntimeConfiguration(performanceKey)).toBe(Constants);
   });
 });

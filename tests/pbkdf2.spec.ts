@@ -1,4 +1,4 @@
-import { ECIES, PBKDF2, PBKDF2_PROFILES } from '../src/defaults';
+import { ECIES, PBKDF2, PBKDF2_PROFILES } from '../src/constants';
 import { Pbkdf2ErrorType } from '../src//enumerations/pbkdf2-error-type';
 import { Pbkdf2ProfileEnum } from '../src/enumerations/pbkdf2-profile';
 import { Pbkdf2Error } from '../src/errors/pbkdf2';

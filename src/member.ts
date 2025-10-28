@@ -1,5 +1,5 @@
 import { Wallet } from '@ethereumjs/wallet';
-import { ECIES } from './defaults';
+import { ECIES } from './constants';
 import { EmailString } from './email-string';
 import MemberErrorType from './enumerations/member-error-type';
 import MemberType from './enumerations/member-type';

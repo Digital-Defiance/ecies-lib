@@ -1,5 +1,7 @@
 import { IECIESConstants } from '../interfaces/ecies-consts';
-import { ECIES } from '../defaults';
+import { Constants } from '../constants';
+import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { EciesStringKey } from '../enumerations';
 
 export abstract class AESGCMService {
   public static readonly ALGORITHM_NAME = 'AES-GCM';
@@ -13,7 +15,7 @@ export abstract class AESGCMService {
     data: Uint8Array,
     key: Uint8Array,
     authTag: boolean = false,
-    eciesParams?: IECIESConstants,
+    eciesParams: IECIESConstants = Constants.ECIES,
   ): Promise<{ encrypted: Uint8Array; iv: Uint8Array; tag?: Uint8Array }> {
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
@@ -23,7 +25,7 @@ export abstract class AESGCMService {
       ['encrypt'],
     );
 
-    const eciesConsts = eciesParams ?? ECIES;
+    const eciesConsts = eciesParams;
     const iv = crypto.getRandomValues(new Uint8Array(eciesConsts.IV_SIZE));
     const encryptedResult = await crypto.subtle.encrypt(
       {
@@ -106,15 +108,16 @@ export abstract class AESGCMService {
   public static splitEncryptedData(
     combinedData: Uint8Array,
     hasAuthTag: boolean = true,
-    eciesParams?: IECIESConstants,
+    eciesParams: IECIESConstants = Constants.ECIES,
   ): { iv: Uint8Array; encryptedDataWithTag: Uint8Array } {
-    const eciesConsts = eciesParams ?? ECIES;
+    const eciesConsts = eciesParams;
     const ivLength = eciesConsts.IV_SIZE;
     const tagLength = hasAuthTag ? eciesConsts.AUTH_TAG_SIZE : 0;
 
     if (combinedData.length < ivLength + tagLength) {
+      const engine = getEciesI18nEngine();
       throw new Error(
-        'Combined data is too short to contain required components',
+        engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents),
       );
     }
 
@@ -137,9 +140,9 @@ export abstract class AESGCMService {
     encryptedData: Uint8Array,
     key: Uint8Array,
     authTag: boolean = false,
-    eciesParams?: IECIESConstants,
+    eciesParams: IECIESConstants = Constants.ECIES,
   ): Promise<Uint8Array> {
-    const eciesConsts = eciesParams ?? ECIES;
+    const eciesConsts = eciesParams;
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
       new Uint8Array(key),

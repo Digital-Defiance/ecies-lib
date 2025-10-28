@@ -6,13 +6,15 @@ import {
   validateMnemonic,
 } from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
-import { ECIES } from '../../defaults';
+import { Constants } from '../../constants';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { SecureString } from '../../secure-string';
 import { ISimpleKeyPair, IWalletSeed } from './interfaces';
 
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
+import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import { EciesStringKey } from '../../enumerations';
 
 /**
  * Browser-compatible crypto core for ECIES operations
@@ -22,9 +24,9 @@ export class EciesCryptoCore {
   protected readonly _config: IECIESConfig;
   protected readonly _eciesConsts: IECIESConstants;
 
-  constructor(config: IECIESConfig, eciesParams?: IECIESConstants) {
+  constructor(config: IECIESConfig, eciesParams: IECIESConstants = Constants.ECIES) {
     this._config = config;
-    this._eciesConsts = eciesParams ?? ECIES;
+    this._eciesConsts = eciesParams;
   }
 
 
@@ -38,7 +40,8 @@ export class EciesCryptoCore {
    */
   public normalizePublicKey(publicKey: Uint8Array): Uint8Array {
     if (!publicKey) {
-      throw new Error('Received null or undefined public key');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_ReceivedNullOrUndefinedPublicKey));
     }
 
     const keyLength = publicKey.length;
@@ -59,7 +62,8 @@ export class EciesCryptoCore {
       return result;
     }
 
-    throw new Error(`Invalid public key format or length: ${keyLength}`);
+    const engine = getEciesI18nEngine();
+    throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate, { keyLength }));
   }
 
   /**
@@ -76,7 +80,8 @@ export class EciesCryptoCore {
    */
   public walletAndSeedFromMnemonic(mnemonic: SecureString): IWalletSeed {
     if (!mnemonic || !validateMnemonic(mnemonic.value ?? '', wordlist)) {
-      throw new Error('Invalid mnemonic');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidMnemonic));
     }
 
     const seed = mnemonicToSeedSync(mnemonic.value ?? '');
@@ -84,7 +89,8 @@ export class EciesCryptoCore {
     const derivedKey = hdKey.derive(this._config.primaryKeyDerivationPath);
 
     if (!derivedKey.privateKey) {
-      throw new Error('Failed to derive private key');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey));
     }
 
     const privateKey = derivedKey.privateKey;
@@ -105,7 +111,8 @@ export class EciesCryptoCore {
     const derivedKey = hdKey.derive(this._config.primaryKeyDerivationPath);
 
     if (!derivedKey.privateKey) {
-      throw new Error('Failed to derive private key');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey));
     }
 
     const privateKey = derivedKey.privateKey;

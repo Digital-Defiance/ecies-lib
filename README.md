@@ -782,6 +782,13 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.13
+
+- Upgrade i18n to plugin engine
+- support more core languages
+- add more string messages for errors
+- be more extensible for constants passed into services, etc
+
 ### v1.1.12
 
 - Add MemberTypeValue

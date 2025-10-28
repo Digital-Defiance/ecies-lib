@@ -1,10 +1,10 @@
 import {
-  Defaults,
-  DefaultsRegistry,
+  Constants,
+  ConstantsRegistry,
   createRuntimeConfiguration,
   getRuntimeConfiguration,
   registerRuntimeConfiguration,
-} from '../src/defaults';
+} from '../src/constants';
 
 describe('ECIES Runtime Configuration Registry', () => {
   it('should return the default configuration', () => {

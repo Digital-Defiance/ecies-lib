@@ -1,5 +1,5 @@
 import { IECIESConstants } from '../../interfaces/ecies-consts';
-import { ECIES } from '../../defaults';
+import { Constants } from '../../constants';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { concatUint8Arrays } from '../../utils';
 import { AESGCMService } from '../aes-gcm';
@@ -9,6 +9,8 @@ import {
   IMultiEncryptedParsedHeader,
   IMultiRecipient,
 } from './interfaces';
+import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import { EciesStringKey } from '../../enumerations';
 
 /**
  * Browser-compatible multi-recipient ECIES encryption/decryption
@@ -17,9 +19,9 @@ export class EciesMultiRecipient {
   protected readonly cryptoCore: EciesCryptoCore;
   protected readonly eciesConsts: IECIESConstants;
 
-  constructor(config: IECIESConfig, eciesParams?: IECIESConstants) {
+  constructor(config: IECIESConfig, eciesParams: IECIESConstants = Constants.ECIES) {
     this.cryptoCore = new EciesCryptoCore(config, eciesParams);
-    this.eciesConsts = eciesParams ?? ECIES;
+    this.eciesConsts = eciesParams;
   }
 
   /**
@@ -62,7 +64,8 @@ export class EciesMultiRecipient {
     const authTag = encryptResult.tag;
 
     if (!authTag) {
-      throw new Error('Authentication tag is required for key encryption');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption));
     }
 
     return concatUint8Arrays(
@@ -84,9 +87,10 @@ export class EciesMultiRecipient {
     encryptedKey: Uint8Array,
   ): Promise<Uint8Array> {
     if (encryptedKey.length !== this.eciesConsts.MULTIPLE.ENCRYPTED_KEY_SIZE) {
-      throw new Error(
-        `Invalid encrypted key length: expected ${this.eciesConsts.MULTIPLE.ENCRYPTED_KEY_SIZE}, got ${encryptedKey.length}`,
-      );
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(
+        EciesComponentId,
+        EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLengthTemplate, {keySize: this.eciesConsts.MULTIPLE.ENCRYPTED_KEY_SIZE, encryptedKeyLength: encryptedKey.length}));
     }
 
     const ephemeralPublicKey = encryptedKey.slice(0, this.eciesConsts.PUBLIC_KEY_LENGTH);
@@ -122,12 +126,14 @@ export class EciesMultiRecipient {
         this.eciesConsts
       );
       if (decrypted.length !== this.eciesConsts.SYMMETRIC.KEY_SIZE) {
-        throw new Error('Invalid data length');
+        const engine = getEciesI18nEngine();
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidDataLength));
       }
       return decrypted;
     } catch (error) {
       console.error('Failed to decrypt key:', error);
-      throw new Error('Failed to decrypt key');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_FailedToDecryptKey));
     }
   }
 
@@ -139,12 +145,13 @@ export class EciesMultiRecipient {
     message: Uint8Array,
     preamble: Uint8Array = new Uint8Array(0),
   ): Promise<IMultiEncryptedMessage> {
+    const engine = getEciesI18nEngine();
     if (recipients.length > this.eciesConsts.MULTIPLE.MAX_RECIPIENTS) {
-      throw new Error(`Too many recipients: ${recipients.length}`);
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_TooManyRecipientsTemplate, { recipientsCount: recipients.length }));
     }
 
     if (message.length > this.eciesConsts.MAX_RAW_DATA_SIZE) {
-      throw new Error(`Message too large: ${message.length}`);
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_MessageTooLargeTemplate, { length: message.length }));
     }
 
     // Generate symmetric key
@@ -163,8 +170,9 @@ export class EciesMultiRecipient {
     const authTag = encryptResult.tag;
 
     if (!authTag) {
+      const engine = getEciesI18nEngine();
       throw new Error(
-        'Authentication tag is required for multi-recipient ECIES encryption',
+        engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption),
       );
     }
 
@@ -211,7 +219,8 @@ export class EciesMultiRecipient {
     );
 
     if (recipientIndex === -1) {
-      throw new Error('Recipient not found');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_RecipientNotFound));
     }
 
     const encryptedKey = encryptedData.recipientKeys[recipientIndex];
@@ -253,7 +262,8 @@ export class EciesMultiRecipient {
 
     // Verify length
     if (decrypted.length !== encryptedData.dataLength) {
-      throw new Error('Decrypted data length mismatch');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_DecryptedDataLengthMismatch));
     }
 
     return decrypted;
@@ -264,11 +274,13 @@ export class EciesMultiRecipient {
    */
   public buildHeader(data: IMultiEncryptedMessage): Uint8Array {
     if (data.recipientIds.length !== data.recipientKeys.length) {
-      throw new Error('Recipient count mismatch');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_RecipientCountMismatch));
     }
 
     if (data.dataLength < 0 || data.dataLength > this.eciesConsts.MAX_RAW_DATA_SIZE) {
-      throw new Error('Invalid data length');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidDataLength));
     }
 
     // Data length (8 bytes)
@@ -306,8 +318,9 @@ export class EciesMultiRecipient {
    */
   public parseHeader(data: Uint8Array): IMultiEncryptedParsedHeader {
     if (data.length < 10) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_DataTooShortForMultiRecipientHeader));
       // minimum: 8 + 2
-      throw new Error('Data too short for multi-recipient header');
     }
 
     let offset = 0;
@@ -318,7 +331,8 @@ export class EciesMultiRecipient {
     offset += 8;
 
     if (dataLength <= 0 || dataLength > this.eciesConsts.MAX_RAW_DATA_SIZE) {
-      throw new Error('Invalid data length');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidDataLength));
     }
 
     // Read recipient count
@@ -326,7 +340,8 @@ export class EciesMultiRecipient {
     offset += 2;
 
     if (recipientCount <= 0 || recipientCount > this.eciesConsts.MULTIPLE.MAX_RECIPIENTS) {
-      throw new Error('Invalid recipient count');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidRecipientCount));
     }
 
     // Read recipient IDs

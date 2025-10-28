@@ -1,5 +1,5 @@
 import { IECIESConstants } from '../../interfaces/ecies-consts';
-import { ECIES } from '../../defaults';
+import { Constants } from '../../constants';
 import {
   EciesEncryptionType,
   EciesEncryptionTypeEnum,
@@ -9,6 +9,8 @@ import { AESGCMService } from '../aes-gcm';
 
 import { EciesCryptoCore } from './crypto-core';
 import { IDecryptionResult, ISingleEncryptedParsedHeader } from './interfaces';
+import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import { EciesStringKey } from '../../enumerations';
 
 /**
  * Browser-compatible single recipient ECIES encryption/decryption
@@ -18,9 +20,9 @@ export class EciesSingleRecipient {
   protected readonly config: IECIESConfig;
   protected readonly eciesConsts: IECIESConstants;
 
-  constructor(config: IECIESConfig, eciesParams?: IECIESConstants) {
+  constructor(config: IECIESConfig, eciesParams: IECIESConstants = Constants.ECIES) {
     this.config = config;
-    this.eciesConsts = eciesParams ?? ECIES;
+    this.eciesConsts = eciesParams;
     this.cryptoCore = new EciesCryptoCore(config, this.eciesConsts);
   }
 
@@ -43,9 +45,8 @@ export class EciesSingleRecipient {
     ]);
 
     if (message.length > this.eciesConsts.MAX_RAW_DATA_SIZE) {
-      throw new Error(
-        `Message length exceeds maximum allowed size: ${message.length}`,
-      );
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate, {messageLength: message.length }));
     }
 
     // Generate ephemeral key pair
@@ -70,7 +71,8 @@ export class EciesSingleRecipient {
     const authTag = encryptResult.tag;
 
     if (!authTag) {
-      throw new Error('Authentication tag is required for ECIES encryption');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption));
     }
 
     // Add length prefix for single mode
@@ -127,6 +129,7 @@ export class EciesSingleRecipient {
     // Read encryption type from first byte after preamble
     const actualEncryptionTypeByte = data[preambleSize];
     let actualEncryptionType: EciesEncryptionTypeEnum;
+    const engine = getEciesI18nEngine();
 
     switch (actualEncryptionTypeByte) {
       case this.eciesConsts.ENCRYPTION_TYPE.SIMPLE:
@@ -136,19 +139,20 @@ export class EciesSingleRecipient {
         actualEncryptionType = EciesEncryptionTypeEnum.Single;
         break;
       case this.eciesConsts.ENCRYPTION_TYPE.MULTIPLE:
-        throw new Error(
-          'Multiple encryption type not supported in single recipient mode',
-        );
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode));
       default:
-        throw new Error(`Invalid encryption type: ${actualEncryptionTypeByte}`);
+        // convert the encryption type byte to hex
+        const encryptionTypeHex = actualEncryptionTypeByte.toString(16).padStart(2, '0');
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate, { encryptionType: encryptionTypeHex }));
     }
 
     if (
       encryptionType !== undefined &&
       actualEncryptionType !== encryptionType
     ) {
+      const engine = getEciesI18nEngine();
       throw new Error(
-        `Encryption type mismatch: expected ${encryptionType}, got ${actualEncryptionType}`,
+        engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_EncryptionTypeMismatchTemplate, { encryptionType, actualEncryptionType }),
       );
     }
 
@@ -159,8 +163,9 @@ export class EciesSingleRecipient {
       : this.eciesConsts.SIMPLE.FIXED_OVERHEAD_SIZE;
 
     if (data.length < requiredSize) {
+      const engine = getEciesI18nEngine();
       throw new Error(
-        `Data too short: required ${requiredSize}, got ${data.length}`,
+        engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_DataTooShortTemplate, { requiredSize, dataLength: data.length }),
       );
     }
 
@@ -209,8 +214,9 @@ export class EciesSingleRecipient {
       options?.dataLength !== undefined &&
       dataLength !== options.dataLength
     ) {
+      const engine = getEciesI18nEngine();
       throw new Error(
-        `Data length mismatch: expected ${dataLength}, got ${options.dataLength}`,
+        engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate, { expectedDataLength: dataLength, receivedDataLength: options.dataLength }),
       );
     }
 

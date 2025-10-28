@@ -9,7 +9,7 @@ import {
   ECIES,
   PBKDF2,
   PBKDF2_PROFILES,
-} from '../src/defaults';
+} from '../src/constants';
 const sampleMnemonic =
   'ability ability ability ability ability ability ability ability ability ability ability able';
 

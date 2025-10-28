@@ -1,7 +1,6 @@
 export * from './checksum-config';
 export * from './checksum-consts';
 export * from './constants';
-export * from './defaults';
 export * from './ecies-config';
 export * from './ecies-consts';
 export * from './ecies-file-service';

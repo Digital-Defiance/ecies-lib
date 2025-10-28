@@ -1,5 +1,5 @@
 import { IECIESConstants } from '../../interfaces/ecies-consts';
-import { ECIES } from '../../defaults';
+import { Constants } from '../../constants';
 import {
   EciesEncryptionType,
   EciesEncryptionTypeEnum,
@@ -23,8 +23,8 @@ export class ECIESService {
   protected readonly singleRecipient: EciesSingleRecipient;
   protected readonly eciesConsts: IECIESConstants;
 
-  constructor(config?: Partial<IECIESConfig>, eciesParams?: IECIESConstants) {
-    this.eciesConsts = eciesParams ?? ECIES;
+  constructor(config?: Partial<IECIESConfig>, eciesParams: IECIESConstants = Constants.ECIES) {
+    this.eciesConsts = eciesParams;
     this._config = {
       curveName: this.eciesConsts.CURVE_NAME,
       primaryKeyDerivationPath: this.eciesConsts.PRIMARY_KEY_DERIVATION_PATH,

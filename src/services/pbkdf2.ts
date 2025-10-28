@@ -1,5 +1,5 @@
 import { I18nEngine, Language } from '@digitaldefiance/i18n-lib';
-import { ECIES, PBKDF2, PBKDF2_PROFILES } from '../defaults';
+import { Constants } from '../constants';
 import { Pbkdf2ErrorType } from '../enumerations/pbkdf2-error-type';
 import { Pbkdf2ProfileEnum } from '../enumerations/pbkdf2-profile';
 import { Pbkdf2Error } from '../errors/pbkdf2';
@@ -25,14 +25,14 @@ export class Pbkdf2Service {
   
   constructor(
     engine: I18nEngine<EciesStringKey, Language, any, any>,
-    profiles?: Record<string, IPbkdf2Config>,
-    eciesParams?: IECIESConstants,
-    pbkdf2Params?: IPBkdf2Consts,
+    profiles: Record<string, IPbkdf2Config> = Constants.PBKDF2_PROFILES,
+    eciesParams: IECIESConstants = Constants.ECIES,
+    pbkdf2Params: IPBkdf2Consts = Constants.PBKDF2,
   ) {
     this.engine = engine;
-    this.profiles = profiles ?? PBKDF2_PROFILES;
-    this.eciesConsts = eciesParams ?? ECIES;
-    this.pbkdf2Consts = pbkdf2Params ?? PBKDF2;
+    this.profiles = profiles;
+    this.eciesConsts = eciesParams;
+    this.pbkdf2Consts = pbkdf2Params;
   }
   /**
    * Get a predefined configuration profile for common use cases

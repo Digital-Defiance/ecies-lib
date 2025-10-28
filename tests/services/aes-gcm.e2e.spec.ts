@@ -1,5 +1,5 @@
 import { AESGCMService } from '../../src/services/aes-gcm';
-import { ECIES } from '../../src/defaults';
+import { ECIES } from '../../src/constants';
 
 describe('AES-GCM E2E Integration Tests', () => {
   describe('Real-world encryption scenarios', () => {

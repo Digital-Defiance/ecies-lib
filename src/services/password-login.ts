@@ -10,7 +10,7 @@ import { TranslatableError, TypedHandleableError } from '../errors';
 import { EciesStringKey, PasswordLoginErrorTypeEnum } from '../enumerations';
 import { buildReasonMap, I18nEngine, Language } from '@digitaldefiance/i18n-lib';
 import { IECIESConstants } from '../interfaces/ecies-consts';
-import { ECIES } from '../defaults';
+import { Constants } from '../constants';
 
 
 export class PasswordLoginService {
@@ -23,11 +23,11 @@ export class PasswordLoginService {
   public static readonly encryptedMnemonicStorageKey = 'encryptedMnemonic';
   public static readonly profileStorageKey = 'pbkdf2Profile';
 
-  constructor(eciesService: ECIESService, pbkdf2Service: Pbkdf2Service, engine: I18nEngine<EciesStringKey, Language, any, any>, eciesParams?: IECIESConstants) {
+  constructor(eciesService: ECIESService, pbkdf2Service: Pbkdf2Service, engine: I18nEngine<EciesStringKey, Language, any, any>, eciesParams: IECIESConstants = Constants.ECIES) {
     this.eciesService = eciesService;
     this.pbkdf2Service = pbkdf2Service;
     this.engine = engine;
-    this.eciesConsts = eciesParams ?? ECIES;
+    this.eciesConsts = eciesParams;
   }
 
   public async createPasswordLoginBundle(

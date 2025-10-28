@@ -1,4 +1,4 @@
-import { ECIES } from '../../../src/defaults';
+import { ECIES } from '../../../src/constants';
 import { EciesEncryptionTypeEnum } from '../../../src/enumerations';
 import { IECIESConfig } from '../../../src/interfaces';
 import { EciesCryptoCore } from '../../../src/services/ecies/crypto-core';
