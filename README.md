@@ -1,33 +1,33 @@
 # @digitaldefiance/ecies-lib
 
-A production-ready, browser-friendly implementation of Elliptic Curve Integrated Encryption Scheme (ECIES) and related cryptographic primitives for modern TypeScript runtimes. Built on Web Crypto API and @noble/curves, this library provides comprehensive encryption, key management, and authentication services with full internationalization support. This package is also binary compatible with @digitaldefiance/node-ecies-lib, enabling seamless cross-platform cryptographic operations.
+Production-ready, browser-compatible ECIES (Elliptic Curve Integrated Encryption Scheme) library for TypeScript. Built on Web Crypto API and @noble/curves with comprehensive encryption, key management, and authentication services. Binary compatible with @digitaldefiance/node-ecies-lib for seamless cross-platform operations.
 
-## Key Features
+## Features
 
 ### Core Cryptography
-- **ECIES Encryption** – Three modes: Simple (minimal overhead), Single (length-prefixed), and Multiple (multi-recipient)
-- **Elliptic Curve Operations** – secp256k1 curve for ECDH key exchange and ECDSA signatures
-- **AES-GCM Encryption** – Authenticated symmetric encryption with Web Crypto API
-- **PBKDF2 Key Derivation** – Configurable profiles for password-based key generation
+- **ECIES Encryption** – Simple (98-byte overhead), Single (106-byte overhead), Multiple (multi-recipient) modes
+- **secp256k1 Curve** – ECDH key exchange and ECDSA signatures
+- **AES-256-GCM** – Authenticated symmetric encryption via Web Crypto API
+- **PBKDF2** – Configurable password-based key derivation profiles
 
 ### Key Management
-- **BIP39 Mnemonic Support** – Generate and derive keys from 12/15/18/21/24-word mnemonics
-- **HD Wallet Integration** – BIP32/BIP44 hierarchical deterministic key derivation
-- **Member System** – Complete user/member abstraction with cryptographic operations
-- **Secure Storage** – Memory-safe SecureString and SecureBuffer with auto-zeroing
+- **BIP39 Mnemonics** – 12/15/18/21/24-word phrase generation and key derivation
+- **HD Wallets** – BIP32/BIP44 hierarchical deterministic derivation
+- **Member System** – User abstraction with cryptographic operations
+- **Secure Storage** – Memory-safe SecureString/SecureBuffer with XOR obfuscation and auto-zeroing
 
-### Advanced Features
-- **Multi-Recipient Encryption** – Efficiently encrypt for up to 65,535 recipients
-- **File Encryption Service** – Chunked file encryption with streaming support
-- **Password Login System** – Complete authentication flow with encrypted key storage
-- **Signature Operations** – ECDSA message signing and verification
+### Advanced
+- **Multi-Recipient** – Encrypt for up to 65,535 recipients efficiently
+- **File Encryption** – Chunked 1MB segments for large files
+- **Password Login** – Complete authentication with encrypted key storage
+- **Signatures** – ECDSA message signing and verification
 
 ### Developer Experience
-- **Full TypeScript Support** – Comprehensive type definitions and interfaces
-- **Internationalization** – Error messages in English, French, Spanish, Chinese, and Ukrainian
-- **Runtime Configuration** – Injectable configuration profiles for different security requirements
-- **Extensive Testing** – 380+ test specs covering unit, integration, and e2e scenarios
-- **Cross-Platform** – Works in Node.js 18+ and modern browsers
+- **TypeScript** – Full type definitions and interfaces
+- **i18n** – Error messages in 8 languages (en-US, en-GB, fr, es, de, zh-CN, ja, uk)
+- **Runtime Config** – Injectable configuration profiles via ConstantsRegistry
+- **Testing** – 32 test files with 389+ specs (unit, integration, e2e)
+- **Cross-Platform** – Node.js 18+ and modern browsers
 
 ## Installation
 
@@ -35,68 +35,43 @@ A production-ready, browser-friendly implementation of Elliptic Curve Integrated
 npm install @digitaldefiance/ecies-lib
 # or
 yarn add @digitaldefiance/ecies-lib
-# or
-pnpm add @digitaldefiance/ecies-lib
 ```
 
-### Runtime Requirements
+### Requirements
 
-- **Node.js**: Version 18+ (includes Web Crypto API)
-  - For Node < 18, polyfill `globalThis.crypto` before importing
-- **Browsers**: Modern browsers with Web Crypto API and BigInt support
-  - Chrome/Edge 60+
-  - Firefox 60+
-  - Safari 14+
-  - Opera 47+
+**Node.js**: 18+ (Web Crypto API built-in)
+- For Node < 18: `import { webcrypto } from 'crypto'; globalThis.crypto = webcrypto as unknown as Crypto;`
 
-### Dependencies
+**Browsers**: Chrome/Edge 60+, Firefox 60+, Safari 14+, Opera 47+
 
-The library has minimal peer dependencies:
-- `@digitaldefiance/i18n-lib` - Internationalization engine
-- `@noble/curves` - Elliptic curve cryptography
-- `@scure/bip32`, `@scure/bip39` - HD wallet and mnemonic support
-- `@ethereumjs/wallet` - Ethereum wallet compatibility
+**Dependencies**: `@digitaldefiance/i18n-lib`, `@noble/curves`, `@scure/bip32`, `@scure/bip39`, `@ethereumjs/wallet`, `bson`, `ts-brand`
 
 ## Quick Start
 
-### Basic Encryption/Decryption
+### Basic Encryption
 
 ```typescript
 import { ECIESService } from '@digitaldefiance/ecies-lib';
 
-// Initialize the service
 const ecies = new ECIESService();
-
-// Generate a mnemonic and derive keys
 const mnemonic = ecies.generateNewMnemonic();
 const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
 
-// Encrypt a message
+// Encrypt
 const message = new TextEncoder().encode('Hello, World!');
-const encrypted = await ecies.encryptSimpleOrSingle(
-  false, // false = Single mode (with length prefix)
-  publicKey,
-  message
-);
+const encrypted = await ecies.encryptSimpleOrSingle(false, publicKey, message);
 
-// Decrypt the message
-const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-  false,
-  privateKey,
-  encrypted
-);
-
+// Decrypt
+const decrypted = await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encrypted);
 console.log(new TextDecoder().decode(decrypted)); // "Hello, World!"
 ```
 
-### Using the Member System
+### Member System
 
 ```typescript
 import { ECIESService, Member, MemberType, EmailString } from '@digitaldefiance/ecies-lib';
 
 const ecies = new ECIESService();
-
-// Create a new member with generated keys
 const { member, mnemonic } = Member.newMember(
   ecies,
   MemberType.User,
@@ -104,76 +79,52 @@ const { member, mnemonic } = Member.newMember(
   new EmailString('alice@example.com')
 );
 
-// Encrypt data for the member
-const data = 'Sensitive information';
-const encrypted = await member.encryptData(data);
-
-// Decrypt the data
+// Encrypt/decrypt
+const encrypted = await member.encryptData('Sensitive data');
 const decrypted = await member.decryptData(encrypted);
-console.log(new TextDecoder().decode(decrypted));
 
-// Sign and verify messages
+// Sign/verify
 const signature = member.sign(new TextEncoder().encode('Message'));
-const isValid = member.verify(signature, new TextEncoder().encode('Message'));
+const valid = member.verify(signature, new TextEncoder().encode('Message'));
 ```
 
 ## Core Services
 
-### ECIESService - Main Encryption Service
+### ECIESService
 
-The primary service for ECIES operations:
+Main encryption service with three modes:
 
 ```typescript
-import { ECIESService, EciesEncryptionTypeEnum } from '@digitaldefiance/ecies-lib';
+import { ECIESService } from '@digitaldefiance/ecies-lib';
 
 const ecies = new ECIESService();
-
-// Generate keys
 const mnemonic = ecies.generateNewMnemonic();
-const { wallet, seed } = ecies.walletAndSeedFromMnemonic(mnemonic);
-const { privateKey, publicKey } = ecies.seedToSimpleKeyPair(seed);
+const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
 
-// Simple mode - minimal overhead, no length prefix
-const simpleEncrypted = await ecies.encryptSimpleOrSingle(
-  true,  // true = Simple mode
-  publicKey,
-  message
-);
+// Simple mode (98-byte overhead, no length prefix)
+const simple = await ecies.encryptSimpleOrSingle(true, publicKey, message);
 
-// Single mode - includes length prefix for validation
-const singleEncrypted = await ecies.encryptSimpleOrSingle(
-  false, // false = Single mode
-  publicKey,
-  message
-);
+// Single mode (106-byte overhead, 8-byte length prefix)
+const single = await ecies.encryptSimpleOrSingle(false, publicKey, message);
 
 // Decrypt with automatic header parsing
-const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-  false,
-  privateKey,
-  singleEncrypted
-);
+const decrypted = await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, single);
 ```
 
-### Multi-Recipient Encryption
+### EciesMultiRecipient
 
-Encrypt once for multiple recipients efficiently:
+Encrypt once for multiple recipients:
 
 ```typescript
-import {
-  EciesMultiRecipient,
-  EciesCryptoCore,
-  ECIES,
-  concatUint8Arrays,
-} from '@digitaldefiance/ecies-lib';
+import { EciesMultiRecipient, EciesCryptoCore, Constants } from '@digitaldefiance/ecies-lib';
 
 const config = {
-  curveName: ECIES.CURVE_NAME,
-  primaryKeyDerivationPath: ECIES.PRIMARY_KEY_DERIVATION_PATH,
-  mnemonicStrength: ECIES.MNEMONIC_STRENGTH,
-  symmetricAlgorithm: ECIES.SYMMETRIC.ALGORITHM,
-  symmetricKeyBits: ECIES.SYMMETRIC.KEY_BITS,
-  symmetricKeyMode: ECIES.SYMMETRIC.MODE,
+  curveName: Constants.ECIES.CURVE_NAME,
+  primaryKeyDerivationPath: Constants.ECIES.PRIMARY_KEY_DERIVATION_PATH,
+  mnemonicStrength: Constants.ECIES.MNEMONIC_STRENGTH,
+  symmetricAlgorithm: Constants.ECIES.SYMMETRIC.ALGORITHM,
+  symmetricKeyBits: Constants.ECIES.SYMMETRIC.KEY_BITS,
+  symmetricKeyMode: Constants.ECIES.SYMMETRIC.MODE,
 };
 
 const multi = new EciesMultiRecipient(config);
@@ -184,71 +135,52 @@ const recipients = await Promise.all(
   [...Array(3)].map(async () => {
     const { privateKey, publicKey } = await core.generateEphemeralKeyPair();
     return {
-      id: crypto.getRandomValues(new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE)),
+      id: crypto.getRandomValues(new Uint8Array(Constants.ECIES.MULTIPLE.RECIPIENT_ID_SIZE)),
       privateKey,
       publicKey,
     };
   })
 );
 
-// Encrypt for all recipients
-const message = new TextEncoder().encode('Broadcast message');
+// Encrypt for all
 const encrypted = await multi.encryptMultiple(
   recipients.map(({ id, publicKey }) => ({ id, publicKey })),
-  message
-);
-
-// Build transport frame
-const frame = concatUint8Arrays(
-  multi.buildHeader(encrypted),
-  encrypted.encryptedMessage
+  new TextEncoder().encode('Broadcast message')
 );
 
 // Any recipient can decrypt
 const decrypted = await multi.decryptMultipleForRecipient(
-  multi.parseMessage(frame),
+  multi.parseMessage(multi.buildHeader(encrypted) + encrypted.encryptedMessage),
   recipients[0].id,
   recipients[0].privateKey
 );
 ```
 
-### File Encryption Service
+### EciesFileService
 
-Chunked file encryption for large files:
+Chunked file encryption:
 
 ```typescript
 import { ECIESService, EciesFileService } from '@digitaldefiance/ecies-lib';
 
 const ecies = new ECIESService();
-const mnemonic = ecies.generateNewMnemonic();
-const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
-
-// Initialize file service with user's private key
+const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(ecies.generateNewMnemonic());
 const fileService = new EciesFileService(ecies, privateKey);
 
-// Encrypt a file (browser File object)
-const file = fileInput.files[0];
+// Encrypt file (1MB chunks)
 const encrypted = await fileService.encryptFile(file, publicKey);
 
-// Decrypt the file
+// Decrypt file
 const decrypted = await fileService.decryptFile(encrypted);
 
-// Download encrypted file
+// Download
 fileService.downloadEncryptedFile(encrypted, 'document.enc');
-
-// Download decrypted file
 fileService.downloadDecryptedFile(decrypted, 'document.pdf');
 ```
 
-The file service:
-- Chunks files into 1MB segments for memory efficiency
-- Encrypts each chunk independently
-- Includes metadata header with chunk information
-- Supports files of any size within browser memory limits
+### PasswordLoginService
 
-### Password Login Service
-
-Complete password-based authentication system:
+Password-based authentication:
 
 ```typescript
 import {
@@ -265,204 +197,168 @@ const ecies = new ECIESService();
 const pbkdf2 = new Pbkdf2Service(engine);
 const passwordLogin = new PasswordLoginService(ecies, pbkdf2, engine);
 
-// Setup password login (first time)
+// Setup
 const mnemonic = ecies.generateNewMnemonic();
 const password = new SecureString('MySecurePassword123!');
-
-const wallet = await passwordLogin.setupPasswordLoginLocalStorageBundle(
+await passwordLogin.setupPasswordLoginLocalStorageBundle(
   mnemonic,
   password,
   Pbkdf2ProfileEnum.BROWSER_PASSWORD
 );
 
-// Later: Login with password
-const { wallet: recoveredWallet, mnemonic: recoveredMnemonic } =
+// Login
+const { wallet, mnemonic: recovered } = 
   await passwordLogin.getWalletAndMnemonicFromLocalStorageBundle(password);
 
-// Check if password login is configured
+// Check setup
 if (PasswordLoginService.isPasswordLoginSetup()) {
-  console.log('Password login is ready');
+  console.log('Ready');
 }
 ```
 
-### PBKDF2 Service
+### Pbkdf2Service
 
-Flexible key derivation with configurable profiles:
+Key derivation with profiles:
 
 ```typescript
-import {
-  Pbkdf2Service,
-  Pbkdf2ProfileEnum,
-  IPbkdf2Config,
-  getEciesI18nEngine,
-} from '@digitaldefiance/ecies-lib';
+import { Pbkdf2Service, Pbkdf2ProfileEnum, getEciesI18nEngine } from '@digitaldefiance/ecies-lib';
 
-const engine = getEciesI18nEngine();
-const pbkdf2 = new Pbkdf2Service(engine);
+const pbkdf2 = new Pbkdf2Service(getEciesI18nEngine());
 
-// Use predefined profiles
-const password = new TextEncoder().encode('password123');
+// Use built-in profile
 const result = await pbkdf2.deriveKeyFromPasswordWithProfileAsync(
-  password,
+  new TextEncoder().encode('password123'),
   Pbkdf2ProfileEnum.HIGH_SECURITY
 );
 
 console.log(result.hash);       // Derived key
-console.log(result.salt);       // Random salt used
-console.log(result.iterations); // Iteration count
+console.log(result.salt);       // Salt
+console.log(result.iterations); // 5,000,000
 
 // Custom profiles
-const customProfiles: Record<string, IPbkdf2Config> = {
+const custom = new Pbkdf2Service(getEciesI18nEngine(), {
   ULTRA_SECURE: {
     hashBytes: 64,
     saltBytes: 32,
     iterations: 5000000,
     algorithm: 'SHA-512',
   },
-  FAST_DEV: {
-    hashBytes: 32,
-    saltBytes: 16,
-    iterations: 1000,
-    algorithm: 'SHA-256',
-  },
-};
-
-const customPbkdf2 = new Pbkdf2Service(engine, customProfiles);
-const customResult = await customPbkdf2.deriveKeyFromPasswordWithProfileAsync(
-  password,
-  'ULTRA_SECURE'
-);
+});
 ```
 
 **Built-in Profiles:**
 - `BROWSER_PASSWORD`: 2M iterations, SHA-512, 32-byte hash
-- `HIGH_SECURITY`: 5M iterations, SHA-256, 64-byte hash
-- `TEST_FAST`: 1K iterations, SHA-512, 32-byte hash (testing only)
+- `HIGH_SECURITY`: 5M iterations, SHA-256, 64-byte hash  
+- `TEST_FAST`: 1K iterations, SHA-512, 32-byte hash
 
-## Runtime configuration registry
+## Runtime Configuration
 
-Many applications need different cryptographic trade-offs for different surfaces—e.g., a login form that prioritizes speed versus an administrative workflow that prefers extreme iteration counts. The library ships a registry that lets you register, retrieve, and extend immutable configuration profiles without mutating the global defaults.
+Injectable configuration profiles via ConstantsRegistry:
 
-```ts
+```typescript
 import {
-  DefaultsRegistry,
+  ConstantsRegistry,
   registerRuntimeConfiguration,
   getRuntimeConfiguration,
-  unregisterRuntimeConfiguration,
   ECIESService,
   Pbkdf2Service,
+  getEciesI18nEngine,
 } from '@digitaldefiance/ecies-lib';
 
-// 1. Register two named profiles
+// Register profiles
 registerRuntimeConfiguration('security-first', {
-  PBKDF2: {
-    ITERATIONS_PER_SECOND: 3_000_000,
-  },
+  PBKDF2: { ITERATIONS_PER_SECOND: 3_000_000 },
 });
 
-registerRuntimeConfiguration(
-  'performance-first',
-  {
-    PBKDF2: {
-      ITERATIONS_PER_SECOND: 250_000,
-    },
-  },
-  { baseKey: DefaultsRegistry.DEFAULT_KEY },
+registerRuntimeConfiguration('performance-first', {
+  PBKDF2: { ITERATIONS_PER_SECOND: 250_000 },
+});
+
+// Use profiles
+const secureConfig = getRuntimeConfiguration('security-first');
+const secureEcies = new ECIESService(undefined, secureConfig.ECIES);
+const securePbkdf2 = new Pbkdf2Service(
+  getEciesI18nEngine(),
+  secureConfig.PBKDF2_PROFILES,
+  secureConfig.ECIES,
+  secureConfig.PBKDF2
 );
 
-// 2. Spin up services that honor those profiles
-const secureDefaults = getRuntimeConfiguration('security-first');
-const secureEcies = new ECIESService(undefined, secureDefaults.ECIES);
-const securePbkdf2 = new Pbkdf2Service(engine, secureDefaults.PBKDF2_PROFILES, secureDefaults.ECIES, secureDefaults.PBKDF2);
-
-const perfDefaults = getRuntimeConfiguration('performance-first');
-const perfEcies = new ECIESService(undefined, perfDefaults.ECIES);
-
-// 3. Optional: create throwaway profiles without registering them
-const temporaryDefaults = DefaultsRegistry.create({ BcryptRounds: 8 });
-
-// 4. Clean up when a profile is no longer needed
+// Cleanup
 unregisterRuntimeConfiguration('performance-first');
 ```
 
-### Available helpers
+**Registry API:**
+- `ConstantsRegistry.get(key)` – Retrieve configuration
+- `ConstantsRegistry.register(key, config)` – Register new profile
+- `ConstantsRegistry.create(overrides)` – Create without registering
+- `ConstantsRegistry.listKeys()` – List all keys
+- `ConstantsRegistry.has(key)` – Check existence
+- `ConstantsRegistry.unregister(key)` – Remove profile
+- `ConstantsRegistry.clear()` – Reset to defaults
 
-All helpers live in `src/defaults.ts` and are re-exported from the package entry point:
+**Exports:**
+- `Constants` – Frozen default configuration
+- `createRuntimeConfiguration(overrides, base?)` – Deep merge and validate
+- `PASSWORD_REGEX`, `MNEMONIC_REGEX` – Validation patterns
 
-- **`Defaults`** – immutable snapshot of the baked-in configuration. It exposes `Defaults.ECIES`, `Defaults.PBKDF2`, regexes, and other primitives used across the library.
-- **`createRuntimeConfiguration(overrides, base?)`** – clones a base configuration, applies partial overrides (deep merge), validates invariants, and returns a deeply frozen instance without touching the registry.
-- **`DefaultsRegistry`** – registry API with `get`, `register`, `create`, `listKeys`, `has`, `unregister`, and `clear`. Registered profiles are validated and frozen, so consumers can safely share references.
-- **Convenience functions** – `getRuntimeConfiguration`, `registerRuntimeConfiguration`, `unregisterRuntimeConfiguration`, and `clearRuntimeConfigurations` wrap the registry for common flows.
-- **Regex exports** – `PASSWORD_REGEX` and `MNEMONIC_REGEX` are exported alongside the defaults for consumers that need the raw patterns.
+## Secure Memory
 
-Every configuration produced by these helpers is deeply frozen and validated so low-level invariants (public key length, recipient counts, checksum parameters, etc.) stay consistent. Use `clearRuntimeConfigurations()` in tests to reset back to the default profile.
-
-> **Tip:** Services such as `ECIESService`, `Pbkdf2Service`, `AESGCMService`, and `PasswordLoginService` accept their respective configuration slices as constructor parameters. Wire them up with values from `getRuntimeConfiguration(key)` to scope behavior per feature area or tenant.
-
-### Secure Memory Primitives
-
-Protect sensitive data in memory:
+XOR-obfuscated storage with checksums:
 
 ```typescript
 import { SecureString, SecureBuffer } from '@digitaldefiance/ecies-lib';
 
-// SecureString - for passwords and mnemonics
+// SecureString for passwords/mnemonics
 const password = new SecureString('MyPassword123');
-console.log(password.value);           // Access the value
-console.log(password.valueAsHexString); // As hex
-console.log(password.length);          // Get length
+console.log(password.value);           // Access value
+console.log(password.valueAsHexString); // Hex format
+console.log(password.length);          // Length
 password.dispose();                    // Zero memory
 
-// SecureBuffer - for binary secrets
-const privateKey = new Uint8Array(32);
-const secureKey = new SecureBuffer(privateKey);
-console.log(secureKey.value);          // Access as Uint8Array
-console.log(secureKey.valueAsString);  // As string
-console.log(secureKey.valueAsBase64String); // As base64
-secureKey.dispose();                   // Zero memory
+// SecureBuffer for binary secrets
+const key = new SecureBuffer(new Uint8Array(32));
+console.log(key.value);               // Uint8Array
+console.log(key.valueAsString);       // String
+console.log(key.valueAsBase64String); // Base64
+key.dispose();                        // Zero memory
 
-// Both types:
-// - XOR obfuscate data in memory
-// - Include checksums for integrity
-// - Auto-detect disposal attempts
-// - Provide stack traces for debugging
+// Features:
+// - XOR obfuscation in memory
+// - Checksum validation
+// - Disposal detection
+// - Stack traces for debugging
 ```
 
-### Value Objects
+## Value Objects
 
-Type-safe wrappers for common data:
+Type-safe wrappers:
 
 ```typescript
 import { EmailString, GuidV4 } from '@digitaldefiance/ecies-lib';
 
-// Validated email addresses
+// Validated emails
 const email = new EmailString('user@example.com');
-console.log(email.toString());
-console.log(email.length);
-
-// Will throw on invalid email:
 // new EmailString('invalid'); // throws InvalidEmailError
 
-// Type-safe GUIDs with multiple formats
+// GUIDs with multiple formats
 const guid = GuidV4.new();
 console.log(guid.asFullHexGuid);    // "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 console.log(guid.asShortHexGuid);   // "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-console.log(guid.asBase64Guid);     // Base64 encoded
-console.log(guid.asBigIntGuid);     // As BigInt
+console.log(guid.asBase64Guid);     // Base64
+console.log(guid.asBigIntGuid);     // BigInt
 
-// Create from various formats
+// Create from formats
 const fromHex = new GuidV4('550e8400-e29b-41d4-a716-446655440000');
 const fromBase64 = new GuidV4('VQ6EAOKbQdSnFkRmVUQAAA==');
 
-// Compare GUIDs
-if (guid.equals(fromHex)) {
-  console.log('GUIDs match');
-}
+// Compare
+if (guid.equals(fromHex)) { /* ... */ }
 ```
 
 ## Error Handling
 
-Comprehensive typed error system with internationalization:
+Typed errors with i18n (8 languages):
 
 ```typescript
 import {
@@ -470,235 +366,127 @@ import {
   ECIESErrorTypeEnum,
   MemberError,
   MemberErrorType,
-  GuidError,
-  GuidErrorType,
   Pbkdf2Error,
   Pbkdf2ErrorType,
 } from '@digitaldefiance/ecies-lib';
 
-// ECIES errors
 try {
   await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, tamperedData);
 } catch (error) {
   if (error instanceof ECIESError) {
     switch (error.type) {
       case ECIESErrorTypeEnum.DecryptionFailed:
-        console.error('Decryption failed - data may be corrupted');
+        console.error('Decryption failed');
         break;
       case ECIESErrorTypeEnum.InvalidEncryptionType:
-        console.error('Invalid encryption type in header');
-        break;
-      case ECIESErrorTypeEnum.InvalidPublicKey:
-        console.error('Public key format is invalid');
+        console.error('Invalid encryption type');
         break;
     }
   }
 }
 
-// Member errors
-try {
-  const member = Member.newMember(ecies, MemberType.User, '', email);
-} catch (error) {
-  if (error instanceof MemberError) {
-    if (error.type === MemberErrorType.MissingMemberName) {
-      console.error('Member name is required');
-    }
-  }
-}
-
-// All errors include:
-// - Typed error codes (enums)
-// - Localized messages (6 languages)
-// - Stack traces
-// - Optional context data
+// Error categories:
+// - ECIESError: Encryption/decryption
+// - MemberError: Member operations
+// - GuidError: GUID validation
+// - Pbkdf2Error: Key derivation
+// - LengthError: Data length
+// - SecureStorageError: Memory operations
+// - InvalidEmailError: Email validation
 ```
-
-**Error Categories:**
-- `ECIESError` - Encryption/decryption failures
-- `MemberError` - Member operations
-- `GuidError` - GUID validation
-- `Pbkdf2Error` - Key derivation
-- `LengthError` - Data length validation
-- `SecureStorageError` - Secure memory operations
-- `InvalidEmailError` - Email validation
 
 ## Architecture
 
-### Project Structure
+### Structure
 
 ```
-packages/digitaldefiance-ecies-lib/
-├── src/
-│   ├── services/
-│   │   ├── ecies/              # ECIES implementation
-│   │   │   ├── service.ts      # Main ECIESService
-│   │   │   ├── crypto-core.ts  # Core crypto operations
-│   │   │   ├── multi-recipient.ts  # Multi-recipient encryption
-│   │   │   ├── single-recipient.ts # Single recipient encryption
-│   │   │   ├── file.ts         # File encryption service
-│   │   │   └── signature.ts    # ECDSA signatures
-│   │   ├── aes-gcm.ts          # AES-GCM encryption
-│   │   ├── pbkdf2.ts           # PBKDF2 key derivation
-│   │   ├── password-login.ts   # Password authentication
-│   │   └── xor.ts              # XOR obfuscation
-│   ├── enumerations/           # Type-safe enums
-│   ├── errors/                 # Typed error classes
-│   ├── interfaces/             # TypeScript interfaces
-│   ├── types/                  # Type definitions
-│   ├── constants.ts            # Library constants
-│   ├── defaults.ts             # Default configurations
-│   ├── member.ts               # Member abstraction
-│   ├── secure-string.ts        # Secure string storage
-│   ├── secure-buffer.ts        # Secure buffer storage
-│   ├── email-string.ts         # Validated email
-│   ├── guid.ts                 # GUID utilities
-│   ├── utils.ts                # Helper functions
-│   ├── i18n-setup.ts           # Internationalization
-│   └── index.ts                # Public API
-├── tests/
-│   ├── services/               # Service tests
-│   ├── *.spec.ts               # Unit tests
-│   ├── *.e2e.spec.ts           # Integration tests
-│   └── support/                # Test utilities
-└── package.json
+src/
+├── services/
+│   ├── ecies/
+│   │   ├── service.ts          # ECIESService
+│   │   ├── crypto-core.ts      # EciesCryptoCore
+│   │   ├── multi-recipient.ts  # EciesMultiRecipient
+│   │   ├── single-recipient.ts # EciesSingleRecipient
+│   │   ├── file.ts             # EciesFileService
+│   │   └── signature.ts        # EciesSignature
+│   ├── aes-gcm.ts              # AESGCMService
+│   ├── pbkdf2.ts               # Pbkdf2Service
+│   ├── password-login.ts       # PasswordLoginService
+│   └── xor.ts                  # XorService
+├── enumerations/               # Type-safe enums
+├── errors/                     # Typed error classes
+├── interfaces/                 # TypeScript interfaces
+├── types/                      # Type definitions
+├── constants.ts                # Constants & ConstantsRegistry
+├── member.ts                   # Member class
+├── secure-string.ts            # SecureString
+├── secure-buffer.ts            # SecureBuffer
+├── email-string.ts             # EmailString
+├── guid.ts                     # GuidV4
+├── utils.ts                    # Utilities
+├── i18n-setup.ts               # i18n configuration
+└── index.ts                    # Public API
+
+tests/                          # 32 test files, 389+ specs
 ```
 
 ### Key Concepts
 
 **Encryption Modes:**
-- **Simple**: Minimal overhead, no length prefix (98 bytes overhead)
-- **Single**: Includes 8-byte length prefix (106 bytes overhead)
-- **Multiple**: Shared symmetric key encrypted for each recipient
+- Simple: 98-byte overhead (type + pubkey + IV + tag)
+- Single: 106-byte overhead (Simple + 8-byte length)
+- Multiple: Shared symmetric key per recipient
 
 **Key Derivation:**
-- BIP39 mnemonics → BIP32 HD keys → secp256k1 key pairs
-- Deterministic key generation from mnemonic phrases
-- Support for custom derivation paths
+- BIP39 mnemonic → BIP32 HD wallet → secp256k1 keypair
+- Deterministic generation
+- Custom derivation paths supported
 
-**Security Features:**
-- AES-GCM authenticated encryption (256-bit keys)
-- ECDH key agreement on secp256k1 curve
-- PBKDF2 password hashing with configurable iterations
-- Memory-safe storage with automatic zeroing
+**Security:**
+- AES-256-GCM authenticated encryption
+- ECDH key agreement (secp256k1)
+- PBKDF2 with configurable iterations
+- Memory-safe storage with auto-zeroing
 - XOR obfuscation for in-memory secrets
-
-## Quality gates
-
-The project ships with mandatory linting, formatting, and testing commands:
-
-```bash
-yarn lint           # ESLint across src/**/*.ts
-yarn prettier:check # Enforce formatting
-yarn test           # Jest unit + e2e suites
-yarn build          # Compile TypeScript into dist/
-```
-
-Continuous integration mirrors these gates, and the repository currently passes 389 Jest specs (unit + e2e).
-
-## Browser vs. Node tips
-
-- **Node**: Node 18+ exposes `globalThis.crypto`. If you target older runtimes, polyfill before importing the library:
-
-  ```ts
-  import { webcrypto } from 'crypto';
-  globalThis.crypto = webcrypto as unknown as Crypto;
-  ```
-
-- **Browser bundlers**: the package ships TypeScript sources; rely on your bundler (Vite, Webpack, Next.js) to tree-shake unused exports. All external dependencies are ESM-friendly.
-- **Memory hygiene**: many helpers (e.g., `SecureBuffer`) provide `.dispose()` to zero sensitive data. Call them when you’re done.
-
-## API Reference
-
-### Main Exports
-
-```typescript
-// Services
-export { ECIESService } from './services/ecies/service';
-export { EciesCryptoCore } from './services/ecies/crypto-core';
-export { EciesMultiRecipient } from './services/ecies/multi-recipient';
-export { EciesFileService } from './services/ecies/file';
-export { AESGCMService } from './services/aes-gcm';
-export { Pbkdf2Service } from './services/pbkdf2';
-export { PasswordLoginService } from './services/password-login';
-export { XorService } from './services/xor';
-
-// Member System
-export { Member } from './member';
-export { MemberType } from './enumerations/member-type';
-
-// Secure Primitives
-export { SecureString } from './secure-string';
-export { SecureBuffer } from './secure-buffer';
-export { EmailString } from './email-string';
-export { GuidV4 } from './guid';
-
-// Configuration
-export { Defaults, ECIES, PBKDF2, CHECKSUM } from './defaults';
-export { DefaultsRegistry } from './defaults';
-export { Constants } from './constants';
-
-// Enumerations
-export { EciesEncryptionTypeEnum } from './enumerations/ecies-encryption-type';
-export { Pbkdf2ProfileEnum } from './enumerations/pbkdf2-profile';
-export { MemberErrorType } from './enumerations/member-error-type';
-export { ECIESErrorTypeEnum } from './enumerations/ecies-error-type';
-
-// Errors
-export { ECIESError } from './errors/ecies';
-export { MemberError } from './errors/member';
-export { GuidError } from './errors/guid';
-export { Pbkdf2Error } from './errors/pbkdf2';
-
-// Utilities
-export * from './utils';
-
-// Internationalization
-export { getEciesI18nEngine } from './i18n-setup';
-```
 
 ## Development
 
-### Building
+### Commands
 
 ```bash
-yarn install    # Install dependencies
-yarn build      # Compile TypeScript
-yarn test       # Run test suite
-yarn lint       # Check code style
-yarn format     # Fix formatting and linting
+yarn install         # Install dependencies
+yarn build          # Compile TypeScript
+yarn test           # Run all tests (389+ specs)
+yarn test:stream    # Stream test output
+yarn lint           # ESLint check
+yarn lint:fix       # Auto-fix issues
+yarn prettier:check # Format check
+yarn prettier:fix   # Auto-format
+yarn format         # Fix all (prettier + lint)
 ```
 
 ### Testing
 
-```bash
-yarn test                  # Run all tests
-yarn test:stream          # Stream output
-yarn test --watch         # Watch mode
-yarn test file.spec.ts    # Run specific test
-```
-
-The library includes 380+ test specifications covering:
-- Unit tests for all services and utilities
-- Integration tests for encryption workflows
+32 test files covering:
+- Unit tests for all services
+- Integration tests for workflows
 - E2E tests for password login and file encryption
-- Cross-platform compatibility tests
+- Cross-platform compatibility
 - Error handling and edge cases
 
-### Code Quality
+### Quality Gates
 
-```bash
-yarn lint              # ESLint check
-yarn lint:fix          # Auto-fix issues
-yarn prettier:check    # Format check
-yarn prettier:fix      # Auto-format
-yarn format            # Fix all issues
-```
+CI enforces:
+- ESLint (no errors)
+- Prettier formatting
+- 389+ Jest specs passing
+- TypeScript compilation
 
-## Platform-Specific Notes
+## Platform Notes
 
 ### Node.js
 
-Node.js 18+ includes Web Crypto API by default. For older versions:
+Node 18+ includes Web Crypto API. For older versions:
 
 ```typescript
 import { webcrypto } from 'crypto';
@@ -707,17 +495,16 @@ globalThis.crypto = webcrypto as unknown as Crypto;
 
 ### Browser
 
-The library works in all modern browsers:
-- Uses Web Crypto API for cryptographic operations
-- No polyfills required for modern browsers
-- Tree-shakeable with modern bundlers (Vite, Webpack, Rollup)
-- All dependencies are ESM-compatible
+Works in all modern browsers:
+- Web Crypto API for cryptography
+- No polyfills needed
+- Tree-shakeable with Vite/Webpack/Rollup
+- ESM-compatible dependencies
 
-### Bundler Configuration
+### Bundler Config
 
 **Vite:**
 ```javascript
-// vite.config.js
 export default {
   optimizeDeps: {
     include: ['@digitaldefiance/ecies-lib']
@@ -727,7 +514,6 @@ export default {
 
 **Webpack:**
 ```javascript
-// webpack.config.js
 module.exports = {
   resolve: {
     fallback: {
@@ -740,7 +526,7 @@ module.exports = {
 
 ### Memory Management
 
-Always dispose of sensitive data:
+Always dispose sensitive data:
 
 ```typescript
 const password = new SecureString('secret');
@@ -749,13 +535,43 @@ try {
 } finally {
   password.dispose(); // Zeros memory
 }
+```
 
-const privateKey = new SecureBuffer(keyBytes);
-try {
-  // Use key
-} finally {
-  privateKey.dispose(); // Zeros memory
-}
+## API Reference
+
+### Main Exports
+
+```typescript
+// Services
+export { ECIESService, EciesCryptoCore, EciesMultiRecipient, EciesFileService };
+export { AESGCMService, Pbkdf2Service, PasswordLoginService, XorService };
+
+// Member System
+export { Member, MemberType };
+
+// Secure Primitives
+export { SecureString, SecureBuffer, EmailString, GuidV4 };
+
+// Configuration
+export { Constants, ConstantsRegistry, CHECKSUM, ECIES, PBKDF2 };
+export { createRuntimeConfiguration, getRuntimeConfiguration };
+export { registerRuntimeConfiguration, unregisterRuntimeConfiguration };
+export { PASSWORD_REGEX, MNEMONIC_REGEX };
+
+// Enumerations
+export { EciesEncryptionTypeEnum, Pbkdf2ProfileEnum };
+export { MemberErrorType, ECIESErrorTypeEnum };
+
+// Errors
+export { ECIESError, MemberError, GuidError, Pbkdf2Error };
+export { LengthError, SecureStorageError, InvalidEmailError };
+
+// Utilities
+export { concatUint8Arrays, uint8ArrayToHex, hexToUint8Array };
+export { uint8ArrayToBase64, base64ToUint8Array };
+
+// i18n
+export { getEciesI18nEngine, EciesI18nEngine };
 ```
 
 ## Contributing
@@ -776,9 +592,11 @@ If you discover a vulnerability, please **do not** open a public issue. Email <s
 
 MIT © Digital Defiance
 
-## Repository
+## Links
 
-[https://github.com/Digital-Defiance/ecies-lib](https://github.com/Digital-Defiance/ecies-lib)
+- **Repository:** https://github.com/Digital-Defiance/ecies-lib
+- **npm:** https://www.npmjs.com/package/@digitaldefiance/ecies-lib
+- **Companion:** @digitaldefiance/node-ecies-lib (binary compatible)
 
 ## ChangeLog
 
