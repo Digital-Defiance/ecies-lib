@@ -600,6 +600,11 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.15
+
+- CommonJS
+- Update i18n
+
 ### v1.1.14
 
 - Update readme
