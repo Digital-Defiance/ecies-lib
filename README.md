@@ -782,6 +782,10 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.10
+
+- Update i18n
+
 ### v1.1.9
 
 - Update i18n
