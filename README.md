@@ -782,6 +782,10 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.12
+
+- Add MemberTypeValue
+
 ### v1.1.11
 
 - Update i18n/ecies
