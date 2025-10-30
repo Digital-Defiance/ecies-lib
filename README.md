@@ -600,6 +600,10 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.16
+
+- Add strings
+
 ### v1.1.15
 
 - CommonJS

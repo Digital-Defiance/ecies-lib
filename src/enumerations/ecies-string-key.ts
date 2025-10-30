@@ -51,6 +51,8 @@ export enum EciesStringKey {
   Error_ECIESError_DataTooShortTemplate = 'Error_ECIESError_DataTooShortTemplate',
   Error_ECIESError_DataLengthMismatchTemplate = 'Error_ECIESError_DataLengthMismatchTemplate',
   Error_ECIESError_CombinedDataTooShortForComponents = 'Error_ECIESError_CombinedDataTooShortForComponents',
+  Error_ECIESError_InvalidChecksumConstants = 'Error_ECIESError_InvalidChecksumConstants',
+  Error_ECIESError_CannotOverwriteDefaultConfiguration = 'Error_ECIESError_CannotOverwriteDefaultConfiguration',
 
   // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
   Error_MemberError_MissingMemberName = 'Error_MemberError_MissingMemberName',

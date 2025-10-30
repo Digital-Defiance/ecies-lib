@@ -1,8 +1,8 @@
 import { ObjectId } from 'bson';
-import { ECIESErrorTypeEnum } from './enumerations';
+import { ECIESErrorTypeEnum, EciesStringKey } from './enumerations';
 import { Pbkdf2ProfileEnum } from './enumerations/pbkdf2-profile';
 import { ECIESError } from './errors/ecies';
-import { getCompatibleEciesEngine } from './i18n-setup';
+import { EciesComponentId, getCompatibleEciesEngine, getEciesI18nEngine } from './i18n-setup';
 import { IChecksumConsts } from './interfaces';
 import { IConstants } from './interfaces/constants';
 import { DeepPartial } from './types/deep-partial';
@@ -317,7 +317,8 @@ function validateConstants(config: IConstants): void {
     checksum.SHA3_BUFFER_LENGTH !== checksum.SHA3_DEFAULT_HASH_BITS / 8 ||
     checksum.SHA3_BUFFER_LENGTH !== checksum.SHA3_DEFAULT_HASH_BITS / 8
   ) {
-    throw new Error('Invalid checksum constants');
+    const engine = getEciesI18nEngine();
+    throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidChecksumConstants));
   }
 
   const expectedEncryptedKeySize = computeMultipleEncryptedKeySize(ecies);
@@ -418,7 +419,8 @@ export class ConstantsRegistry {
     options?: { baseKey?: ConfigurationKey },
   ): IConstants {
     if (key === DEFAULT_CONFIGURATION_KEY) {
-      throw new Error('Cannot overwrite the default configuration');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration));
     }
 
     const baseKey = options?.baseKey ?? DEFAULT_CONFIGURATION_KEY;

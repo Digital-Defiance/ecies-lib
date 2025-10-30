@@ -115,6 +115,8 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: 'Data too short: required {requiredSize}, got {dataLength}',
     [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: 'Data length mismatch: expected {expectedDataLength}, got {receivedDataLength}',
     [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Combined data is too short to contain required components',
+    [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: 'Invalid checksum constants',
+    [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: 'Cannot overwrite the default configuration',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:
@@ -272,6 +274,8 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: 'Données trop courtes : requises {requiredSize}, obtenues {dataLength}.',
     [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: 'Incohérence de longueur de données : attendu {expectedDataLength}, obtenu {receivedDataLength}.',
     [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Les données combinées sont trop courtes pour contenir les composants requis.',
+    [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: 'Constantes de somme de contrôle invalides',
+    [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: 'Impossible d’écraser la configuration par défaut.',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:
@@ -420,6 +424,8 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: '数据过短：需要 {requiredSize}，实际 {dataLength}。',
     [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: '数据长度不匹配：预期 {expectedDataLength}，实际 {receivedDataLength}。',
     [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: '组合数据过短，无法包含所需组件',
+    [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: '无效的校验和常量',
+    [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: '无法覆盖默认配置',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]: '缺少成员名称。',
@@ -560,6 +566,8 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: 'Datos demasiado cortos: se requiere {requiredSize}, se obtuvo {dataLength}.',
     [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: 'Incoherencia de longitud de datos: se esperaba {expectedDataLength}, se obtuvo {receivedDataLength}.',
     [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Los datos combinados son demasiado cortos para contener los componentes requeridos.',
+    [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: 'Constantes de suma de control no válidas',
+    [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: 'No se puede sobrescribir la configuración predeterminada.',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:
@@ -721,6 +729,8 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: 'Дані занадто короткі: потрібно {requiredSize}, отримано {dataLength}',
     [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: 'Невідповідність довжини даних: очікувалося {expectedDataLength}, отримано {receivedDataLength}.',
     [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Обʼєднані дані занадто короткі, щоб містити необхідні компоненти',
+    [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: 'Недійсні константи контрольної суми',
+    [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: 'Неможливо перезаписати конфігурацію за замовчуванням',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:
@@ -879,6 +889,8 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: 'Daten zu kurz: erforderlich {requiredSize}, erhalten {dataLength}',
     [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: 'Datenlängenübereinstimmung: erwartet {expectedDataLength}, erhalten {receivedDataLength}',
     [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Kombinierte Daten sind zu kurz, um die erforderlichen Komponenten zu enthalten',
+    [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: 'Ungültige Prüfziffernkonstanten',
+    [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: 'Die Standardkonfiguration kann nicht überschrieben werden',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:
@@ -1033,6 +1045,8 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: 'データが短すぎます: 必要な {requiredSize}, 実際の {dataLength}',
     [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: 'データの長さが一致しません: 期待される {expectedDataLength}, 実際の {receivedDataLength}',
     [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: '結合データが必要なコンポーネントを含むには短すぎます',
+    [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: '無効なチェックサム定数です',
+    [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: 'デフォルト設定を上書きできません',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:
