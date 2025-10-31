@@ -600,6 +600,10 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.17
+
+- Update i18n
+
 ### v1.1.16
 
 - Add strings

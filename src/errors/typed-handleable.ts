@@ -23,7 +23,7 @@ export class TypedHandleableError<
   ) {
     const key = reasonMap[type];
     if (!key) {
-      const coreEngine = I18nEngine.getInstance<I18nEngine<CoreStringKey, DefaultLanguageCode, any, any, any>>();
+      const coreEngine = I18nEngine.getInstance<I18nEngine<CoreStringKey, DefaultLanguageCode, any, any>>();
       throw new Error(coreEngine.translate(CoreStringKey.Error_MissingTranslationKeyTemplate, {
         stringKey: key as string,
       }));
