@@ -7,6 +7,7 @@ export * from './i18n-setup';
 export * from './interfaces';
 export * from './member';
 export * from './pbkdf2-profiles';
+export * from './phone-number';
 export * from './secure-buffer';
 export * from './secure-string';
 export * from './services';

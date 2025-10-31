@@ -600,6 +600,10 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.19
+
+- Actually export PhoneNumber class
+
 ### v1.1.18
 
 - Add PhoneNumber class
