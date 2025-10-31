@@ -101,4 +101,6 @@ export enum EciesStringKey {
   Error_Utils_EncryptionFailedNoAuthTag = 'Error_Utils_EncryptionFailedNoAuthTag',
   Error_PasswordLoginError_FailedToStoreLoginData = 'Error_PasswordLoginError_FailedToStoreLoginData',
   Error_PasswordLoginError_PasswordLoginNotSetUp = 'Error_PasswordLoginError_PasswordLoginNotSetUp',
+
+  Error_PhoneNumber_InvalidTemplate = 'Error_PhoneNumber_InvalidTemplate',
 }

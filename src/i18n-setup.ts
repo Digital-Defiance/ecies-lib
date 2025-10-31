@@ -193,6 +193,7 @@ export function initEciesI18nEngine() {
       'Failed to store password login data',
     [EciesStringKey.Error_PasswordLoginError_PasswordLoginNotSetUp]:
       'Password login is not set up',
+    [EciesStringKey.Error_PhoneNumber_InvalidTemplate]: 'Invalid phone number: {phoneNumber}',
   };
 
   const frenchTranslations: Record<EciesStringKey, string> = {
@@ -355,6 +356,8 @@ export function initEciesI18nEngine() {
       'Échec du stockage des données de connexion par mot de passe',
     [EciesStringKey.Error_PasswordLoginError_PasswordLoginNotSetUp]:
       'La connexion par mot de passe n’est pas configurée',
+
+    [EciesStringKey.Error_PhoneNumber_InvalidTemplate]: 'Numéro de téléphone invalide : {phoneNumber}',
   };
   const mandarinChineseTranslations: Record<EciesStringKey, string> = {
     // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
@@ -485,6 +488,7 @@ export function initEciesI18nEngine() {
       '存储密码登录数据失败',
     [EciesStringKey.Error_PasswordLoginError_PasswordLoginNotSetUp]:
       '密码登录未设置',
+    [EciesStringKey.Error_PhoneNumber_InvalidTemplate]: '无效的电话号码：{phoneNumber}',
   };
   const spanishTranslations: Record<EciesStringKey, string> = {
     // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
@@ -649,6 +653,7 @@ export function initEciesI18nEngine() {
       'Error al almacenar los datos de inicio de sesión de contraseña',
     [EciesStringKey.Error_PasswordLoginError_PasswordLoginNotSetUp]:
       'El inicio de sesión con contraseña no está configurado',
+    [EciesStringKey.Error_PhoneNumber_InvalidTemplate]: 'Número de teléfono no válido: {phoneNumber}',
   };
   const ukrainianTranslations: Record<EciesStringKey, string> = {
     // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
@@ -811,6 +816,7 @@ export function initEciesI18nEngine() {
       'Не вдалося зберегти дані для входу за допомогою пароля',
     [EciesStringKey.Error_PasswordLoginError_PasswordLoginNotSetUp]:
       'Вхід за допомогою пароля не налаштовано',
+    [EciesStringKey.Error_PhoneNumber_InvalidTemplate]: 'Недійсний номер телефону: {phoneNumber}',
   };
 
  const germanTranslations: Record<EciesStringKey, string> = {
@@ -967,6 +973,7 @@ export function initEciesI18nEngine() {
       'Fehler beim Speichern der Passwort-Anmeldedaten',
     [EciesStringKey.Error_PasswordLoginError_PasswordLoginNotSetUp]:
       'Passwort-Anmeldung ist nicht eingerichtet',
+    [EciesStringKey.Error_PhoneNumber_InvalidTemplate]: 'Ungültige Telefonnummer: {phoneNumber}',
   };
 
   const japaneseTranslations: Record<EciesStringKey, string> = {
@@ -1123,6 +1130,7 @@ export function initEciesI18nEngine() {
       'パスワードログインデータの保存に失敗しました',
     [EciesStringKey.Error_PasswordLoginError_PasswordLoginNotSetUp]:
       'パスワードログインが設定されていません',
+    [EciesStringKey.Error_PhoneNumber_InvalidTemplate]: '無効な電話番号: {phoneNumber}',
   };
 
   // Define languages for ECIES

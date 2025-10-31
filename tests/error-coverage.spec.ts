@@ -89,7 +89,7 @@ describe('Error Coverage Validation', () => {
       Object.values(SecureStorageErrorType).length;
     
     // Additional errors include template variants and utility error strings
-    const additionalErrors = 28;
+    const additionalErrors = 29;
     const expectedStringKeys = totalErrors + additionalErrors;
     
     const totalStringKeys = Object.values(EciesStringKey).length;
