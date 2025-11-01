@@ -1,30 +1,33 @@
-import { buildReasonMap, HandleableErrorOptions, Language, TranslationEngine, TypedHandleableError } from '@digitaldefiance/i18n-lib';
+import { buildReasonMap, HandleableErrorOptions, CoreLanguageCode, PluginI18nEngine, PluginTypedHandleableError } from '@digitaldefiance/i18n-lib';
 import { ECIESErrorTypeEnum } from '../enumerations/ecies-error-type';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
-import { getCompatibleEciesEngine } from '../i18n-setup';
+import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
 
-export class ECIESError extends TypedHandleableError<
+export class ECIESError<TLanguage extends CoreLanguageCode = CoreLanguageCode> extends PluginTypedHandleableError<
   typeof ECIESErrorTypeEnum,
-  EciesStringKey
+  EciesStringKey,
+  TLanguage
 > {
   constructor(
     type: ECIESErrorTypeEnum,
-    engine?: TranslationEngine<EciesStringKey>,
+    engine?: PluginI18nEngine<TLanguage>,
     options?: HandleableErrorOptions,
-    language?: Language,
+    language?: TLanguage,
     otherVars?: Record<string, string | number>,
   ) {
-    const engineAdapter = engine || getCompatibleEciesEngine();
+    const pluginEngine = (engine || getEciesI18nEngine()) as PluginI18nEngine<TLanguage>;
     super(
+      pluginEngine,
+      EciesComponentId,
       type,
       buildReasonMap<typeof ECIESErrorTypeEnum, EciesStringKey>(
         ECIESErrorTypeEnum,
         ['Error', 'ECIESError'],
       ),
-      engineAdapter,
+      new Error(),
+      options,
       language,
       otherVars,
-      options,
     );
     this.name = 'ECIESError';
   }

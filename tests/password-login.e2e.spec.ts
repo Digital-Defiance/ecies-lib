@@ -4,7 +4,7 @@ import { ECIESService } from '../src/services/ecies';
 import { SecureString } from '../src/secure-string';
 import { Pbkdf2ProfileEnum } from '../src/enumerations';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
-import { getCompatibleEciesEngine } from '../src/i18n-setup';
+import { getEciesI18nEngine } from '../src/i18n-setup';
 
 describe('PasswordLoginService E2E', () => {
   let passwordLoginService: PasswordLoginService;
@@ -18,8 +18,8 @@ describe('PasswordLoginService E2E', () => {
     global.localStorage?.clear();
 
     eciesService = new ECIESService();
-    pbkdf2Service = new Pbkdf2Service(getCompatibleEciesEngine());
-    passwordLoginService = new PasswordLoginService(eciesService, pbkdf2Service, getCompatibleEciesEngine());
+    pbkdf2Service = new Pbkdf2Service(getEciesI18nEngine());
+    passwordLoginService = new PasswordLoginService(eciesService, pbkdf2Service, getEciesI18nEngine());
 
     // Use real test data
     testMnemonic = new SecureString(

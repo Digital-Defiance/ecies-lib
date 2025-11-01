@@ -13,42 +13,22 @@ describe('EmailString', () => {
     expect(email.toString()).toBe('test@example.com');
   });
 
-  it('should throw an error for an empty email', async () => {
-    await withConsoleMocks({ mute: true }, (spies) => {
-      expect(() => new EmailString('')).toThrowType(
-        InvalidEmailError,
-        (error: InvalidEmailError) => {
-          expect(error.type).toBe(InvalidEmailErrorType.Missing);
-        },
-      );
-
-      // Verify the expected warning about missing translation key
-      expect(
-        spyContains(
-          spies.warn,
-          'Translation failed for key Error_InvalidEmailError_Missing',
-        ),
-      ).toBe(true);
-    });
+  it('should throw an error for an empty email', () => {
+    expect(() => new EmailString('')).toThrowType(
+      InvalidEmailError,
+      (error: InvalidEmailError) => {
+        expect(error.type).toBe(InvalidEmailErrorType.Missing);
+      },
+    );
   });
 
-  it('should throw an error for an email with leading or trailing spaces', async () => {
-    await withConsoleMocks({ mute: true }, (spies) => {
-      expect(() => new EmailString(' test@example.com ')).toThrowType(
-        InvalidEmailError,
-        (error: InvalidEmailError) => {
-          expect(error.type).toBe(InvalidEmailErrorType.Whitespace);
-        },
-      );
-
-      // Verify the expected warning about missing translation key
-      expect(
-        spyContains(
-          spies.warn,
-          'Translation failed for key Error_InvalidEmailError_Whitespace',
-        ),
-      ).toBe(true);
-    });
+  it('should throw an error for an email with leading or trailing spaces', () => {
+    expect(() => new EmailString(' test@example.com ')).toThrowType(
+      InvalidEmailError,
+      (error: InvalidEmailError) => {
+        expect(error.type).toBe(InvalidEmailErrorType.Whitespace);
+      },
+    );
   });
 
   it('should throw an error for an invalid email', () => {

@@ -17,7 +17,7 @@ import {
 } from '../../src/enumerations';
 import { GuidBrandType } from '../../src/enumerations/guid-brand-type';
 import { LengthErrorType } from '../../src/enumerations/length-error-type';
-import { getCompatibleEciesEngine } from '../../src/i18n-setup';
+import { getEciesI18nEngine } from '../../src/i18n-setup';
 
 describe('Custom Errors', () => {
   it('should create a DisposedError', () => {
@@ -30,7 +30,7 @@ describe('Custom Errors', () => {
   it('should create an ECIESError', () => {
     const error = new ECIESError(
       ECIESErrorTypeEnum.DecryptionFailed,
-      getCompatibleEciesEngine(),
+      getEciesI18nEngine(),
     );
     expect(error).toBeInstanceOf(ECIESError);
     expect(error.type).toBe(ECIESErrorTypeEnum.DecryptionFailed);
@@ -41,7 +41,7 @@ describe('Custom Errors', () => {
   it('should create a GuidError', () => {
     const error = new GuidError(
       GuidErrorType.UnknownBrand,
-      getCompatibleEciesEngine(),
+      getEciesI18nEngine(),
       GuidBrandType.Unknown,
     );
     expect(error).toBeInstanceOf(GuidError);
@@ -53,7 +53,7 @@ describe('Custom Errors', () => {
   it('should create an InvalidEmailError', () => {
     const error = new InvalidEmailError(
       InvalidEmailErrorType.Invalid,
-      getCompatibleEciesEngine(),
+      getEciesI18nEngine(),
     );
     expect(error).toBeInstanceOf(InvalidEmailError);
     expect(error.type).toBe(InvalidEmailErrorType.Invalid);
@@ -64,7 +64,7 @@ describe('Custom Errors', () => {
   it('should create a LengthError', () => {
     const error = new LengthError(
       LengthErrorType.LengthIsTooShort,
-      getCompatibleEciesEngine(),
+      getEciesI18nEngine(),
     );
     expect(error).toBeInstanceOf(LengthError);
     expect(error.type).toBe(LengthErrorType.LengthIsTooShort);
@@ -74,7 +74,7 @@ describe('Custom Errors', () => {
   it('should create a MemberError', () => {
     const error = new MemberError(
       MemberErrorType.MissingMemberName,
-      getCompatibleEciesEngine(),
+      getEciesI18nEngine(),
     );
     expect(error).toBeInstanceOf(MemberError);
     expect(error.type).toBe(MemberErrorType.MissingMemberName);
@@ -85,7 +85,7 @@ describe('Custom Errors', () => {
   it('should create a PBKDF2Error', () => {
     const error = new Pbkdf2Error(
       Pbkdf2ErrorType.InvalidHashLength,
-      getCompatibleEciesEngine(),
+      getEciesI18nEngine(),
     );
     expect(error).toBeInstanceOf(Pbkdf2Error);
     expect(error.type).toBe(Pbkdf2ErrorType.InvalidHashLength);
@@ -96,7 +96,7 @@ describe('Custom Errors', () => {
   it('should create a SecureStorageError', () => {
     const error = new SecureStorageError(
       SecureStorageErrorType.ValueIsNull,
-      getCompatibleEciesEngine(),
+      getEciesI18nEngine(),
     );
     expect(error).toBeInstanceOf(SecureStorageError);
     expect(error.type).toBe(SecureStorageErrorType.ValueIsNull);

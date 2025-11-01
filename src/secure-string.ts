@@ -2,7 +2,7 @@ import { SecureStorageErrorType } from './enumerations/secure-storage-error-type
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
 import { GuidV4 } from './guid';
-import { getCompatibleEciesEngine } from './i18n-setup';
+import { getEciesI18nEngine } from './i18n-setup';
 import { XorService } from './services/xor';
 import { FullHexGuid, RawGuidUint8Array } from './types';
 import { uint8ArrayToHex } from './utils';
@@ -89,7 +89,7 @@ export class SecureString {
       if (deobfuscatedResult.length !== this._length) {
         throw new SecureStorageError(
           SecureStorageErrorType.DecryptedValueLengthMismatch,
-          getCompatibleEciesEngine() as any,
+          getEciesI18nEngine() as any,
         );
       }
 
@@ -104,7 +104,7 @@ export class SecureString {
       if (!this.timingSafeEqual(expectedBytes, storedBytes)) {
         throw new SecureStorageError(
           SecureStorageErrorType.DecryptedValueChecksumMismatch,
-          getCompatibleEciesEngine() as any,
+          getEciesI18nEngine() as any,
         );
       }
 
@@ -117,7 +117,7 @@ export class SecureString {
       // Convert any other error to SecureStorageError
       throw new SecureStorageError(
         SecureStorageErrorType.DecryptedValueChecksumMismatch,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
   }
@@ -133,7 +133,7 @@ export class SecureString {
     if (this._isNull) {
       throw new SecureStorageError(
         SecureStorageErrorType.ValueIsNull,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
     return new TextDecoder().decode(this.valueAsUint8Array);

@@ -1,17 +1,18 @@
-import { buildReasonMap, HandleableErrorOptions, I18nEngine, Language, TypedHandleableError } from '@digitaldefiance/i18n-lib';
+import { buildReasonMap, HandleableErrorOptions, CoreLanguageCode, PluginI18nEngine, PluginTypedHandleableError } from '@digitaldefiance/i18n-lib';
 import { ECIESErrorTypeEnum, EciesStringKey } from '../enumerations';
+import { EciesComponentId } from '../i18n-setup';
 
-export class SimpleECIESError extends TypedHandleableError<typeof ECIESErrorTypeEnum, EciesStringKey> {
+export class SimpleECIESError<TLanguage extends CoreLanguageCode = CoreLanguageCode> extends PluginTypedHandleableError<typeof ECIESErrorTypeEnum, EciesStringKey, TLanguage> {
   constructor(
     type: ECIESErrorTypeEnum,
-    engine: I18nEngine<EciesStringKey, Language, any, any>,
-    language?: any,
-    otherVars?: Record<string, string | number>,
-    options?: HandleableErrorOptions
+    engine: PluginI18nEngine<TLanguage>,
+    options?: HandleableErrorOptions,
+    language?: TLanguage,
+    otherVars?: Record<string, string | number>
   ) {
     const reasonMap = buildReasonMap<typeof ECIESErrorTypeEnum, EciesStringKey>(ECIESErrorTypeEnum, ['Error', 'ECIESError']);
 
-    super(type, reasonMap, engine, language, otherVars, options);
+    super(engine, EciesComponentId, type, reasonMap, new Error(), options, language, otherVars);
     this.name = 'SimpleECIESError';
   }
 }

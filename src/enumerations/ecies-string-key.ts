@@ -98,6 +98,8 @@ export enum EciesStringKey {
   Error_SecureStorageError_ValueIsNull = 'Error_SecureStorageError_ValueIsNull',
 
   Error_InvalidEmailError_Invalid = 'Error_InvalidEmailError_Invalid',
+  Error_InvalidEmailError_Missing = 'Error_InvalidEmailError_Missing',
+  Error_InvalidEmailError_Whitespace = 'Error_InvalidEmailError_Whitespace',
   Error_Utils_EncryptionFailedNoAuthTag = 'Error_Utils_EncryptionFailedNoAuthTag',
   Error_PasswordLoginError_FailedToStoreLoginData = 'Error_PasswordLoginError_FailedToStoreLoginData',
   Error_PasswordLoginError_PasswordLoginNotSetUp = 'Error_PasswordLoginError_PasswordLoginNotSetUp',

@@ -5,7 +5,7 @@ import MemberErrorType from './enumerations/member-error-type';
 import MemberType from './enumerations/member-type';
 import { MemberError } from './errors/member';
 import { GuidV4 } from './guid';
-import { getCompatibleEciesEngine } from './i18n-setup';
+import { getEciesI18nEngine } from './i18n-setup';
 import { IMemberOperational } from './interfaces/member-operational';
 import { IMemberStorageData } from './interfaces/member-storage';
 import { IMemberWithMnemonic } from './interfaces/member-with-mnemonic';
@@ -62,13 +62,13 @@ export class Member implements IMemberOperational {
     if (!this._name || this._name.length == 0) {
       throw new MemberError(
         MemberErrorType.MissingMemberName,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
     if (this._name.trim() != this._name) {
       throw new MemberError(
         MemberErrorType.InvalidMemberNameWhitespace,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
     this._email = email;
@@ -123,7 +123,7 @@ export class Member implements IMemberOperational {
     if (!this._wallet) {
       throw new MemberError(
         MemberErrorType.NoWallet,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
     return this._wallet;
@@ -153,7 +153,7 @@ export class Member implements IMemberOperational {
     if (this._wallet) {
       throw new MemberError(
         MemberErrorType.WalletAlreadyLoaded,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
     const eciesConsts = eciesParams ?? ECIES;
@@ -169,7 +169,7 @@ export class Member implements IMemberOperational {
     ) {
       throw new MemberError(
         MemberErrorType.InvalidMnemonic,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
     this._wallet = wallet;
@@ -191,7 +191,7 @@ export class Member implements IMemberOperational {
     if (!this._privateKey) {
       throw new MemberError(
         MemberErrorType.MissingPrivateKey,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
     return this._eciesService.signMessage(this._privateKey.value, data);
@@ -201,7 +201,7 @@ export class Member implements IMemberOperational {
     if (!this._privateKey) {
       throw new MemberError(
         MemberErrorType.MissingPrivateKey,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
     return this._eciesService.signMessage(
@@ -237,7 +237,7 @@ export class Member implements IMemberOperational {
     if (!data) {
       throw new MemberError(
         MemberErrorType.MissingEncryptionData,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
 
@@ -247,7 +247,7 @@ export class Member implements IMemberOperational {
     if (arr.length > Member.MAX_ENCRYPTION_SIZE) {
       throw new MemberError(
         MemberErrorType.EncryptionDataTooLarge,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
 
@@ -265,7 +265,7 @@ export class Member implements IMemberOperational {
     if (!this._privateKey) {
       throw new MemberError(
         MemberErrorType.MissingPrivateKey,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
     // decryptSingleWithHeader now returns the Uint8Array directly
@@ -310,7 +310,7 @@ export class Member implements IMemberOperational {
     } catch (error) {
       throw new MemberError(
         MemberErrorType.InvalidMemberData,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
     const email = new EmailString(storage.email);
@@ -371,25 +371,25 @@ export class Member implements IMemberOperational {
     if (!name || name.length == 0) {
       throw new MemberError(
         MemberErrorType.MissingMemberName,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
     if (name.trim() != name) {
       throw new MemberError(
         MemberErrorType.InvalidMemberNameWhitespace,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
     if (!email || email.toString().length == 0) {
       throw new MemberError(
         MemberErrorType.MissingEmail,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
     if (email.toString().trim() != email.toString()) {
       throw new MemberError(
         MemberErrorType.InvalidEmailWhitespace,
-        getCompatibleEciesEngine() as any,
+        getEciesI18nEngine() as any,
       );
     }
 

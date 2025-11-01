@@ -2,10 +2,22 @@ import {
   ComponentDefinition,
   ComponentRegistration,
   PluginI18nEngine,
-  LanguageRegistry,
   createLanguageDefinition,
+  Timezone,
+  Language,
+  I18nConfig,
+  LanguageCodes,
+  LanguageContextSpace,
+  DefaultCurrencyCode,
+  DefaultLanguageCodes,
+  CurrencyCode,
+  I18nEngine,
+  I18nContext,
+  DefaultLanguageCode,
 } from '@digitaldefiance/i18n-lib';
 import { EciesStringKey } from './enumerations/ecies-string-key';
+import { IConstants } from './interfaces';
+import { Constants } from './constants';
 
 export const EciesI18nEngineKey = 'DigitalDefiance.Ecies.I18nEngine' as const;
 export const EciesComponentId = 'ecies' as const;
@@ -187,6 +199,8 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_SecureStorageError_ValueIsNull]:
       'Secure storage value is null',
     [EciesStringKey.Error_InvalidEmailError_Invalid]: 'Invalid email address.',
+    [EciesStringKey.Error_InvalidEmailError_Missing]: 'Email address is required.',
+    [EciesStringKey.Error_InvalidEmailError_Whitespace]: 'Email address contains leading or trailing whitespace.',
     [EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag]:
       'Encryption failed: no authentication tag generated',
     [EciesStringKey.Error_PasswordLoginError_FailedToStoreLoginData]:
@@ -350,6 +364,10 @@ export function initEciesI18nEngine() {
       'La valeur du stockage sécurisé est nulle',
     [EciesStringKey.Error_InvalidEmailError_Invalid]:
       'Adresse e-mail invalide.',
+    [EciesStringKey.Error_InvalidEmailError_Missing]:
+      'Adresse e-mail requise.',
+    [EciesStringKey.Error_InvalidEmailError_Whitespace]:
+      'L\'adresse e-mail contient des espaces en début ou fin.',
     [EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag]:
       'Échec du chiffrement : aucune balise d’authentification générée',
     [EciesStringKey.Error_PasswordLoginError_FailedToStoreLoginData]:
@@ -482,6 +500,8 @@ export function initEciesI18nEngine() {
       '解密后的值校验和不匹配',
     [EciesStringKey.Error_SecureStorageError_ValueIsNull]: '安全存储的值为空',
     [EciesStringKey.Error_InvalidEmailError_Invalid]: '电子邮件地址无效。',
+    [EciesStringKey.Error_InvalidEmailError_Missing]: '需要电子邮件地址。',
+    [EciesStringKey.Error_InvalidEmailError_Whitespace]: '电子邮件地址包含首尾空白字符。',
     [EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag]:
       '加密失败：未生成认证标签',
     [EciesStringKey.Error_PasswordLoginError_FailedToStoreLoginData]:
@@ -647,6 +667,10 @@ export function initEciesI18nEngine() {
       'El valor del almacenamiento seguro es nulo',
     [EciesStringKey.Error_InvalidEmailError_Invalid]:
       'Dirección de correo electrónico no válida.',
+    [EciesStringKey.Error_InvalidEmailError_Missing]:
+      'Se requiere dirección de correo electrónico.',
+    [EciesStringKey.Error_InvalidEmailError_Whitespace]:
+      'La dirección de correo electrónico contiene espacios al inicio o al final.',
     [EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag]:
       'Error de cifrado: no se generó ninguna etiqueta de autenticación',
     [EciesStringKey.Error_PasswordLoginError_FailedToStoreLoginData]:
@@ -810,6 +834,10 @@ export function initEciesI18nEngine() {
       'Значення у захищеному сховищі дорівнює null',
     [EciesStringKey.Error_InvalidEmailError_Invalid]:
       'Недійсна електронна адреса.',
+    [EciesStringKey.Error_InvalidEmailError_Missing]:
+      'Потрібна електронна адреса.',
+    [EciesStringKey.Error_InvalidEmailError_Whitespace]:
+      'Електронна адреса містить пробіли на початку або в кінці.',
     [EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag]:
       'Не вдалося зашифрувати: не створено тег автентифікації',
     [EciesStringKey.Error_PasswordLoginError_FailedToStoreLoginData]:
@@ -967,6 +995,8 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_SecureStorageError_ValueIsNull]:
       'Sicherer Speicherwert ist null',
     [EciesStringKey.Error_InvalidEmailError_Invalid]: 'Ungültige E-Mail-Adresse.',
+    [EciesStringKey.Error_InvalidEmailError_Missing]: 'E-Mail-Adresse ist erforderlich.',
+    [EciesStringKey.Error_InvalidEmailError_Whitespace]: 'E-Mail-Adresse enthält führende oder nachfolgende Leerzeichen.',
     [EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag]:
       'Verschlüsselung fehlgeschlagen: kein Authentifizierungstag generiert',
     [EciesStringKey.Error_PasswordLoginError_FailedToStoreLoginData]:
@@ -1124,6 +1154,8 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_SecureStorageError_ValueIsNull]:
       'セキュアストレージの値がnullです',
     [EciesStringKey.Error_InvalidEmailError_Invalid]: '無効なメールアドレスです。',
+    [EciesStringKey.Error_InvalidEmailError_Missing]: 'メールアドレスは必須です。',
+    [EciesStringKey.Error_InvalidEmailError_Whitespace]: 'メールアドレスに前後の空白が含まれています。',
     [EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag]:
       '暗号化に失敗しました: 認証タグが生成されませんでした',
     [EciesStringKey.Error_PasswordLoginError_FailedToStoreLoginData]:
@@ -1252,70 +1284,29 @@ const DefaultLanguageToCoreLanguageMap = new Map<string, EciesSupportedLanguageC
   [EciesLanguageCodes.UK, EciesLanguageCodes.UK],
 ]);
 
-// Create a full adapter that perfectly mimics the old I18nEngine interface
-export function getCompatibleEciesEngine() {
-  const pluginEngine = getEciesI18nEngine();
-
-  const adapter = {
-    translate: (
-      key: EciesStringKey,
-      variables?: Record<string, string | number>,
-      language?: any,
-    ) => {
-      // Map any legacy language parameter to EciesSupportedLanguageCode
-      let coreLanguage: EciesSupportedLanguageCode = EciesLanguageCodes.EN_US; // Default fallback
-
-      if (language) {
-        const langStr = String(language);
-        // Try direct mapping first
-        const mappedLanguage = DefaultLanguageToCoreLanguageMap.get(langStr);
-        if (mappedLanguage) {
-          coreLanguage = mappedLanguage;
-        }
-        // If no direct mapping found, keep the default
-      }
-
-      try {
-        let result = pluginEngine.translate(
-          EciesComponentId,
-          key,
-          variables,
-          coreLanguage,
-        );
-
-        // Manual variable substitution if the plugin system doesn't handle it
-        if (variables && result.includes('{')) {
-          for (const [varName, varValue] of Object.entries(variables)) {
-            const placeholder = `{${varName}}`;
-            if (result.includes(placeholder)) {
-              result = result.replace(
-                new RegExp(`\\{${varName}\\}`, 'g'),
-                String(varValue),
-              );
-            }
-          }
-        }
-
-        return result;
-      } catch (error) {
-        console.warn(`Translation failed for key ${key}:`, error);
-        return String(key); // Fallback to key name
-      }
-    },
-
-    // Add other methods that might be needed by the error classes
-    safeTranslate: (
-      key: EciesStringKey,
-      variables?: Record<string, string | number>,
-      language?: any,
-    ) => {
-      try {
-        return adapter.translate(key, variables, language);
-      } catch (error) {
-        return String(key);
-      }
-    },
-  };
-
-  return adapter;
+export function getLegacyEciesEngine<TConstants extends Record<string, any>>(
+  constants: TConstants,
+  timezone?: Timezone,
+  adminTimezone?: Timezone,
+): I18nEngine<EciesStringKey, Language, TConstants, I18nContext<DefaultLanguageCode>> {
+  const engine = getEciesI18nEngine();
+  const getConfig = (
+    constants: TConstants,
+    timezone?: Timezone,
+    adminTimezone?: Timezone,
+  ): I18nConfig<EciesStringKey, Language, TConstants> => ({
+      strings: engine.getComponentRegistry().getComponentStrings(EciesComponentId) ?? {},
+    stringNames: Object.values(EciesStringKey),
+    defaultLanguage: LanguageCodes.EN_US,
+    defaultTranslationContext: 'user' as LanguageContextSpace,
+    defaultCurrencyCode: new CurrencyCode(DefaultCurrencyCode),
+    languageCodes: DefaultLanguageCodes,
+    languages: [LanguageCodes.EN_US, LanguageCodes.EN_GB, LanguageCodes.FR, LanguageCodes.ES, LanguageCodes.ZH_CN, LanguageCodes.UK],
+    constants: constants,
+    enumName: 'EciesStringKey',
+    enumObj: EciesStringKey as Record<string, EciesStringKey>,
+    timezone: timezone ?? new Timezone('UTC'),
+    adminTimezone: adminTimezone ?? new Timezone('UTC'),
+  });
+  return new I18nEngine<EciesStringKey, Language, TConstants, I18nContext<DefaultLanguageCode>>(getConfig(constants, timezone, adminTimezone));
 }

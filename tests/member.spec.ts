@@ -127,58 +127,38 @@ describe('member', () => {
     });
 
     it('should fail to create a user with no email', async () => {
-      await withConsoleMocks({ mute: true }, (spies) => {
-        expect(() =>
-          Member.newMember(
-            eciesService,
-            MemberType.User,
-            'alice',
-            new EmailString(''),
-          ),
-        ).toThrowType(InvalidEmailError, (error: InvalidEmailError) => {
-          expect(error.type).toBe(InvalidEmailErrorType.Missing);
-        });
-
-        // Verify the expected warning about missing translation key
-        expect(
-          spyContains(
-            spies.warn,
-            'Translation failed for key Error_InvalidEmailError_Missing',
-          ),
-        ).toBe(true);
+      expect(() =>
+        Member.newMember(
+          eciesService,
+          MemberType.User,
+          'alice',
+          new EmailString(''),
+        ),
+      ).toThrowType(InvalidEmailError, (error: InvalidEmailError) => {
+        expect(error.type).toBe(InvalidEmailErrorType.Missing);
       });
     });
 
-    it('should fail to create a user with an email that has whitespace at the start or end', async () => {
-      await withConsoleMocks({ mute: true }, (spies) => {
-        expect(() =>
-          Member.newMember(
-            eciesService,
-            MemberType.User,
-            'alice',
-            new EmailString(' alice@example.com'),
-          ),
-        ).toThrowType(InvalidEmailError, (error: InvalidEmailError) => {
-          expect(error.type).toBe(InvalidEmailErrorType.Whitespace);
-        });
-        expect(() =>
-          Member.newMember(
-            eciesService,
-            MemberType.User,
-            'alice',
-            new EmailString('alice@example.com '),
-          ),
-        ).toThrowType(InvalidEmailError, (error: InvalidEmailError) => {
-          expect(error.type).toBe(InvalidEmailErrorType.Whitespace);
-        });
-
-        // Verify the expected warnings about missing translation keys
-        expect(
-          spyContains(
-            spies.warn,
-            'Translation failed for key Error_InvalidEmailError_Whitespace',
-          ),
-        ).toBe(true);
+    it('should fail to create a user with an email that has whitespace at the start or end', () => {
+      expect(() =>
+        Member.newMember(
+          eciesService,
+          MemberType.User,
+          'alice',
+          new EmailString(' alice@example.com'),
+        ),
+      ).toThrowType(InvalidEmailError, (error: InvalidEmailError) => {
+        expect(error.type).toBe(InvalidEmailErrorType.Whitespace);
+      });
+      expect(() =>
+        Member.newMember(
+          eciesService,
+          MemberType.User,
+          'alice',
+          new EmailString('alice@example.com '),
+        ),
+      ).toThrowType(InvalidEmailError, (error: InvalidEmailError) => {
+        expect(error.type).toBe(InvalidEmailErrorType.Whitespace);
       });
     });
 

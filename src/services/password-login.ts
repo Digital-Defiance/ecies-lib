@@ -7,23 +7,23 @@ import { AESGCMService } from './aes-gcm';
 import { ECIESService } from './ecies/service';
 import { Pbkdf2Service } from './pbkdf2';
 import { EciesStringKey, PasswordLoginErrorTypeEnum } from '../enumerations';
-import { buildReasonMap, I18nEngine, Language, TranslatableError, TypedHandleableError } from '@digitaldefiance/i18n-lib';
+import { buildReasonMap, CoreLanguageCode, PluginI18nEngine, PluginTranslatableGenericError, PluginTypedHandleableError } from '@digitaldefiance/i18n-lib';
 import { IECIESConstants } from '../interfaces/ecies-consts';
 import { Constants } from '../constants';
-import { getEciesI18nEngine } from 'src/i18n-setup';
+import { EciesComponentId } from '../i18n-setup';
 
 
-export class PasswordLoginService {
+export class PasswordLoginService<TLanguage extends CoreLanguageCode = CoreLanguageCode> {
   protected readonly eciesService: ECIESService;
-  protected readonly pbkdf2Service: Pbkdf2Service;
-  protected readonly engine: I18nEngine<EciesStringKey, Language, any, any>;
+  protected readonly pbkdf2Service: Pbkdf2Service<TLanguage>;
+  protected readonly engine: PluginI18nEngine<TLanguage>;
   protected readonly eciesConsts: IECIESConstants;
   public static readonly privateKeyStorageKey = 'encryptedPrivateKey';
   public static readonly saltStorageKey = 'passwordLoginSalt';
   public static readonly encryptedMnemonicStorageKey = 'encryptedMnemonic';
   public static readonly profileStorageKey = 'pbkdf2Profile';
 
-  constructor(eciesService: ECIESService, pbkdf2Service: Pbkdf2Service, engine: I18nEngine<EciesStringKey, Language, any, any>, eciesParams: IECIESConstants = Constants.ECIES) {
+  constructor(eciesService: ECIESService, pbkdf2Service: Pbkdf2Service<TLanguage>, engine: PluginI18nEngine<TLanguage>, eciesParams: IECIESConstants = Constants.ECIES) {
     this.eciesService = eciesService;
     this.pbkdf2Service = pbkdf2Service;
     this.engine = engine;
@@ -56,7 +56,7 @@ export class PasswordLoginService {
       true,
     );
     if (!tag) {
-      throw new TranslatableError(this.engine, EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag);
+      throw new PluginTranslatableGenericError(EciesComponentId, EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag);
     }
     const encryptedPrivateKey = AESGCMService.combineIvTagAndEncryptedData(
       iv,
@@ -111,7 +111,7 @@ export class PasswordLoginService {
         profile,
       );
     } catch (error) {
-      throw new TypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum.FailedToStoreLoginData, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), this.engine, undefined, undefined, { cause: error instanceof Error ? error : undefined });
+      throw new PluginTypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey, TLanguage>(this.engine, EciesComponentId, PasswordLoginErrorTypeEnum.FailedToStoreLoginData, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), new Error(), { cause: error instanceof Error ? error : undefined });
     }
     return wallet;
   }
@@ -124,7 +124,7 @@ export class PasswordLoginService {
     profile: Pbkdf2ProfileEnum = Pbkdf2ProfileEnum.BROWSER_PASSWORD,
   ): Promise<{ wallet: Wallet; mnemonic: SecureString }> {
     if (!salt || !encryptedPrivateKey || !encryptedMnemonic) {
-     throw new TypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum.PasswordLoginNotSetUp, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), this.engine);
+     throw new PluginTypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey, TLanguage>(this.engine, EciesComponentId, PasswordLoginErrorTypeEnum.PasswordLoginNotSetUp, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), new Error());
     }
 
     const derivedKey =
@@ -186,7 +186,7 @@ export class PasswordLoginService {
       encryptedPrivateKeyHex === '' ||
       encryptedMnemonicHex === ''
     ) {
-      throw new TypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum.PasswordLoginNotSetUp, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), this.engine);
+      throw new PluginTypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey, TLanguage>(this.engine, EciesComponentId, PasswordLoginErrorTypeEnum.PasswordLoginNotSetUp, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), new Error());
     }
 
     const salt = hexToUint8Array(saltHex);

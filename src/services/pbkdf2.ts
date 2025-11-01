@@ -1,11 +1,10 @@
-import { I18nEngine, Language } from '@digitaldefiance/i18n-lib';
+import { CoreLanguageCode, PluginI18nEngine } from '@digitaldefiance/i18n-lib';
 import { Constants } from '../constants';
 import { Pbkdf2ErrorType } from '../enumerations/pbkdf2-error-type';
 import { Pbkdf2ProfileEnum } from '../enumerations/pbkdf2-profile';
 import { Pbkdf2Error } from '../errors/pbkdf2';
 import { IPbkdf2Config } from '../interfaces/pbkdf2-config';
 import { IPbkdf2Result } from '../interfaces/pbkdf2-result';
-import { EciesStringKey } from '../enumerations';
 import { IECIESConstants } from '../interfaces/ecies-consts';
 import { IPBkdf2Consts } from '../interfaces/pbkdf2-consts';
 
@@ -17,14 +16,14 @@ import { IPBkdf2Consts } from '../interfaces/pbkdf2-consts';
  * - Managing salt and iteration parameters
  * - Both synchronous and asynchronous key derivation
  */
-export class Pbkdf2Service {
-  protected readonly engine: I18nEngine<EciesStringKey, Language, any, any>;
+export class Pbkdf2Service<TLanguage extends CoreLanguageCode> {
+  protected readonly engine: PluginI18nEngine<TLanguage>;
   protected readonly profiles: Record<string, IPbkdf2Config>;
   protected readonly eciesConsts: IECIESConstants;
   protected readonly pbkdf2Consts: IPBkdf2Consts;
   
   constructor(
-    engine: I18nEngine<EciesStringKey, Language, any, any>,
+    engine: PluginI18nEngine<TLanguage>,
     profiles: Record<string, IPbkdf2Config> = Constants.PBKDF2_PROFILES,
     eciesParams: IECIESConstants = Constants.ECIES,
     pbkdf2Params: IPBkdf2Consts = Constants.PBKDF2,

@@ -600,6 +600,11 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.23
+
+- Upgrade pbkdf2Service and various errors to pluginI18n
+- Add legacy i18n ecies engine config
+
 ### v1.1.22
 
 - Update i18n

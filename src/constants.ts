@@ -2,7 +2,7 @@ import { ObjectId } from 'bson';
 import { ECIESErrorTypeEnum, EciesStringKey } from './enumerations';
 import { Pbkdf2ProfileEnum } from './enumerations/pbkdf2-profile';
 import { ECIESError } from './errors/ecies';
-import { EciesComponentId, getCompatibleEciesEngine, getEciesI18nEngine } from './i18n-setup';
+import { EciesComponentId, getEciesI18nEngine } from './i18n-setup';
 import { IChecksumConsts } from './interfaces';
 import { IConstants } from './interfaces/constants';
 import { DeepPartial } from './types/deep-partial';
@@ -325,35 +325,35 @@ function validateConstants(config: IConstants): void {
   if (ecies.MULTIPLE.ENCRYPTED_KEY_SIZE !== expectedEncryptedKeySize) {
     throw new ECIESError(
       ECIESErrorTypeEnum.InvalidECIESMultipleEncryptedKeySize,
-      getCompatibleEciesEngine() as any,
+      getEciesI18nEngine() as any,
     );
   }
 
   if (ecies.PUBLIC_KEY_LENGTH !== ecies.RAW_PUBLIC_KEY_LENGTH + 1) {
     throw new ECIESError(
       ECIESErrorTypeEnum.InvalidECIESPublicKeyLength,
-      getCompatibleEciesEngine() as any,
+      getEciesI18nEngine() as any,
     );
   }
 
   if (ecies.MULTIPLE.RECIPIENT_COUNT_SIZE !== UINT16_SIZE) {
     throw new ECIESError(
       ECIESErrorTypeEnum.InvalidECIESMultipleRecipientCountSize,
-      getCompatibleEciesEngine() as any,
+      getEciesI18nEngine() as any,
     );
   }
 
   if (ecies.MULTIPLE.DATA_LENGTH_SIZE !== UINT64_SIZE) {
     throw new ECIESError(
       ECIESErrorTypeEnum.InvalidECIESMultipleDataLengthSize,
-      getCompatibleEciesEngine() as any,
+      getEciesI18nEngine() as any,
     );
   }
 
   if (ecies.MULTIPLE.RECIPIENT_ID_SIZE !== GUID_SIZE) {
     throw new ECIESError(
       ECIESErrorTypeEnum.InvalidECIESMultipleRecipientIdSize,
-      getCompatibleEciesEngine() as any,
+      getEciesI18nEngine() as any,
     );
   }
 

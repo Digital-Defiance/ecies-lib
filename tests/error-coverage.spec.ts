@@ -5,11 +5,11 @@ import { LengthErrorType } from '../src/enumerations/length-error-type';
 import { Pbkdf2ErrorType } from '../src/enumerations/pbkdf2-error-type';
 import { SecureStorageErrorType } from '../src/enumerations/secure-storage-error-type';
 import { EciesStringKey } from '../src/enumerations/ecies-string-key';
-import { getCompatibleEciesEngine } from '../src/i18n-setup';
+import { getEciesI18nEngine } from '../src/i18n-setup';
 
 describe('Error Coverage Validation', () => {
   beforeAll(() => {
-    getCompatibleEciesEngine();
+    getEciesI18nEngine();
   });
 
   it('should have string keys for all ECIES error types', () => {
@@ -89,7 +89,7 @@ describe('Error Coverage Validation', () => {
       Object.values(SecureStorageErrorType).length;
     
     // Additional errors include template variants and utility error strings
-    const additionalErrors = 29;
+    const additionalErrors = 31;
     const expectedStringKeys = totalErrors + additionalErrors;
     
     const totalStringKeys = Object.values(EciesStringKey).length;
