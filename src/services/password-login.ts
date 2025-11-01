@@ -6,11 +6,11 @@ import { hexToUint8Array, uint8ArrayToHex } from '../utils';
 import { AESGCMService } from './aes-gcm';
 import { ECIESService } from './ecies/service';
 import { Pbkdf2Service } from './pbkdf2';
-import { TranslatableError, TypedHandleableError } from '../errors';
 import { EciesStringKey, PasswordLoginErrorTypeEnum } from '../enumerations';
-import { buildReasonMap, I18nEngine, Language } from '@digitaldefiance/i18n-lib';
+import { buildReasonMap, I18nEngine, Language, TranslatableError, TypedHandleableError } from '@digitaldefiance/i18n-lib';
 import { IECIESConstants } from '../interfaces/ecies-consts';
 import { Constants } from '../constants';
+import { getEciesI18nEngine } from 'src/i18n-setup';
 
 
 export class PasswordLoginService {
@@ -56,7 +56,7 @@ export class PasswordLoginService {
       true,
     );
     if (!tag) {
-      throw new TranslatableError(EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag, this.engine);
+      throw new TranslatableError(this.engine, EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag);
     }
     const encryptedPrivateKey = AESGCMService.combineIvTagAndEncryptedData(
       iv,

@@ -1,9 +1,7 @@
-import { buildReasonMap, Language, TranslationEngine } from '@digitaldefiance/i18n-lib';
+import { buildReasonMap, HandleableErrorOptions, Language, TranslationEngine, TypedHandleableError } from '@digitaldefiance/i18n-lib';
 import { ECIESErrorTypeEnum } from '../enumerations/ecies-error-type';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
 import { getCompatibleEciesEngine } from '../i18n-setup';
-import { HandleableErrorOptions } from '../interfaces/handleable-error-options';
-import { TypedHandleableError } from './typed-handleable';
 
 export class ECIESError extends TypedHandleableError<
   typeof ECIESErrorTypeEnum,

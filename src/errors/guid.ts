@@ -1,9 +1,7 @@
 import { GuidBrandType } from '../enumerations/guid-brand-type';
 import { GuidErrorType } from '../enumerations/guid-error-type';
 import { RawGuidUint8Array } from '../types';
-import { HandleableErrorOptions } from '../interfaces/handleable-error-options';
-import { TypedHandleableError } from './typed-handleable';
-import { buildReasonMap, I18nEngine, Language } from '@digitaldefiance/i18n-lib';
+import { buildReasonMap, HandleableErrorOptions, I18nEngine, Language, TypedHandleableError } from '@digitaldefiance/i18n-lib';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
 
 /**

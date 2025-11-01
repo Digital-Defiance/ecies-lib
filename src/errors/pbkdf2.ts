@@ -1,8 +1,6 @@
 import { Pbkdf2ErrorType } from '../enumerations/pbkdf2-error-type';
-import { HandleableErrorOptions } from '../interfaces/handleable-error-options';
-import { buildReasonMap, I18nEngine, Language } from '@digitaldefiance/i18n-lib';
+import { buildReasonMap, HandleableErrorOptions, I18nEngine, Language, TypedHandleableError } from '@digitaldefiance/i18n-lib';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
-import { TypedHandleableError } from './typed-handleable';
 
 export class Pbkdf2Error extends TypedHandleableError<typeof Pbkdf2ErrorType, EciesStringKey> {
 

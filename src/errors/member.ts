@@ -1,7 +1,5 @@
 import { MemberErrorType } from '../enumerations/member-error-type';
-import { HandleableErrorOptions } from '../interfaces/handleable-error-options';
-import { TypedHandleableError } from './typed-handleable';
-import { buildReasonMap, I18nEngine, Language } from '@digitaldefiance/i18n-lib';
+import { buildReasonMap, HandleableErrorOptions, I18nEngine, Language, TypedHandleableError } from '@digitaldefiance/i18n-lib';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
 
 export class MemberError extends TypedHandleableError<typeof MemberErrorType, EciesStringKey> {

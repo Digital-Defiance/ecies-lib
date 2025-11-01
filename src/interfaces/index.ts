@@ -5,8 +5,6 @@ export * from './ecies-config';
 export * from './ecies-consts';
 export * from './ecies-file-service';
 export * from './guid';
-export * from './handleable';
-export * from './handleable-error-options';
 export * from './member-operational';
 export * from './member-storage';
 export * from './member-with-mnemonic';

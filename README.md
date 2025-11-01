@@ -600,6 +600,10 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.20
+
+- Use typed/handleable from i18n, remove local copies
+
 ### v1.1.19
 
 - Actually export PhoneNumber class
