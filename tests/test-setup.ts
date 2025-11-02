@@ -1,4 +1,4 @@
-import { PluginI18nEngine, resetAllI18nEngines } from '@digitaldefiance/i18n-lib';
+import { resetAllI18nEngines } from '@digitaldefiance/i18n-lib';
 import { webcrypto } from 'crypto';
 import { resetEciesI18nForTests } from '../src/i18n-setup';
 import { toThrowType } from './matchers/error-matchers';
@@ -6,6 +6,8 @@ import { LocalStorageMock } from './support/localStorage-mock';
 
 // Extend expect with custom matchers
 expect.extend({ toThrowType });
+
+jest.setTimeout(30000);
 
 // Re-export the matcher to ensure it's loaded
 export { toThrowType };

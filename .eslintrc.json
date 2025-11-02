@@ -1,10 +1,17 @@
 {
   "root": true,
-  "ignorePatterns": ["node_modules", "dist"],
+  "ignorePatterns": [
+    "node_modules",
+    "dist"
+  ],
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "prettier", "import"],
+  "plugins": [
+    "@typescript-eslint",
+    "prettier",
+    "import"
+  ],
   "parserOptions": {
-    "project": "./tsconfig.json"
+    "project": "./tsconfig.eslint.json"
   },
   "extends": [
     "eslint:recommended",

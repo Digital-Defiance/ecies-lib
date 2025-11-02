@@ -600,6 +600,10 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.24
+
+- Upgrade to es2022/nx monorepo
+
 ### v1.1.23
 
 - Upgrade pbkdf2Service and various errors to pluginI18n
