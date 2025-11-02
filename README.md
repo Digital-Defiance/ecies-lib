@@ -600,6 +600,10 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.26
+
+- Update i18n
+
 ### v1.1.25
 
 - Re-export with js
