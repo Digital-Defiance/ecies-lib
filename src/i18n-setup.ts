@@ -1199,6 +1199,9 @@ export function initEciesI18nEngine() {
     {
       component: EciesComponent,
       strings: eciesComponentStrings,
+      enumName: 'EciesStringKey',
+      enumObject: EciesStringKey,
+      aliases: ['Ecies', 'ECIES'],
     };
 
   // Register the ECIES component

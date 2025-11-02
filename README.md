@@ -600,6 +600,11 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.3.17
+
+- Skip 1.3.17 to homogenize version
+- Upgrade to i18n 1.3.17 which has new alias for t() function
+
 ### v1.3.15
 
 - Homogenize version numbers
