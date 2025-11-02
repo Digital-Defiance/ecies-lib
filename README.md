@@ -600,6 +600,10 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.1.25
+
+- Re-export with js
+
 ### v1.1.24
 
 - Upgrade to es2022/nx monorepo
