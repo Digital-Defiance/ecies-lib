@@ -9,7 +9,14 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.ts'],
   setupFilesAfterEnv: ['<rootDir>/tests/test-setup.ts'],
   transform: {
-    '^.+\\.(ts|tsx|js|jsx)$': 'babel-jest',
+    '^.+\\.(ts|tsx)$': [
+      'ts-jest',
+      {
+        tsconfig: '<rootDir>/tsconfig.spec.json',
+        babelConfig: true,
+      },
+    ],
+    '^.+\\.(js|jsx)$': 'babel-jest',
   },
   transformIgnorePatterns: [
     'node_modules/(?!(@faker-js|@noble|@scure|@ethereumjs))',
@@ -17,9 +24,4 @@ module.exports = {
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
     prefix: '<rootDir>/../../',
   }),
-  globals: {
-    'ts-jest': {
-      tsconfig: '<rootDir>/tsconfig.spec.json',
-    },
-  },
 };
