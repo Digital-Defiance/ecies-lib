@@ -600,6 +600,10 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.3.15
+
+- Homogenize version numbers
+
 ### v1.1.26
 
 - Update i18n
