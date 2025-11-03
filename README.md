@@ -600,6 +600,10 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.3.27
+
+- Upgrade i18n/version bump
+
 ### v1.3.20
 
 - Version bump
