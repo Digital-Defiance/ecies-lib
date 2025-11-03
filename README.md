@@ -600,6 +600,10 @@ MIT © Digital Defiance
 
 ## ChangeLog
 
+### v1.3.20
+
+- Version bump
+
 ### v1.3.17
 
 - Skip 1.3.17 to homogenize version
