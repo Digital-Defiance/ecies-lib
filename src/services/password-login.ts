@@ -7,22 +7,22 @@ import { AESGCMService } from './aes-gcm';
 import { ECIESService } from './ecies/service';
 import { Pbkdf2Service } from './pbkdf2';
 import { EciesStringKey, PasswordLoginErrorTypeEnum } from '../enumerations';
-import { buildReasonMap, CoreLanguageCode, PluginI18nEngine, PluginTranslatableGenericError, PluginTypedHandleableError } from '@digitaldefiance/i18n-lib';
+import { buildReasonMap, PluginTranslatableGenericError, PluginTypedHandleableError } from '@digitaldefiance/i18n-lib';
 import { IECIESConstants } from '../interfaces/ecies-consts';
 import { Constants } from '../constants';
 import { EciesComponentId } from '../i18n-setup';
 
 
-export class PasswordLoginService<TLanguage extends CoreLanguageCode = CoreLanguageCode> {
+export class PasswordLoginService {
   protected readonly eciesService: ECIESService;
-  protected readonly pbkdf2Service: Pbkdf2Service<TLanguage>;
+  protected readonly pbkdf2Service: Pbkdf2Service;
   protected readonly eciesConsts: IECIESConstants;
   public static readonly privateKeyStorageKey = 'encryptedPrivateKey';
   public static readonly saltStorageKey = 'passwordLoginSalt';
   public static readonly encryptedMnemonicStorageKey = 'encryptedMnemonic';
   public static readonly profileStorageKey = 'pbkdf2Profile';
 
-  constructor(eciesService: ECIESService, pbkdf2Service: Pbkdf2Service<TLanguage>, eciesParams: IECIESConstants = Constants.ECIES) {
+  constructor(eciesService: ECIESService, pbkdf2Service: Pbkdf2Service, eciesParams: IECIESConstants = Constants.ECIES) {
     this.eciesService = eciesService;
     this.pbkdf2Service = pbkdf2Service;
     this.eciesConsts = eciesParams;

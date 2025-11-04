@@ -16,7 +16,7 @@ import { IPBkdf2Consts } from '../interfaces/pbkdf2-consts';
  * - Managing salt and iteration parameters
  * - Both synchronous and asynchronous key derivation
  */
-export class Pbkdf2Service<TLanguage extends CoreLanguageCode> {
+export class Pbkdf2Service {
   protected readonly profiles: Record<string, IPbkdf2Config>;
   protected readonly eciesConsts: IECIESConstants;
   protected readonly pbkdf2Consts: IPBkdf2Consts;
