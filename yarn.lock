@@ -9,7 +9,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@digitaldefiance/ecies-lib@workspace:."
   dependencies:
-    "@digitaldefiance/i18n-lib": "npm:1.3.27"
+    "@digitaldefiance/i18n-lib": "npm:2.0.0"
     "@ethereumjs/wallet": "npm:^10.0.0"
     "@noble/curves": "npm:^2.0.1"
     "@noble/hashes": "npm:^2.0.1"
@@ -19,13 +19,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@digitaldefiance/i18n-lib@npm:1.3.27":
-  version: 1.3.27
-  resolution: "@digitaldefiance/i18n-lib@npm:1.3.27"
+"@digitaldefiance/i18n-lib@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@digitaldefiance/i18n-lib@npm:2.0.0"
   dependencies:
     moment: "npm:^2.30.1"
     moment-timezone: "npm:^0.6.0"
-  checksum: 10c0/e936788fc78058fdda552dfd58a50eef29e12bb466b3b63e0f763c45f82d7ccda8cdc63accef09e7be026280b2f3726e0c862bf9568d55240f6c5339179a1e89
+  checksum: 10c0/a28c7a99b346771e3dea16e3837bd8407223abc7367cee2d6ef89238748bdefb3c99d19d3232345ddb80dae34874f03c6f791fd3f3d8e188a83ef6b329df3a9a
   languageName: node
   linkType: hard
 

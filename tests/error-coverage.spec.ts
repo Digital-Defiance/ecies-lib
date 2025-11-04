@@ -8,7 +8,7 @@ import { EciesStringKey } from '../src/enumerations/ecies-string-key';
 import { getEciesI18nEngine } from '../src/i18n-setup';
 
 describe('Error Coverage Validation', () => {
-  beforeAll(() => {
+  beforeEach(() => {
     getEciesI18nEngine();
   });
 

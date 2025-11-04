@@ -1,4 +1,4 @@
-import { CoreLanguageCode, PluginI18nEngine } from '@digitaldefiance/i18n-lib';
+import { CoreLanguageCode } from '@digitaldefiance/i18n-lib';
 import { Constants } from '../constants';
 import { Pbkdf2ErrorType } from '../enumerations/pbkdf2-error-type';
 import { Pbkdf2ProfileEnum } from '../enumerations/pbkdf2-profile';
@@ -17,18 +17,15 @@ import { IPBkdf2Consts } from '../interfaces/pbkdf2-consts';
  * - Both synchronous and asynchronous key derivation
  */
 export class Pbkdf2Service<TLanguage extends CoreLanguageCode> {
-  protected readonly engine: PluginI18nEngine<TLanguage>;
   protected readonly profiles: Record<string, IPbkdf2Config>;
   protected readonly eciesConsts: IECIESConstants;
   protected readonly pbkdf2Consts: IPBkdf2Consts;
   
   constructor(
-    engine: PluginI18nEngine<TLanguage>,
     profiles: Record<string, IPbkdf2Config> = Constants.PBKDF2_PROFILES,
     eciesParams: IECIESConstants = Constants.ECIES,
     pbkdf2Params: IPBkdf2Consts = Constants.PBKDF2,
   ) {
-    this.engine = engine;
     this.profiles = profiles;
     this.eciesConsts = eciesParams;
     this.pbkdf2Consts = pbkdf2Params;
@@ -43,7 +40,7 @@ export class Pbkdf2Service<TLanguage extends CoreLanguageCode> {
   ): IPbkdf2Config {
     const profileConfig = this.profiles[profile];
     if (!profileConfig) {
-      throw new Pbkdf2Error(Pbkdf2ErrorType.InvalidProfile, this.engine);
+      throw new Pbkdf2Error(Pbkdf2ErrorType.InvalidProfile);
     }
     return {
       hashBytes: profileConfig.hashBytes,
@@ -112,7 +109,7 @@ export class Pbkdf2Service<TLanguage extends CoreLanguageCode> {
       salt ?? crypto.getRandomValues(new Uint8Array(config.saltBytes));
 
     if (saltBytes_.length !== config.saltBytes) {
-      throw new Pbkdf2Error(Pbkdf2ErrorType.InvalidSaltLength, this.engine);
+      throw new Pbkdf2Error(Pbkdf2ErrorType.InvalidSaltLength);
     }
 
     const keyMaterial = await crypto.subtle.importKey(
@@ -137,7 +134,7 @@ export class Pbkdf2Service<TLanguage extends CoreLanguageCode> {
     const keyBytes = new Uint8Array(keyArray);
 
     if (keyBytes.length !== config.hashBytes) {
-      throw new Pbkdf2Error(Pbkdf2ErrorType.InvalidHashLength, this.engine);
+      throw new Pbkdf2Error(Pbkdf2ErrorType.InvalidHashLength);
     }
 
     return {

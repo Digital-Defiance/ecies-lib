@@ -6,7 +6,8 @@ import { IPbkdf2Config } from '../src/interfaces/pbkdf2-config';
 import { IPbkdf2Result } from '../src/interfaces/pbkdf2-result';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
 import { EciesStringKey } from '../src/enumerations/ecies-string-key';
-import { PluginI18nEngine, CoreLanguageCode } from '@digitaldefiance/i18n-lib';
+import { PluginI18nEngine } from '@digitaldefiance/i18n-lib';
+import { createEciesI18nEngine } from '../src/i18n-setup';
 
 // Mock crypto.subtle for testing
 const mockCrypto = {
@@ -25,43 +26,17 @@ Object.defineProperty(global, 'crypto', {
 });
 
 describe('Pbkdf2Service', () => {
-  let pbkdf2Service: Pbkdf2Service<CoreLanguageCode>;
-  let mockEngine: jest.Mocked<PluginI18nEngine<CoreLanguageCode>>;
+  let pbkdf2Service: Pbkdf2Service<string>;
+  let i18nEngine: PluginI18nEngine<string>;
 
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Create a proper mock of PluginI18nEngine
-    mockEngine = {
-      translate: jest.fn().mockImplementation((componentId: string, key: string) => {
-        // Return specific error messages for the keys used in tests
-        if (key === 'Error_Pbkdf2Error_InvalidSaltLength') {
-          return 'Salt length does not match expected length';
-        }
-        if (key === 'Error_Pbkdf2Error_InvalidHashLength') {
-          return 'Hash length does not match expected length';
-        }
-        if (key === 'Error_Pbkdf2Error_InvalidProfile') {
-          return 'Invalid PBKDF2 profile specified';
-        }
-        return 'Mock translation';
-      }),
-      safeTranslate: jest.fn().mockImplementation((componentId: string, key: string) => {
-        if (key === 'Error_Pbkdf2Error_InvalidSaltLength') {
-          return 'Salt length does not match expected length';
-        }
-        if (key === 'Error_Pbkdf2Error_InvalidHashLength') {
-          return 'Hash length does not match expected length';
-        }
-        if (key === 'Error_Pbkdf2Error_InvalidProfile') {
-          return 'Invalid PBKDF2 profile specified';
-        }
-        return 'Mock safe translation';
-      }),
-      t: jest.fn(),
-    } as any;
+    // Initialize I18n engine with ECIES component
+    PluginI18nEngine.resetAll();
+    i18nEngine = createEciesI18nEngine('default');
     
-    pbkdf2Service = new Pbkdf2Service(mockEngine);
+    pbkdf2Service = new Pbkdf2Service();
 
     // Default mock implementations
     mockCrypto.getRandomValues.mockImplementation((array: Uint8Array) => {
@@ -75,6 +50,10 @@ describe('Pbkdf2Service', () => {
     mockCrypto.subtle.deriveKey.mockResolvedValue({} as CryptoKey);
     mockCrypto.subtle.deriveBits.mockResolvedValue(new ArrayBuffer(32));
     mockCrypto.subtle.exportKey.mockResolvedValue(new ArrayBuffer(32));
+  });
+
+  afterEach(() => {
+    PluginI18nEngine.resetAll();
   });
 
   describe('getProfileConfig', () => {

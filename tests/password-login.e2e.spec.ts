@@ -17,9 +17,10 @@ describe('PasswordLoginService E2E', () => {
     // Clear localStorage before each test
     global.localStorage?.clear();
 
+    getEciesI18nEngine(); // Ensure engine is initialized for error messages
     eciesService = new ECIESService();
-    pbkdf2Service = new Pbkdf2Service(getEciesI18nEngine());
-    passwordLoginService = new PasswordLoginService(eciesService, pbkdf2Service, getEciesI18nEngine());
+    pbkdf2Service = new Pbkdf2Service();
+    passwordLoginService = new PasswordLoginService(eciesService, pbkdf2Service);
 
     // Use real test data
     testMnemonic = new SecureString(

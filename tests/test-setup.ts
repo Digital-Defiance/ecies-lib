@@ -1,6 +1,6 @@
-import { resetAllI18nEngines } from '@digitaldefiance/i18n-lib';
+import { PluginI18nEngine, resetCoreI18nEngine } from '@digitaldefiance/i18n-lib';
 import { webcrypto } from 'crypto';
-import { resetEciesI18nForTests } from '../src/i18n-setup';
+import { resetEciesI18nEngine, getEciesI18nEngine } from '../src/i18n-setup';
 import { toThrowType } from './matchers/error-matchers';
 import { LocalStorageMock } from './support/localStorage-mock';
 
@@ -9,21 +9,28 @@ expect.extend({ toThrowType });
 
 jest.setTimeout(30000);
 
-// Re-export the matcher to ensure it's loaded
+// Re-export the matcher
 export { toThrowType };
 
-// Clean up I18n engine before each test
+// Note: Using i18n-lib 2.0 patterns
+// - PluginI18nEngine.resetAll() instead of resetAllI18nEngines()
+// - Runtime validation via registry
+// - No generic type parameters
+
+// Clean up I18n engine before each test (i18n 2.0 pattern)
 beforeEach(() => {
-  // Use the new cleanup mechanism from @digitaldefiance/i18n-lib v1.1.2
-  resetAllI18nEngines();
-  resetEciesI18nForTests();
+  PluginI18nEngine.resetAll();
+  resetCoreI18nEngine();
+  resetEciesI18nEngine();
+  // Force re-initialization by calling getEciesI18nEngine
+  getEciesI18nEngine();
 });
 
-// Clean up I18n engine after each test
+// Clean up I18n engine after each test (i18n 2.0 pattern)
 afterEach(() => {
-  // Use the new cleanup mechanism from @digitaldefiance/i18n-lib v1.1.2
-  resetAllI18nEngines();
-  resetEciesI18nForTests();
+  PluginI18nEngine.resetAll();
+  resetCoreI18nEngine();
+  resetEciesI18nEngine();
 });
 
 // Polyfill Web Crypto API for Node.js test environment

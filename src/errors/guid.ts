@@ -8,21 +8,20 @@ import { EciesComponentId } from '../i18n-setup';
 /**
  * Error class for handling GUID-related errors.
  */
-export class GuidError<TLanguage extends CoreLanguageCode = CoreLanguageCode> extends PluginTypedHandleableError<typeof GuidErrorType, EciesStringKey, TLanguage> {
+export class GuidError extends PluginTypedHandleableError<typeof GuidErrorType, EciesStringKey> {
   public readonly brand?: GuidBrandType;
   public readonly length?: number;
   public readonly guid?: Uint8Array;
   
   constructor(
     type: GuidErrorType,
-    engine: PluginI18nEngine<TLanguage>,
     brand?: GuidBrandType,
     length?: number,
     guid?: RawGuidUint8Array | Uint8Array,
     options?: HandleableErrorOptions,
-    language?: TLanguage,
+    language?: string,
   ) {
-    super(engine, EciesComponentId, type, buildReasonMap<typeof GuidErrorType, EciesStringKey>(GuidErrorType, ['Error', 'GuidError'], new Set([GuidErrorType.InvalidWithGuid, GuidErrorType.UnknownBrand, GuidErrorType.UnknownLength])), new Error(), options, language, {
+    super(EciesComponentId, type, buildReasonMap<typeof GuidErrorType, EciesStringKey>(GuidErrorType, ['Error', 'GuidError'], new Set([GuidErrorType.InvalidWithGuid, GuidErrorType.UnknownBrand, GuidErrorType.UnknownLength])), new Error(), options, language, {
       GUID: guid ? Array.from(guid).map(b => b.toString(16).padStart(2, '0')).join(' ') : '',
       BRAND: String(brand) ?? '',
       LENGTH: String(length) ?? '',

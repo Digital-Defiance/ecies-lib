@@ -1,55 +1,40 @@
+/**
+ * ECIES i18n Setup - v2.0 Architecture
+ * Uses i18n-lib 2.0 patterns with runtime validation
+ */
+
 import {
   ComponentDefinition,
   ComponentRegistration,
   PluginI18nEngine,
-  createLanguageDefinition,
-  Timezone,
-  Language,
-  I18nConfig,
   LanguageCodes,
-  LanguageContextSpace,
-  DefaultCurrencyCode,
-  DefaultLanguageCodes,
-  CurrencyCode,
-  I18nEngine,
-  I18nContext,
-  DefaultLanguageCode,
+  createDefaultLanguages,
+  createCoreComponentRegistration,
 } from '@digitaldefiance/i18n-lib';
 import { EciesStringKey } from './enumerations/ecies-string-key';
-import { IConstants } from './interfaces';
-import { Constants } from './constants';
 
 export const EciesI18nEngineKey = 'DigitalDefiance.Ecies.I18nEngine' as const;
 export const EciesComponentId = 'ecies' as const;
 
-// ECIES supported language codes
-export const EciesLanguageCodes = {
-  EN_US: 'en-US',
-  EN_GB: 'en-GB',
-  FR: 'fr',
-  ES: 'es',
-  DE: 'de',
-  ZH_CN: 'zh-CN',
-  JA: 'ja',
-  UK: 'uk',
-} as const;
-
-export type EciesSupportedLanguageCode = typeof EciesLanguageCodes[keyof typeof EciesLanguageCodes];
-
-export function initEciesI18nEngine() {
-  // Create unique instance key for test environments
-  const instanceKey =
-    process.env.NODE_ENV === 'test'
-      ? `${EciesI18nEngineKey}-${Date.now()}-${Math.random()}`
-      : EciesI18nEngineKey;
-
-  // Create the ECIES component definition
-  const EciesComponent: ComponentDefinition<EciesStringKey> = {
+/**
+ * Create ECIES component definition
+ */
+function createEciesComponentDefinition(): ComponentDefinition<EciesStringKey> {
+  return {
     id: EciesComponentId,
     name: 'ECIES Library Strings',
     stringKeys: Object.values(EciesStringKey),
   };
+}
 
+/**
+ * Create ECIES component registration with all translations
+ * Note: Only includes 4 languages for brevity - add more as needed
+ */
+export function createEciesComponentRegistration(): ComponentRegistration<EciesStringKey, string> {
+  const component = createEciesComponentDefinition();
+
+  // English translations (subset for example)
   // Build complete translations for all string keys
   const englishTranslations: Record<EciesStringKey, string> = {
     // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
@@ -377,6 +362,7 @@ export function initEciesI18nEngine() {
 
     [EciesStringKey.Error_PhoneNumber_InvalidTemplate]: 'Numéro de téléphone invalide : {phoneNumber}',
   };
+
   const mandarinChineseTranslations: Record<EciesStringKey, string> = {
     // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
     [EciesStringKey.Error_ECIESError_InvalidECIESMultipleEncryptedKeySize]:
@@ -1165,151 +1151,97 @@ export function initEciesI18nEngine() {
     [EciesStringKey.Error_PhoneNumber_InvalidTemplate]: '無効な電話番号: {phoneNumber}',
   };
 
-  // Define languages for ECIES
-  const eciesLanguages = [
-    createLanguageDefinition('en-US', 'English (US)', EciesLanguageCodes.EN_US, true),
-    createLanguageDefinition('en-GB', 'English (UK)', EciesLanguageCodes.EN_GB),
-    createLanguageDefinition('fr', 'French', EciesLanguageCodes.FR),
-    createLanguageDefinition('es', 'Spanish', EciesLanguageCodes.ES),
-    createLanguageDefinition('de', 'Deutsch', EciesLanguageCodes.DE),
-    createLanguageDefinition('zh-CN', 'Chinese (Simplified)', EciesLanguageCodes.ZH_CN),
-    createLanguageDefinition('ja', '日本語', EciesLanguageCodes.JA),
-    createLanguageDefinition('uk', 'Ukrainian', EciesLanguageCodes.UK),
-  ];
-
-  // Create engine with ECIES languages
-  const engine = new PluginI18nEngine<EciesSupportedLanguageCode>(eciesLanguages, {
-    defaultLanguage: EciesLanguageCodes.EN_US,
-    fallbackLanguage: EciesLanguageCodes.EN_US,
-  });
-
-  // Define the ECIES component registration with specified languages only
-  const eciesComponentStrings = {
-    [EciesLanguageCodes.EN_US]: englishTranslations,
-    [EciesLanguageCodes.EN_GB]: englishTranslations, // UK uses same strings as US
-    [EciesLanguageCodes.FR]: frenchTranslations,
-    [EciesLanguageCodes.ES]: spanishTranslations,
-    [EciesLanguageCodes.DE]: germanTranslations,
-    [EciesLanguageCodes.ZH_CN]: mandarinChineseTranslations,
-    [EciesLanguageCodes.JA]: japaneseTranslations,
-    [EciesLanguageCodes.UK]: ukrainianTranslations,
+  return {
+    component: component,
+    strings: {
+      [LanguageCodes.EN_US]: englishTranslations,
+      [LanguageCodes.EN_GB]: englishTranslations,
+      [LanguageCodes.FR]: frenchTranslations,
+      [LanguageCodes.ES]: spanishTranslations,
+      [LanguageCodes.DE]: germanTranslations,
+      [LanguageCodes.ZH_CN]: mandarinChineseTranslations,
+      [LanguageCodes.JA]: japaneseTranslations,
+      [LanguageCodes.UK]: ukrainianTranslations,
+    },
   };
+}
 
-  const eciesRegistration: ComponentRegistration<EciesStringKey, EciesSupportedLanguageCode> =
-    {
-      component: EciesComponent,
-      strings: eciesComponentStrings,
-      enumName: 'EciesStringKey',
-      enumObject: EciesStringKey,
-      aliases: ['Ecies', 'ECIES'],
-    };
-
-  // Register the ECIES component
-  const validationResult = engine.registerComponent(eciesRegistration);
-
-  if (!validationResult.isValid && validationResult.missingKeys.length > 0) {
+/**
+ * Create ECIES i18n engine instance
+ * Uses i18n 2.0 pattern with runtime validation
+ * IMPORTANT: Uses 'default' as instance key so PluginTypedError can find it
+ */
+export function createEciesI18nEngine(): PluginI18nEngine<string> {
+  const engine = PluginI18nEngine.createInstance('default', createDefaultLanguages());
+  
+  // Register core component first (required for error messages)
+  engine.registerComponent(createCoreComponentRegistration());
+  
+  // Register ECIES component
+  const result = engine.registerComponent(createEciesComponentRegistration());
+  
+  // Warn about missing translations (non-blocking)
+  if (!result.isValid && result.missingKeys.length > 0) {
     console.warn(
-      'ECIES component registration has missing translations:',
-      validationResult.missingKeys,
+      `ECIES component has ${result.missingKeys.length} missing translations`,
+      result.missingKeys.slice(0, 5) // Show first 5
     );
   }
-
+  
   return engine;
 }
 
-let _eciesI18nEngine: PluginI18nEngine<EciesSupportedLanguageCode> | null = null;
-export function getEciesI18nEngine(): PluginI18nEngine<EciesSupportedLanguageCode> {
-  if (!_eciesI18nEngine) {
-    _eciesI18nEngine = initEciesI18nEngine();
+/**
+ * Lazy initialization with Proxy (like core-i18n.ts pattern)
+ */
+let _eciesEngine: PluginI18nEngine<string> | undefined;
+
+export function getEciesI18nEngine(): PluginI18nEngine<string> {
+  if (!_eciesEngine) {
+    _eciesEngine = createEciesI18nEngine();
   }
-  return _eciesI18nEngine!;
+  return _eciesEngine;
 }
 
-// Test helper to reset instances
-export function resetEciesI18nForTests(): void {
-  _eciesI18nEngine = null;
+/**
+ * Proxy for backward compatibility
+ */
+export const eciesI18nEngine = new Proxy({} as PluginI18nEngine<string>, {
+  get(target, prop) {
+    return getEciesI18nEngine()[prop as keyof PluginI18nEngine<string>];
+  }
+});
+
+/**
+ * Reset function for tests
+ */
+export function resetEciesI18nEngine(): void {
+  _eciesEngine = undefined;
+  PluginI18nEngine.removeInstance('default');
 }
 
-export const EciesI18nEngine = getEciesI18nEngine();
-
-// Helper function for translating ECIES strings using the new plugin system
+/**
+ * Helper to translate ECIES strings
+ */
 export function getEciesTranslation(
-  key: EciesStringKey,
+  stringKey: EciesStringKey,
   variables?: Record<string, string | number>,
-  language?: EciesSupportedLanguageCode,
+  language?: string,
 ): string {
-  return getEciesI18nEngine().translate(
-    EciesComponentId,
-    key,
-    variables,
-    language,
-  );
+  return getEciesI18nEngine().translate(EciesComponentId, stringKey, variables, language);
 }
 
-// Safe translation with fallback
+/**
+ * Safe translation with fallback
+ */
 export function safeEciesTranslation(
-  key: EciesStringKey,
+  stringKey: EciesStringKey,
   variables?: Record<string, string | number>,
-  language?: EciesSupportedLanguageCode,
+  language?: string,
 ): string {
-  return getEciesI18nEngine().safeTranslate(
-    EciesComponentId,
-    key,
-    variables,
-    language,
-  );
-}
-
-// Direct translation helper function for use throughout the codebase
-export function translateEciesString(
-  key: EciesStringKey,
-  variables?: Record<string, string | number>,
-  language?: EciesSupportedLanguageCode,
-): string {
-  return getEciesI18nEngine().translate(
-    EciesComponentId,
-    key,
-    variables,
-    language,
-  );
-}
-
-// Create language code mapping
-const DefaultLanguageToCoreLanguageMap = new Map<string, EciesSupportedLanguageCode>([
-  // Map language codes to themselves
-  [EciesLanguageCodes.EN_US, EciesLanguageCodes.EN_US],
-  [EciesLanguageCodes.EN_GB, EciesLanguageCodes.EN_GB],
-  [EciesLanguageCodes.FR, EciesLanguageCodes.FR],
-  [EciesLanguageCodes.ES, EciesLanguageCodes.ES],
-  [EciesLanguageCodes.DE, EciesLanguageCodes.DE],
-  [EciesLanguageCodes.ZH_CN, EciesLanguageCodes.ZH_CN],
-  [EciesLanguageCodes.JA, EciesLanguageCodes.JA],
-  [EciesLanguageCodes.UK, EciesLanguageCodes.UK],
-]);
-
-export function getLegacyEciesEngine<TConstants extends Record<string, any>>(
-  constants: TConstants,
-  timezone?: Timezone,
-  adminTimezone?: Timezone,
-): I18nEngine<EciesStringKey, Language, TConstants, I18nContext<DefaultLanguageCode>> {
-  const engine = getEciesI18nEngine();
-  const getConfig = (
-    constants: TConstants,
-    timezone?: Timezone,
-    adminTimezone?: Timezone,
-  ): I18nConfig<EciesStringKey, Language, TConstants> => ({
-      strings: engine.getComponentRegistry().getComponentStrings(EciesComponentId) ?? {},
-    stringNames: Object.values(EciesStringKey),
-    defaultLanguage: LanguageCodes.EN_US,
-    defaultTranslationContext: 'user' as LanguageContextSpace,
-    defaultCurrencyCode: new CurrencyCode(DefaultCurrencyCode),
-    languageCodes: DefaultLanguageCodes,
-    languages: [LanguageCodes.EN_US, LanguageCodes.EN_GB, LanguageCodes.FR, LanguageCodes.ES, LanguageCodes.ZH_CN, LanguageCodes.UK],
-    constants: constants,
-    enumName: 'EciesStringKey',
-    enumObj: EciesStringKey as Record<string, EciesStringKey>,
-    timezone: timezone ?? new Timezone('UTC'),
-    adminTimezone: adminTimezone ?? new Timezone('UTC'),
-  });
-  return new I18nEngine<EciesStringKey, Language, TConstants, I18nContext<DefaultLanguageCode>>(getConfig(constants, timezone, adminTimezone));
+  try {
+    return getEciesTranslation(stringKey, variables, language);
+  } catch {
+    return `[${stringKey}]`;
+  }
 }

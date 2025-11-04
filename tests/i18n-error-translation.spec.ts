@@ -10,17 +10,17 @@ import { getEciesI18nEngine } from '../src/i18n-setup';
 describe('I18n Error Translation', () => {
   describe('ECIES Error Translation', () => {
     it('should translate ECIES errors to English', () => {
+      getEciesI18nEngine(); // Ensure engine is initialized
       const error = new ECIESError(
         ECIESErrorTypeEnum.DecryptionFailed,
-        getEciesI18nEngine(),
       );
       expect(error.message).toBe('Decryption operation failed');
     });
 
     it('should translate ECIES errors to Spanish', () => {
+      getEciesI18nEngine(); // Ensure engine is initialized
       const error = new ECIESError(
         ECIESErrorTypeEnum.DecryptionFailed,
-        getEciesI18nEngine(),
         undefined,
         LanguageCodes.ES,
       );
@@ -28,9 +28,9 @@ describe('I18n Error Translation', () => {
     });
 
     it('should fallback to English for missing translations', () => {
+      getEciesI18nEngine(); // Ensure engine is initialized
       const error = new ECIESError(
         ECIESErrorTypeEnum.DecryptionFailed,
-        getEciesI18nEngine(),
         undefined,
         LanguageCodes.FR,
       );
@@ -38,11 +38,12 @@ describe('I18n Error Translation', () => {
     });
 
     it('should exercise all ECIES error types', () => {
+      getEciesI18nEngine(); // Ensure engine is initialized
       const errorTypes = Object.values(ECIESErrorTypeEnum);
 
       errorTypes.forEach((errorType) => {
         expect(() => {
-          const error = new ECIESError(errorType, getEciesI18nEngine());
+          const error = new ECIESError(errorType);
           expect(error.message).toBeDefined();
           expect(error.message.length).toBeGreaterThan(0);
         }).not.toThrow();
@@ -52,17 +53,17 @@ describe('I18n Error Translation', () => {
 
   describe('Member Error Translation', () => {
     it('should translate Member errors to English', () => {
+      getEciesI18nEngine(); // Ensure engine is initialized
       const error = new MemberError(
         MemberErrorType.MissingMemberName,
-        getEciesI18nEngine(),
       );
       expect(error.message).toBe('Member name is required');
     });
 
     it('should translate Member errors to Spanish', () => {
+      getEciesI18nEngine(); // Ensure engine is initialized
       const error = new MemberError(
         MemberErrorType.MissingMemberName,
-        getEciesI18nEngine(),
         undefined,
         LanguageCodes.ES,
       );
@@ -70,11 +71,12 @@ describe('I18n Error Translation', () => {
     });
 
     it('should exercise all Member error types', () => {
+      getEciesI18nEngine(); // Ensure engine is initialized
       const errorTypes = Object.values(MemberErrorType);
 
       errorTypes.forEach((errorType) => {
         expect(() => {
-          const error = new MemberError(errorType, getEciesI18nEngine());
+          const error = new MemberError(errorType);
           expect(error.message).toBeDefined();
           expect(error.message.length).toBeGreaterThan(0);
         }).not.toThrow();
@@ -84,19 +86,20 @@ describe('I18n Error Translation', () => {
 
   describe('GUID Error Translation', () => {
     it('should translate GUID errors to English', () => {
+      getEciesI18nEngine(); // Ensure engine is initialized
       const error = new GuidError(
         GuidErrorType.Invalid,
-        getEciesI18nEngine(),
       );
       expect(error.message).toBe('Invalid GUID format');
     });
 
     it('should exercise all GUID error types', () => {
+      getEciesI18nEngine(); // Ensure engine is initialized
       const errorTypes = Object.values(GuidErrorType);
 
       errorTypes.forEach((errorType) => {
         expect(() => {
-          const error = new GuidError(errorType, getEciesI18nEngine());
+          const error = new GuidError(errorType);
           expect(error.message).toBeDefined();
           expect(error.message.length).toBeGreaterThan(0);
         }).not.toThrow();
@@ -106,13 +109,12 @@ describe('I18n Error Translation', () => {
 
   describe('Error Key Generation Validation', () => {
     it('should verify buildReasonMap generates correct keys', () => {
-      const engine = getEciesI18nEngine();
+      getEciesI18nEngine(); // Ensure engine is initialized
       // Test that the generated keys match our enum
       const eciesError = new ECIESError(
         ECIESErrorTypeEnum.InvalidMnemonic,
-        engine,
       );
-      const memberError = new MemberError(MemberErrorType.NoWallet, engine);
+      const memberError = new MemberError(MemberErrorType.NoWallet);
 
       // Verify the errors use the i18n system
       expect(eciesError.message).not.toBe('Error_ECIESError_InvalidMnemonic'); // Should be translated
@@ -120,10 +122,10 @@ describe('I18n Error Translation', () => {
     });
 
     it('should handle missing translations gracefully', () => {
+      getEciesI18nEngine(); // Ensure engine is initialized
       // Test with an error type that has no translation
       const error = new ECIESError(
         ECIESErrorTypeEnum.InvalidECIESMultipleRecipientCountSize,
-        getEciesI18nEngine(),
       );
 
       // Should fallback to the key name if no translation exists
@@ -134,12 +136,11 @@ describe('I18n Error Translation', () => {
 
   describe('Language Switching', () => {
     it('should switch languages dynamically', () => {
-      const engine = getEciesI18nEngine();
+      getEciesI18nEngine(); // Ensure engine is initialized
 
       // Test English
       let error = new ECIESError(
         ECIESErrorTypeEnum.DecryptionFailed,
-        engine,
         undefined,
         LanguageCodes.EN_US,
       );
@@ -148,7 +149,6 @@ describe('I18n Error Translation', () => {
       // Test Spanish
       error = new ECIESError(
         ECIESErrorTypeEnum.DecryptionFailed,
-        engine,
         undefined,
         LanguageCodes.ES,
       );

@@ -1,15 +1,12 @@
-import { ECIES, PBKDF2 } from '../src/defaults';
 import { Pbkdf2ErrorType, Pbkdf2ProfileEnum } from '../src/enumerations';
 import { Pbkdf2Error } from '../src/errors';
 import { SecureString } from '../src/secure-string';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
-import { EciesStringKey } from '../src/enumerations/ecies-string-key';
-import { I18nEngine, Language } from '@digitaldefiance/i18n-lib';
+import { getEciesI18nEngine } from '../src/i18n-setup';
 
 describe('Pbkdf2Service Lib E2E', () => {
   jest.setTimeout(60000);
-  let pbkdf2Service: Pbkdf2Service;
-  let mockEngine: jest.Mocked<I18nEngine<EciesStringKey, Language, any, any>>;
+  let pbkdf2Service: Pbkdf2Service<string>;
 
   const testPassword = new Uint8Array([
     116, 101, 115, 116, 45, 112, 97, 115, 115, 119, 111, 114, 100,
@@ -17,36 +14,8 @@ describe('Pbkdf2Service Lib E2E', () => {
   const testSalt = new Uint8Array(32).fill(42);
 
   beforeEach(() => {
-    // Create a proper mock of I18nEngine
-    mockEngine = {
-      translate: jest.fn().mockImplementation((key: string) => {
-        // Return specific error messages for the keys used in tests
-        if (key === 'Error_Pbkdf2Error_InvalidSaltLength') {
-          return 'Salt length does not match expected length';
-        }
-        if (key === 'Error_Pbkdf2Error_InvalidHashLength') {
-          return 'Hash length does not match expected length';
-        }
-        if (key === 'Error_Pbkdf2Error_InvalidProfile') {
-          return 'Invalid PBKDF2 profile specified';
-        }
-        return 'Mock translation';
-      }),
-      safeTranslate: jest.fn().mockReturnValue('Mock safe translation'),
-      translateEnum: jest.fn(),
-      registerEnum: jest.fn(),
-      getLanguageCode: jest.fn(),
-      getLanguageFromCode: jest.fn(),
-      getAllLanguageCodes: jest.fn(),
-      getAvailableLanguages: jest.fn(),
-      isLanguageAvailable: jest.fn(),
-      config: {} as any,
-      context: {} as any,
-      enumRegistry: {} as any,
-      t: jest.fn(),
-    } as any;
-    
-    pbkdf2Service = new Pbkdf2Service(mockEngine);
+    getEciesI18nEngine(); // Ensure engine is initialized for error messages
+    pbkdf2Service = new Pbkdf2Service();
   });
 
   describe('Browser-Compatible Key Derivation', () => {
