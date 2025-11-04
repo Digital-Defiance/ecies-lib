@@ -12,25 +12,18 @@ jest.setTimeout(30000);
 // Re-export the matcher
 export { toThrowType };
 
-// Note: Using i18n-lib 2.0 patterns
-// - PluginI18nEngine.resetAll() instead of resetAllI18nEngines()
-// - Runtime validation via registry
-// - No generic type parameters
-
-// Clean up I18n engine before each test (i18n 2.0 pattern)
+// Clean up I18n engine before each test
 beforeEach(() => {
   PluginI18nEngine.resetAll();
   resetCoreI18nEngine();
   resetEciesI18nEngine();
-  // Force re-initialization by calling getEciesI18nEngine
-  getEciesI18nEngine();
 });
 
-// Clean up I18n engine after each test (i18n 2.0 pattern)
+// Clean up I18n engine after each test
 afterEach(() => {
-  PluginI18nEngine.resetAll();
-  resetCoreI18nEngine();
   resetEciesI18nEngine();
+  resetCoreI18nEngine();
+  PluginI18nEngine.resetAll();
 });
 
 // Polyfill Web Crypto API for Node.js test environment

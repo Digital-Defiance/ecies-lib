@@ -1,9 +1,9 @@
-import { buildReasonMap, HandleableErrorOptions, PluginTypedHandleableError } from '@digitaldefiance/i18n-lib';
+import { buildReasonMap, HandleableErrorOptions, TypedHandleableError } from '@digitaldefiance/i18n-lib';
 import { ECIESErrorTypeEnum } from '../enumerations/ecies-error-type';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
 import { EciesComponentId } from '../i18n-setup';
 
-export class ECIESError extends PluginTypedHandleableError<
+export class ECIESError extends TypedHandleableError<
   typeof ECIESErrorTypeEnum,
   EciesStringKey
 > {
@@ -13,6 +13,7 @@ export class ECIESError extends PluginTypedHandleableError<
     language?: string,
     otherVars?: Record<string, string | number>,
   ) {
+    const source = options?.cause instanceof Error ? options.cause : new Error();
     super(
       EciesComponentId,
       type,
@@ -20,7 +21,7 @@ export class ECIESError extends PluginTypedHandleableError<
         ECIESErrorTypeEnum,
         ['Error', 'ECIESError'],
       ),
-      new Error(),
+      source,
       options,
       language,
       otherVars,

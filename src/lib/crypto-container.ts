@@ -2,7 +2,7 @@
  * Service Container for dependency injection
  */
 
-import { PluginI18nEngine } from '@digitaldefiance/i18n-lib';
+import { I18nEngine } from '@digitaldefiance/i18n-lib';
 import { IConstants } from '../interfaces';
 import { Constants } from '../constants';
 import { getEciesI18nEngine } from '../i18n-setup';
@@ -19,15 +19,15 @@ export enum CryptoServiceKey {
 export class CryptoContainer {
   private services = new Map<CryptoServiceKey, unknown>();
   private config: IConstants;
-  private i18n: PluginI18nEngine<string>;
+  private i18n: I18nEngine;
 
-  private constructor(config: IConstants, i18n: PluginI18nEngine<string>) {
+  private constructor(config: IConstants, i18n: I18nEngine) {
     this.config = config;
     this.i18n = i18n;
     this.initServices();
   }
 
-  static create(config: IConstants = Constants, i18n?: PluginI18nEngine<string>): CryptoContainer {
+  static create(config: IConstants = Constants, i18n?: I18nEngine): CryptoContainer {
     return new CryptoContainer(config, i18n || getEciesI18nEngine());
   }
 
@@ -48,7 +48,7 @@ export class CryptoContainer {
     return this.config;
   }
 
-  getI18n(): PluginI18nEngine<string> {
+  getI18n(): I18nEngine {
     return this.i18n;
   }
 }

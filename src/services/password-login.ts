@@ -7,7 +7,7 @@ import { AESGCMService } from './aes-gcm';
 import { ECIESService } from './ecies/service';
 import { Pbkdf2Service } from './pbkdf2';
 import { EciesStringKey, PasswordLoginErrorTypeEnum } from '../enumerations';
-import { buildReasonMap, PluginTranslatableGenericError, PluginTypedHandleableError } from '@digitaldefiance/i18n-lib';
+import { buildReasonMap, TranslatableGenericError, TypedHandleableError } from '@digitaldefiance/i18n-lib';
 import { IECIESConstants } from '../interfaces/ecies-consts';
 import { Constants } from '../constants';
 import { EciesComponentId } from '../i18n-setup';
@@ -54,7 +54,7 @@ export class PasswordLoginService {
       true,
     );
     if (!tag) {
-      throw new PluginTranslatableGenericError(EciesComponentId, EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag);
+      throw new TranslatableGenericError(EciesComponentId, EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag);
     }
     const encryptedPrivateKey = AESGCMService.combineIvTagAndEncryptedData(
       iv,
@@ -109,7 +109,7 @@ export class PasswordLoginService {
         profile,
       );
     } catch (error) {
-      throw new PluginTypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(EciesComponentId, PasswordLoginErrorTypeEnum.FailedToStoreLoginData, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), new Error(), { cause: error instanceof Error ? error : undefined });
+      throw new TypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(EciesComponentId, PasswordLoginErrorTypeEnum.FailedToStoreLoginData, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), new Error(), { cause: error instanceof Error ? error : undefined });
     }
     return wallet;
   }
@@ -122,7 +122,7 @@ export class PasswordLoginService {
     profile: Pbkdf2ProfileEnum = Pbkdf2ProfileEnum.BROWSER_PASSWORD,
   ): Promise<{ wallet: Wallet; mnemonic: SecureString }> {
     if (!salt || !encryptedPrivateKey || !encryptedMnemonic) {
-     throw new PluginTypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(EciesComponentId, PasswordLoginErrorTypeEnum.PasswordLoginNotSetUp, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), new Error());
+     throw new TypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(EciesComponentId, PasswordLoginErrorTypeEnum.PasswordLoginNotSetUp, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), new Error());
     }
 
     const derivedKey =
@@ -184,7 +184,7 @@ export class PasswordLoginService {
       encryptedPrivateKeyHex === '' ||
       encryptedMnemonicHex === ''
     ) {
-      throw new PluginTypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(EciesComponentId, PasswordLoginErrorTypeEnum.PasswordLoginNotSetUp, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), new Error());
+      throw new TypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(EciesComponentId, PasswordLoginErrorTypeEnum.PasswordLoginNotSetUp, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), new Error());
     }
 
     const salt = hexToUint8Array(saltHex);

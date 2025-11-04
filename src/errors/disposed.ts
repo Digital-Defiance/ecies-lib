@@ -1,9 +1,15 @@
-import { PluginI18nEngine, CoreStringKey } from '@digitaldefiance/i18n-lib';
+import { I18nEngine, CoreStringKey } from '@digitaldefiance/i18n-lib';
+import { getEciesI18nEngine } from '../i18n-setup';
 
 export class DisposedError extends Error {
   constructor() {
-    const engine = PluginI18nEngine.getInstance<string>('default');
-    const message = engine.translate('core', CoreStringKey.Common_Disposed);
+    let message = 'Object has been disposed';
+    try {
+      const engine = getEciesI18nEngine();
+      message = engine.translate('core', CoreStringKey.Common_Disposed);
+    } catch {
+      // Fallback to default message if engine not available
+    }
     super(message);
     this.name = 'DisposedError';
   }

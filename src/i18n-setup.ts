@@ -4,35 +4,22 @@
  */
 
 import {
-  ComponentDefinition,
-  ComponentRegistration,
-  PluginI18nEngine,
+  I18nEngine,
   LanguageCodes,
   createDefaultLanguages,
   createCoreComponentRegistration,
 } from '@digitaldefiance/i18n-lib';
+import type { ComponentConfig } from '@digitaldefiance/i18n-lib';
 import { EciesStringKey } from './enumerations/ecies-string-key';
 
 export const EciesI18nEngineKey = 'DigitalDefiance.Ecies.I18nEngine' as const;
 export const EciesComponentId = 'ecies' as const;
 
 /**
- * Create ECIES component definition
+ * Create ECIES component configuration with all translations
+ * Note: Includes all 8 supported languages
  */
-function createEciesComponentDefinition(): ComponentDefinition<EciesStringKey> {
-  return {
-    id: EciesComponentId,
-    name: 'ECIES Library Strings',
-    stringKeys: Object.values(EciesStringKey),
-  };
-}
-
-/**
- * Create ECIES component registration with all translations
- * Note: Only includes 4 languages for brevity - add more as needed
- */
-export function createEciesComponentRegistration(): ComponentRegistration<EciesStringKey, string> {
-  const component = createEciesComponentDefinition();
+export function createEciesComponentConfig(): ComponentConfig {
 
   // English translations (subset for example)
   // Build complete translations for all string keys
@@ -1152,7 +1139,7 @@ export function createEciesComponentRegistration(): ComponentRegistration<EciesS
   };
 
   return {
-    component: component,
+    id: EciesComponentId,
     strings: {
       [LanguageCodes.EN_US]: englishTranslations,
       [LanguageCodes.EN_GB]: englishTranslations,
@@ -1169,22 +1156,26 @@ export function createEciesComponentRegistration(): ComponentRegistration<EciesS
 /**
  * Create ECIES i18n engine instance
  * Uses i18n 2.0 pattern with runtime validation
- * IMPORTANT: Uses 'default' as instance key so PluginTypedError can find it
+ * IMPORTANT: Uses 'default' as instance key so TypedHandleableError can find it
  */
-export function createEciesI18nEngine(): PluginI18nEngine<string> {
-  const engine = PluginI18nEngine.createInstance('default', createDefaultLanguages());
+function createInstance(): I18nEngine {
+  const engine = I18nEngine.createInstance('default', createDefaultLanguages());
   
   // Register core component first (required for error messages)
-  engine.registerComponent(createCoreComponentRegistration());
+  const coreReg = createCoreComponentRegistration();
+  engine.register({
+    id: coreReg.component.id,
+    strings: coreReg.strings as Record<string, Record<string, string>>,
+  });
   
   // Register ECIES component
-  const result = engine.registerComponent(createEciesComponentRegistration());
+  const result = engine.register(createEciesComponentConfig());
   
   // Warn about missing translations (non-blocking)
-  if (!result.isValid && result.missingKeys.length > 0) {
+  if (!result.isValid && result.errors.length > 0) {
     console.warn(
-      `ECIES component has ${result.missingKeys.length} missing translations`,
-      result.missingKeys.slice(0, 5) // Show first 5
+      `ECIES component has ${result.errors.length} errors`,
+      result.errors.slice(0, 5) // Show first 5
     );
   }
   
@@ -1194,21 +1185,35 @@ export function createEciesI18nEngine(): PluginI18nEngine<string> {
 /**
  * Lazy initialization with Proxy (like core-i18n.ts pattern)
  */
-let _eciesEngine: PluginI18nEngine<string> | undefined;
+let _eciesEngine: I18nEngine | undefined;
 
-export function getEciesI18nEngine(): PluginI18nEngine<string> {
+export function getEciesI18nEngine(): I18nEngine {
+  // Lazy initialization on first access
   if (!_eciesEngine) {
-    _eciesEngine = createEciesI18nEngine();
+    // Check if instance exists before creating
+    if (I18nEngine.hasInstance('default')) {
+      _eciesEngine = I18nEngine.getInstance('default');
+    } else {
+      _eciesEngine = createInstance();
+    }
+    return _eciesEngine;
   }
-  return _eciesEngine;
+  
+  // Lazy re-initialization if instance was cleared
+  if (I18nEngine.hasInstance('default')) {
+    return _eciesEngine;
+  } else {
+    _eciesEngine = createInstance();
+    return _eciesEngine;
+  }
 }
 
 /**
  * Proxy for backward compatibility
  */
-export const eciesI18nEngine = new Proxy({} as PluginI18nEngine<string>, {
+export const eciesI18nEngine = new Proxy({} as I18nEngine, {
   get(target, prop) {
-    return getEciesI18nEngine()[prop as keyof PluginI18nEngine<string>];
+    return getEciesI18nEngine()[prop as keyof I18nEngine];
   }
 });
 
@@ -1217,7 +1222,6 @@ export const eciesI18nEngine = new Proxy({} as PluginI18nEngine<string>, {
  */
 export function resetEciesI18nEngine(): void {
   _eciesEngine = undefined;
-  PluginI18nEngine.removeInstance('default');
 }
 
 /**

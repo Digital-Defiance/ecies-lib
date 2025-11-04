@@ -7,7 +7,7 @@ import { IPbkdf2Result } from '../src/interfaces/pbkdf2-result';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
 import { EciesStringKey } from '../src/enumerations/ecies-string-key';
 import { PluginI18nEngine } from '@digitaldefiance/i18n-lib';
-import { createEciesI18nEngine } from '../src/i18n-setup';
+import { getEciesI18nEngine } from '../src/i18n-setup';
 
 // Mock crypto.subtle for testing
 const mockCrypto = {
@@ -34,7 +34,7 @@ describe('Pbkdf2Service', () => {
     
     // Initialize I18n engine with ECIES component
     PluginI18nEngine.resetAll();
-    i18nEngine = createEciesI18nEngine('default');
+    i18nEngine = getEciesI18nEngine();
     
     pbkdf2Service = new Pbkdf2Service();
 

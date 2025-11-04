@@ -1,12 +1,20 @@
 import { MemberErrorType } from '../enumerations/member-error-type';
-import { buildReasonMap, HandleableErrorOptions, PluginI18nEngine, PluginTypedHandleableError } from '@digitaldefiance/i18n-lib';
+import { buildReasonMap, HandleableErrorOptions, TypedHandleableError } from '@digitaldefiance/i18n-lib';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
 import { EciesComponentId } from '../i18n-setup';
 
-export class MemberError extends PluginTypedHandleableError<typeof MemberErrorType, EciesStringKey> {
+export class MemberError extends TypedHandleableError<typeof MemberErrorType, EciesStringKey> {
 
   constructor(type: MemberErrorType, options?: HandleableErrorOptions, language?: string) {
-    super(EciesComponentId, type, buildReasonMap<typeof MemberErrorType, EciesStringKey>(MemberErrorType, ['Error', 'MemberError']), new Error(), options, language);
+    const source = options?.cause instanceof Error ? options.cause : new Error();
+    super(
+      EciesComponentId,
+      type,
+      buildReasonMap<typeof MemberErrorType, EciesStringKey>(MemberErrorType, ['Error', 'MemberError']),
+      source,
+      options,
+      language
+    );
     this.name = 'MemberError';
   }
 }

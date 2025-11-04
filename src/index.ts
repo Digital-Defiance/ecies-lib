@@ -17,7 +17,6 @@ export * from './lib';
 // i18n v2
 export {
   getEciesI18nEngine,
-  createEciesI18nEngine,
   resetEciesI18nEngine,
   getEciesTranslation,
   safeEciesTranslation,
