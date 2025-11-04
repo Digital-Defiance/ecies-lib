@@ -659,6 +659,8 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+### v2.0.2 - version bump/update i18n
+
 ### v2.0.1 - Minor bump to remove generics on some error classes
 
 ### v2.0.0 - i18n Architecture Modernization
