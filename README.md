@@ -643,6 +643,8 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+### v2.1.4 - minor version bump from i18n lib
+
 ### v2.1.3 - drop GUID altogether for ObjectID via BSON for better compatibility with node-ecies
 
 ### v2.1.2 - add faux GUID support for MongoDB ObjectIds
