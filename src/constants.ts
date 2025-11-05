@@ -1,4 +1,3 @@
-import { ObjectId } from 'bson';
 import { ECIESErrorTypeEnum, EciesStringKey } from './enumerations';
 import { Pbkdf2ProfileEnum } from './enumerations/pbkdf2-profile';
 import { ECIESError } from './errors/ecies';
@@ -18,14 +17,12 @@ export const UINT32_SIZE: number = 4 as const;
 export const UINT32_MAX: number = 4294967295 as const;
 export const UINT64_SIZE: number = 8 as const;
 export const UINT64_MAX: bigint = 18446744073709551615n as const;
-export const GUID_SIZE: number = 16 as const;
+export const OBJECT_ID_LENGTH: number = 12 as const;
 
-const objectIdLength = new ObjectId().toHexString().length / 2;
-
-if (objectIdLength !== 12) {
+if (OBJECT_ID_LENGTH !== 12) {
   console.warn(
     'ObjectID length may have changed, breaking encryption',
-    objectIdLength,
+    OBJECT_ID_LENGTH,
   );
 }
 
@@ -84,7 +81,7 @@ const ECIES_PUBLIC_KEY_LENGTH = 65 as const;
 const ECIES_RAW_PUBLIC_KEY_LENGTH = 64 as const;
 const ECIES_IV_SIZE = 16 as const;
 const ECIES_AUTH_TAG_SIZE = 16 as const;
-const ECIES_MULTIPLE_RECIPIENT_ID_SIZE = 16 as const;
+const ECIES_MULTIPLE_RECIPIENT_ID_SIZE = 12 as const;
 
 // Define the expected value for SIMPLE.FIXED_OVERHEAD_SIZE
 const expectedSimpleOverhead =
@@ -181,8 +178,7 @@ export const Constants: IConstants = Object.freeze({
   UINT64_SIZE: UINT64_SIZE,
   UINT64_MAX: UINT64_MAX,
   HEX_RADIX: 16 as const,
-  GUID_SIZE: GUID_SIZE,
-  OBJECT_ID_LENGTH: objectIdLength,
+  OBJECT_ID_LENGTH: OBJECT_ID_LENGTH,
   CHECKSUM: CHECKSUM,
   ECIES: ECIES,
   PBKDF2: PBKDF2,
@@ -350,13 +346,12 @@ function validateConstants(config: IConstants): void {
     );
   }
 
-  if (ecies.MULTIPLE.RECIPIENT_ID_SIZE !== GUID_SIZE) {
+  if (ecies.MULTIPLE.RECIPIENT_ID_SIZE !== config.OBJECT_ID_LENGTH) {
     throw new ECIESError(
       ECIESErrorTypeEnum.InvalidECIESMultipleRecipientIdSize,
       getEciesI18nEngine() as any,
     );
   }
-
 }
 
 validateConstants(Constants);

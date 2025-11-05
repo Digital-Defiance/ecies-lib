@@ -1,28 +1,27 @@
 import { SecureStorageErrorType } from './enumerations/secure-storage-error-type';
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
-import { GuidV4 } from './guid';
+import { ObjectId } from 'bson';
 import { getEciesI18nEngine } from './i18n-setup';
 import { XorService } from './services/xor';
-import { FullHexGuid, RawGuidUint8Array } from './types';
 import { uint8ArrayToHex } from './utils';
 
 /**
  * A secure string buffer is a buffer whose intent is to prevent the raw password from being stored in memory.
- * The buffer is encrypted with a key derived from a GUID.
- * The GUID is stored in the clear, but the buffer is encrypted with a key derived from the GUID.
- * This allows the buffer to be decrypted, but only if the GUID and salt are known.
+ * The buffer is encrypted with a key derived from a ObjectID.
+ * The ObjectID is stored in the clear, but the buffer is encrypted with a key derived from the ObjectID.
+ * This allows the buffer to be decrypted, but only if the ObjectID and salt are known.
  */
 export class SecureBuffer {
   private _disposed: boolean = false;
-  private readonly _id: GuidV4;
+  private readonly _id: ObjectId;
   private readonly _length: number;
   private readonly _obfuscatedValue: Uint8Array;
   private readonly _key: Uint8Array;
   private readonly _obfuscatedChecksum: Uint8Array;
   private _disposedAt?: string;
   constructor(data?: Uint8Array) {
-    this._id = GuidV4.new();
+    this._id = new ObjectId();
     // don't bother encrypting an empty buffer
     if (data === undefined || data.length === 0) {
       this._length = 0;
@@ -65,13 +64,13 @@ export class SecureBuffer {
   public get disposedAtStack(): string | undefined {
     return this._disposedAt;
   }
-  public get id(): FullHexGuid {
+  public get id(): string {
     this.assertNotDisposed();
-    return this._id.asFullHexGuid;
+    return this._id.toHexString();
   }
-  public get idUint8Array(): RawGuidUint8Array {
+  public get idUint8Array(): Uint8Array {
     this.assertNotDisposed();
-    return this._id.asRawGuidUint8Array;
+    return this._id.id;
   }
   public get originalLength(): number {
     this.assertNotDisposed();

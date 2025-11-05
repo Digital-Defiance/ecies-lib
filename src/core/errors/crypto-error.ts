@@ -1,6 +1,6 @@
 /**
  * Unified error class for all crypto operations
- * Consolidates ECIESError, MemberError, Pbkdf2Error, GuidError, etc.
+ * Consolidates ECIESError, MemberError, Pbkdf2Error, etc.
  */
 
 import { getEciesI18nEngine, EciesComponentId } from '../../i18n-setup';
@@ -25,9 +25,6 @@ export enum CryptoErrorCode {
   INVALID_PROFILE = 'INVALID_PROFILE',
   INVALID_SALT_LENGTH = 'INVALID_SALT_LENGTH',
   INVALID_HASH_LENGTH = 'INVALID_HASH_LENGTH',
-  
-  // GUID Errors
-  INVALID_GUID = 'INVALID_GUID',
   
   // Storage Errors
   VALUE_IS_NULL = 'VALUE_IS_NULL',

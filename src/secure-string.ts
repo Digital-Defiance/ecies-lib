@@ -1,10 +1,9 @@
 import { SecureStorageErrorType } from './enumerations/secure-storage-error-type';
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
-import { GuidV4 } from './guid';
+import { ObjectId } from 'bson';
 import { getEciesI18nEngine } from './i18n-setup';
 import { XorService } from './services/xor';
-import { FullHexGuid, RawGuidUint8Array } from './types';
 import { uint8ArrayToHex } from './utils';
 
 /**
@@ -13,14 +12,14 @@ import { uint8ArrayToHex } from './utils';
 export class SecureString {
   private _disposed: boolean = false;
   private readonly _isNull: boolean;
-  private readonly _id: GuidV4;
+  private readonly _id: ObjectId;
   private readonly _length: number;
   private readonly _obfuscatedValue: Uint8Array;
   private readonly _key: Uint8Array;
   private readonly _obfuscatedChecksum: Uint8Array;
   private _disposedAt?: string;
   constructor(data?: string | Uint8Array | null) {
-    this._id = GuidV4.new();
+    this._id = new ObjectId();
     // only treat null/undefined as null, empty strings/arrays are valid empty data
     if (data === null || data === undefined) {
       this._isNull = true;
@@ -67,13 +66,13 @@ export class SecureString {
   public get disposedAtStack(): string | undefined {
     return this._disposedAt;
   }
-  public get id(): FullHexGuid {
+  public get id(): string {
     this.assertNotDisposed();
-    return this._id.asFullHexGuid;
+    return this._id.toHexString();
   }
-  public get idUint8Array(): RawGuidUint8Array {
+  public get idUint8Array(): Uint8Array {
     this.assertNotDisposed();
-    return this._id.asRawGuidUint8Array;
+    return this._id.id;
   }
   public get originalLength(): number {
     this.assertNotDisposed();

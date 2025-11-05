@@ -1,6 +1,5 @@
 import { ECIESErrorTypeEnum } from '../src/enumerations/ecies-error-type';
 import MemberErrorType from '../src/enumerations/member-error-type';
-import { GuidErrorType } from '../src/enumerations/guid-error-type';
 import { LengthErrorType } from '../src/enumerations/length-error-type';
 import { Pbkdf2ErrorType } from '../src/enumerations/pbkdf2-error-type';
 import { SecureStorageErrorType } from '../src/enumerations/secure-storage-error-type';
@@ -31,18 +30,6 @@ describe('Error Coverage Validation', () => {
       const expectedKey = `Error_MemberError_${errorType}`;
       const hasKey = stringKeys.includes(expectedKey as EciesStringKey);
       expect(hasKey).toBe(true, `Missing string key for Member error: ${errorType}`);
-    });
-  });
-
-  it('should have string keys for all GUID error types', () => {
-    const errorTypes = Object.values(GuidErrorType);
-    const stringKeys = Object.values(EciesStringKey);
-    
-    errorTypes.forEach(errorType => {
-      const expectedKey = `Error_GuidError_${errorType}`;
-      const templateKey = `Error_GuidError_${errorType}Template`;
-      const hasKey = stringKeys.includes(expectedKey as EciesStringKey) || stringKeys.includes(templateKey as EciesStringKey);
-      expect(hasKey).toBe(true, `Missing string key for GUID error: ${errorType} (checked both ${expectedKey} and ${templateKey})`);
     });
   });
 
@@ -83,7 +70,6 @@ describe('Error Coverage Validation', () => {
     const totalErrors = 
       Object.values(ECIESErrorTypeEnum).length +
       Object.values(MemberErrorType).length +
-      Object.values(GuidErrorType).length +
       Object.values(LengthErrorType).length +
       Object.values(Pbkdf2ErrorType).length +
       Object.values(SecureStorageErrorType).length;

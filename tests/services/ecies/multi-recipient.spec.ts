@@ -39,13 +39,13 @@ describe('EciesMultiRecipient', () => {
     const r2Keys = await cryptoCore.generateEphemeralKeyPair();
 
     recipient1 = {
-      id: crypto.getRandomValues(new Uint8Array(16)),
+      id: crypto.getRandomValues(new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE)),
       privateKey: r1Keys.privateKey,
       publicKey: r1Keys.publicKey,
     };
 
     recipient2 = {
-      id: crypto.getRandomValues(new Uint8Array(16)),
+      id: crypto.getRandomValues(new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE)),
       privateKey: r2Keys.privateKey,
       publicKey: r2Keys.publicKey,
     };
@@ -149,7 +149,7 @@ describe('EciesMultiRecipient', () => {
         message,
       );
 
-      const nonExistentRecipientId = crypto.getRandomValues(new Uint8Array(16));
+      const nonExistentRecipientId = crypto.getRandomValues(new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE));
 
       await expect(
         multiRecipientService.decryptMultipleForRecipient(
@@ -363,7 +363,7 @@ describe('EciesMultiRecipient', () => {
         message,
       );
 
-      const nonExistentRecipientId = crypto.getRandomValues(new Uint8Array(16));
+      const nonExistentRecipientId = crypto.getRandomValues(new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE));
 
       await expect(
         multiRecipientService.decrypt(

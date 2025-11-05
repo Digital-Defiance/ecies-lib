@@ -1,10 +1,10 @@
 import { Wallet } from '@ethereumjs/wallet';
+import { ObjectId } from 'bson';
 import { ECIES } from './constants';
 import { EmailString } from './email-string';
 import MemberErrorType from './enumerations/member-error-type';
 import MemberType from './enumerations/member-type';
 import { MemberError } from './errors/member';
-import { GuidV4 } from './guid';
 import { getEciesI18nEngine } from './i18n-setup';
 import { IMemberOperational } from './interfaces/member-operational';
 import { IMemberStorageData } from './interfaces/member-storage';
@@ -27,12 +27,12 @@ import { IECIESConstants } from './interfaces/ecies-consts';
  */
 export class Member implements IMemberOperational {
   private readonly _eciesService: ECIESService;
-  private readonly _id: GuidV4;
+  private readonly _id: ObjectId;
   private readonly _type: MemberType;
   private readonly _name: string;
   private readonly _email: EmailString;
   private readonly _publicKey: Uint8Array;
-  private readonly _creatorId: GuidV4;
+  private readonly _creatorId: ObjectId;
   private readonly _dateCreated: Date;
   private readonly _dateUpdated: Date;
   private _privateKey?: SecureBuffer;
@@ -48,16 +48,16 @@ export class Member implements IMemberOperational {
     publicKey: Uint8Array,
     privateKey?: SecureBuffer,
     wallet?: Wallet,
-    id?: GuidV4,
+    id?: ObjectId,
     dateCreated?: Date,
     dateUpdated?: Date,
-    creatorId?: GuidV4,
+    creatorId?: ObjectId,
   ) {
     // Assign injected services
     this._eciesService = eciesService;
     // Assign original parameters
     this._type = type;
-    this._id = id ?? GuidV4.new();
+    this._id = id ?? new ObjectId();
     this._name = name;
     if (!this._name || this._name.length == 0) {
       throw new MemberError(
@@ -90,7 +90,7 @@ export class Member implements IMemberOperational {
   }
 
   // Required getters
-  public get id(): GuidV4 {
+  public get id(): ObjectId {
     return this._id;
   }
   public get type(): MemberType {
@@ -105,7 +105,7 @@ export class Member implements IMemberOperational {
   public get publicKey(): Uint8Array {
     return this._publicKey;
   }
-  public get creatorId(): GuidV4 {
+  public get creatorId(): ObjectId {
     return this._creatorId;
   }
   public get dateCreated(): Date {
@@ -278,12 +278,12 @@ export class Member implements IMemberOperational {
 
   public toJson(): string {
     const storage: IMemberStorageData = {
-      id: this._id.toString(),
+      id: this._id.toHexString(),
       type: this._type,
       name: this._name,
       email: this._email.toString(),
       publicKey: uint8ArrayToBase64(this._publicKey),
-      creatorId: this._creatorId.toString(),
+      creatorId: this._creatorId.toHexString(),
       dateCreated: this._dateCreated.toISOString(),
       dateUpdated: this._dateUpdated.toISOString(),
     };
@@ -325,10 +325,10 @@ export class Member implements IMemberOperational {
       base64ToUint8Array(storage.publicKey),
       undefined,
       undefined,
-      new GuidV4(storage.id),
+      new ObjectId(storage.id),
       dateCreated,
       new Date(storage.dateUpdated),
-      new GuidV4(storage.creatorId),
+      new ObjectId(storage.creatorId),
     );
   }
 
@@ -364,7 +364,7 @@ export class Member implements IMemberOperational {
     name: string,
     email: EmailString,
     forceMnemonic?: SecureString,
-    createdBy?: GuidV4,
+    createdBy?: ObjectId,
     eciesParams?: IECIESConstants,
   ): IMemberWithMnemonic {
     // Validate inputs first
@@ -406,7 +406,7 @@ export class Member implements IMemberOperational {
     publicKeyWithPrefix[0] = eciesConsts.PUBLIC_KEY_MAGIC;
     publicKeyWithPrefix.set(publicKey, 1);
 
-    const newId = GuidV4.new();
+    const newId = new ObjectId();
     const dateCreated = new Date();
     return {
       // Pass injected services to constructor

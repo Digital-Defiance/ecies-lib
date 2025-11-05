@@ -12,7 +12,6 @@ export interface IConstants {
   UINT64_SIZE: number;
   UINT64_MAX: bigint;
   HEX_RADIX: number;
-  GUID_SIZE: number;
 
   /**
    * The length of a raw object ID (not the hex string representation)

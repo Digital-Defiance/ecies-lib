@@ -76,12 +76,6 @@ export enum EciesStringKey {
   Error_MemberError_EncryptionDataTooLarge = 'Error_MemberError_EncryptionDataTooLarge',
   Error_MemberError_InvalidEncryptionData = 'Error_MemberError_InvalidEncryptionData',
 
-  // GUID Error Types - buildReasonMap(GuidErrorType, 'Error', 'GuidError')
-  Error_GuidError_Invalid = 'Error_GuidError_Invalid',
-  Error_GuidError_InvalidWithGuidTemplate = 'Error_GuidError_InvalidWithGuidTemplate',
-  Error_GuidError_UnknownBrandTemplate = 'Error_GuidError_UnknownBrandTemplate',
-  Error_GuidError_UnknownLengthTemplate = 'Error_GuidError_UnknownLengthTemplate',
-
   // Length Error Types - buildReasonMap(LengthErrorType, 'Error', 'LengthError')
   Error_LengthError_LengthIsTooShort = 'Error_LengthError_LengthIsTooShort',
   Error_LengthError_LengthIsTooLong = 'Error_LengthError_LengthIsTooLong',

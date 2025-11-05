@@ -31,7 +31,6 @@ export { Pbkdf2ProfileEnum } from './enumerations/pbkdf2-profile';
 
 // Re-export value objects (unchanged)
 export { EmailString } from './email-string';
-export { GuidV4 } from './guid';
 export { SecureString } from './secure-string';
 export { SecureBuffer } from './secure-buffer';
 
@@ -46,7 +45,6 @@ export * from './constants';
 export * from './email-string';
 export * from './enumerations';
 export * from './errors';
-export * from './guid';
 export * from './i18n-setup';
 export * from './interfaces';
 export * from './member';

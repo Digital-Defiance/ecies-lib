@@ -1,9 +1,9 @@
 import {
   Constants,
-  GUID_SIZE,
   UINT16_SIZE,
   UINT32_SIZE,
   UINT64_SIZE,
+  OBJECT_ID_LENGTH,
 } from '../src/constants';
 import {
   ECIES,
@@ -32,7 +32,7 @@ describe('constants module', () => {
     expect(ECIES.MULTIPLE.ENCRYPTED_KEY_SIZE).toBe(129);
     expect(ECIES.MULTIPLE.RECIPIENT_COUNT_SIZE).toBe(UINT16_SIZE);
     expect(ECIES.MULTIPLE.DATA_LENGTH_SIZE).toBe(UINT64_SIZE);
-    expect(ECIES.MULTIPLE.RECIPIENT_ID_SIZE).toBe(GUID_SIZE);
+    expect(ECIES.MULTIPLE.RECIPIENT_ID_SIZE).toBe(OBJECT_ID_LENGTH);
     expect(ECIES.PUBLIC_KEY_LENGTH).toBe(ECIES.RAW_PUBLIC_KEY_LENGTH + 1);
   });
 
@@ -41,7 +41,7 @@ describe('constants module', () => {
     expect(Constants.UINT16_SIZE).toBe(UINT16_SIZE);
     expect(Constants.UINT32_SIZE).toBe(UINT32_SIZE);
     expect(Constants.UINT64_SIZE).toBe(UINT64_SIZE);
-    expect(Constants.GUID_SIZE).toBe(GUID_SIZE);
+    expect(Constants.OBJECT_ID_LENGTH).toBe(OBJECT_ID_LENGTH);
     expect(Constants.PasswordRegex.test('Passw0rd!')).toBe(true);
     expect(Constants.PasswordRegex.test('short1!')).toBe(false);
     expect(Constants.MnemonicRegex.test(sampleMnemonic)).toBe(true);

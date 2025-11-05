@@ -1,7 +1,7 @@
 import { Wallet } from '@ethereumjs/wallet';
 import { EmailString } from '../email-string';
 import MemberType from '../enumerations/member-type';
-import { GuidV4 } from '../guid';
+import { ObjectId } from 'bson';
 import { SecureBuffer } from '../secure-buffer';
 import { SecureString } from '../secure-string';
 import { SignatureUint8Array } from '../types';
@@ -11,7 +11,7 @@ import { IECIESConstants } from './ecies-consts';
  * Operational interface for member - defines getters and methods
  */
 export interface IMemberOperational<
-  TID = GuidV4,
+  TID = ObjectId,
   TData = Uint8Array,
   TSignature = SignatureUint8Array,
 > {

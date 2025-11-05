@@ -1,6 +1,5 @@
 import { DisposedError } from '../../src/errors/disposed';
 import { ECIESError } from '../../src/errors/ecies';
-import { GuidError } from '../../src/errors/guid';
 import { InvalidEmailError } from '../../src/errors/invalid-email';
 import { LengthError } from '../../src/errors/length';
 import { MemberError } from '../../src/errors/member';
@@ -9,13 +8,11 @@ import { SecureStorageError } from '../../src/errors/secure-storage';
 
 import {
   ECIESErrorTypeEnum,
-  GuidErrorType,
   InvalidEmailErrorType,
   MemberErrorType,
   Pbkdf2ErrorType,
   SecureStorageErrorType,
 } from '../../src/enumerations';
-import { GuidBrandType } from '../../src/enumerations/guid-brand-type';
 import { LengthErrorType } from '../../src/enumerations/length-error-type';
 import { getEciesI18nEngine } from '../../src/i18n-setup';
 
@@ -39,17 +36,6 @@ describe('Custom Errors', () => {
     expect(error.type).toBe(ECIESErrorTypeEnum.DecryptionFailed);
     expect(error.message).toBe('Decryption operation failed');
     expect(error.name).toBe('ECIESError');
-  });
-
-  it('should create a GuidError', () => {
-    const error = new GuidError(
-      GuidErrorType.UnknownBrand,
-      GuidBrandType.Unknown,
-    );
-    expect(error).toBeInstanceOf(GuidError);
-    expect(error.type).toBe(GuidErrorType.UnknownBrand);
-    expect(error.message).toContain('Unknown GUID brand: Unknown');
-    expect(error.name).toBe('GuidError');
   });
 
   it('should create an InvalidEmailError', () => {

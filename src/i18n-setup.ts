@@ -140,15 +140,6 @@ export function createEciesComponentConfig(): ComponentConfig {
     [EciesStringKey.Error_MemberError_InvalidEncryptionData]:
       'Invalid encryption data.',
 
-    // GUID Error Types - buildReasonMap(GuidErrorType, 'Error', 'GuidError')
-    [EciesStringKey.Error_GuidError_Invalid]: 'Invalid GUID format',
-    [EciesStringKey.Error_GuidError_InvalidWithGuidTemplate]:
-      'Invalid GUID: {GUID}',
-    [EciesStringKey.Error_GuidError_UnknownBrandTemplate]:
-      'Unknown GUID brand: {BRAND}.',
-    [EciesStringKey.Error_GuidError_UnknownLengthTemplate]:
-      'Invalid GUID length: {LENGTH}.',
-
     // Length Error Types - buildReasonMap(LengthErrorType, 'Error', 'LengthError')
     [EciesStringKey.Error_LengthError_LengthIsTooShort]: 'Length is too short.',
     [EciesStringKey.Error_LengthError_LengthIsTooLong]: 'Length is too long.',
@@ -302,15 +293,6 @@ export function createEciesComponentConfig(): ComponentConfig {
     [EciesStringKey.Error_MemberError_InvalidEncryptionData]:
       'Données de chiffrement invalides.',
 
-    // GUID Error Types - buildReasonMap(GuidErrorType, 'Error', 'GuidError')
-    [EciesStringKey.Error_GuidError_Invalid]: 'GUID invalide.',
-    [EciesStringKey.Error_GuidError_InvalidWithGuidTemplate]:
-      'GUID invalide : {GUID}',
-    [EciesStringKey.Error_GuidError_UnknownBrandTemplate]:
-      'Marque de GUID inconnue : {BRAND}.',
-    [EciesStringKey.Error_GuidError_UnknownLengthTemplate]:
-      'Longueur de GUID invalide : {LENGTH}.',
-
     // Length Error Types - buildReasonMap(LengthErrorType, 'Error', 'LengthError')
     [EciesStringKey.Error_LengthError_LengthIsTooShort]:
       'La longueur est trop courte.',
@@ -446,15 +428,6 @@ export function createEciesComponentConfig(): ComponentConfig {
     [EciesStringKey.Error_MemberError_MissingEncryptionData]: '缺少加密数据。',
     [EciesStringKey.Error_MemberError_EncryptionDataTooLarge]: '加密数据过大。',
     [EciesStringKey.Error_MemberError_InvalidEncryptionData]: '加密数据无效。',
-
-    // GUID Error Types - buildReasonMap(GuidErrorType, 'Error', 'GuidError')
-    [EciesStringKey.Error_GuidError_Invalid]: 'GUID 无效。',
-    [EciesStringKey.Error_GuidError_InvalidWithGuidTemplate]:
-      'GUID 无效：{GUID}',
-    [EciesStringKey.Error_GuidError_UnknownBrandTemplate]:
-      '未知的 GUID 品牌：{BRAND}。',
-    [EciesStringKey.Error_GuidError_UnknownLengthTemplate]:
-      'GUID 长度无效：{LENGTH}。',
 
     // Length Error Types - buildReasonMap(LengthErrorType, 'Error', 'LengthError')
     [EciesStringKey.Error_LengthError_LengthIsTooShort]: '长度过短。',
@@ -605,15 +578,6 @@ export function createEciesComponentConfig(): ComponentConfig {
       'Datos de cifrado demasiado grandes.',
     [EciesStringKey.Error_MemberError_InvalidEncryptionData]:
       'Datos de cifrado no válidos.',
-
-    // GUID Error Types - buildReasonMap(GuidErrorType, 'Error', 'GuidError')
-    [EciesStringKey.Error_GuidError_Invalid]: 'GUID no válido.',
-    [EciesStringKey.Error_GuidError_InvalidWithGuidTemplate]:
-      'GUID no válido: {GUID}',
-    [EciesStringKey.Error_GuidError_UnknownBrandTemplate]:
-      'Marca de GUID desconocida: {BRAND}.',
-    [EciesStringKey.Error_GuidError_UnknownLengthTemplate]:
-      'Longitud de GUID no válida: {LENGTH}.',
 
     // Length Error Types - buildReasonMap(LengthErrorType, 'Error', 'LengthError')
     [EciesStringKey.Error_LengthError_LengthIsTooShort]:
@@ -774,15 +738,6 @@ export function createEciesComponentConfig(): ComponentConfig {
     [EciesStringKey.Error_MemberError_InvalidEncryptionData]:
       'Недійсні дані шифрування.',
 
-    // GUID Error Types - buildReasonMap(GuidErrorType, 'Error', 'GuidError')
-    [EciesStringKey.Error_GuidError_Invalid]: 'Недійсний GUID.',
-    [EciesStringKey.Error_GuidError_InvalidWithGuidTemplate]:
-      'Недійсний GUID: {GUID}',
-    [EciesStringKey.Error_GuidError_UnknownBrandTemplate]:
-      'Невідомий бренд GUID: {BRAND}.',
-    [EciesStringKey.Error_GuidError_UnknownLengthTemplate]:
-      'Недійсна довжина GUID: {LENGTH}.',
-
     // Length Error Types - buildReasonMap(LengthErrorType, 'Error', 'LengthError')
     [EciesStringKey.Error_LengthError_LengthIsTooShort]:
       'Довжина надто коротка.',
@@ -937,15 +892,6 @@ export function createEciesComponentConfig(): ComponentConfig {
     [EciesStringKey.Error_MemberError_InvalidEncryptionData]:
       'Ungültige Verschlüsselungsdaten.',
 
-    // GUID Error Types - buildReasonMap(GuidErrorType, 'Error', 'GuidError')
-    [EciesStringKey.Error_GuidError_Invalid]: 'Ungültiges GUID-Format',
-    [EciesStringKey.Error_GuidError_InvalidWithGuidTemplate]:
-      'Ungültige GUID: {GUID}',
-    [EciesStringKey.Error_GuidError_UnknownBrandTemplate]:
-      'Unbekannte GUID-Marke: {BRAND}.',
-    [EciesStringKey.Error_GuidError_UnknownLengthTemplate]:
-      'Ungültige GUID-Länge: {LENGTH}.',
-
     // Length Error Types - buildReasonMap(LengthErrorType, 'Error', 'LengthError')
     [EciesStringKey.Error_LengthError_LengthIsTooShort]: 'Länge ist zu kurz.',
     [EciesStringKey.Error_LengthError_LengthIsTooLong]: 'Länge ist zu lang.',
@@ -1095,15 +1041,6 @@ export function createEciesComponentConfig(): ComponentConfig {
       '暗号化データが大きすぎます。',
     [EciesStringKey.Error_MemberError_InvalidEncryptionData]:
       '無効な暗号化データです。',
-
-    // GUID Error Types - buildReasonMap(GuidErrorType, 'Error', 'GuidError')
-    [EciesStringKey.Error_GuidError_Invalid]: '無効なGUID形式です。',
-    [EciesStringKey.Error_GuidError_InvalidWithGuidTemplate]:
-      '無効なGUID: {GUID}',
-    [EciesStringKey.Error_GuidError_UnknownBrandTemplate]:
-      '不明なGUIDブランド: {BRAND}.',
-    [EciesStringKey.Error_GuidError_UnknownLengthTemplate]:
-      '無効なGUID長: {LENGTH}.',
 
     // Length Error Types - buildReasonMap(LengthErrorType, 'Error', 'LengthError')
     [EciesStringKey.Error_LengthError_LengthIsTooShort]: '長さが短すぎます。',

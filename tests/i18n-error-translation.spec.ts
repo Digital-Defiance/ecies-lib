@@ -1,9 +1,7 @@
 import { LanguageCodes } from '@digitaldefiance/i18n-lib';
 import { ECIESErrorTypeEnum } from '../src/enumerations/ecies-error-type';
-import { GuidErrorType } from '../src/enumerations/guid-error-type';
 import MemberErrorType from '../src/enumerations/member-error-type';
 import { ECIESError } from '../src/errors/ecies';
-import { GuidError } from '../src/errors/guid';
 import { MemberError } from '../src/errors/member';
 import { getEciesI18nEngine } from '../src/i18n-setup';
 
@@ -77,29 +75,6 @@ describe('I18n Error Translation', () => {
       errorTypes.forEach((errorType) => {
         expect(() => {
           const error = new MemberError(errorType);
-          expect(error.message).toBeDefined();
-          expect(error.message.length).toBeGreaterThan(0);
-        }).not.toThrow();
-      });
-    });
-  });
-
-  describe('GUID Error Translation', () => {
-    it('should translate GUID errors to English', () => {
-      getEciesI18nEngine(); // Ensure engine is initialized
-      const error = new GuidError(
-        GuidErrorType.Invalid,
-      );
-      expect(error.message).toBe('Invalid GUID format');
-    });
-
-    it('should exercise all GUID error types', () => {
-      getEciesI18nEngine(); // Ensure engine is initialized
-      const errorTypes = Object.values(GuidErrorType);
-
-      errorTypes.forEach((errorType) => {
-        expect(() => {
-          const error = new GuidError(errorType);
           expect(error.message).toBeDefined();
           expect(error.message.length).toBeGreaterThan(0);
         }).not.toThrow();
