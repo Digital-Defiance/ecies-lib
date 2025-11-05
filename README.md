@@ -643,6 +643,8 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+### v2.1.6 - minor version bump from i18n lib
+
 ### v2.1.5 - minor version bump from i18n lib
 
 ### v2.1.4 - minor version bump from i18n lib
