@@ -1096,18 +1096,18 @@ export function createEciesComponentConfig(): ComponentConfig {
  * IMPORTANT: Uses 'default' as instance key so TypedHandleableError can find it
  */
 function createInstance(): I18nEngine {
-  const engine = I18nEngine.createInstance('default', createDefaultLanguages());
+  const engine = I18nEngine.registerIfNotExists('default', createDefaultLanguages());
   
   // Register core component first (required for error messages)
   const coreReg = createCoreComponentRegistration();
-  engine.register({
+  engine.registerIfNotExists({
     id: coreReg.component.id,
     strings: coreReg.strings as Record<string, Record<string, string>>,
     aliases: ['ecies', 'EciesStringKey']
   });
   
   // Register ECIES component
-  const result = engine.register(createEciesComponentConfig());
+  const result = engine.registerIfNotExists(createEciesComponentConfig());
   
   // Warn about missing translations (non-blocking)
   if (!result.isValid && result.errors.length > 0) {
@@ -1126,24 +1126,10 @@ function createInstance(): I18nEngine {
 let _eciesEngine: I18nEngine | undefined;
 
 export function getEciesI18nEngine(): I18nEngine {
-  // Lazy initialization on first access
-  if (!_eciesEngine) {
-    // Check if instance exists before creating
-    if (I18nEngine.hasInstance('default')) {
-      _eciesEngine = I18nEngine.getInstance('default');
-    } else {
-      _eciesEngine = createInstance();
-    }
-    return _eciesEngine;
-  }
-  
-  // Lazy re-initialization if instance was cleared
-  if (I18nEngine.hasInstance('default')) {
-    return _eciesEngine;
-  } else {
+  if (!_eciesEngine || !I18nEngine.hasInstance('default')) {
     _eciesEngine = createInstance();
-    return _eciesEngine;
   }
+  return _eciesEngine;
 }
 
 /**
