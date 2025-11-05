@@ -355,28 +355,14 @@ key.dispose();                        // Zero memory
 
 ## Value Objects
 
-Type-safe wrappers:
+Type-safe wrapper:
 
 ```typescript
-import { EmailString, GuidV4 } from '@digitaldefiance/ecies-lib';
+import { EmailString } from '@digitaldefiance/ecies-lib';
 
 // Validated emails
 const email = new EmailString('user@example.com');
 // new EmailString('invalid'); // throws InvalidEmailError
-
-// GUIDs with multiple formats
-const guid = GuidV4.new();
-console.log(guid.asFullHexGuid);    // "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-console.log(guid.asShortHexGuid);   // "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-console.log(guid.asBase64Guid);     // Base64
-console.log(guid.asBigIntGuid);     // BigInt
-
-// Create from formats
-const fromHex = new GuidV4('550e8400-e29b-41d4-a716-446655440000');
-const fromBase64 = new GuidV4('VQ6EAOKbQdSnFkRmVUQAAA==');
-
-// Compare
-if (guid.equals(fromHex)) { /* ... */ }
 ```
 
 ## Error Handling
@@ -411,7 +397,6 @@ try {
 // Error categories:
 // - ECIESError: Encryption/decryption
 // - MemberError: Member operations
-// - GuidError: GUID validation
 // - Pbkdf2Error: Key derivation
 // - LengthError: Data length
 // - SecureStorageError: Memory operations
@@ -445,7 +430,6 @@ src/
 ├── secure-string.ts            # SecureString
 ├── secure-buffer.ts            # SecureBuffer
 ├── email-string.ts             # EmailString
-├── guid.ts                     # GuidV4
 ├── utils.ts                    # Utilities
 ├── i18n-setup.ts               # i18n configuration
 └── index.ts                    # Public API
@@ -581,7 +565,7 @@ export { AESGCMService, Pbkdf2Service, PasswordLoginService, XorService };
 export { Member, MemberType };
 
 // Secure Primitives
-export { SecureString, SecureBuffer, EmailString, GuidV4 };
+export { SecureString, SecureBuffer, EmailString };
 
 // Configuration
 export { Constants, ConstantsRegistry, CHECKSUM, ECIES, PBKDF2 };
@@ -594,7 +578,7 @@ export { EciesEncryptionTypeEnum, Pbkdf2ProfileEnum };
 export { MemberErrorType, ECIESErrorTypeEnum };
 
 // Errors
-export { ECIESError, MemberError, GuidError, Pbkdf2Error };
+export { ECIESError, MemberError, Pbkdf2Error };
 export { LengthError, SecureStorageError, InvalidEmailError };
 
 // Utilities
