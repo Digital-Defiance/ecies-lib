@@ -18,6 +18,10 @@ export type ShortHexGuid = Brand<string, 'GuidV4', GuidBrandType.ShortHexGuid>;
  */
 export type Base64Guid = Brand<string, 'GuidV4', GuidBrandType.Base64Guid>;
 /**
+ * GUID stored as a MongoDB ObjectId
+ */
+export type MongoObjectIdGuid = Brand<string, 'GuidV4', GuidBrandType.MongoObjectId>;
+/**
  * GUID stored as a raw buffer
  */
 export type RawGuidUint8Array = Uint8Array &
@@ -27,6 +31,12 @@ export type RawGuidUint8Array = Uint8Array &
 export type BinaryGuid = Uint8Array;
 export type HexGuid = string;
 export type ShortGuid = string;
+
+/**
+ * MongoDB ObjectId as 24-character hex string (from objectid.toHexString())
+ * Can be converted to GuidV4 using GuidV4.fromMongoObjectId()
+ */
+export type MongoObjectIdHexString = Brand<string, 'MongoObjectId'>;
 
 export type SignatureUint8Array = Uint8Array &
   Brand<Uint8Array, 'SignatureArray'>;

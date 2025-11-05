@@ -659,6 +659,8 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+### v2.1.2 - add faux GUID support for MongoDB ObjectIds
+
 ### v2.1.1 - upgrade to match i18n, upgrade error classes, deprecate Plu1inI8nEngine
 
 ### v2.0.3 - version bump/update i18n

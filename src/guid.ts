@@ -7,10 +7,14 @@ import {
   Base64Guid,
   BigIntGuid,
   FullHexGuid,
+  MongoObjectIdGuid,
+  MongoObjectIdHexString,
   RawGuidUint8Array,
   ShortHexGuid,
 } from './types';
 import { base64ToUint8Array, uint8ArrayToHex } from './utils';
+import { ObjectId } from 'bson';
+
 
 // Re-export Base64Guid so it's available to importers of guid.ts
 export type { Base64Guid };
@@ -22,7 +26,9 @@ export type GuidInput =
   | ShortHexGuid
   | Base64Guid
   | BigIntGuid
+  | MongoObjectIdGuid
   | RawGuidUint8Array
+  | ObjectId
   | bigint
   | Uint8Array;
 
@@ -95,6 +101,7 @@ export class GuidV4 implements IGuidV4 {
       | ShortHexGuid
       | Base64Guid
       | BigIntGuid
+      | MongoObjectIdGuid
       | RawGuidUint8Array,
   ) {
     try {
@@ -110,6 +117,12 @@ export class GuidV4 implements IGuidV4 {
       if (!verifiedBrand) {
         return false;
       }
+      
+      // Skip UUID validation for MongoObjectId - they have different structure
+      if (expectedBrand === GuidBrandType.MongoObjectId) {
+        return true;
+      }
+      
       const uintArray = GuidV4.toRawGuidUint8Array(value);
       // Skip UUID validation for boundary values that are mathematically valid but not RFC 4122 compliant
       const fullHex = GuidV4.toFullHexGuid(uintArray);
@@ -142,6 +155,7 @@ export class GuidV4 implements IGuidV4 {
     [GuidBrandType.ShortHexGuid]: 32,
     [GuidBrandType.Base64Guid]: 24,
     [GuidBrandType.RawGuidUint8Array]: 16,
+    [GuidBrandType.MongoObjectId]: 24, // 24-char hex string
     [GuidBrandType.BigIntGuid]: -1, // Variable length
   };
 
@@ -149,7 +163,7 @@ export class GuidV4 implements IGuidV4 {
     0: GuidBrandType.Unknown,
     36: GuidBrandType.FullHexGuid,
     32: GuidBrandType.ShortHexGuid,
-    24: GuidBrandType.Base64Guid,
+    24: GuidBrandType.Base64Guid, // Note: MongoObjectId is also 24 chars, handled in whichBrand
     16: GuidBrandType.RawGuidUint8Array,
     // BigIntGuid is variable length, so it is not included in the reverse map
   };
@@ -164,6 +178,7 @@ export class GuidV4 implements IGuidV4 {
       this.isShortHexGuid(guid),
     [GuidBrandType.Base64Guid]: (guid: GuidInput) => this.isBase64Guid(guid),
     [GuidBrandType.BigIntGuid]: (guid: GuidInput) => this.isBigIntGuid(guid),
+    [GuidBrandType.MongoObjectId]: (guid: GuidInput) => this.isMongoObjectIdGuid(guid),
     [GuidBrandType.RawGuidUint8Array]: (guid: GuidInput) =>
       this.isRawGuidUint8Array(guid),
   };
@@ -195,6 +210,31 @@ export class GuidV4 implements IGuidV4 {
         GuidErrorType.Invalid,
       );
     }
+  }
+
+  /**
+   * Creates a GuidV4 from a MongoDB ObjectId (BSON ObjectId or hex string)
+   * Pads the ObjectId to 32 characters to create a valid GUID
+   * @param objectId - BSON ObjectId instance or 24-character hex string
+   * @returns GuidV4 instance
+   */
+  public static fromMongoObjectId(objectId: ObjectId | MongoObjectIdHexString | string): GuidV4 {
+    let hexString: string;
+    
+    if (objectId instanceof ObjectId) {
+      hexString = objectId.toHexString();
+    } else if (typeof objectId === 'string') {
+      hexString = objectId;
+    } else {
+      throw new GuidError(GuidErrorType.Invalid);
+    }
+    
+    const cleaned = hexString.toLowerCase().trim();
+    if (cleaned.length !== 24 || !/^[0-9a-f]{24}$/.test(cleaned)) {
+      throw new GuidError(GuidErrorType.Invalid);
+    }
+    const paddedHex = cleaned.padEnd(32, '0') as ShortHexGuid;
+    return new GuidV4(paddedHex);
   }
   /**
    * Returns the GUID as a full hex string.
@@ -239,6 +279,18 @@ export class GuidV4 implements IGuidV4 {
    */
   public get asBase64Guid(): Base64Guid {
     return btoa(String.fromCharCode(...this._value)) as Base64Guid;
+  }
+
+  /**
+   * Converts the GUID back to a MongoDB ObjectId hex string (24 characters)
+   * Strips the padding zeros that were added during conversion
+   * @returns 24-character hex string compatible with MongoDB ObjectId
+   */
+  public get asMongoObjectId(): MongoObjectIdGuid {
+    const shortHex = this.asShortHexGuid;
+    // Remove trailing zeros (padding) to get back to 24 chars
+    const objectIdHex = shortHex.slice(0, 24);
+    return objectIdHex as MongoObjectIdGuid;
   }
 
   /**
@@ -503,6 +555,31 @@ export class GuidV4 implements IGuidV4 {
     }
   }
 
+  public static isMongoObjectIdGuid(value: GuidInput): boolean {
+    try {
+      if (value === null || value === undefined) {
+        return false;
+      }
+      // Accept BSON ObjectId instances
+      if (value instanceof ObjectId) {
+        return true;
+      }
+      if (typeof value !== 'string') {
+        return false;
+      }
+      const strValue = String(value);
+      if (strValue.length !== 24) {
+        return false;
+      }
+      if (!/^[0-9a-f]{24}$/i.test(strValue)) {
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   /**
    * Determines the brand of a given GUID value.
    * @param value The GUID value to determine the brand of.
@@ -517,14 +594,26 @@ export class GuidV4 implements IGuidV4 {
     if (typeof value === 'bigint') {
       return GuidBrandType.BigIntGuid;
     }
+    
+    // Handle BSON ObjectId
+    if (value instanceof ObjectId) {
+      return GuidBrandType.MongoObjectId;
+    }
+    
     const isUint8Array = value instanceof Uint8Array;
+    
+    // Special handling for 24-char strings: could be Base64 or MongoObjectId
+    if (!isUint8Array && typeof value === 'string' && value.length === 24) {
+      // Check if it's a valid hex string (MongoObjectId)
+      if (/^[0-9a-f]{24}$/i.test(value)) {
+        return GuidBrandType.MongoObjectId;
+      }
+      // Otherwise assume Base64
+      return GuidBrandType.Base64Guid;
+    }
+    
     let expectedLength: number;
-
-    if (typeof value === 'bigint') {
-      // For bigint, we'll use the string representation length
-      const bigintValue = value as bigint;
-      expectedLength = bigintValue.toString(16).length;
-    } else if (isUint8Array) {
+    if (isUint8Array) {
       expectedLength = (value as Uint8Array).length;
     } else {
       expectedLength = String(value).length;
@@ -562,6 +651,8 @@ export class GuidV4 implements IGuidV4 {
       | Base64Guid
       | ShortHexGuid
       | FullHexGuid
+      | MongoObjectIdGuid
+      | ObjectId
       | string,
   ): FullHexGuid {
     if (!guid) {
@@ -570,6 +661,11 @@ export class GuidV4 implements IGuidV4 {
       );
     } else if (typeof guid === 'bigint') {
       return GuidV4.toFullHexFromBigInt(guid);
+    } else if (guid instanceof ObjectId) {
+      // Handle BSON ObjectId
+      const hexStr = guid.toHexString();
+      const paddedHex = hexStr.toLowerCase().padEnd(32, '0');
+      return GuidV4.shortGuidToFullGuid(paddedHex);
     } else if (
       guid instanceof Uint8Array &&
       guid.length === GuidV4.guidBrandToLength(GuidBrandType.RawGuidUint8Array)
@@ -583,7 +679,11 @@ export class GuidV4 implements IGuidV4 {
     }
     // all remaining cases are string types
     const strValue = String(guid);
-    if (
+    if (strValue.length === 24 && /^[0-9a-f]{24}$/i.test(strValue)) {
+      // MongoDB ObjectId - pad to 32 chars
+      const paddedHex = strValue.toLowerCase().padEnd(32, '0');
+      return GuidV4.shortGuidToFullGuid(paddedHex);
+    } else if (
       strValue.length === GuidV4.guidBrandToLength(GuidBrandType.ShortHexGuid)
     ) {
       // short hex guid
@@ -616,6 +716,7 @@ export class GuidV4 implements IGuidV4 {
       | Base64Guid
       | ShortHexGuid
       | FullHexGuid
+      | ObjectId
       | string,
   ): ShortHexGuid {
     if (!guid) {
@@ -625,6 +726,10 @@ export class GuidV4 implements IGuidV4 {
     } else if (typeof guid === 'bigint') {
       const fullHex = GuidV4.toFullHexFromBigInt(guid);
       return fullHex.replace(/-/g, '') as ShortHexGuid;
+    } else if (guid instanceof ObjectId) {
+      // Handle BSON ObjectId
+      const hexStr = guid.toHexString();
+      return hexStr.toLowerCase().padEnd(32, '0') as ShortHexGuid;
     } else if (
       guid instanceof Uint8Array &&
       guid.length === GuidV4.guidBrandToLength(GuidBrandType.RawGuidUint8Array)
@@ -638,7 +743,10 @@ export class GuidV4 implements IGuidV4 {
     // all remaining cases are string types
     const strValue = String(guid);
 
-    if (
+    if (strValue.length === 24 && /^[0-9a-f]{24}$/i.test(strValue)) {
+      // MongoDB ObjectId - pad to 32 chars
+      return strValue.toLowerCase().padEnd(32, '0') as ShortHexGuid;
+    } else if (
       strValue.length === GuidV4.guidBrandToLength(GuidBrandType.ShortHexGuid)
     ) {
       // already a short hex guid
@@ -742,6 +850,18 @@ export class GuidV4 implements IGuidV4 {
         );
         rawGuidUint8ArrayResult = new Uint8Array(
           shortHex3.match(/.{2}/g)!.map((byte: string) => parseInt(byte, 16)),
+        ) as RawGuidUint8Array;
+        break;
+      case GuidBrandType.MongoObjectId:
+        let hexStr: string;
+        if (value instanceof ObjectId) {
+          hexStr = value.toHexString();
+        } else {
+          hexStr = String(value);
+        }
+        const paddedHex = hexStr.toLowerCase().padEnd(32, '0');
+        rawGuidUint8ArrayResult = new Uint8Array(
+          paddedHex.match(/.{2}/g)!.map((byte: string) => parseInt(byte, 16)),
         ) as RawGuidUint8Array;
         break;
       default:

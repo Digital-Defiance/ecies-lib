@@ -23,4 +23,8 @@ export enum GuidBrandType {
    * Raw Guid, in a Uint8Array, 16 bytes
    */
   RawGuidUint8Array = 'RawGuidUint8Array',
+  /**
+   * MongoDB ObjectId, 24-character hex string
+   */
+  MongoObjectId = 'MongoObjectId',
 }

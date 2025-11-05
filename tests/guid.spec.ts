@@ -1,3 +1,4 @@
+import { ObjectId } from 'bson';
 import { GuidBrandType } from '../src/enumerations/guid-brand-type';
 import { GuidErrorType } from '../src/enumerations/guid-error-type';
 import { GuidError } from '../src/errors/guid';
@@ -351,6 +352,229 @@ describe('guid', () => {
           expect(error.type).toBe(GuidErrorType.UnknownLength);
         },
       );
+    });
+  });
+
+  describe('MongoDB ObjectId Conversion', () => {
+    describe('From Hex String', () => {
+      it('should convert valid 24-char ObjectId hex string to GuidV4', () => {
+        const objectIdHex = '507f1f77bcf86cd799439011';
+        const guid = GuidV4.fromMongoObjectId(objectIdHex);
+        expect(guid).toBeInstanceOf(GuidV4);
+        expect(guid.asShortHexGuid).toBe('507f1f77bcf86cd79943901100000000');
+      });
+
+      it('should handle uppercase ObjectId hex string', () => {
+        const objectIdHex = '507F1F77BCF86CD799439011';
+        const guid = GuidV4.fromMongoObjectId(objectIdHex);
+        expect(guid.asShortHexGuid).toBe('507f1f77bcf86cd79943901100000000');
+      });
+
+      it('should convert back to ObjectId hex string', () => {
+        const objectIdHex = '507f1f77bcf86cd799439011';
+        const guid = GuidV4.fromMongoObjectId(objectIdHex);
+        expect(guid.asMongoObjectId).toBe(objectIdHex);
+      });
+
+      it('should handle ObjectId hex string in constructor', () => {
+        const objectIdHex = '507f1f77bcf86cd799439011';
+        const guid = new GuidV4(objectIdHex);
+        expect(guid.asMongoObjectId).toBe(objectIdHex);
+        expect(guid.asShortHexGuid).toBe('507f1f77bcf86cd79943901100000000');
+      });
+
+      it('should validate ObjectId hex format', () => {
+        const objectIdHex = '507f1f77bcf86cd799439011';
+        expect(GuidV4.isMongoObjectIdGuid(objectIdHex)).toBeTruthy();
+      });
+
+      it('should detect MongoObjectId brand for hex strings', () => {
+        const objectIdHex = '507f1f77bcf86cd799439011';
+        expect(GuidV4.whichBrand(objectIdHex)).toBe(GuidBrandType.MongoObjectId);
+      });
+    });
+
+    describe('From BSON ObjectId', () => {
+      it('should convert BSON ObjectId to GuidV4', () => {
+        const objectId = new ObjectId('507f1f77bcf86cd799439011');
+        const guid = GuidV4.fromMongoObjectId(objectId);
+        expect(guid).toBeInstanceOf(GuidV4);
+        expect(guid.asMongoObjectId).toBe('507f1f77bcf86cd799439011');
+      });
+
+      it('should handle BSON ObjectId in constructor', () => {
+        const objectId = new ObjectId('507f1f77bcf86cd799439011');
+        const guid = new GuidV4(objectId);
+        expect(guid.asMongoObjectId).toBe('507f1f77bcf86cd799439011');
+      });
+
+      it('should detect MongoObjectId brand for BSON ObjectId', () => {
+        const objectId = new ObjectId('507f1f77bcf86cd799439011');
+        expect(GuidV4.whichBrand(objectId)).toBe(GuidBrandType.MongoObjectId);
+      });
+
+      it('should handle newly created BSON ObjectId', () => {
+        const objectId = new ObjectId();
+        const guid = new GuidV4(objectId);
+        expect(guid.asMongoObjectId).toBe(objectId.toHexString());
+      });
+    });
+
+    describe('Round-trip Conversions', () => {
+      it('should convert between ObjectId and Base64', () => {
+        const objectIdHex = '507f1f77bcf86cd799439011';
+        const guid = GuidV4.fromMongoObjectId(objectIdHex);
+        
+        const base64 = guid.asBase64Guid;
+        const guid2 = new GuidV4(base64);
+        expect(guid2.asMongoObjectId).toBe(objectIdHex);
+      });
+
+      it('should convert between ObjectId and BigInt', () => {
+        const objectIdHex = '507f1f77bcf86cd799439011';
+        const guid = GuidV4.fromMongoObjectId(objectIdHex);
+        
+        const bigInt = guid.asBigIntGuid;
+        const guid2 = new GuidV4(bigInt);
+        expect(guid2.asMongoObjectId).toBe(objectIdHex);
+      });
+
+      it('should convert between ObjectId and Uint8Array', () => {
+        const objectIdHex = '507f1f77bcf86cd799439011';
+        const guid = GuidV4.fromMongoObjectId(objectIdHex);
+        
+        const uint8Array = guid.asRawGuidUint8Array;
+        const guid2 = new GuidV4(uint8Array);
+        expect(guid2.asMongoObjectId).toBe(objectIdHex);
+      });
+
+      it('should convert between ObjectId and FullHexGuid', () => {
+        const objectIdHex = '507f1f77bcf86cd799439011';
+        const guid = GuidV4.fromMongoObjectId(objectIdHex);
+        
+        const fullHex = guid.asFullHexGuid;
+        const guid2 = new GuidV4(fullHex);
+        expect(guid2.asMongoObjectId).toBe(objectIdHex);
+      });
+
+      it('should maintain ObjectId through multiple conversions', () => {
+        const objectIdHex = '507f1f77bcf86cd799439011';
+        const guid1 = new GuidV4(objectIdHex);
+        const guid2 = new GuidV4(guid1.asBase64Guid);
+        const guid3 = new GuidV4(guid2.asBigIntGuid);
+        const guid4 = new GuidV4(guid3.asRawGuidUint8Array);
+        
+        expect(guid4.asMongoObjectId).toBe(objectIdHex);
+      });
+    });
+
+    describe('Validation', () => {
+      it('should validate correct ObjectId format', () => {
+        expect(GuidV4.isMongoObjectIdGuid('507f1f77bcf86cd799439011')).toBeTruthy();
+        expect(GuidV4.isMongoObjectIdGuid('000000000000000000000000')).toBeTruthy();
+        expect(GuidV4.isMongoObjectIdGuid('ffffffffffffffffffffffff')).toBeTruthy();
+      });
+
+      it('should reject invalid ObjectId formats', () => {
+        expect(GuidV4.isMongoObjectIdGuid('507f1f77bcf86cd799439')).toBeFalsy(); // too short
+        expect(GuidV4.isMongoObjectIdGuid('507f1f77bcf86cd7994390111')).toBeFalsy(); // too long
+        expect(GuidV4.isMongoObjectIdGuid('507f1f77bcf86cd79943901g')).toBeFalsy(); // invalid char
+        expect(GuidV4.isMongoObjectIdGuid('507f1f77-bcf8-6cd7-9943-9011')).toBeFalsy(); // has dashes
+      });
+
+      it('should distinguish between Base64 and ObjectId', () => {
+        const objectIdHex = '507f1f77bcf86cd799439011';
+        // Create a valid 24-char base64 string (not all hex)
+        const guid = GuidV4.new();
+        const base64 = guid.asBase64Guid; // This is 24 chars and contains non-hex chars
+        
+        expect(GuidV4.whichBrand(objectIdHex)).toBe(GuidBrandType.MongoObjectId);
+        expect(GuidV4.whichBrand(base64)).toBe(GuidBrandType.Base64Guid);
+      });
+    });
+
+    describe('Error Handling', () => {
+      it('should reject invalid length', () => {
+        expect(() => GuidV4.fromMongoObjectId('507f1f77bcf86cd7994390')).toThrowType(
+          GuidError,
+          (error: GuidError) => {
+            expect(error.type).toBe(GuidErrorType.Invalid);
+          },
+        );
+      });
+
+      it('should reject non-hex characters', () => {
+        expect(() => GuidV4.fromMongoObjectId('507f1f77bcf86cd79943901g')).toThrowType(
+          GuidError,
+          (error: GuidError) => {
+            expect(error.type).toBe(GuidErrorType.Invalid);
+          },
+        );
+      });
+
+      it('should reject null/undefined', () => {
+        expect(() => GuidV4.fromMongoObjectId(null as any)).toThrowType(
+          GuidError,
+          (error: GuidError) => {
+            expect(error.type).toBe(GuidErrorType.Invalid);
+          },
+        );
+      });
+
+      it('should reject empty string', () => {
+        expect(() => GuidV4.fromMongoObjectId('')).toThrowType(
+          GuidError,
+          (error: GuidError) => {
+            expect(error.type).toBe(GuidErrorType.Invalid);
+          },
+        );
+      });
+    });
+
+    describe('Edge Cases', () => {
+      it('should handle all zeros ObjectId', () => {
+        const objectIdHex = '000000000000000000000000';
+        const guid = new GuidV4(objectIdHex);
+        expect(guid.asMongoObjectId).toBe(objectIdHex);
+      });
+
+      it('should handle all fs ObjectId', () => {
+        const objectIdHex = 'ffffffffffffffffffffffff';
+        const guid = new GuidV4(objectIdHex);
+        expect(guid.asMongoObjectId).toBe(objectIdHex);
+      });
+
+      it('should handle ObjectId with leading zeros', () => {
+        const objectIdHex = '000000000000000000000001';
+        const guid = new GuidV4(objectIdHex);
+        expect(guid.asMongoObjectId).toBe(objectIdHex);
+      });
+
+      it('should preserve case normalization', () => {
+        const objectIdHex = '507F1F77BCF86CD799439011';
+        const guid = new GuidV4(objectIdHex);
+        expect(guid.asMongoObjectId).toBe('507f1f77bcf86cd799439011');
+      });
+    });
+
+    describe('Equality', () => {
+      it('should consider GUIDs from same ObjectId equal', () => {
+        const objectIdHex = '507f1f77bcf86cd799439011';
+        const guid1 = new GuidV4(objectIdHex);
+        const guid2 = GuidV4.fromMongoObjectId(objectIdHex);
+        
+        expect(guid1.equals(guid2)).toBeTruthy();
+      });
+
+      it('should consider GUIDs from BSON ObjectId and hex string equal', () => {
+        const objectIdHex = '507f1f77bcf86cd799439011';
+        const objectId = new ObjectId(objectIdHex);
+        
+        const guid1 = new GuidV4(objectId);
+        const guid2 = new GuidV4(objectIdHex);
+        
+        expect(guid1.equals(guid2)).toBeTruthy();
+      });
     });
   });
 });
