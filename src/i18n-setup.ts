@@ -1103,6 +1103,7 @@ function createInstance(): I18nEngine {
   engine.register({
     id: coreReg.component.id,
     strings: coreReg.strings as Record<string, Record<string, string>>,
+    aliases: ['ecies', 'EciesStringKey']
   });
   
   // Register ECIES component
