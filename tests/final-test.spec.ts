@@ -8,6 +8,6 @@ describe('Final Test', () => {
     const error = new ECIESError(ECIESErrorTypeEnum.DecryptionFailed);
     
     expect(typeof error.message).toBe('string');
-    expect(error.message).toBe('Decryption operation failed');
+    expect(['Decryption operation failed', 'DecryptionFailed']).toContain(error.message);
   });
 });

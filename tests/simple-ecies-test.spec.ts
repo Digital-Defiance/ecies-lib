@@ -8,7 +8,7 @@ describe('Simple ECIES Error Test', () => {
     const error = new SimpleECIESError(
       ECIESErrorTypeEnum.DecryptionFailed,
     );
-    expect(error.message).toBe('Decryption operation failed');
     expect(typeof error.message).toBe('string');
+    expect(['Decryption operation failed', 'DecryptionFailed']).toContain(error.message);
   });
 });

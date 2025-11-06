@@ -8,7 +8,7 @@ import { Wallet } from '@ethereumjs/wallet';
 import { faker } from '@faker-js/faker';
 
 import { ObjectId } from 'bson';
-import { IMemberOperational } from '../interfaces';
+import { IFrontendMemberOperational } from '../interfaces';
 import { SignatureUint8Array } from '../types';
 
 const hexToUint8Array = (hex: string): Uint8Array => {
@@ -29,7 +29,7 @@ const createMockWallet = (): Wallet =>
   } as any);
 
 export class MockFrontendMember
-  implements IMemberOperational<ObjectId>
+  implements IFrontendMemberOperational<ObjectId>
 {
   private _id: ObjectId;
   private _type: MemberType;

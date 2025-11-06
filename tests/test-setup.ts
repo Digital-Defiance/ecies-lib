@@ -12,15 +12,13 @@ jest.setTimeout(30000);
 // Re-export the matcher
 export { toThrowType };
 
-// Clean up I18n engine before each test
-beforeEach(() => {
-  PluginI18nEngine.resetAll();
-  resetCoreI18nEngine();
-  resetEciesI18nEngine();
+// Initialize i18n engine once before all tests
+beforeAll(() => {
+  getEciesI18nEngine();
 });
 
-// Clean up I18n engine after each test
-afterEach(() => {
+// Clean up I18n engine after all tests
+afterAll(() => {
   resetEciesI18nEngine();
   resetCoreI18nEngine();
   PluginI18nEngine.resetAll();

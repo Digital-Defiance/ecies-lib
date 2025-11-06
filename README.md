@@ -643,6 +643,8 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+## v2.1.25 - Upgrade i18n, mostly testing improvements
+
 ## v2.1.17 - Add frontend member mock
 
 ## v2.1.16 - upgrade i18n

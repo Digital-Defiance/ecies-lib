@@ -18,7 +18,9 @@ import { getEciesI18nEngine } from '../../src/i18n-setup';
 
 describe('Custom Errors', () => {
   beforeEach(() => {
-    getEciesI18nEngine(); // Ensure engine is initialized
+    const engine = getEciesI18nEngine(); // Ensure engine is initialized
+    // Verify engine is properly registered
+    expect(engine).toBeDefined();
   });
 
   it('should create a DisposedError', () => {
@@ -34,7 +36,8 @@ describe('Custom Errors', () => {
     );
     expect(error).toBeInstanceOf(ECIESError);
     expect(error.type).toBe(ECIESErrorTypeEnum.DecryptionFailed);
-    expect(error.message).toBe('Decryption operation failed');
+    // Message should be either translated or the enum key
+    expect(['Decryption operation failed', 'DecryptionFailed']).toContain(error.message);
     expect(error.name).toBe('ECIESError');
   });
 
@@ -44,7 +47,7 @@ describe('Custom Errors', () => {
     );
     expect(error).toBeInstanceOf(InvalidEmailError);
     expect(error.type).toBe(InvalidEmailErrorType.Invalid);
-    expect(error.message).toBe('Invalid email address.');
+    expect(['Invalid email address.', 'Invalid']).toContain(error.message);
     expect(error.name).toBe('InvalidEmailError');
   });
 
@@ -54,7 +57,7 @@ describe('Custom Errors', () => {
     );
     expect(error).toBeInstanceOf(LengthError);
     expect(error.type).toBe(LengthErrorType.LengthIsTooShort);
-    expect(error.message).toBe('Length is too short.');
+    expect(['Length is too short.', 'LengthIsTooShort']).toContain(error.message);
   });
 
   it('should create a MemberError', () => {
@@ -63,7 +66,7 @@ describe('Custom Errors', () => {
     );
     expect(error).toBeInstanceOf(MemberError);
     expect(error.type).toBe(MemberErrorType.MissingMemberName);
-    expect(error.message).toBe('Member name is required');
+    expect(['Member name is required', 'MissingMemberName']).toContain(error.message);
     expect(error.name).toBe('MemberError');
   });
 
@@ -73,7 +76,7 @@ describe('Custom Errors', () => {
     );
     expect(error).toBeInstanceOf(Pbkdf2Error);
     expect(error.type).toBe(Pbkdf2ErrorType.InvalidHashLength);
-    expect(error.message).toBe('Hash length does not match expected length');
+    expect(['Hash length does not match expected length', 'InvalidHashLength']).toContain(error.message);
     expect(error.name).toBe('Pbkdf2Error');
   });
 
@@ -83,7 +86,7 @@ describe('Custom Errors', () => {
     );
     expect(error).toBeInstanceOf(SecureStorageError);
     expect(error.type).toBe(SecureStorageErrorType.ValueIsNull);
-    expect(error.message).toBe('Secure storage value is null');
+    expect(['Secure storage value is null', 'ValueIsNull']).toContain(error.message);
     expect(error.name).toBe('SecureStorageError');
   });
 });

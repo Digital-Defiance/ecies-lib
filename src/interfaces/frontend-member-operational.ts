@@ -10,7 +10,7 @@ import { IECIESConstants } from './ecies-consts';
 /**
  * Operational interface for member - defines getters and methods
  */
-export interface IMemberOperational<
+export interface IFrontendMemberOperational<
   TID = ObjectId,
   TData = Uint8Array,
   TSignature = SignatureUint8Array,
@@ -38,6 +38,7 @@ export interface IMemberOperational<
   encryptData(data: string | TData): Promise<TData>;
   decryptData(encryptedData: TData): Promise<TData>;
   toJson(): string;
+  dispose(): void;
 
   // Private key management
   loadWallet(mnemonic: SecureString, eciesParams?: IECIESConstants): void;
@@ -49,6 +50,6 @@ export interface IMemberOperational<
 /**
  * Extended operational interface for test members
  */
-export interface ITestMemberOperational extends IMemberOperational {
+export interface ITestMemberOperational extends IFrontendMemberOperational {
   get mnemonic(): SecureString | undefined;
 }

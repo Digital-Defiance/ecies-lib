@@ -8,6 +8,7 @@ import {
 import { EciesMultiRecipient } from '../../../src/services/ecies/multi-recipient';
 import { concatUint8Arrays } from '../../../src/utils';
 import { withConsoleMocks } from '../../support/console';
+import { getEciesI18nEngine } from '../../../src/i18n-setup';
 
 describe('EciesMultiRecipient', () => {
   let multiRecipientService: EciesMultiRecipient;
@@ -24,6 +25,7 @@ describe('EciesMultiRecipient', () => {
   };
 
   beforeAll(async () => {
+    getEciesI18nEngine(); // Initialize i18n engine
     const config: IECIESConfig = {
       curveName: ECIES.CURVE_NAME,
       primaryKeyDerivationPath: ECIES.PRIMARY_KEY_DERIVATION_PATH,

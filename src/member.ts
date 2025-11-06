@@ -6,7 +6,7 @@ import MemberErrorType from './enumerations/member-error-type';
 import MemberType from './enumerations/member-type';
 import { MemberError } from './errors/member';
 import { getEciesI18nEngine } from './i18n-setup';
-import { IMemberOperational } from './interfaces/member-operational';
+import { IFrontendMemberOperational } from './interfaces/frontend-member-operational';
 import { IMemberStorageData } from './interfaces/member-storage';
 import { IMemberWithMnemonic } from './interfaces/member-with-mnemonic';
 import { SecureBuffer } from './secure-buffer';
@@ -25,7 +25,7 @@ import { IECIESConstants } from './interfaces/ecies-consts';
  * This class provides methods for signing, verifying, encrypting, and decrypting data.
  * It also manages the member's keys and wallet.
  */
-export class Member implements IMemberOperational {
+export class Member implements IFrontendMemberOperational {
   private readonly _eciesService: ECIESService;
   private readonly _id: ObjectId;
   private readonly _type: MemberType;

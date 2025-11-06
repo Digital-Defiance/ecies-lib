@@ -1,7 +1,11 @@
 import { ECIES } from '../../src/constants';
 import { AESGCMService } from '../../src/services/aes-gcm';
+import { getEciesI18nEngine } from '../../src/i18n-setup';
 
 describe('AESGCMService', () => {
+  beforeAll(() => {
+    getEciesI18nEngine(); // Initialize i18n engine
+  });
   const testData = new TextEncoder().encode('Hello, World!');
   const key128 = crypto.getRandomValues(new Uint8Array(16)); // 128-bit key
   const key256 = crypto.getRandomValues(new Uint8Array(32)); // 256-bit key

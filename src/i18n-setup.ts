@@ -1103,11 +1103,14 @@ function createInstance(): I18nEngine {
   engine.registerIfNotExists({
     id: coreReg.component.id,
     strings: coreReg.strings as Record<string, Record<string, string>>,
-    aliases: ['ecies', 'EciesStringKey']
   });
   
-  // Register ECIES component
-  const result = engine.registerIfNotExists(createEciesComponentConfig());
+  // Register ECIES component with aliases
+  const eciesConfig = createEciesComponentConfig();
+  const result = engine.registerIfNotExists({
+    ...eciesConfig,
+    aliases: ['EciesStringKey']
+  });
   
   // Warn about missing translations (non-blocking)
   if (!result.isValid && result.errors.length > 0) {

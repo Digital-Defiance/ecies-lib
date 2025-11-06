@@ -2,6 +2,7 @@ import { ECIES } from '../../../src/constants';
 import { IECIESConfig } from '../../../src/interfaces';
 import { SecureString } from '../../../src/secure-string';
 import { EciesCryptoCore } from '../../../src/services/ecies/crypto-core';
+import { getEciesI18nEngine } from '../../../src/i18n-setup';
 
 // Mock config for tests
 const mockConfig: IECIESConfig = {
@@ -17,6 +18,7 @@ describe('EciesCryptoCore', () => {
   let cryptoCore: EciesCryptoCore;
 
   beforeAll(() => {
+    getEciesI18nEngine(); // Initialize i18n engine
     cryptoCore = new EciesCryptoCore(mockConfig);
   });
 

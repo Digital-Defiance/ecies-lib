@@ -9,8 +9,12 @@ import {
   ConfigurationKey,
 } from '../src/constants';
 import { ECIESError } from '../src/errors/ecies';
+import { getEciesI18nEngine } from '../src/i18n-setup';
 
 describe('ConstantsRegistry', () => {
+  beforeAll(() => {
+    getEciesI18nEngine(); // Initialize i18n engine
+  });
   const performanceKey: ConfigurationKey = 'performance-profile';
   const securityKey: ConfigurationKey = 'security-profile';
 
