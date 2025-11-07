@@ -2,6 +2,7 @@ import { PluginI18nEngine, resetCoreI18nEngine } from '@digitaldefiance/i18n-lib
 import { webcrypto } from 'crypto';
 import { resetEciesI18nEngine, getEciesI18nEngine } from '../src/i18n-setup';
 import { toThrowType, LocalStorageMock } from '@digitaldefiance/express-suite-test-utils';
+import { Constants } from '../src/constants';
 
 // Extend expect with custom matchers
 expect.extend({ toThrowType });
@@ -13,7 +14,7 @@ export { toThrowType };
 
 // Initialize i18n engine once before all tests
 beforeAll(() => {
-  getEciesI18nEngine();
+  getEciesI18nEngine({ constants: Constants });
 });
 
 // Clean up I18n engine after all tests

@@ -643,6 +643,8 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+## v2.1.32 - Config on i18n create
+
 ## v2.1.30 - Alignment bump
 
 ## v2.1.26 - use new express-suite-test-utils

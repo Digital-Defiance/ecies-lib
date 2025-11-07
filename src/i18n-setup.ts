@@ -9,7 +9,7 @@ import {
   createDefaultLanguages,
   createCoreComponentRegistration,
 } from '@digitaldefiance/i18n-lib';
-import type { ComponentConfig } from '@digitaldefiance/i18n-lib';
+import type { ComponentConfig, EngineConfig } from '@digitaldefiance/i18n-lib';
 import { EciesStringKey } from './enumerations/ecies-string-key';
 
 export const EciesI18nEngineKey = 'DigitalDefiance.Ecies.I18nEngine' as const;
@@ -1095,9 +1095,9 @@ export function createEciesComponentConfig(): ComponentConfig {
  * Uses i18n 2.0 pattern with runtime validation
  * IMPORTANT: Uses 'default' as instance key so TypedHandleableError can find it
  */
-function createInstance(): I18nEngine {
-  const engine = I18nEngine.registerIfNotExists('default', createDefaultLanguages());
-  
+function createInstance(config?: EngineConfig): I18nEngine {
+  const engine = I18nEngine.registerIfNotExists('default', createDefaultLanguages(), config);
+
   // Register core component first (required for error messages)
   const coreReg = createCoreComponentRegistration();
   engine.registerIfNotExists({
@@ -1128,9 +1128,9 @@ function createInstance(): I18nEngine {
  */
 let _eciesEngine: I18nEngine | undefined;
 
-export function getEciesI18nEngine(): I18nEngine {
+export function getEciesI18nEngine(config?: EngineConfig): I18nEngine {
   if (!_eciesEngine || !I18nEngine.hasInstance('default')) {
-    _eciesEngine = createInstance();
+    _eciesEngine = createInstance(config);
   }
   return _eciesEngine;
 }
