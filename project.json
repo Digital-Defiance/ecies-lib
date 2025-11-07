@@ -4,7 +4,6 @@
   "sourceRoot": "packages/digitaldefiance-ecies-lib/src",
   "projectType": "library",
   "tags": [],
-  "implicitDependencies": ["digitaldefiance-i18n-lib"],
   "targets": {
     "build": {
       "executor": "@nx/js:tsc",
