@@ -7,7 +7,7 @@ import {
 } from '../../../src/services/ecies/interfaces';
 import { EciesMultiRecipient } from '../../../src/services/ecies/multi-recipient';
 import { concatUint8Arrays } from '../../../src/utils';
-import { withConsoleMocks } from '../../support/console';
+import { withConsoleMocks } from '@digitaldefiance/express-suite-test-utils';
 import { getEciesI18nEngine } from '../../../src/i18n-setup';
 
 describe('EciesMultiRecipient', () => {

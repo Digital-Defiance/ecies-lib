@@ -13,7 +13,6 @@ import { Member } from '../src/member';
 import { SecureString } from '../src/secure-string';
 import { ECIESService } from '../src/services/ecies/service';
 import { uint8ArrayToHex } from '../src/utils';
-import { spyContains, withConsoleMocks } from './support/console';
 
 describe('member', () => {
   let alice: IMemberWithMnemonic,

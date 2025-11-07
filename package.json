@@ -1,6 +1,6 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "2.1.25",
+  "version": "2.1.26",
   "description": "Digital Defiance ECIES Library",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -42,5 +42,8 @@
     "@scure/bip32": "^2.0.0",
     "bson": "^6.10.4",
     "ts-brand": "^0.2.0"
+  },
+  "devDependencies": {
+    "@digitaldefiance/express-suite-test-utils": "1.0.3"
   }
 }

@@ -1,8 +1,7 @@
 import { PluginI18nEngine, resetCoreI18nEngine } from '@digitaldefiance/i18n-lib';
 import { webcrypto } from 'crypto';
 import { resetEciesI18nEngine, getEciesI18nEngine } from '../src/i18n-setup';
-import { toThrowType } from './matchers/error-matchers';
-import { LocalStorageMock } from './support/localStorage-mock';
+import { toThrowType, LocalStorageMock } from '@digitaldefiance/express-suite-test-utils';
 
 // Extend expect with custom matchers
 expect.extend({ toThrowType });
