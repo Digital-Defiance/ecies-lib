@@ -664,6 +664,8 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+## v2.1.39 - Update test-utils dep
+
 ## v2.1.38 - Export test mock for frontend member
 
 ## v2.1.32 - Config on i18n create
