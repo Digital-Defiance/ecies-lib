@@ -6,6 +6,8 @@
 
 Production-ready, browser-compatible ECIES (Elliptic Curve Integrated Encryption Scheme) library for TypeScript. Built on Web Crypto API and @noble/curves with comprehensive encryption, key management, and authentication services. Binary compatible with @digitaldefiance/node-ecies-lib for seamless cross-platform operations.
 
+Part of [Express Suite](https://github.com/Digital-Defiance/express-suite)
+
 **Version 2.0** features a modernized i18n architecture with automatic error translation in 8 languages and simplified service APIs.
 
 ## Features
