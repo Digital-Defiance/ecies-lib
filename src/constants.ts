@@ -203,7 +203,7 @@ export const Constants: IConstants = Object.freeze({
   /**
    * Matches a 64-character hexadecimal string (SHA-256).
    */
-  HmacRegex: /^[a-f0-9]{64}$/,
+  MnemonicHmacRegex: /^[a-f0-9]{64}$/,
 } as const);
 
 export type ConfigurationKey = string | symbol;

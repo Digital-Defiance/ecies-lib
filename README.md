@@ -664,6 +664,10 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+### v2.1.42
+
+- Fix Hmac constant
+
 ### v2.1.40
 
 - Alignment with Express Suite packages

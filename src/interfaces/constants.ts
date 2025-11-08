@@ -43,5 +43,5 @@ export interface IConstants {
   /**
    * The regular expression for valid HMAC keys.
    */
-  HmacRegex: RegExp;
+  MnemonicHmacRegex: RegExp;
 }
