@@ -489,7 +489,7 @@ yarn format         # Fix all (prettier + lint)
 
 #### Test Utilities
 
-Test mocks are available via a separate entry point:
+Test mocks are available via the `/testing` entry point:
 
 ```typescript
 import { mockFrontendMember } from '@digitaldefiance/ecies-lib/testing';
@@ -498,7 +498,7 @@ import { mockFrontendMember } from '@digitaldefiance/ecies-lib/testing';
 const member = mockFrontendMember();
 ```
 
-**Note:** Test utilities require `@faker-js/faker` as a peer dependency:
+**Note:** The `/testing` entry point requires `@faker-js/faker` as a peer dependency:
 
 ```bash
 npm install -D @faker-js/faker
@@ -664,7 +664,13 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
-## v2.1.40 - Alignment
+### v2.1.40
+
+- Alignment with Express Suite packages
+- All packages updated to v2.1.40 (i18n, ecies-lib, node-ecies-lib, suite-core-lib, node-express-suite, express-suite-react-components)
+- Test utilities remain at v1.0.7
+- `/testing` entry point exports test mocks (mockFrontendMember)
+- Requires `@faker-js/faker` as dev dependency for test utilities
 
 ## v2.1.39 - Update test-utils dep
 
