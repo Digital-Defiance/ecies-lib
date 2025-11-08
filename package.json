@@ -1,9 +1,19 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "2.1.32",
+  "version": "2.1.38",
   "description": "Digital Defiance ECIES Library",
   "main": "src/index.js",
   "types": "src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./testing": {
+      "types": "./src/testing.d.ts",
+      "default": "./src/testing.js"
+    }
+  },
   "scripts": {
     "build": "npx nx build digitaldefiance-ecies-lib",
     "build:stream": "npx nx build --outputStyle=stream digitaldefiance-ecies-lib",

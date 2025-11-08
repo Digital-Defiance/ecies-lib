@@ -487,6 +487,25 @@ yarn format         # Fix all (prettier + lint)
 - Cross-platform compatibility
 - Error handling and edge cases
 
+#### Test Utilities
+
+Test mocks are available via a separate entry point:
+
+```typescript
+import { mockFrontendMember } from '@digitaldefiance/ecies-lib/testing';
+
+// Use in your tests
+const member = mockFrontendMember();
+```
+
+**Note:** Test utilities require `@faker-js/faker` as a peer dependency:
+
+```bash
+npm install -D @faker-js/faker
+# or
+yarn add -D @faker-js/faker
+```
+
 ### Quality Gates
 
 CI enforces:
@@ -644,6 +663,8 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 3. **Initialize Once**: Call `getEciesI18nEngine()` at app startup or in test setup
 
 ## ChangeLog
+
+## v2.1.38 - Export test mock for frontend member
 
 ## v2.1.32 - Config on i18n create
 
