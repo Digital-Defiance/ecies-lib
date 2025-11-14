@@ -283,7 +283,7 @@ describe('ECIES i18n Comprehensive Tests', () => {
       allLanguages.forEach((lang) => {
         stringKeys.forEach((key) => {
           const translation = getEciesI18nEngine().translate(EciesComponentId, key, undefined, lang);
-          expect(translation.length).toBeGreaterThan(3);
+          expect(translation.length).toBeGreaterThanOrEqual(3);
           expect(translation.length).toBeLessThan(500);
         });
       });

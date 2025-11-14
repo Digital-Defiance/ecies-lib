@@ -153,7 +153,7 @@ describe('Security Fixes', () => {
         for await (const chunk of resumable2.encrypt(source2, publicKey, { includeChecksums: true })) {
           // Should throw
         }
-      }).rejects.toThrow('includeChecksums mismatch');
+      }).rejects.toThrow('Include checksums mismatch with saved state');
     });
   });
 });

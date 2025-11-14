@@ -1,4 +1,6 @@
 import { IStreamProgress } from '../interfaces/stream-progress';
+import { getEciesI18nEngine, EciesComponentId } from '../i18n-setup';
+import { EciesStringKey } from '../enumerations/ecies-string-key';
 
 /**
  * Tracks progress for streaming operations
@@ -22,7 +24,8 @@ export class ProgressTracker {
   update(chunkBytes: number): IStreamProgress {
     // Validate input
     if (chunkBytes < 0) {
-      throw new Error('Chunk bytes cannot be negative');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Progress_ChunkBytesCannotBeNegative));
     }
 
     this.bytesProcessed += chunkBytes;

@@ -7,6 +7,8 @@ import {
   CHUNK_CONSTANTS,
 } from '../interfaces/encrypted-chunk';
 import { ECIESService } from './ecies/service';
+import { getEciesI18nEngine, EciesComponentId } from '../i18n-setup';
+import { EciesStringKey } from '../enumerations/ecies-string-key';
 
 /**
  * Processes chunks for streaming encryption/decryption
@@ -39,20 +41,21 @@ export class ChunkProcessor {
    * Parse chunk header
    */
   parseChunkHeader(data: Uint8Array): IChunkHeader {
+    const engine = getEciesI18nEngine();
     if (data.length < CHUNK_CONSTANTS.HEADER_SIZE) {
-      throw new Error('Data too short for chunk header');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Chunk_DataTooShortForHeader));
     }
 
     const view = new DataView(data.buffer, data.byteOffset);
 
     const magic = view.getUint32(0, false);
     if (magic !== CHUNK_CONSTANTS.MAGIC) {
-      throw new Error('Invalid chunk magic bytes');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Chunk_InvalidMagicBytes));
     }
 
     const version = view.getUint16(4, false);
     if (version !== CHUNK_CONSTANTS.VERSION) {
-      throw new Error('Unsupported chunk version');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Chunk_UnsupportedVersion));
     }
 
     return {
@@ -147,7 +150,8 @@ export class ChunkProcessor {
 
     // Validate encrypted size matches header
     if (encrypted.length !== header.encryptedSize) {
-      throw new Error(`Encrypted size mismatch: expected ${header.encryptedSize}, got ${encrypted.length}`);
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Chunk_EncryptedSizeMismatchTemplate, { expectedSize: header.encryptedSize, actualSize: encrypted.length }));
     }
 
     // Decrypt
@@ -168,13 +172,15 @@ export class ChunkProcessor {
         diff |= storedChecksum[i] ^ computedChecksum[i];
       }
       if (diff !== 0) {
-        throw new Error('Chunk checksum mismatch');
+        const engine = getEciesI18nEngine();
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Chunk_ChecksumMismatch));
       }
     }
 
     // Verify size
     if (decrypted.length !== header.originalSize) {
-      throw new Error('Decrypted size mismatch');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Chunk_DecryptedSizeMismatch));
     }
 
     return { data: decrypted, header };

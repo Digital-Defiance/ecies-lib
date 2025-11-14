@@ -28,4 +28,14 @@ export enum ECIESErrorTypeEnum {
   DecryptionFailed = 'DecryptionFailed', // Added for MAC/Padding errors
   InvalidRecipientPublicKey = 'InvalidRecipientPublicKey', // Added for specific key errors
   SecretComputationFailed = 'SecretComputationFailed', // Added for ECDH failures
+  AuthenticationTagIsRequiredForKeyEncryption = 'AuthenticationTagIsRequiredForKeyEncryption',
+  FailedToDecryptKey = 'FailedToDecryptKey',
+  MessageTooLarge = 'MessageTooLarge',
+  AuthenticationTagIsRequiredForMultiRecipientECIESEncryption = 'AuthenticationTagIsRequiredForMultiRecipientECIESEncryption',
+  CannotEncryptEmptyData = 'CannotEncryptEmptyData',
+  CannotDecryptEmptyData = 'CannotDecryptEmptyData',
+  EncryptedSizeExceedsExpected = 'EncryptedSizeExceedsExpected',
+  DecryptedDataLengthMismatch = 'DecryptedDataLengthMismatch',
+  RecipientCountMismatch = 'RecipientCountMismatch',
+  DataTooShortForMultiRecipientHeader = 'DataTooShortForMultiRecipientHeader',
 }

@@ -442,6 +442,8 @@ export class Member implements IFrontendMemberOperational {
     mnemonic: SecureString,
     eciesService: ECIESService,
     eciesParams?: IECIESConstants,
+    name = 'Test User',
+    email = new EmailString('test@example.com'),
   ): Member {
     const eciesConsts = eciesParams ?? ECIES;
     const { wallet } = eciesService.walletAndSeedFromMnemonic(mnemonic);
@@ -454,8 +456,8 @@ export class Member implements IFrontendMemberOperational {
     return new Member(
       eciesService,
       MemberType.User,
-      'Test User',
-      new EmailString('test@example.com'),
+      name,
+      email,
       publicKeyWithPrefix,
       new SecureBuffer(privateKey),
       wallet,

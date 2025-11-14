@@ -1,6 +1,7 @@
 import { I18nEngine } from '@digitaldefiance/i18n-lib';
 import { getEciesI18nEngine, EciesComponentId } from '../src/i18n-setup';
 import { EciesStringKey } from '../src/enumerations/ecies-string-key';
+import { withConsoleMocks } from '@digitaldefiance/express-suite-test-utils';
 
 describe('I18n Debug', () => {
   it('should have engine registered', () => {
@@ -24,14 +25,16 @@ describe('I18n Debug', () => {
   });
 
   it('should have translations in component', () => {
-    const engine = getEciesI18nEngine();
-    const components = engine.getComponents();
-    const eciesComponent = components.find(c => c.id === EciesComponentId);
-    console.log('ECIES component:', eciesComponent);
-    console.log('Has strings:', !!eciesComponent?.strings);
-    console.log('Languages:', Object.keys(eciesComponent?.strings || {}));
-    console.log('en-US keys count:', Object.keys(eciesComponent?.strings?.['en-US'] || {}).length);
-    console.log('Sample key:', eciesComponent?.strings?.['en-US']?.[EciesStringKey.Error_ECIESError_DecryptionFailed]);
+    withConsoleMocks({ mute: true }, () => {
+      const engine = getEciesI18nEngine();
+      const components = engine.getComponents();
+      const eciesComponent = components.find(c => c.id === EciesComponentId);
+      console.log('ECIES component:', eciesComponent);
+      console.log('Has strings:', !!eciesComponent?.strings);
+      console.log('Languages:', Object.keys(eciesComponent?.strings || {}));
+      console.log('en-US keys count:', Object.keys(eciesComponent?.strings?.['en-US'] || {}).length);
+      console.log('Sample key:', eciesComponent?.strings?.['en-US']?.[EciesStringKey.Error_ECIESError_DecryptionFailed]);
+    });
   });
 
   it('should translate a key', () => {

@@ -5,7 +5,8 @@
 import { I18nEngine } from '@digitaldefiance/i18n-lib';
 import { IConstants } from '../interfaces';
 import { Constants } from '../constants';
-import { getEciesI18nEngine } from '../i18n-setup';
+import { getEciesI18nEngine, EciesComponentId } from '../i18n-setup';
+import { EciesStringKey } from '../enumerations/ecies-string-key';
 
 export enum CryptoServiceKey {
   ECIES = 'ecies',
@@ -34,7 +35,7 @@ export class CryptoContainer {
   get<T>(key: CryptoServiceKey): T {
     const service = this.services.get(key);
     if (!service) {
-      throw new Error(`Service ${key} not found in container`);
+      throw new Error(this.i18n.translate(EciesComponentId, EciesStringKey.Error_Container_ServiceNotFoundTemplate, { service: key }));
     }
     return service as T;
   }

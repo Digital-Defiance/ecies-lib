@@ -4,17 +4,29 @@
 
 import { MemberType } from '../enumerations/member-type';
 import { EmailString } from '../email-string';
-import { CryptoError, CryptoErrorCode } from '../core/errors/crypto-error';
-import { EciesStringKey } from '../enumerations/ecies-string-key';
+import { Member } from '../member';
+import { IMemberWithMnemonic } from '../interfaces/member-with-mnemonic';
+import { ECIESService } from '../services/ecies/service';
+import { SecureString } from '../secure-string';
+import { ObjectId } from 'bson';
+import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { EciesStringKey } from '../enumerations';
 
 export class MemberBuilder {
+  private eciesService?: ECIESService;
   private type?: MemberType;
   private name?: string;
   private email?: EmailString;
-  private mnemonic?: string;
+  private mnemonic?: SecureString;
+  private createdBy?: ObjectId;
 
   static create(): MemberBuilder {
     return new MemberBuilder();
+  }
+
+  withEciesService(service: ECIESService): this {
+    this.eciesService = service;
+    return this;
   }
 
   withType(type: MemberType): this {
@@ -32,20 +44,41 @@ export class MemberBuilder {
     return this;
   }
 
-  generateMnemonic(): this {
-    // Will use ECIESService once migrated
-    throw new Error('Mnemonic generation not yet implemented in v2');
+  withMnemonic(mnemonic: SecureString): this {
+    this.mnemonic = mnemonic;
+    return this;
   }
 
-  build(): any {
+  withCreatedBy(creatorId: ObjectId): this {
+    this.createdBy = creatorId;
+    return this;
+  }
+
+  generateMnemonic(): this {
+    if (!this.eciesService) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic));
+    }
+    this.mnemonic = this.eciesService.generateNewMnemonic();
+    return this;
+  }
+
+  build(): IMemberWithMnemonic {
+    const engine = getEciesI18nEngine();
+    if (!this.eciesService) {
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Builder_ECIESServiceIsRequired));
+    }
     if (!this.type || !this.name || !this.email) {
-      throw new CryptoError(
-        CryptoErrorCode.MISSING_MEMBER_NAME,
-        EciesStringKey.Error_MemberError_MissingMemberName
-      );
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired));
     }
     
-    // Placeholder - will create Member once migrated
-    throw new Error('Member not yet migrated to v2');
+    return Member.newMember(
+      this.eciesService,
+      this.type,
+      this.name,
+      this.email,
+      this.mnemonic,
+      this.createdBy
+    );
   }
 }

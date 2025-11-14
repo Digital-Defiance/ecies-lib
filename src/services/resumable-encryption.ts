@@ -4,6 +4,8 @@ import { EncryptionStream } from './encryption-stream';
 import { IEncryptStreamOptions } from './encryption-stream';
 import { uint8ArrayToHex, hexToUint8Array } from '../utils';
 import { EciesEncryptionTypeEnum } from '../enumerations/ecies-encryption-type';
+import { getEciesI18nEngine, EciesComponentId } from '../i18n-setup';
+import { EciesStringKey } from '../enumerations/ecies-string-key';
 
 
 export interface IResumableOptions extends IEncryptStreamOptions {
@@ -29,21 +31,22 @@ export class ResumableEncryption {
     publicKey: Uint8Array,
     options: IResumableOptions = {}
   ): AsyncGenerator<IEncryptedChunk, void, unknown> {
+    const engine = getEciesI18nEngine();
     const autoSaveInterval = options.autoSaveInterval ?? 10;
     if (autoSaveInterval <= 0) {
-      throw new Error('autoSaveInterval must be positive');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Resumable_AutoSaveIntervalMustBePositive));
     }
 
     const publicKeyHex = uint8ArrayToHex(publicKey);
     if (this.state) {
       if (this.state.publicKey !== publicKeyHex) {
-        throw new Error('Public key mismatch with saved state');
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Resumable_PublicKeyMismatch));
       }
       if (this.state.chunkSize !== (options.chunkSize ?? 1024 * 1024)) {
-        throw new Error('Chunk size mismatch with saved state');
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Resumable_ChunkSizeMismatch));
       }
       if (this.state.includeChecksums !== (options.includeChecksums ?? false)) {
-        throw new Error('includeChecksums mismatch with saved state');
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Resumable_IncludeChecksumsMismatch));
       }
     }
 
@@ -79,7 +82,8 @@ export class ResumableEncryption {
 
   saveState(): IEncryptionState {
     if (!this.state) {
-      throw new Error('No state to save');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Resumable_NoStateToSave));
     }
     const state = { ...this.state };
     // Add HMAC for integrity
@@ -106,24 +110,25 @@ export class ResumableEncryption {
   }
 
   private validateState(state: IEncryptionState): void {
+    const engine = getEciesI18nEngine();
     if (state.version !== ENCRYPTION_STATE_VERSION) {
-      throw new Error(`Unsupported state version: ${state.version}`);
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Resumable_UnsupportedStateVersionTemplate, { version: state.version }));
     }
     if (state.chunkIndex < 0) {
-      throw new Error('Invalid chunk index');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Resumable_InvalidChunkIndex));
     }
     const age = Date.now() - state.timestamp;
     if (age > 24 * 60 * 60 * 1000) {
-      throw new Error('State too old (>24 hours)');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Resumable_StateTooOld));
     }
     if (!state.publicKey || state.publicKey.length === 0) {
-      throw new Error('Invalid public key in state');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Resumable_InvalidPublicKeyInState));
     }
     // Verify HMAC if present
     if (state.hmac) {
       const expectedHMAC = this.calculateStateHMAC(state);
       if (state.hmac !== expectedHMAC) {
-        throw new Error('State integrity check failed: HMAC mismatch');
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Resumable_StateIntegrityCheckFailed));
       }
     }
   }

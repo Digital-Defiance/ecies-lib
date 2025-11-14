@@ -1,6 +1,7 @@
 import { ECIES } from '../../../src/constants';
-import { EciesEncryptionTypeEnum } from '../../../src/enumerations';
+import { EciesEncryptionTypeEnum, EciesStringKey } from '../../../src/enumerations';
 import { ECIESService } from '../../../src/services/ecies/service';
+import { englishTranslations } from '../../../src/translations/en-US';
 
 describe('ECIESService', () => {
   let eciesService: ECIESService;
@@ -111,11 +112,8 @@ describe('ECIESService', () => {
   });
 
   describe('Multi-recipient Encryption', () => {
-    it('should throw an error because it is not implemented', async () => {
+    it('should throw an error because it is not supported for this function', async () => {
       const recipient1 = eciesService.mnemonicToSimpleKeyPair(
-        eciesService.generateNewMnemonic(),
-      );
-      const recipient2 = eciesService.mnemonicToSimpleKeyPair(
         eciesService.generateNewMnemonic(),
       );
       const message = new TextEncoder().encode('test');
@@ -123,13 +121,10 @@ describe('ECIESService', () => {
       await expect(
         eciesService.encrypt(
           EciesEncryptionTypeEnum.Multiple,
-          [
-            { publicKey: recipient1.publicKey },
-            { publicKey: recipient2.publicKey },
-          ],
+          recipient1.publicKey,
           message,
         ),
-      ).rejects.toThrow('Multi-recipient encryption not yet implemented');
+      ).rejects.toThrow(englishTranslations[EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode]);
     });
   });
 });

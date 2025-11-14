@@ -6,6 +6,8 @@ import {
   MULTI_RECIPIENT_CONSTANTS,
 } from '../interfaces/multi-recipient-chunk';
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { EciesStringKey } from '../enumerations';
 
 /**
  * Processes multi-recipient chunks using symmetric encryption
@@ -24,17 +26,18 @@ export class MultiRecipientProcessor {
     symmetricKey: Uint8Array
   ): Promise<IMultiRecipientChunk> {
     // Validate inputs
+    const engine = getEciesI18nEngine();
     if (recipients.length === 0 || recipients.length > MULTI_RECIPIENT_CONSTANTS.MAX_RECIPIENTS) {
-      throw new Error(`Invalid recipient count: ${recipients.length}`);
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_InvalidRecipientCountTemplate, { count: recipients.length }));
     }
     if (symmetricKey.length !== 32) {
-      throw new Error('Symmetric key must be 32 bytes');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_SymmetricKeyMust32Bytes));
     }
     if (chunkIndex < 0 || chunkIndex > 0xFFFFFFFF) {
-      throw new Error(`Invalid chunk index: ${chunkIndex}`);
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_InvalidChunkIndexTemplate, { index: chunkIndex }));
     }
     if (data.length > 0x7FFFFFFF) {
-      throw new Error(`Data size exceeds maximum: ${data.length}`);
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_DataSizeExceedsMaximumTemplate, { size: data.length }));
     }
 
     // Check for duplicate recipient IDs
@@ -42,7 +45,7 @@ export class MultiRecipientProcessor {
     for (const recipient of recipients) {
       const idStr = Buffer.from(recipient.id).toString('hex');
       if (seenIds.has(idStr)) {
-        throw new Error('Duplicate recipient ID detected');
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_DuplicateRecipientId));
       }
       seenIds.add(idStr);
     }
@@ -57,7 +60,7 @@ export class MultiRecipientProcessor {
     const recipientHeaders: IRecipientHeader[] = [];
     for (const recipient of recipients) {
       if (recipient.id.length !== MULTI_RECIPIENT_CONSTANTS.RECIPIENT_ID_SIZE) {
-        throw new Error('Recipient ID must be 32 bytes');
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_RecipientIdMust32Bytes));
       }
       
       const encryptedKey = await this.ecies.encryptSimpleOrSingle(
@@ -79,7 +82,7 @@ export class MultiRecipientProcessor {
       const headerSize = MULTI_RECIPIENT_CONSTANTS.RECIPIENT_ID_SIZE + 
                         MULTI_RECIPIENT_CONSTANTS.KEY_SIZE_BYTES + h.keySize;
       if (recipientHeadersSize + headerSize < recipientHeadersSize) {
-        throw new Error('Recipient headers size overflow');
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_RecipientHeadersSizeOverflow));
       }
       recipientHeadersSize += headerSize;
     }
@@ -92,7 +95,7 @@ export class MultiRecipientProcessor {
 
     // Check for integer overflow (max safe: 2^31 - 1 for Uint8Array)
     if (totalSize > 0x7FFFFFFF || totalSize < 0) {
-      throw new Error('Chunk size overflow: too many recipients or data too large');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_ChunkSizeOverflow));
     }
 
     // Build chunk
@@ -155,8 +158,9 @@ export class MultiRecipientProcessor {
     recipientId: Uint8Array,
     privateKey: Uint8Array
   ): Promise<{ data: Uint8Array; header: IMultiRecipientChunkHeader }> {
+    const engine = getEciesI18nEngine();
     if (chunkData.length < MULTI_RECIPIENT_CONSTANTS.HEADER_SIZE) {
-      throw new Error('Chunk too small');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_ChunkTooSmall));
     }
 
     const view = new DataView(chunkData.buffer, chunkData.byteOffset);
@@ -166,19 +170,19 @@ export class MultiRecipientProcessor {
     const magic = view.getUint32(offset, false);
     offset += 4;
     if (magic !== MULTI_RECIPIENT_CONSTANTS.MAGIC) {
-      throw new Error('Invalid multi-recipient chunk magic');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_InvalidChunkMagic));
     }
 
     const version = view.getUint16(offset, false);
     offset += 2;
     if (version !== MULTI_RECIPIENT_CONSTANTS.VERSION) {
-      throw new Error(`Unsupported version: ${version}`);
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_UnsupportedVersionTemplate, { version }));
     }
 
     const recipientCount = view.getUint16(offset, false);
     offset += 2;
     if (recipientCount === 0 || recipientCount > MULTI_RECIPIENT_CONSTANTS.MAX_RECIPIENTS) {
-      throw new Error(`Invalid recipient count: ${recipientCount}`);
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_InvalidRecipientCountTemplate, { count: recipientCount }));
     }
     const chunkIndex = view.getUint32(offset, false);
     offset += 4;
@@ -192,7 +196,7 @@ export class MultiRecipientProcessor {
     // Validate encryptedSize against chunk size
     const minChunkSize = MULTI_RECIPIENT_CONSTANTS.HEADER_SIZE + 12 + encryptedSize + 16;
     if (chunkData.length < minChunkSize) {
-      throw new Error('Chunk too small for declared encrypted size');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_ChunkTooSmallForEncryptedSize));
     }
 
     // Find recipient header and decrypt symmetric key
@@ -202,7 +206,7 @@ export class MultiRecipientProcessor {
     for (let i = 0; i < recipientCount; i++) {
       // Check if we have enough data for recipient ID
       if (tempOffset + MULTI_RECIPIENT_CONSTANTS.RECIPIENT_ID_SIZE > chunkData.length) {
-        throw new Error('Chunk truncated: not enough data for recipient ID');
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_ChunkTruncatedRecipientId));
       }
       
       const id = chunkData.slice(tempOffset, tempOffset + MULTI_RECIPIENT_CONSTANTS.RECIPIENT_ID_SIZE);
@@ -210,7 +214,7 @@ export class MultiRecipientProcessor {
       
       // Check if we have enough data for keySize field
       if (tempOffset + MULTI_RECIPIENT_CONSTANTS.KEY_SIZE_BYTES > chunkData.length) {
-        throw new Error('Chunk truncated: not enough data for key size');
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_ChunkTruncatedKeySize));
       }
       
       const keySize = view.getUint16(tempOffset, false);
@@ -218,12 +222,12 @@ export class MultiRecipientProcessor {
 
       // Validate keySize (typical ECIES: 100-400 bytes)
       if (keySize === 0 || keySize > 1000) {
-        throw new Error(`Invalid key size: ${keySize}`);
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_InvalidKeySizeTemplate, { size: keySize }));
       }
       
       // Check if we have enough data for the encrypted key
       if (tempOffset + keySize > chunkData.length) {
-        throw new Error('Chunk truncated: not enough data for encrypted key');
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_ChunkTruncatedEncryptedKey));
       }
       
       const encryptedKey = chunkData.slice(tempOffset, tempOffset + keySize);
@@ -237,7 +241,7 @@ export class MultiRecipientProcessor {
     }
 
     if (!symmetricKey) {
-      throw new Error('Recipient not found in chunk');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_RecipientNotFoundInChunk));
     }
     
     // Update offset to after all recipient headers

@@ -712,6 +712,11 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+### v3.0.1
+
+- Fix strings mainly
+- add service.encryptMultiple endpoint, clarify service.encrypt endpoint
+
 ### v3.0.0 - Streaming Encryption & Security Hardening
 
 **Major Features**:

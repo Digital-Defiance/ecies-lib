@@ -8,9 +8,12 @@ import { IECIESConfig } from '../../interfaces/ecies-config';
 import { SecureString } from '../../secure-string';
 import { SignatureString, SignatureUint8Array } from '../../types';
 import { EciesCryptoCore } from './crypto-core';
-import { ISimpleKeyPair, IWalletSeed } from './interfaces';
+import { IMultiEncryptedMessage, IMultiRecipient, ISimpleKeyPair, IWalletSeed } from './interfaces';
 import { EciesSignature } from './signature';
 import { EciesSingleRecipient } from './single-recipient';
+import { getEciesI18nEngine, EciesComponentId } from '../../i18n-setup';
+import { EciesStringKey } from '../../enumerations/ecies-string-key';
+import { EciesMultiRecipient } from './multi-recipient';
 
 /**
  * Browser-compatible ECIES service that mirrors the server-side functionality
@@ -21,6 +24,7 @@ export class ECIESService {
   protected readonly cryptoCore: EciesCryptoCore;
   protected readonly signature: EciesSignature;
   protected readonly singleRecipient: EciesSingleRecipient;
+  protected readonly multiRecipient: EciesMultiRecipient;
   protected readonly eciesConsts: IECIESConstants;
 
   constructor(config?: Partial<IECIESConfig>, eciesParams: IECIESConstants = Constants.ECIES) {
@@ -38,7 +42,8 @@ export class ECIESService {
     // Initialize components
     this.cryptoCore = new EciesCryptoCore(this._config, this.eciesConsts);
     this.signature = new EciesSignature(this.cryptoCore);
-    this.singleRecipient = new EciesSingleRecipient(this._config);
+    this.singleRecipient = new EciesSingleRecipient(this._config, this.eciesConsts);
+    this.multiRecipient = new EciesMultiRecipient(this._config, this.eciesConsts);
   }
 
   public get core(): EciesCryptoCore {
@@ -240,7 +245,8 @@ export class ECIESService {
     recipientCount?: number,
   ): number {
     if (dataLength < 0) {
-      throw new Error('Invalid data length');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Service_InvalidDataLength));
     }
 
     switch (encryptionMode) {
@@ -256,7 +262,8 @@ export class ECIESService {
           (recipientCount ?? 1) * this.eciesConsts.MULTIPLE.ENCRYPTED_KEY_SIZE
         );
       default:
-        throw new Error('Invalid encryption type');
+        const engine = getEciesI18nEngine();
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Service_InvalidEncryptionType));
     }
   }
 
@@ -268,7 +275,8 @@ export class ECIESService {
     padding?: number,
   ): number {
     if (encryptedDataLength < 0) {
-      throw new Error('Invalid encrypted data length');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Service_InvalidEncryptedDataLength));
     }
 
   const overhead = this.eciesConsts.SINGLE.FIXED_OVERHEAD_SIZE;
@@ -276,7 +284,8 @@ export class ECIESService {
     const decryptedLength = encryptedDataLength - overhead - actualPadding;
 
     if (decryptedLength < 0) {
-      throw new Error('Computed decrypted length is negative');
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Service_ComputedDecryptedLengthNegative));
     }
 
     return decryptedLength;
@@ -287,31 +296,41 @@ export class ECIESService {
    */
   public async encrypt(
     encryptionType: EciesEncryptionTypeEnum,
-    recipients: Array<{ publicKey: Uint8Array }>,
+    recipientPublicKey: Uint8Array,
     message: Uint8Array,
     preamble?: Uint8Array,
   ): Promise<Uint8Array> {
-    if (
-      (encryptionType === EciesEncryptionTypeEnum.Simple ||
-        EciesEncryptionTypeEnum.Single) &&
-      recipients.length === 1
-    ) {
-      return this.singleRecipient.encrypt(
-        encryptionType === EciesEncryptionTypeEnum.Simple,
-        recipients[0].publicKey,
+    if (encryptionType === EciesEncryptionTypeEnum.Multiple) {
+      throw new Error(
+        getEciesI18nEngine().translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode,
+        ),
+      );
+    }
+    return this.singleRecipient.encrypt(
+      encryptionType === EciesEncryptionTypeEnum.Simple,
+      recipientPublicKey,
+      message,
+      preamble,
+    );
+  }
+  /**
+   * Encrypt for multiple recipients
+   * @param recipients 
+   * @param message 
+   * @param preamble 
+   * @returns 
+   */
+  public async encryptMultiple(
+    recipients: Array<IMultiRecipient>,
+    message: Uint8Array,
+    preamble?: Uint8Array,
+  ): Promise<IMultiEncryptedMessage> {
+      return this.multiRecipient.encryptMultiple(
+        recipients,
         message,
         preamble,
       );
-    } else if (
-      encryptionType === EciesEncryptionTypeEnum.Multiple &&
-      recipients.length > 1
-    ) {
-      // TODO: Implement multi-recipient encryption
-      throw new Error('Multi-recipient encryption not yet implemented');
-    } else {
-      throw new Error(
-        `Invalid encryption type or number of recipients: ${encryptionType}, ${recipients.length}`,
-      );
     }
   }
-}

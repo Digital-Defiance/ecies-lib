@@ -4,19 +4,26 @@
 
 import { PluginI18nEngine } from '@digitaldefiance/i18n-lib';
 import { IECIESConstants } from '../interfaces/ecies-consts';
+import { IECIESConfig } from '../interfaces/ecies-config';
 import { Constants } from '../constants';
-import { getEciesI18nEngine } from '../i18n-setup';
+import { ECIESService } from '../services/ecies/service';
 
 export class ECIESBuilder {
-  private config: Partial<IECIESConstants> = {};
+  private serviceConfig: Partial<IECIESConfig> = {};
+  private eciesConsts: Partial<IECIESConstants> = {};
   private i18n?: PluginI18nEngine<string>;
 
   static create(): ECIESBuilder {
     return new ECIESBuilder();
   }
 
-  withConfig(config: Partial<IECIESConstants>): this {
-    this.config = { ...this.config, ...config };
+  withServiceConfig(config: Partial<IECIESConfig>): this {
+    this.serviceConfig = { ...this.serviceConfig, ...config };
+    return this;
+  }
+
+  withConstants(constants: Partial<IECIESConstants>): this {
+    this.eciesConsts = { ...this.eciesConsts, ...constants };
     return this;
   }
 
@@ -25,12 +32,8 @@ export class ECIESBuilder {
     return this;
   }
 
-  build(): any {
-    // Will return ECIESService once migrated
-    const finalConfig = { ...Constants.ECIES, ...this.config };
-    const finalI18n = this.i18n || getEciesI18nEngine();
-    
-    // Placeholder - will import and instantiate ECIESService
-    throw new Error('ECIESService not yet migrated to v2');
+  build(): ECIESService {
+    const finalConstants = { ...Constants.ECIES, ...this.eciesConsts };
+    return new ECIESService(this.serviceConfig, finalConstants);
   }
 }

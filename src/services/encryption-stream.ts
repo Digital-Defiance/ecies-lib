@@ -10,6 +10,8 @@ import { ChunkProcessor } from './chunk-processor';
 import { ProgressTracker } from './progress-tracker';
 import { MultiRecipientProcessor } from './multi-recipient-processor';
 import { IMultiRecipientChunk } from '../interfaces/multi-recipient-chunk';
+import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { EciesStringKey } from '../enumerations';
 
 /**
  * Options for stream encryption
@@ -72,20 +74,21 @@ export class EncryptionStream {
    * Parse stream header
    */
   parseStreamHeader(data: Uint8Array): IStreamHeader {
+    const engine = getEciesI18nEngine();
     if (data.length < STREAM_HEADER_CONSTANTS.HEADER_SIZE) {
-      throw new Error('Data too short for stream header');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_DataTooShortForHeader));
     }
 
     const view = new DataView(data.buffer, data.byteOffset);
 
     const magic = view.getUint32(0, false);
     if (magic !== STREAM_HEADER_CONSTANTS.MAGIC) {
-      throw new Error('Invalid stream magic bytes');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidMagicBytes));
     }
 
     const version = view.getUint16(4, false);
     if (version !== STREAM_HEADER_CONSTANTS.VERSION) {
-      throw new Error('Unsupported stream version');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_UnsupportedVersion));
     }
 
     return {
@@ -107,9 +110,10 @@ export class EncryptionStream {
     publicKey: Uint8Array,
     options: IEncryptStreamOptions = {}
   ): AsyncGenerator<IEncryptedChunk, void, unknown> {
+    const engine = getEciesI18nEngine();
     // Validate public key (65 bytes uncompressed with 0x04 prefix)
     if (!publicKey || (publicKey.length !== 65 && publicKey.length !== 33)) {
-      throw new Error('Invalid public key: must be 33 (compressed) or 65 (uncompressed) bytes');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidPublicKeyLength));
     }
 
     const chunkSize = options.chunkSize ?? this.config.chunkSize;
@@ -127,12 +131,12 @@ export class EncryptionStream {
     for await (const data of source) {
       // Check for cancellation
       if (signal?.aborted) {
-        throw new DOMException('Encryption cancelled', 'AbortError');
+        throw new DOMException(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_EncryptionCancelled), 'AbortError');
       }
 
       // Prevent buffer exhaustion from single large source chunk
       if (data.length > maxSingleChunk) {
-        throw new Error(`Buffer overflow: source chunk exceeds ${maxSingleChunk} bytes`);
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_BufferOverflowTemplate, { max: maxSingleChunk }));
       }
 
       // Append to buffer
@@ -212,20 +216,21 @@ export class EncryptionStream {
     recipients: Array<{ id: Uint8Array; publicKey: Uint8Array }>,
     options: IEncryptStreamOptions = {}
   ): AsyncGenerator<IMultiRecipientChunk, void, unknown> {
+    const engine = getEciesI18nEngine();
     if (recipients.length === 0) {
-      throw new Error('At least one recipient required');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_AtLeastOneRecipientRequired));
     }
     if (recipients.length > 65535) {
-      throw new Error('Maximum 65535 recipients supported');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_MaxRecipientsExceeded));
     }
 
     // Validate all recipient public keys
     for (const recipient of recipients) {
       if (!recipient.publicKey || (recipient.publicKey.length !== 65 && recipient.publicKey.length !== 33)) {
-        throw new Error('Invalid recipient public key: must be 33 (compressed) or 65 (uncompressed) bytes');
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidRecipientPublicKeyLength));
       }
       if (!recipient.id || recipient.id.length !== 32) {
-        throw new Error('Invalid recipient ID: must be 32 bytes');
+        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidRecipientIdLength));
       }
     }
 
@@ -317,11 +322,12 @@ export class EncryptionStream {
     privateKey: Uint8Array,
     options: IDecryptStreamOptions = {}
   ): AsyncGenerator<Uint8Array, void, unknown> {
+    const engine = getEciesI18nEngine();
     if (!recipientId || recipientId.length !== 32) {
-      throw new Error('Invalid recipient ID: must be 32 bytes');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidRecipientIdMust32Bytes));
     }
     if (!privateKey || privateKey.length !== 32) {
-      throw new Error('Invalid private key: must be 32 bytes');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes));
     }
 
     const signal = options.signal;
@@ -335,7 +341,7 @@ export class EncryptionStream {
 
     for await (const chunkData of source) {
       if (signal?.aborted) {
-        throw new DOMException('Decryption cancelled', 'AbortError');
+        throw new DOMException(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_DecryptionCancelled), 'AbortError');
       }
 
       const { data, header } = await this.multiRecipientProcessor.decryptChunk(
@@ -346,7 +352,7 @@ export class EncryptionStream {
 
       if (header.chunkIndex !== expectedIndex) {
         throw new Error(
-          `Chunk sequence error: expected ${expectedIndex}, got ${header.chunkIndex}`
+          engine.translate(EciesComponentId, EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate, { expected: expectedIndex, actual: header.chunkIndex })
         );
       }
 
@@ -372,9 +378,10 @@ export class EncryptionStream {
     privateKey: Uint8Array,
     options: IDecryptStreamOptions = {}
   ): AsyncGenerator<Uint8Array, void, unknown> {
+    const engine = getEciesI18nEngine();
     // Validate private key
     if (!privateKey || privateKey.length !== 32) {
-      throw new Error('Invalid private key: must be 32 bytes');
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes));
     }
 
     const signal = options.signal;
@@ -389,7 +396,7 @@ export class EncryptionStream {
     for await (const chunkData of source) {
       // Check for cancellation
       if (signal?.aborted) {
-        throw new DOMException('Decryption cancelled', 'AbortError');
+        throw new DOMException(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_DecryptionCancelled), 'AbortError');
       }
 
       const { data, header } = await this.processor.decryptChunk(
@@ -400,7 +407,7 @@ export class EncryptionStream {
       // Validate sequence
       if (header.index !== expectedIndex) {
         throw new Error(
-          `Chunk sequence error: expected ${expectedIndex}, got ${header.index}`
+          engine.translate(EciesComponentId, EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate, { expected: expectedIndex, actual: header.index })
         );
       }
 

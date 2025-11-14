@@ -65,7 +65,7 @@ export class PasswordLoginService {
     // now use the public key to encrypt the mnemonic and store it
     const encryptedMnemonic = await this.eciesService.encrypt(
       EciesEncryptionTypeEnum.Simple,
-      [{ publicKey: wallet.getPublicKey() }],
+      wallet.getPublicKey(),
       mnemonic.valueAsUint8Array,
     );
 

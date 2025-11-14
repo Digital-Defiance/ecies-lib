@@ -214,7 +214,7 @@ describe('PasswordLoginService', () => {
       // Verify mnemonic encryption
       expect(mockEciesService.encrypt).toHaveBeenCalledWith(
         EciesEncryptionTypeEnum.Simple,
-        [{ publicKey: mockWallet.getPublicKey() }],
+        mockWallet.getPublicKey(),
         mockMnemonic.valueAsUint8Array,
       );
 

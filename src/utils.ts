@@ -1,7 +1,8 @@
 import { LengthEncodingType } from './enumerations/length-encoding-type';
 import { LengthErrorType } from './enumerations/length-error-type';
 import { LengthError } from './errors';
-import { getEciesI18nEngine } from './i18n-setup';
+import { getEciesI18nEngine, EciesComponentId } from './i18n-setup';
+import { EciesStringKey } from './enumerations/ecies-string-key';
 
 /**
  * Encodes the length of the data in the buffer
@@ -128,14 +129,15 @@ export function uint8ArrayToHex(uint8Array: Uint8Array): string {
 }
 
 export function hexToUint8Array(hexString: string): Uint8Array {
+  const engine = getEciesI18nEngine();
   if (!hexString || typeof hexString !== 'string') {
-    throw new Error('Invalid hex string');
+    throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Utils_InvalidHexString));
   }
   if (hexString.length % 2 !== 0) {
-    throw new Error('Hex string must have even length');
+    throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Utils_HexStringMustHaveEvenLength));
   }
   if (!/^[0-9a-fA-F]*$/.test(hexString)) {
-    throw new Error('Hex string contains invalid characters');
+    throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Utils_HexStringContainsInvalidCharacters));
   }
   const len = hexString.length;
   const bytes = new Uint8Array(len / 2);
@@ -295,11 +297,12 @@ export function getLengthEncodingTypeFromValue<
  * @returns The number value
  */
 export function safeBigIntToNumber(value: bigint): number {
+  const engine = getEciesI18nEngine();
   if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
-    throw new Error('Value exceeds safe integer range');
+    throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Utils_ValueExceedsSafeIntegerRange));
   }
   if (value < BigInt(Number.MIN_SAFE_INTEGER)) {
-    throw new Error('Value below safe integer range');
+    throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Utils_ValueBelowSafeIntegerRange));
   }
   return Number(value);
 }
