@@ -1,6 +1,6 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Digital Defiance ECIES Library",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -54,6 +54,6 @@
     "ts-brand": "^0.2.0"
   },
   "devDependencies": {
-    "@digitaldefiance/express-suite-test-utils": "1.0.9"
+    "@digitaldefiance/express-suite-test-utils": "1.0.10"
   }
 }

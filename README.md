@@ -712,6 +712,10 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+### v3.0.2
+
+- Update test-utils
+
 ### v3.0.1
 
 - Fix strings mainly
