@@ -17,6 +17,22 @@ export abstract class AESGCMService {
     authTag: boolean = false,
     eciesParams: IECIESConstants = Constants.ECIES,
   ): Promise<{ encrypted: Uint8Array; iv: Uint8Array; tag?: Uint8Array }> {
+    // Validate key length (AES supports 16, 24, or 32 bytes)
+    if (!key || (key.length !== 16 && key.length !== 24 && key.length !== 32)) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidAESKeyLength));
+    }
+
+    // Validate data exists (empty data is allowed for AES-GCM)
+    if (!data) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_CannotEncryptEmptyData));
+    }
+    if (data.length > eciesParams.MAX_RAW_DATA_SIZE) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate, { messageLength: data.length }));
+    }
+
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
       new Uint8Array(key),
@@ -143,6 +159,25 @@ export abstract class AESGCMService {
     eciesParams: IECIESConstants = Constants.ECIES,
   ): Promise<Uint8Array> {
     const eciesConsts = eciesParams;
+
+    // Validate key length
+    if (!key || (key.length !== 16 && key.length !== 24 && key.length !== 32)) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidAESKeyLength));
+    }
+
+    // Validate IV
+    if (!iv || iv.length !== eciesConsts.IV_SIZE) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidIV));
+    }
+
+    // Validate encrypted data exists (empty encrypted data is allowed)
+    if (!encryptedData) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_CannotDecryptEmptyData));
+    }
+
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
       new Uint8Array(key),

@@ -45,25 +45,40 @@ export class EciesCryptoCore {
     }
 
     const keyLength = publicKey.length;
+    let normalizedKey: Uint8Array;
 
     // Already in correct format (65 bytes with 0x04 prefix)
     if (
       keyLength === this._eciesConsts.PUBLIC_KEY_LENGTH &&
       publicKey[0] === this._eciesConsts.PUBLIC_KEY_MAGIC
     ) {
-      return publicKey;
+      normalizedKey = publicKey;
     }
-
     // Raw key without prefix (64 bytes) - add the 0x04 prefix
-    if (keyLength === this._eciesConsts.RAW_PUBLIC_KEY_LENGTH) {
-      const result = new Uint8Array(this._eciesConsts.PUBLIC_KEY_LENGTH);
-      result[0] = this._eciesConsts.PUBLIC_KEY_MAGIC;
-      result.set(publicKey, 1);
-      return result;
+    else if (keyLength === this._eciesConsts.RAW_PUBLIC_KEY_LENGTH) {
+      normalizedKey = new Uint8Array(this._eciesConsts.PUBLIC_KEY_LENGTH);
+      normalizedKey[0] = this._eciesConsts.PUBLIC_KEY_MAGIC;
+      normalizedKey.set(publicKey, 1);
+    }
+    else {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate, { keyLength }));
     }
 
-    const engine = getEciesI18nEngine();
-    throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate, { keyLength }));
+    // Basic validation: check it's not all zeros
+    let allZeros = true;
+    for (let i = 1; i < normalizedKey.length; i++) { // Skip first byte (0x04 prefix)
+      if (normalizedKey[i] !== 0) {
+        allZeros = false;
+        break;
+      }
+    }
+    if (allZeros) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidPublicKeyNotOnCurve));
+    }
+
+    return normalizedKey;
   }
 
   /**

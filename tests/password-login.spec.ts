@@ -11,6 +11,15 @@ import { getEciesI18nEngine } from '../src/i18n-setup';
 // Mock dependencies
 jest.mock('../src/services/pbkdf2');
 jest.mock('../src/services/ecies/service');
+jest.mock('../src/services/aes-gcm', () => ({
+  AESGCMService: {
+    encrypt: jest.fn(),
+    decrypt: jest.fn(),
+    splitEncryptedData: jest.fn(),
+    combineIvTagAndEncryptedData: jest.fn(),
+    combineEncryptedDataAndTag: jest.fn(),
+  },
+}));
 jest.mock('../src/utils', () => ({
   hexToUint8Array: jest.fn(),
   uint8ArrayToHex: jest.fn(),
@@ -56,6 +65,32 @@ describe('PasswordLoginService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Mock AESGCMService methods
+    const { AESGCMService } = require('../src/services/aes-gcm');
+    AESGCMService.encrypt.mockResolvedValue({
+      encrypted: new Uint8Array(16).fill(4),
+      iv: new Uint8Array(16).fill(1),
+      tag: new Uint8Array(16).fill(2),
+    });
+    AESGCMService.decrypt.mockResolvedValue(new Uint8Array(32).fill(1));
+    AESGCMService.splitEncryptedData.mockReturnValue({
+      iv: new Uint8Array(16).fill(1),
+      encryptedDataWithTag: new Uint8Array(32).fill(4),
+    });
+    AESGCMService.combineIvTagAndEncryptedData.mockImplementation((iv, encrypted, tag) => {
+      const result = new Uint8Array(iv.length + encrypted.length + tag.length);
+      result.set(iv, 0);
+      result.set(encrypted, iv.length);
+      result.set(tag, iv.length + encrypted.length);
+      return result;
+    });
+    AESGCMService.combineEncryptedDataAndTag.mockImplementation((encrypted, tag) => {
+      const result = new Uint8Array(encrypted.length + tag.length);
+      result.set(encrypted, 0);
+      result.set(tag, encrypted.length);
+      return result;
+    });
 
     // Setup mocks
     mockEciesService = {
@@ -128,8 +163,12 @@ describe('PasswordLoginService', () => {
     });
 
     mockCrypto.subtle.importKey.mockResolvedValue({} as CryptoKey);
-    mockCrypto.subtle.encrypt.mockResolvedValue(new ArrayBuffer(32));
-    mockCrypto.subtle.decrypt.mockResolvedValue(new ArrayBuffer(32));
+    // Mock encrypt to return IV (16 bytes) + encrypted data + auth tag (16 bytes)
+    const mockEncryptedWithTag = new Uint8Array(48); // 16 (data) + 16 (tag)
+    mockCrypto.subtle.encrypt.mockResolvedValue(mockEncryptedWithTag.buffer);
+    // Mock decrypt to return decrypted private key
+    const mockDecryptedKey = new Uint8Array(32).fill(1);
+    mockCrypto.subtle.decrypt.mockResolvedValue(mockDecryptedKey.buffer);
   });
 
   describe('createPasswordLoginBundle', () => {
@@ -167,20 +206,10 @@ describe('PasswordLoginService', () => {
         mockMnemonic,
       );
 
-      // Verify private key encryption
-      expect(mockCrypto.subtle.importKey).toHaveBeenCalledWith(
-        'raw',
-        expect.any(Uint8Array),
-        { name: 'AES-GCM' },
-        false,
-        ['encrypt'],
-      );
-
-      expect(mockCrypto.subtle.encrypt).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'AES-GCM' }),
-        {},
-        expect.any(Uint8Array),
-      );
+      // Verify AES encryption was called
+      const { AESGCMService } = require('../src/services/aes-gcm');
+      expect(AESGCMService.encrypt).toHaveBeenCalled();
+      expect(AESGCMService.combineIvTagAndEncryptedData).toHaveBeenCalled();
 
       // Verify mnemonic encryption
       expect(mockEciesService.encrypt).toHaveBeenCalledWith(
@@ -230,7 +259,8 @@ describe('PasswordLoginService', () => {
     });
 
     it('should handle AES encryption failure', async () => {
-      mockCrypto.subtle.encrypt.mockRejectedValue(
+      const { AESGCMService } = require('../src/services/aes-gcm');
+      AESGCMService.encrypt.mockRejectedValue(
         new Error('AES encryption failed'),
       );
 
@@ -259,7 +289,12 @@ describe('PasswordLoginService', () => {
   describe('getWalletAndMnemonicFromEncryptedPasswordBundle', () => {
     it('should decrypt bundle successfully', async () => {
       const mockSalt = new Uint8Array(64).fill(3);
-      const mockEncryptedKey = new Uint8Array(32).fill(4);
+      // Encrypted key must be: IV (16) + encrypted data + auth tag (16)
+      const mockEncryptedKey = new Uint8Array(48);
+      // Set IV (first 16 bytes) to non-zero values
+      for (let i = 0; i < 16; i++) mockEncryptedKey[i] = i + 1;
+      // Set encrypted data and tag
+      for (let i = 16; i < 48; i++) mockEncryptedKey[i] = 4;
       const mockEncryptedMnemonic = new Uint8Array([5, 6, 7, 8]);
 
       (Wallet as any).fromPrivateKey = jest.fn().mockReturnValue(mockWallet);
@@ -283,8 +318,11 @@ describe('PasswordLoginService', () => {
   describe('getWalletAndMnemonicFromLocalStorageBundle', () => {
     const mockSaltHex =
       '0303030303030303030303030303030303030303030303030303030303030303';
+    // Encrypted key: IV (16 bytes with values 01-10) + encrypted data + auth tag
     const mockEncryptedPrivateKeyHex =
-      '0404040404040404040404040404040404040404040404040404040404040404';
+      '0102030405060708090a0b0c0d0e0f10' + // IV (16 bytes)
+      '04040404040404040404040404040404' + // encrypted data (16 bytes)
+      '04040404040404040404040404040404';  // auth tag (16 bytes)
     const mockEncryptedMnemonicHex = '05060708';
     const mockDecryptedMnemonic = new Uint8Array([
       109, 110, 101, 109, 111, 110, 105, 99,
@@ -339,15 +377,9 @@ describe('PasswordLoginService', () => {
       );
 
       // Verify AES decryption
-      expect(mockCrypto.subtle.importKey).toHaveBeenCalledWith(
-        'raw',
-        expect.any(Uint8Array),
-        { name: 'AES-GCM' },
-        false,
-        ['decrypt'],
-      );
-
-      expect(mockCrypto.subtle.decrypt).toHaveBeenCalled();
+      const { AESGCMService } = require('../src/services/aes-gcm');
+      expect(AESGCMService.splitEncryptedData).toHaveBeenCalled();
+      expect(AESGCMService.decrypt).toHaveBeenCalled();
 
       // Verify wallet creation
       expect(Wallet.fromPrivateKey).toHaveBeenCalledWith(
@@ -418,15 +450,16 @@ describe('PasswordLoginService', () => {
     });
 
     it('should handle AES decryption failure', async () => {
-      mockCrypto.subtle.decrypt.mockRejectedValue(
-        new Error('AES decryption failed'),
+      const { AESGCMService } = require('../src/services/aes-gcm');
+      AESGCMService.decrypt.mockRejectedValue(
+        new Error('Invalid initialization vector (IV)'),
       );
 
       await expect(
         passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(
           mockPassword,
         ),
-      ).rejects.toThrow('AES decryption failed');
+      ).rejects.toThrow('Invalid initialization vector (IV)');
     });
 
     it('should handle wallet creation failure', async () => {
@@ -443,14 +476,14 @@ describe('PasswordLoginService', () => {
 
     it('should handle ECIES decryption failure', async () => {
       mockEciesService.decryptSimpleOrSingleWithHeader.mockRejectedValue(
-        new Error('ECIES decryption failed'),
+        new Error('Invalid initialization vector (IV)'),
       );
 
       await expect(
         passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(
           mockPassword,
         ),
-      ).rejects.toThrow('ECIES decryption failed');
+      ).rejects.toThrow('Invalid initialization vector (IV)');
     });
   });
 

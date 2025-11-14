@@ -6,6 +6,8 @@ import { SecureBuffer } from '../secure-buffer';
 import { SecureString } from '../secure-string';
 import { SignatureUint8Array } from '../types';
 import { IECIESConstants } from './ecies-consts';
+import { IEncryptedChunk } from './encrypted-chunk';
+import { ProgressCallback } from './stream-progress';
 
 /**
  * Operational interface for member - defines getters and methods
@@ -35,10 +37,28 @@ export interface IFrontendMemberOperational<
   // Methods
   sign(data: TData): TSignature;
   verify(signature: TSignature, data: TData): boolean;
-  encryptData(data: string | TData): Promise<TData>;
+  encryptData(data: string | TData, recipientPublicKey?: Uint8Array): Promise<TData>;
   decryptData(encryptedData: TData): Promise<TData>;
   toJson(): string;
   dispose(): void;
+
+  // Streaming methods
+  encryptDataStream(
+    source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
+    options?: {
+      recipientPublicKey?: Uint8Array;
+      onProgress?: ProgressCallback;
+      signal?: AbortSignal;
+    }
+  ): AsyncGenerator<IEncryptedChunk, void, unknown>;
+
+  decryptDataStream(
+    source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
+    options?: {
+      onProgress?: ProgressCallback;
+      signal?: AbortSignal;
+    }
+  ): AsyncGenerator<Uint8Array, void, unknown>;
 
   // Private key management
   loadWallet(mnemonic: SecureString, eciesParams?: IECIESConstants): void;

@@ -75,6 +75,13 @@ export class EciesSingleRecipient {
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption));
     }
 
+    // Validate encrypted size is reasonable
+    const maxEncryptedSize = message.length + 1024; // Allow overhead for encryption
+    if (encrypted.length > maxEncryptedSize) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_EncryptedSizeExceedsExpected));
+    }
+
     // Add length prefix for single mode
     const lengthArray =
       encryptionType === 'simple' ? new Uint8Array(0) : new Uint8Array(8);
@@ -209,6 +216,12 @@ export class EciesSingleRecipient {
         )
       : options?.dataLength ?? -1;
 
+    // Validate data length is reasonable
+    if (includeLengthAndCrc && (dataLength < 0 || dataLength > this.eciesConsts.MAX_RAW_DATA_SIZE)) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidDataLength));
+    }
+
     if (
       includeLengthAndCrc &&
       options?.dataLength !== undefined &&
@@ -307,7 +320,38 @@ export class EciesSingleRecipient {
     authTag: Uint8Array,
     encrypted: Uint8Array,
   ): Promise<Uint8Array> {
-    // Normalize ephemeral public key
+    // Validate private key
+    if (!privateKey || privateKey.length !== 32) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidPrivateKey));
+    }
+    
+    // Check for all-zero private key
+    let allZeros = true;
+    for (let i = 0; i < privateKey.length; i++) {
+      if (privateKey[i] !== 0) {
+        allZeros = false;
+        break;
+      }
+    }
+    if (allZeros) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidPrivateKey));
+    }
+
+    // Validate IV
+    if (!iv || iv.length !== this.eciesConsts.IV_SIZE) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidIV));
+    }
+
+    // Validate auth tag
+    if (!authTag || authTag.length !== this.eciesConsts.AUTH_TAG_SIZE) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidAuthTag));
+    }
+
+    // Normalize ephemeral public key (this validates it's a valid key)
     const normalizedEphemeralKey =
       this.cryptoCore.normalizePublicKey(ephemeralPublicKey);
 
@@ -316,6 +360,19 @@ export class EciesSingleRecipient {
       privateKey,
       normalizedEphemeralKey,
     );
+
+    // Validate shared secret is not all zeros
+    let sharedSecretAllZeros = true;
+    for (let i = 0; i < sharedSecret.length; i++) {
+      if (sharedSecret[i] !== 0) {
+        sharedSecretAllZeros = false;
+        break;
+      }
+    }
+    if (sharedSecretAllZeros) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidSharedSecret));
+    }
 
     // Use first 32 bytes as symmetric key
     const symKey = sharedSecret.slice(0, this.eciesConsts.SYMMETRIC.KEY_SIZE);
@@ -332,9 +389,12 @@ export class EciesSingleRecipient {
 
   private arraysEqual(a: Uint8Array, b: Uint8Array): boolean {
     if (a.length !== b.length) return false;
+    
+    // Constant-time comparison to prevent timing attacks
+    let diff = 0;
     for (let i = 0; i < a.length; i++) {
-      if (a[i] !== b[i]) return false;
+      diff |= a[i] ^ b[i];
     }
-    return true;
+    return diff === 0;
   }
 }

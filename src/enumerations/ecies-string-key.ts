@@ -12,6 +12,11 @@ export enum EciesStringKey {
   Error_ECIESError_InvalidAuthTagLength = 'Error_ECIESError_InvalidAuthTagLength',
   Error_ECIESError_InvalidHeaderLength = 'Error_ECIESError_InvalidHeaderLength',
   Error_ECIESError_InvalidDataLength = 'Error_ECIESError_InvalidDataLength',
+  Error_ECIESError_InvalidPrivateKey = 'Error_ECIESError_InvalidPrivateKey',
+  Error_ECIESError_InvalidIV = 'Error_ECIESError_InvalidIV',
+  Error_ECIESError_InvalidAuthTag = 'Error_ECIESError_InvalidAuthTag',
+  Error_ECIESError_InvalidSharedSecret = 'Error_ECIESError_InvalidSharedSecret',
+  Error_ECIESError_InvalidPublicKeyNotOnCurve = 'Error_ECIESError_InvalidPublicKeyNotOnCurve',
   Error_ECIESError_InvalidEncryptedDataLength = 'Error_ECIESError_InvalidEncryptedDataLength',
   Error_ECIESError_InvalidMessageCrc = 'Error_ECIESError_InvalidMessageCrc',
   Error_ECIESError_InvalidMnemonic = 'Error_ECIESError_InvalidMnemonic',
@@ -53,6 +58,10 @@ export enum EciesStringKey {
   Error_ECIESError_CombinedDataTooShortForComponents = 'Error_ECIESError_CombinedDataTooShortForComponents',
   Error_ECIESError_InvalidChecksumConstants = 'Error_ECIESError_InvalidChecksumConstants',
   Error_ECIESError_CannotOverwriteDefaultConfiguration = 'Error_ECIESError_CannotOverwriteDefaultConfiguration',
+  Error_ECIESError_InvalidAESKeyLength = 'Error_ECIESError_InvalidAESKeyLength',
+  Error_ECIESError_CannotEncryptEmptyData = 'Error_ECIESError_CannotEncryptEmptyData',
+  Error_ECIESError_CannotDecryptEmptyData = 'Error_ECIESError_CannotDecryptEmptyData',
+  Error_ECIESError_EncryptedSizeExceedsExpected = 'Error_ECIESError_EncryptedSizeExceedsExpected',
 
   // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
   Error_MemberError_MissingMemberName = 'Error_MemberError_MissingMemberName',

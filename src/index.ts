@@ -47,11 +47,26 @@ export * from './enumerations';
 export * from './errors';
 export * from './i18n-setup';
 export * from './interfaces';
+export * from './interfaces/stream-config';
+export * from './interfaces/encrypted-chunk';
+export * from './interfaces/stream-progress';
+export * from './interfaces/stream-header';
 export * from './member';
 export * from './pbkdf2-profiles';
 export * from './phone-number';
 export * from './secure-buffer';
 export * from './secure-string';
 export * from './services';
+export { ChunkProcessor } from './services/chunk-processor';
+export { EncryptionStream } from './services/encryption-stream';
+export { ProgressTracker } from './services/progress-tracker';
+export { ResumableEncryption } from './services/resumable-encryption';
+export type {
+  IEncryptStreamOptions,
+  IDecryptStreamOptions,
+} from './services/encryption-stream';
+export type { IResumableOptions } from './services/resumable-encryption';
+export type { IEncryptionState } from './interfaces/encryption-state';
+export { ENCRYPTION_STATE_VERSION } from './interfaces/encryption-state';
 export * from './types';
 export * from './utils';

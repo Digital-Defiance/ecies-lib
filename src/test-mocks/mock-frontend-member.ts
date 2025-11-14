@@ -140,6 +140,73 @@ export class MockFrontendMember
     return new TextEncoder().encode(text);
   }
 
+  async *encryptDataStream(
+    source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
+    options?: {
+      recipientPublicKey?: Uint8Array;
+      onProgress?: (progress: { bytesProcessed: number; chunksProcessed: number }) => void;
+      signal?: AbortSignal;
+    }
+  ): AsyncGenerator<import('../interfaces/encrypted-chunk').IEncryptedChunk, void, unknown> {
+    // Mock implementation
+    const chunks = [];
+    if ('getReader' in source) {
+      const reader = (source as ReadableStream<Uint8Array>).getReader();
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+        }
+      } finally {
+        reader.releaseLock();
+      }
+    } else {
+      for await (const chunk of source as AsyncIterable<Uint8Array>) {
+        chunks.push(chunk);
+      }
+    }
+    let index = 0;
+    for (const chunk of chunks) {
+      yield {
+        index: index++,
+        data: hexToUint8Array(faker.string.hexadecimal({ length: chunk.length * 2 })),
+        isLast: index === chunks.length,
+        metadata: {
+          originalSize: chunk.length,
+          encryptedSize: chunk.length * 2,
+          timestamp: Date.now(),
+        },
+      };
+    }
+  }
+
+  async *decryptDataStream(
+    source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
+    options?: {
+      onProgress?: (progress: { bytesProcessed: number; chunksProcessed: number }) => void;
+      signal?: AbortSignal;
+    }
+  ): AsyncGenerator<Uint8Array, void, unknown> {
+    // Mock implementation
+    if ('getReader' in source) {
+      const reader = (source as ReadableStream<Uint8Array>).getReader();
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          yield value;
+        }
+      } finally {
+        reader.releaseLock();
+      }
+    } else {
+      for await (const chunk of source as AsyncIterable<Uint8Array>) {
+        yield chunk;
+      }
+    }
+  }
+
   toJson(): string {
     return JSON.stringify({
       id: this._id.toString(),

@@ -6,9 +6,11 @@ import MemberErrorType from './enumerations/member-error-type';
 import MemberType from './enumerations/member-type';
 import { MemberError } from './errors/member';
 import { getEciesI18nEngine } from './i18n-setup';
+import { EncryptionStream } from './services/encryption-stream';
 import { IFrontendMemberOperational } from './interfaces/frontend-member-operational';
 import { IMemberStorageData } from './interfaces/member-storage';
 import { IMemberWithMnemonic } from './interfaces/member-with-mnemonic';
+import { IEncryptedChunk } from './interfaces/encrypted-chunk';
 import { SecureBuffer } from './secure-buffer';
 import { SecureString } from './secure-string';
 import { ECIESService } from './services/ecies/service';
@@ -228,6 +230,110 @@ export class Member implements IFrontendMemberOperational {
 
   private static readonly MAX_ENCRYPTION_SIZE = 1024 * 1024 * 10; // 10MB limit
   private static readonly VALID_STRING_REGEX = /^[\x20-\x7E\n\r\t]*$/; // Printable ASCII + common whitespace
+
+  /**
+   * Encrypt data stream (for large data)
+   */
+  async *encryptDataStream(
+    source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
+    options?: {
+      recipientPublicKey?: Uint8Array;
+      onProgress?: (progress: { bytesProcessed: number; chunksProcessed: number }) => void;
+      signal?: AbortSignal;
+    }
+  ): AsyncGenerator<IEncryptedChunk, void, unknown> {
+    if (!this._privateKey && !options?.recipientPublicKey) {
+      throw new MemberError(
+        MemberErrorType.MissingPrivateKey,
+        getEciesI18nEngine() as any,
+      );
+    }
+
+    const targetPublicKey = options?.recipientPublicKey || this._publicKey;
+    const stream = new EncryptionStream(this._eciesService);
+
+    // Convert ReadableStream to AsyncIterable if needed
+    const asyncSource = 'getReader' in source
+      ? this.readableStreamToAsyncIterable(source as ReadableStream<Uint8Array>)
+      : source as AsyncIterable<Uint8Array>;
+
+    let bytesProcessed = 0;
+    let chunksProcessed = 0;
+
+    for await (const chunk of stream.encryptStream(asyncSource, targetPublicKey, {
+      signal: options?.signal,
+    })) {
+      bytesProcessed += chunk.metadata?.originalSize || 0;
+      chunksProcessed++;
+      
+      if (options?.onProgress) {
+        options.onProgress({ bytesProcessed, chunksProcessed });
+      }
+
+      yield chunk;
+    }
+  }
+
+  /**
+   * Decrypt data stream (for large data)
+   */
+  async *decryptDataStream(
+    source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
+    options?: {
+      onProgress?: (progress: { bytesProcessed: number; chunksProcessed: number }) => void;
+      signal?: AbortSignal;
+    }
+  ): AsyncGenerator<Uint8Array, void, unknown> {
+    if (!this._privateKey) {
+      throw new MemberError(
+        MemberErrorType.MissingPrivateKey,
+        getEciesI18nEngine() as any,
+      );
+    }
+
+    const stream = new EncryptionStream(this._eciesService);
+
+    // Convert ReadableStream to AsyncIterable if needed
+    const asyncSource = 'getReader' in source
+      ? this.readableStreamToAsyncIterable(source as ReadableStream<Uint8Array>)
+      : source as AsyncIterable<Uint8Array>;
+
+    let bytesProcessed = 0;
+    let chunksProcessed = 0;
+
+    for await (const chunk of stream.decryptStream(
+      asyncSource,
+      new Uint8Array(this._privateKey.value),
+      { signal: options?.signal }
+    )) {
+      bytesProcessed += chunk.length;
+      chunksProcessed++;
+      
+      if (options?.onProgress) {
+        options.onProgress({ bytesProcessed, chunksProcessed });
+      }
+
+      yield chunk;
+    }
+  }
+
+  /**
+   * Convert ReadableStream to AsyncIterable
+   */
+  private async *readableStreamToAsyncIterable(
+    stream: ReadableStream<Uint8Array>
+  ): AsyncIterable<Uint8Array> {
+    const reader = stream.getReader();
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        yield value;
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  }
 
   public async encryptData(
     data: string | Uint8Array,

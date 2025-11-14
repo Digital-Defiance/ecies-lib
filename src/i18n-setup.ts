@@ -45,6 +45,11 @@ export function createEciesComponentConfig(): ComponentConfig {
     [EciesStringKey.Error_ECIESError_InvalidHeaderLength]:
       'Invalid header length',
     [EciesStringKey.Error_ECIESError_InvalidDataLength]: 'Invalid data length',
+    [EciesStringKey.Error_ECIESError_InvalidPrivateKey]: 'Invalid private key',
+    [EciesStringKey.Error_ECIESError_InvalidIV]: 'Invalid initialization vector (IV)',
+    [EciesStringKey.Error_ECIESError_InvalidAuthTag]: 'Invalid authentication tag',
+    [EciesStringKey.Error_ECIESError_InvalidSharedSecret]: 'Invalid shared secret',
+    [EciesStringKey.Error_ECIESError_InvalidPublicKeyNotOnCurve]: 'Invalid public key: not on curve',
     [EciesStringKey.Error_ECIESError_InvalidEncryptedDataLength]:
       'Invalid encrypted data length',
     [EciesStringKey.Error_ECIESError_InvalidMessageCrc]: 'Invalid message CRC',
@@ -101,6 +106,10 @@ export function createEciesComponentConfig(): ComponentConfig {
     [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Combined data is too short to contain required components',
     [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: 'Invalid checksum constants',
     [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: 'Cannot overwrite the default configuration',
+    [EciesStringKey.Error_ECIESError_InvalidAESKeyLength]: 'Invalid AES key length: must be 16, 24, or 32 bytes',
+    [EciesStringKey.Error_ECIESError_CannotEncryptEmptyData]: 'Cannot encrypt empty data',
+    [EciesStringKey.Error_ECIESError_CannotDecryptEmptyData]: 'Cannot decrypt empty data',
+    [EciesStringKey.Error_ECIESError_EncryptedSizeExceedsExpected]: 'Encrypted size exceeds expected maximum',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:
@@ -196,6 +205,15 @@ export function createEciesComponentConfig(): ComponentConfig {
       'Longueur d’en-tête invalide',
     [EciesStringKey.Error_ECIESError_InvalidDataLength]:
       'Longueur de données invalide',
+    [EciesStringKey.Error_ECIESError_InvalidPrivateKey]: 'Clé privée invalide',
+    [EciesStringKey.Error_ECIESError_InvalidIV]: 'Vecteur d\'initialisation (IV) invalide',
+    [EciesStringKey.Error_ECIESError_InvalidAuthTag]: 'Balise d\'authentification invalide',
+    [EciesStringKey.Error_ECIESError_InvalidSharedSecret]: 'Secret partagé invalide',
+    [EciesStringKey.Error_ECIESError_InvalidPublicKeyNotOnCurve]: 'Clé publique invalide : pas sur la courbe',
+    [EciesStringKey.Error_ECIESError_InvalidAESKeyLength]: 'Longueur de clé AES invalide : doit être 16, 24 ou 32 octets',
+    [EciesStringKey.Error_ECIESError_CannotEncryptEmptyData]: 'Impossible de chiffrer des données vides',
+    [EciesStringKey.Error_ECIESError_CannotDecryptEmptyData]: 'Impossible de déchiffrer des données vides',
+    [EciesStringKey.Error_ECIESError_EncryptedSizeExceedsExpected]: 'La taille chiffrée dépasse le maximum attendu',
     [EciesStringKey.Error_ECIESError_InvalidEncryptedDataLength]:
       'Longueur de données chiffrées invalide',
     [EciesStringKey.Error_ECIESError_InvalidMessageCrc]:
@@ -351,6 +369,16 @@ export function createEciesComponentConfig(): ComponentConfig {
     [EciesStringKey.Error_ECIESError_InvalidAuthTagLength]: '认证标签长度无效',
     [EciesStringKey.Error_ECIESError_InvalidHeaderLength]: '头部长度无效',
     [EciesStringKey.Error_ECIESError_InvalidDataLength]: '数据长度无效',
+    [EciesStringKey.Error_ECIESError_InvalidPrivateKey]: '私钥无效',
+    [EciesStringKey.Error_ECIESError_InvalidIV]: '初始化向量 (IV) 无效',
+    [EciesStringKey.Error_ECIESError_InvalidAuthTag]: '认证标签无效',
+    [EciesStringKey.Error_ECIESError_InvalidSharedSecret]: '共享密钥无效',
+    [EciesStringKey.Error_ECIESError_InvalidPublicKeyNotOnCurve]: '公钥无效：不在曲线上',
+    [EciesStringKey.Error_ECIESError_InvalidAESKeyLength]: 'AES 密钥长度无效：必须为 16、24 或 32 字节',
+    [EciesStringKey.Error_ECIESError_CannotEncryptEmptyData]: '无法加密空数据',
+    [EciesStringKey.Error_ECIESError_CannotDecryptEmptyData]: '无法解密空数据',
+    [EciesStringKey.Error_ECIESError_EncryptedSizeExceedsExpected]: '加密大小超过预期最大值',
+
     [EciesStringKey.Error_ECIESError_InvalidEncryptedDataLength]:
       '加密数据长度无效',
     [EciesStringKey.Error_ECIESError_InvalidMessageCrc]: '消息 CRC 无效',
@@ -480,6 +508,15 @@ export function createEciesComponentConfig(): ComponentConfig {
       'Longitud de encabezado no válida',
     [EciesStringKey.Error_ECIESError_InvalidDataLength]:
       'Longitud de datos no válida',
+    [EciesStringKey.Error_ECIESError_InvalidPrivateKey]: 'Clave privada no válida',
+    [EciesStringKey.Error_ECIESError_InvalidIV]: 'Vector de inicialización (IV) no válido',
+    [EciesStringKey.Error_ECIESError_InvalidAuthTag]: 'Etiqueta de autenticación no válida',
+    [EciesStringKey.Error_ECIESError_InvalidSharedSecret]: 'Secreto compartido no válido',
+    [EciesStringKey.Error_ECIESError_InvalidPublicKeyNotOnCurve]: 'Clave pública no válida: no está en la curva',
+    [EciesStringKey.Error_ECIESError_InvalidAESKeyLength]: 'Longitud de clave AES no válida: debe ser 16, 24 o 32 bytes',
+    [EciesStringKey.Error_ECIESError_CannotEncryptEmptyData]: 'No se pueden cifrar datos vacíos',
+    [EciesStringKey.Error_ECIESError_CannotDecryptEmptyData]: 'No se pueden descifrar datos vacíos',
+    [EciesStringKey.Error_ECIESError_EncryptedSizeExceedsExpected]: 'El tamaño cifrado excede el máximo esperado',
     [EciesStringKey.Error_ECIESError_InvalidEncryptedDataLength]:
       'Longitud de datos cifrados no válida',
     [EciesStringKey.Error_ECIESError_InvalidMessageCrc]:
@@ -639,6 +676,15 @@ export function createEciesComponentConfig(): ComponentConfig {
       'Недійсна довжина заголовка',
     [EciesStringKey.Error_ECIESError_InvalidDataLength]:
       'Недійсна довжина даних',
+    [EciesStringKey.Error_ECIESError_InvalidPrivateKey]: 'Недійсний приватний ключ',
+    [EciesStringKey.Error_ECIESError_InvalidIV]: 'Недійсний вектор ініціалізації (IV)',
+    [EciesStringKey.Error_ECIESError_InvalidAuthTag]: 'Недійсний тег автентифікації',
+    [EciesStringKey.Error_ECIESError_InvalidSharedSecret]: 'Недійсний спільний секрет',
+    [EciesStringKey.Error_ECIESError_InvalidPublicKeyNotOnCurve]: 'Недійсний відкритий ключ: не на кривій',
+    [EciesStringKey.Error_ECIESError_InvalidAESKeyLength]: 'Недійсна довжина ключа AES: має бути 16, 24 або 32 байти',
+    [EciesStringKey.Error_ECIESError_CannotEncryptEmptyData]: 'Неможливо зашифрувати порожні дані',
+    [EciesStringKey.Error_ECIESError_CannotDecryptEmptyData]: 'Неможливо розшифрувати порожні дані',
+    [EciesStringKey.Error_ECIESError_EncryptedSizeExceedsExpected]: 'Зашифрований розмір перевищує очікуваний максимум',
     [EciesStringKey.Error_ECIESError_InvalidEncryptedDataLength]:
       'Недійсна довжина зашифрованих даних',
     [EciesStringKey.Error_ECIESError_InvalidMessageCrc]:
@@ -797,6 +843,15 @@ export function createEciesComponentConfig(): ComponentConfig {
     [EciesStringKey.Error_ECIESError_InvalidHeaderLength]:
       'Ungültige Header-Länge',
     [EciesStringKey.Error_ECIESError_InvalidDataLength]: 'Ungültige Datenlänge',
+    [EciesStringKey.Error_ECIESError_InvalidPrivateKey]: 'Ungültiger privater Schlüssel',
+    [EciesStringKey.Error_ECIESError_InvalidIV]: 'Ungültiger Initialisierungsvektor (IV)',
+    [EciesStringKey.Error_ECIESError_InvalidAuthTag]: 'Ungültiges Authentifizierungstag',
+    [EciesStringKey.Error_ECIESError_InvalidSharedSecret]: 'Ungültiges gemeinsames Geheimnis',
+    [EciesStringKey.Error_ECIESError_InvalidPublicKeyNotOnCurve]: 'Ungültiger öffentlicher Schlüssel: nicht auf der Kurve',
+    [EciesStringKey.Error_ECIESError_InvalidAESKeyLength]: 'Ungültige AES-Schlüssellänge: muss 16, 24 oder 32 Bytes sein',
+    [EciesStringKey.Error_ECIESError_CannotEncryptEmptyData]: 'Leere Daten können nicht verschlüsselt werden',
+    [EciesStringKey.Error_ECIESError_CannotDecryptEmptyData]: 'Leere Daten können nicht entschlüsselt werden',
+    [EciesStringKey.Error_ECIESError_EncryptedSizeExceedsExpected]: 'Verschlüsselte Größe überschreitet das erwartete Maximum',
     [EciesStringKey.Error_ECIESError_InvalidEncryptedDataLength]:
       'Ungültige verschlüsselte Datenlänge',
     [EciesStringKey.Error_ECIESError_InvalidMessageCrc]: 'Ungültige Nachrichten-CRC',
@@ -947,6 +1002,15 @@ export function createEciesComponentConfig(): ComponentConfig {
     [EciesStringKey.Error_ECIESError_InvalidHeaderLength]:
       '無効なヘッダー長さ',
     [EciesStringKey.Error_ECIESError_InvalidDataLength]: '無効なデータ長さ',
+    [EciesStringKey.Error_ECIESError_InvalidPrivateKey]: '無効な秘密鍵',
+    [EciesStringKey.Error_ECIESError_InvalidIV]: '無効な初期化ベクトル (IV)',
+    [EciesStringKey.Error_ECIESError_InvalidAuthTag]: '無効な認証タグ',
+    [EciesStringKey.Error_ECIESError_InvalidSharedSecret]: '無効な共有秘密',
+    [EciesStringKey.Error_ECIESError_InvalidPublicKeyNotOnCurve]: '無効な公開鍵: 曲線上にありません',
+    [EciesStringKey.Error_ECIESError_InvalidAESKeyLength]: '無効なAES鍵の長さ: 16、24、または32バイトである必要があります',
+    [EciesStringKey.Error_ECIESError_CannotEncryptEmptyData]: '空のデータを暗号化できません',
+    [EciesStringKey.Error_ECIESError_CannotDecryptEmptyData]: '空のデータを復号化できません',
+    [EciesStringKey.Error_ECIESError_EncryptedSizeExceedsExpected]: '暗号化サイズが予想される最大値を超えています',
     [EciesStringKey.Error_ECIESError_InvalidEncryptedDataLength]:
       '無効な暗号化データ長さ',
     [EciesStringKey.Error_ECIESError_InvalidMessageCrc]: '無効なメッセージCRC',

@@ -1,3 +1,4 @@
+import { withConsoleMocks } from '@digitaldefiance/express-suite-test-utils';
 import { ECIESErrorTypeEnum } from '../src/enumerations/ecies-error-type';
 import MemberErrorType from '../src/enumerations/member-error-type';
 import { LengthErrorType } from '../src/enumerations/length-error-type';
@@ -67,20 +68,22 @@ describe('Error Coverage Validation', () => {
   });
 
   it('should validate total error count matches string key count', () => {
-    const totalErrors = 
-      Object.values(ECIESErrorTypeEnum).length +
-      Object.values(MemberErrorType).length +
-      Object.values(LengthErrorType).length +
-      Object.values(Pbkdf2ErrorType).length +
-      Object.values(SecureStorageErrorType).length;
-    
-    // Additional errors include template variants and utility error strings
-    const additionalErrors = 31;
-    const expectedStringKeys = totalErrors + additionalErrors;
-    
-    const totalStringKeys = Object.values(EciesStringKey).length;
-    
-    expect(totalStringKeys).toBe(expectedStringKeys, 
-      `Mismatch: ${totalErrors} error types + ${additionalErrors} additional errors = ${expectedStringKeys} expected, but got ${totalStringKeys} string keys`);
-  });
+    withConsoleMocks({ mute: true }, () => {
+        const totalErrors = 
+          Object.values(ECIESErrorTypeEnum).length +
+          Object.values(MemberErrorType).length +
+          Object.values(LengthErrorType).length +
+          Object.values(Pbkdf2ErrorType).length +
+          Object.values(SecureStorageErrorType).length;
+        
+        // Additional errors include template variants and utility error strings
+        const additionalErrors = 40;
+        const expectedStringKeys = totalErrors + additionalErrors;
+        
+        const totalStringKeys = Object.values(EciesStringKey).length;
+        
+        expect(totalStringKeys).toBe(expectedStringKeys, 
+          `Mismatch: ${totalErrors} error types + ${additionalErrors} additional errors = ${expectedStringKeys} expected, but got ${totalStringKeys} string keys`);
+      });
+    });
 });

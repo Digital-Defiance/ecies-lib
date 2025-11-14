@@ -32,6 +32,7 @@ describe('EciesCryptoCore', () => {
     it('should return the same key if it is already in the correct format', () => {
       const publicKey = new Uint8Array(ECIES.PUBLIC_KEY_LENGTH);
       publicKey[0] = ECIES.PUBLIC_KEY_MAGIC;
+      publicKey[1] = 1; // Make it non-zero to pass validation
       const normalized = cryptoCore.normalizePublicKey(publicKey);
       expect(normalized).toEqual(publicKey);
     });
