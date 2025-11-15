@@ -4,7 +4,8 @@ import { EciesStringKey } from '../enumerations/ecies-string-key';
 import { EciesComponentId } from '../i18n-setup';
 
 export class InvalidEmailError extends TypedHandleableError<typeof InvalidEmailErrorType, EciesStringKey> {
-  constructor(type: InvalidEmailErrorType, options?: HandleableErrorOptions, language?: string) {
+  public readonly email?: string;
+  constructor(type: InvalidEmailErrorType, email?: string, options?: HandleableErrorOptions, language?: string) {
     const source = options?.cause instanceof Error ? options.cause : new Error();
     super(
       EciesComponentId,
@@ -12,8 +13,11 @@ export class InvalidEmailError extends TypedHandleableError<typeof InvalidEmailE
       buildReasonMap<typeof InvalidEmailErrorType, EciesStringKey>(InvalidEmailErrorType, ['Error', 'InvalidEmailError']),
       source,
       { statusCode: 422, ...options },
-      language
+      language, {
+        email: email ?? ''
+      }
     );
+    this.email = email;
     this.name = 'InvalidEmailError';
   }
 }
