@@ -18,22 +18,21 @@ export class EmailString {
    */
   constructor(email: string) {
     const trimmedEmail = email.trim();
-    if (trimmedEmail.length == 0) {
+    if (trimmedEmail.length === 0) {
       throw new InvalidEmailError(
         InvalidEmailErrorType.Missing,
-        getEciesI18nEngine() as any,
       );
     }
     if (trimmedEmail.length != email.length) {
       throw new InvalidEmailError(
         InvalidEmailErrorType.Whitespace,
-        getEciesI18nEngine() as any,
+        email,
       );
     }
     if (!validator.isEmail(trimmedEmail)) {
       throw new InvalidEmailError(
         InvalidEmailErrorType.Invalid,
-        getEciesI18nEngine() as any,
+        email,
       );
     }
     this.email = trimmedEmail;

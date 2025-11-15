@@ -712,6 +712,14 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+### v3.0.4
+
+- Fix EmailString usage of InvalidEmailError
+
+### v3.0.3
+
+- Slight tweak to InvalidEmailError
+
 ### v3.0.2
 
 - Update test-utils
