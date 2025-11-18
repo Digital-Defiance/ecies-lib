@@ -712,6 +712,10 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+### v3.0.6
+
+- Update i18n
+
 ### v3.0.5
 
 - Update i18n
