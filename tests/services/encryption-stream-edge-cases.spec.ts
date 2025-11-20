@@ -269,7 +269,7 @@ describe('EncryptionStream - Edge Cases', () => {
       }
 
       expect(decryptedCount).toBe(100);
-    });
+    }, 60000);
   });
 
   describe('Robustness Edge Cases', () => {

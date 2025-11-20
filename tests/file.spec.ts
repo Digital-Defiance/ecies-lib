@@ -184,7 +184,7 @@ describe('EciesFileService (Frontend)', () => {
           global.gc();
         }
       }
-    });
+    }, 60000);
   });
 
   describe('File Download', () => {

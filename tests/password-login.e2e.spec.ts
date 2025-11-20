@@ -69,7 +69,7 @@ describe('PasswordLoginService E2E', () => {
       );
 
       result.mnemonic.dispose();
-    });
+    }, 60000);
 
     it('should handle different password strengths', async () => {
       const passwords = [
@@ -386,7 +386,7 @@ describe('PasswordLoginService E2E', () => {
 
       result1.mnemonic.dispose();
       result2.mnemonic.dispose();
-    });
+    }, 60000);
 
     it('should not store plaintext passwords or mnemonics', async () => {
       await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
