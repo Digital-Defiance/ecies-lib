@@ -19,7 +19,6 @@ We've successfully implemented the foundation for an extensible recipient ID sys
 - **ObjectIdProvider** (12 bytes) - MongoDB/BSON compatible, DEFAULT
 - **GuidV4Provider** (16 bytes) - Uses your GuidV4 class
 - **UuidProvider** (16 bytes) - Standard RFC 4122 UUIDs with dashes
-- **Legacy32ByteProvider** (32 bytes) - Backward compatibility
 - **CustomIdProvider** (configurable) - User-defined byte length
 
 ### 3. Constants Integration ✓
@@ -202,18 +201,6 @@ const id = config.idProvider.generate();
 console.log(config.idProvider.byteLength); // 16
 ```
 
-### Using Legacy 32-Byte Provider (Migration)
-
-```typescript
-import { createRuntimeConfiguration } from '@digitaldefiance/ecies-lib';
-import { Legacy32ByteProvider } from '@digitaldefiance/ecies-lib/lib/id-providers';
-
-// For reading existing encrypted data with 32-byte IDs
-const legacyConfig = createRuntimeConfiguration({
-  idProvider: new Legacy32ByteProvider()
-});
-```
-
 ### Custom ID Size
 
 ```typescript
@@ -224,93 +211,3 @@ const config = createRuntimeConfiguration({
   idProvider: new CustomIdProvider(20, 'SHA1Hash')
 });
 ```
-
-## Migration Guide
-
-### For Existing Users with 32-byte IDs
-
-If you have existing encrypted data with 32-byte recipient IDs:
-
-```typescript
-import { Legacy32ByteProvider } from '@digitaldefiance/ecies-lib/lib/id-providers';
-
-// 1. Create legacy config for decryption
-const legacyConfig = createRuntimeConfiguration({
-  idProvider: new Legacy32ByteProvider()
-});
-
-// 2. Decrypt existing data with legacy config
-const decrypted = await decryptWithConfig(legacyConfig, existingData);
-
-// 3. Re-encrypt with new config (e.g., ObjectID)
-const newConfig = createRuntimeConfiguration({
-  idProvider: new ObjectIdProvider()
-});
-const reencrypted = await encryptWithConfig(newConfig, decrypted);
-```
-
-## Timeline Estimate
-
-- **Phase 2** (Multi-recipient updates): 2-3 days
-- **Phase 3** (Comprehensive testing): 3-4 days
-- **Phase 4** (Documentation & examples): 2 days
-- **Total**: 7-9 days to completion
-
-## Known Issues to Address
-
-1. **MULTI_RECIPIENT_CONSTANTS hardcoded to 32** - Must fix in Phase 2
-2. **Tests use mixed sizes (12, 32)** - Will fail until updated
-3. **No integration tests yet** - Need cross-provider validation
-4. **No migration tooling** - Need data conversion utilities
-5. **Error messages hardcoded** - Some still mention "32 bytes"
-
-## Success Criteria
-
-- [ ] All existing tests pass with ObjectID provider (default)
-- [ ] New tests pass for all provider types
-- [ ] Integration tests validate cross-provider isolation
-- [ ] Documentation complete with examples
-- [ ] Migration guide tested with sample data
-- [ ] No hardcoded ID sizes anywhere in code
-- [ ] Error messages use dynamic sizes
-- [ ] Backward compatibility maintained via Legacy32ByteProvider
-
-## Risk Mitigation
-
-### Backward Compatibility
-
-- Legacy32ByteProvider ensures existing data remains readable
-- Configuration system allows gradual migration
-- No changes to wire format (just ID field size)
-
-### Security
-
-- Constant-time comparison prevents timing attacks
-- ID validation ensures malformed IDs are rejected
-- Provider isolation prevents cross-contamination
-
-### Performance
-
-- ID generation uses crypto-secure random
-- Validation is O(n) where n = ID byte length
-- No performance degradation for standard sizes
-
-## Questions for Stakeholders
-
-1. **Default Provider**: Should we keep ObjectID (12 bytes) as default, or switch to UUID (16 bytes)?
-2. **Migration Timeline**: What's the timeline for users to migrate from 32-byte IDs?
-3. **Deprecation Policy**: When can we deprecate Legacy32ByteProvider?
-4. **Testing**: Do we need performance benchmarks comparing provider types?
-5. **Documentation**: Should we create video tutorials for migration?
-
-## Conclusion
-
-Phase 1 is complete with a solid foundation. The extensible ID system is:
-
-- ✅ Type-safe and well-documented
-- ✅ Extensible for future ID formats
-- ✅ Backward compatible via Legacy provider
-- ✅ Integrated with constants system
-- ⚠️ Requires Phase 2 completion before merge
-
-**DO NOT MERGE** until Phase 2 (multi-recipient updates) is complete, as validation will fail.

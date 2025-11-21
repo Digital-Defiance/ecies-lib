@@ -13,7 +13,6 @@ import { Constants, createRuntimeConfiguration, ECIES } from '../../src/constant
 import {
   ObjectIdProvider,
   GuidV4Provider,
-  Legacy32ByteProvider,
   CustomIdProvider,
 } from '../../src/lib/id-providers';
 import { ECIESService } from '../../src/services/ecies/service';
@@ -94,11 +93,10 @@ describe('Encrypted Message Structure Validation', () => {
       };
     }
 
-    it('should have different total lengths for ObjectID (12), GUID (16), and Legacy (32) providers', async () => {
+    it('should have different total lengths for ObjectID (12) and GUID (16) providers', async () => {
       const providers = [
         { name: 'ObjectID', provider: new ObjectIdProvider(), expectedIdSize: 12 },
         { name: 'GUID', provider: new GuidV4Provider(), expectedIdSize: 16 },
-        { name: 'Legacy32', provider: new Legacy32ByteProvider(), expectedIdSize: 32 },
       ];
       
       const structures: Record<string, EncryptedStructure> = {};
@@ -113,21 +111,16 @@ describe('Encrypted Message Structure Validation', () => {
       
       // Total lengths should be different
       expect(structures.ObjectID.totalLength).not.toBe(structures.GUID.totalLength);
-      expect(structures.GUID.totalLength).not.toBe(structures.Legacy32.totalLength);
-      expect(structures.ObjectID.totalLength).not.toBe(structures.Legacy32.totalLength);
       
       // Verify the difference is due to ID size changes
       const objectIdToGuidDiff = structures.GUID.totalLength - structures.ObjectID.totalLength;
-      const objectIdToLegacyDiff = structures.Legacy32.totalLength - structures.ObjectID.totalLength;
       
       // With 2 recipients, the difference should be:
       // (GUID ID size - ObjectID size) * 2 recipients
       // Each recipient header contains: recipientId + keySize(2) + encryptedKey(116)
       const expectedObjectIdToGuidDiff = (16 - 12) * 2; // 8 bytes (4 per recipient)
-      const expectedObjectIdToLegacyDiff = (32 - 12) * 2; // 40 bytes (20 per recipient)
       
       expect(objectIdToGuidDiff).toBe(expectedObjectIdToGuidDiff);
-      expect(objectIdToLegacyDiff).toBe(expectedObjectIdToLegacyDiff);
     });
 
     it('should calculate correct message structure for ObjectID provider (12 bytes)', async () => {
@@ -189,28 +182,6 @@ describe('Encrypted Message Structure Validation', () => {
       expect(lengthDiff).toBe((16 - 12) * recipientCount); // 4 bytes * 3 = 12
     });
 
-    it('should calculate correct message structure for Legacy32Byte provider (32 bytes)', async () => {
-      const config = createRuntimeConfiguration({ 
-        idProvider: new Legacy32ByteProvider() 
-      });
-      const recipientCount = 2;
-      
-      const structure = await analyzeMultiRecipientStructure(config, recipientCount);
-      
-      // Measure actual encrypted key size
-      const symmetricKey = cryptoCore.generatePrivateKey();
-      const keyPair = await cryptoCore.generateEphemeralKeyPair();
-      const encryptedKey = await eciesService.encryptSimpleOrSingle(false, keyPair.publicKey, symmetricKey);
-      const encryptedKeySize = encryptedKey.length;
-      
-      // Expected structure with 32-byte IDs
-      const perRecipientSize = 32 + 2 + encryptedKeySize;
-      const expectedTotal = 32 + (perRecipientSize * recipientCount) + 12 + testData.length + 16;
-      
-      expect(structure.recipientIdSize).toBe(32);
-      expect(structure.totalLength).toBe(expectedTotal);
-    });
-
     it('should scale encrypted message size linearly with recipient count', async () => {
       const config = createRuntimeConfiguration({ 
         idProvider: new ObjectIdProvider() 
@@ -250,7 +221,6 @@ describe('Encrypted Message Structure Validation', () => {
         new ObjectIdProvider(),
         new GuidV4Provider(),
         new CustomIdProvider(20),
-        new Legacy32ByteProvider(),
       ];
       
       const recipientCount = 3;
@@ -269,7 +239,6 @@ describe('Encrypted Message Structure Validation', () => {
       // Lengths should be in ascending order matching ID sizes
       expect(lengths[0]).toBeLessThan(lengths[1]); // 12 < 16
       expect(lengths[1]).toBeLessThan(lengths[2]); // 16 < 20
-      expect(lengths[2]).toBeLessThan(lengths[3]); // 20 < 32
     });
   });
 
@@ -279,7 +248,6 @@ describe('Encrypted Message Structure Validation', () => {
       const providers = [
         new ObjectIdProvider(),
         new GuidV4Provider(),
-        new Legacy32ByteProvider(),
       ];
       
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
@@ -314,7 +282,6 @@ describe('Encrypted Message Structure Validation', () => {
       const providers = [
         new ObjectIdProvider(),
         new GuidV4Provider(),
-        new Legacy32ByteProvider(),
       ];
       
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
@@ -346,14 +313,14 @@ describe('Encrypted Message Structure Validation', () => {
   describe('Cross-Algorithm Validation', () => {
     it('should verify MULTIPLE mode has ID-dependent length while SIMPLE and SINGLE do not', async () => {
       const objectIdProvider = new ObjectIdProvider();
-      const legacyProvider = new Legacy32ByteProvider();
+      const guidIdProvider = new GuidV4Provider();
       
       const objectIdConfig = createRuntimeConfiguration({ idProvider: objectIdProvider });
-      const legacyConfig = createRuntimeConfiguration({ idProvider: legacyProvider });
+      const guidConfig = createRuntimeConfiguration({ idProvider: guidIdProvider });
       
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       const recipientId1 = objectIdProvider.generate();
-      const recipientId2 = legacyProvider.generate();
+      const recipientId2 = guidIdProvider.generate();
       
       // SIMPLE: Should be identical
       const simple1 = await eciesService.encryptSimpleOrSingle(true, keyPair.publicKey, testData);
@@ -367,7 +334,7 @@ describe('Encrypted Message Structure Validation', () => {
       
       // MULTIPLE: Should be different
       const processor1 = new MultiRecipientProcessor(eciesService, objectIdConfig);
-      const processor2 = new MultiRecipientProcessor(eciesService, legacyConfig);
+      const processor2 = new MultiRecipientProcessor(eciesService, guidConfig);
       
       const symmetricKey = cryptoCore.generatePrivateKey();
       
@@ -390,9 +357,9 @@ describe('Encrypted Message Structure Validation', () => {
       // MULTIPLE should have different lengths due to ID size
       expect(multiple1.data.length).not.toBe(multiple2.data.length);
       
-      // Difference should be exactly 20 bytes (32 - 12) for the recipient ID
+      // Difference should be exactly 4 bytes (16 - 12) for the recipient ID
       const lengthDiff = multiple2.data.length - multiple1.data.length;
-      expect(lengthDiff).toBe(20);
+      expect(lengthDiff).toBe(4);
     });
 
     it('should verify recipient IDs are embedded correctly in buffer for each provider', async () => {
@@ -455,7 +422,7 @@ describe('Encrypted Message Structure Validation', () => {
       
       const providers = [
         { provider: new ObjectIdProvider(), idSize: 12 },
-        { provider: new Legacy32ByteProvider(), idSize: 32 },
+        { provider: new GuidV4Provider(), idSize: 16 },
       ];
       
       for (const { provider, idSize } of providers) {

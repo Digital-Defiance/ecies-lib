@@ -7,7 +7,6 @@ import { Constants, createRuntimeConfiguration, ECIES } from '../../src/constant
 import {
   ObjectIdProvider,
   GuidV4Provider,
-  Legacy32ByteProvider,
 } from '../../src/lib/id-providers';
 import { getMultiRecipientConstants } from '../../src/interfaces/multi-recipient-chunk';
 import { MultiRecipientProcessor } from '../../src/services/multi-recipient-processor';
@@ -146,16 +145,16 @@ describe('Recipient ID Consistency Integration Tests', () => {
       expect(decrypted.data).toEqual(data);
     });
 
-    it('should encrypt and decrypt with Legacy32Byte provider', async () => {
+    it('should encrypt and decrypt with GuidV4 provider', async () => {
       const config = createRuntimeConfiguration({
-        idProvider: new Legacy32ByteProvider(),
+        idProvider: new GuidV4Provider(),
       });
 
       const processor = new MultiRecipientProcessor(ecies, config);
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
 
       const recipientId = config.idProvider.generate();
-      expect(recipientId.length).toBe(32);
+      expect(recipientId.length).toBe(16);
 
       const recipients = [{ id: recipientId, publicKey: keyPair.publicKey }];
       const data = new Uint8Array([1, 2, 3, 4, 5]);
@@ -239,7 +238,6 @@ describe('Recipient ID Consistency Integration Tests', () => {
       const providers = [
         new ObjectIdProvider(),
         new GuidV4Provider(),
-        new Legacy32ByteProvider(),
       ];
 
       for (const provider of providers) {
@@ -304,16 +302,6 @@ describe('Recipient ID Consistency Integration Tests', () => {
       await expect(
         processor.encryptChunk(data, recipients, 0, true, symmetricKey)
       ).rejects.toThrow();
-    });
-
-    it('should document that old encrypted data needs Legacy32ByteProvider', async () => {
-      // If you have data encrypted with 32-byte IDs, you must use:
-      const legacyConfig = createRuntimeConfiguration({
-        idProvider: new Legacy32ByteProvider(),
-      });
-
-      expect(legacyConfig.idProvider.byteLength).toBe(32);
-      expect(legacyConfig.ECIES.MULTIPLE.RECIPIENT_ID_SIZE).toBe(32);
     });
   });
 });

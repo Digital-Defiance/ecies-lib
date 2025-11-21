@@ -567,11 +567,6 @@ class ConfigurationFactory {
     });
   }
   
-  static forLegacyData(): IConstants {
-    return createRuntimeConfiguration({
-      idProvider: new Legacy32ByteProvider(),
-    });
-  }
 }
 
 // Usage
@@ -616,16 +611,7 @@ I searched for all instances of `32` and `RECIPIENT_ID_SIZE` in the codebase. He
 
    **Verdict**: ✓ Correct - GUID without dashes is 32 hex chars
 
-4. **Legacy32ByteProvider (Backward Compatibility)**
-
-   ```typescript
-   // custom-provider.ts:19
-   readonly byteLength = 32;
-   ```
-
-   **Verdict**: ✓ Correct - Intentionally 32 bytes for legacy data
-
-5. **Test Values for Keys/Salts**
+4. **Test Values for Keys/Salts**
 
    ```typescript
    // Various test files
@@ -634,7 +620,7 @@ I searched for all instances of `32` and `RECIPIENT_ID_SIZE` in the codebase. He
 
    **Verdict**: ✓ Correct - These are for symmetric keys, not recipient IDs
 
-6. **Chunk Structure Offsets (Header Size)**
+5. **Chunk Structure Offsets (Header Size)**
 
    ```typescript
    // multi-recipient-security.spec.ts:142

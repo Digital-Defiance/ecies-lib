@@ -518,8 +518,7 @@ describe('ECIES Properties', () => {
         fc.record({
           idProvider: fc.oneof(
             fc.constant(new ObjectIdProvider()),
-            fc.constant(new GuidV4Provider()),
-            fc.constant(new Legacy32ByteProvider())
+            fc.constant(new GuidV4Provider())
           ),
           data: fc.uint8Array({ minLength: 1, maxLength: 1024 }),
         }),

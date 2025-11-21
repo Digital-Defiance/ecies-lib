@@ -46,14 +46,6 @@ These tests provide basic functional validation for each ID provider:
 - ✅ Version extraction
 - ✅ Nil UUID detection
 
-#### Legacy32ByteProvider (5 tests)
-
-- ✅ Correct byte length (32 bytes)
-- ✅ Valid 32-byte ID generation
-- ✅ 64-character hex serialization
-- ✅ Serialization/deserialization round-trip
-- ✅ Any 32-byte buffer validation
-
 #### CustomIdProvider (6 tests)
 
 - ✅ Custom byte length support (1-255 bytes)
@@ -170,23 +162,6 @@ These tests provide deep validation of correctness, security, and performance:
 
 - ✅ Nil UUID detection
 - ✅ Version extraction
-
-#### Legacy32ByteProvider (6 tests)
-
-**Generation (3 tests)**
-
-- ✅ 32-byte ID generation
-- ✅ Uniqueness across 1000 generations
-- ✅ Cryptographically random bytes (bit distribution)
-
-**Validation (2 tests)**
-
-- ✅ Any 32-byte buffer validation
-- ✅ Wrong-length rejection
-
-**Serialization (1 test)**
-
-- ✅ Round-trip through serialization
 
 #### CustomIdProvider (8 tests)
 

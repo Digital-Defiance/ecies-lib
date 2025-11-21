@@ -1,6 +1,6 @@
 import { InvariantValidator } from '../../src/lib/invariant-validator';
 import { Constants, createRuntimeConfiguration } from '../../src/constants';
-import { ObjectIdProvider, GuidV4Provider, Legacy32ByteProvider } from '../../src/lib/id-providers';
+import { ObjectIdProvider, GuidV4Provider } from '../../src/lib/id-providers';
 import { IInvariant, BaseInvariant } from '../../src/interfaces/invariant';
 import { IConstants } from '../../src/interfaces/constants';
 
@@ -62,11 +62,6 @@ describe('InvariantValidator', () => {
 
     it('should pass for GUID provider (16 bytes)', () => {
       const config = createRuntimeConfiguration({ idProvider: new GuidV4Provider() });
-      expect(() => InvariantValidator.validateAll(config)).not.toThrow();
-    });
-
-    it('should pass for Legacy provider (32 bytes)', () => {
-      const config = createRuntimeConfiguration({ idProvider: new Legacy32ByteProvider() });
       expect(() => InvariantValidator.validateAll(config)).not.toThrow();
     });
   });

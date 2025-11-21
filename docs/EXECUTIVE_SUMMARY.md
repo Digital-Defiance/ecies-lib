@@ -38,7 +38,6 @@ Instead of just fixing the 12 vs 32 byte issue, I implemented an enterprise-grad
    - **ObjectIdProvider** (12 bytes) - MongoDB/BSON compatible, DEFAULT
    - **GuidV4Provider** (16 bytes) - Your GuidV4 class
    - **UuidProvider** (16 bytes) - Standard RFC 4122 UUIDs
-   - **Legacy32ByteProvider** (32 bytes) - Backward compatibility
    - **CustomIdProvider** (any size) - User-defined
 
 3. **Configuration Integration**:
@@ -103,22 +102,18 @@ Library consumers can now use:
 - Standard UUIDs
 - Custom formats (any byte size 1-255)
 
-### 2. Backward Compatibility
-
-Legacy32ByteProvider maintains compatibility with existing 32-byte encrypted data
-
-### 3. Type Safety
+### 2. Type Safety
 
 TypeScript interfaces ensure correct usage at compile time
 
-### 4. Enterprise Grade
+### 3. Enterprise Grade
 
 - Constant-time comparison prevents timing attacks
 - Validation at multiple levels
 - Defensive copying prevents mutation
 - Clear error messages
 
-### 5. Future-Proof
+### 4. Future-Proof
 
 Easy to add new provider types (e.g., ULIDs, Snowflake IDs, etc.)
 
@@ -140,17 +135,6 @@ const config = createRuntimeConfiguration({
   idProvider: new GuidV4Provider()
 });
 const id = config.idProvider.generate(); // 16-byte GUID
-```
-
-### Migration from 32-byte Legacy
-
-```typescript
-import { Legacy32ByteProvider } from '@digitaldefiance/ecies-lib';
-
-const legacyConfig = createRuntimeConfiguration({
-  idProvider: new Legacy32ByteProvider()
-});
-// Decrypt old data, re-encrypt with new provider
 ```
 
 ## Next Steps (Phase 2)
@@ -190,7 +174,6 @@ const legacyConfig = createRuntimeConfiguration({
 
 ### Mitigations
 
-- Clear migration path via Legacy32ByteProvider
 - Comprehensive documentation
 - Validation at multiple layers
 
@@ -208,8 +191,6 @@ const legacyConfig = createRuntimeConfiguration({
 
 **Recommendation**: Provide 6-month migration window for 32-byte users
 
-- Release v2.0 with deprecation warning for Legacy32ByteProvider
-- Release v3.0 removing Legacy32ByteProvider
 - Provide migration tooling in v2.x
 
 ### 3. Testing Strategy

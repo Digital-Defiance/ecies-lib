@@ -2,7 +2,6 @@ import {
   ObjectIdProvider,
   GuidV4Provider,
   UuidProvider,
-  Legacy32ByteProvider,
   CustomIdProvider,
 } from '../../../src/lib/id-providers';
 
@@ -183,55 +182,6 @@ describe('ID Providers', () => {
 
       const nonNilUuid = provider.generate();
       expect(provider.isNil(nonNilUuid)).toBe(false);
-    });
-  });
-
-  describe('Legacy32ByteProvider', () => {
-    let provider: Legacy32ByteProvider;
-
-    beforeEach(() => {
-      provider = new Legacy32ByteProvider();
-    });
-
-    it('should have correct byte length', () => {
-      expect(provider.byteLength).toBe(32);
-      expect(provider.name).toBe('Legacy32Byte');
-    });
-
-    it('should generate valid 32-byte IDs', () => {
-      const id1 = provider.generate();
-      const id2 = provider.generate();
-
-      expect(id1).toBeInstanceOf(Uint8Array);
-      expect(id1.length).toBe(32);
-      expect(provider.validate(id1)).toBe(true);
-
-      // Should be unique
-      expect(provider.equals(id1, id2)).toBe(false);
-    });
-
-    it('should serialize to 64-character hex string', () => {
-      const id = provider.generate();
-      const serialized = provider.serialize(id);
-
-      expect(serialized).toMatch(/^[0-9a-f]{64}$/);
-      expect(serialized.length).toBe(64);
-    });
-
-    it('should deserialize from hex string', () => {
-      const id = provider.generate();
-      const serialized = provider.serialize(id);
-      const deserialized = provider.deserialize(serialized);
-
-      expect(provider.equals(id, deserialized)).toBe(true);
-    });
-
-    it('should validate any 32-byte buffer', () => {
-      const id = new Uint8Array(32);
-      expect(provider.validate(id)).toBe(true);
-
-      const wrongLength = new Uint8Array(31);
-      expect(provider.validate(wrongLength)).toBe(false);
     });
   });
 

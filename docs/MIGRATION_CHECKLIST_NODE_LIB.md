@@ -128,7 +128,6 @@ console.log('Provider byteLength:', config.idProvider.byteLength); // Should be 
 const providers = [
   new ObjectIdProvider(), // 12 bytes
   new GuidV4Provider(), // 16 bytes
-  new Legacy32ByteProvider(), // 32 bytes
 ];
 
 for (const provider of providers) {
