@@ -4,8 +4,8 @@ export * from './constants';
 export * from './ecies-config';
 export * from './ecies-consts';
 export * from './ecies-file-service';
-
 export * from './frontend-member-operational';
+export * from './guid';
 export * from './member-storage';
 export * from './member-with-mnemonic';
 export * from './pbkdf2-config';

@@ -1,6 +1,6 @@
 export * from './disposed';
 export * from './ecies';
-
+export * from './guid';
 export * from './invalid-email';
 export * from './length';
 export * from './member';

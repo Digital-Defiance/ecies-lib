@@ -4,8 +4,8 @@
     "outDir": "../../dist/out-tsc/packages/digitaldefiance-ecies-lib",
     "rootDir": "./src",
     "target": "es2022",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "module": "node16",
+    "moduleResolution": "node16",
     "lib": [
       "es2022",
       "dom",

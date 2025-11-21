@@ -202,4 +202,8 @@ export const mandarinChineseTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]: '在生成助记词之前必须设置ECIESService',
     [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: '需要ECIESService',
     [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: '类型、名称和电子邮件是必需的',
+    [EciesStringKey.Error_GuidError_InvalidGuid]: '无效的GUID。',
+    [EciesStringKey.Error_GuidError_InvalidGuidWithDetailsTemplate]: '无效的GUID：{GUID}',
+    [EciesStringKey.Error_GuidError_InvalidGuidUnknownBrandTemplate]: '未知的GUID品牌：{BRAND}。',
+    [EciesStringKey.Error_GuidError_InvalidGuidUnknownLengthTemplate]: '无效的GUID长度：{LENGTH}。',
   };

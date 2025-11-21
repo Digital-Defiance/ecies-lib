@@ -14,6 +14,11 @@ export interface IConstants {
   HEX_RADIX: number;
 
   /**
+   * The length of user IDs in the system
+   */
+  MEMBER_ID_LENGTH: number;
+
+  /**
    * The length of a raw object ID (not the hex string representation)
    */
   OBJECT_ID_LENGTH: number;

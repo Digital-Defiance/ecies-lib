@@ -226,4 +226,10 @@ import { EciesStringKey } from '../enumerations';
     [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]: 'ECIESService must be set before generating mnemonic',
     [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: 'ECIESService is required',
     [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: 'Type, name, and email are required',
+    [EciesStringKey.Error_GuidError_InvalidGuid]: 'Invalid GUID.',
+    [EciesStringKey.Error_GuidError_InvalidGuidWithDetailsTemplate]: 'Invalid GUID: {GUID}',
+    [EciesStringKey.Error_GuidError_InvalidGuidUnknownBrandTemplate]:
+      'Unknown GUID brand: {BRAND}.',
+    [EciesStringKey.Error_GuidError_InvalidGuidUnknownLengthTemplate]:
+      'Invalid GUID length: {LENGTH}.',
   };

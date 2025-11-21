@@ -177,4 +177,8 @@ export enum EciesStringKey {
   Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic = 'Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic',
   Error_Builder_ECIESServiceIsRequired = 'Error_Builder_ECIESServiceIsRequired',
   Error_Builder_TypeNameAndEmailAreRequired = 'Error_Builder_TypeNameAndEmailAreRequired',
+  Error_GuidError_InvalidGuid = 'Error_GuidError_InvalidGuid',
+  Error_GuidError_InvalidGuidWithDetailsTemplate = 'Error_GuidError_InvalidGuidWithDetailsTemplate',
+  Error_GuidError_InvalidGuidUnknownBrandTemplate = 'Error_GuidError_InvalidGuidUnknownBrandTemplate',
+  Error_GuidError_InvalidGuidUnknownLengthTemplate = 'Error_GuidError_InvalidGuidUnknownLengthTemplate',
 }

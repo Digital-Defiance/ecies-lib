@@ -233,6 +233,10 @@ export const ukrainianTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Utils_ValueExceedsSafeIntegerRange]: 'Значення перевищує безпечний діапазон цілих чисел',
     [EciesStringKey.Error_Utils_ValueBelowSafeIntegerRange]: 'Значення нижче безпечного діапазону цілих чисел',
     [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]: 'ECIESService повинен бути встановлений перед генерацією мнемоніки',
-    [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: 'ECIESService є обов’язковим',
-    [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: 'Тип, ім’я та електронна пошта є обов’язковими',
+    [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: 'ECIESService є обов\'язковим',
+    [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: 'Тип, ім\'я та електронна пошта є обов\'язковими',
+    [EciesStringKey.Error_GuidError_InvalidGuid]: 'Недійсний GUID.',
+    [EciesStringKey.Error_GuidError_InvalidGuidWithDetailsTemplate]: 'Недійсний GUID: {GUID}',
+    [EciesStringKey.Error_GuidError_InvalidGuidUnknownBrandTemplate]: 'Невідомий бренд GUID: {BRAND}.',
+    [EciesStringKey.Error_GuidError_InvalidGuidUnknownLengthTemplate]: 'Невірна довжина GUID: {LENGTH}.',
   };

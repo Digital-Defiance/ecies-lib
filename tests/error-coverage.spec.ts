@@ -76,8 +76,8 @@ describe('Error Coverage Validation', () => {
           Object.values(Pbkdf2ErrorType).length +
           Object.values(SecureStorageErrorType).length;
         
-        // Additional errors include template variants and utility error strings
-        const additionalErrors = 97;
+        // Additional errors include template variants, utility error strings, and GUID errors (4)
+        const additionalErrors = 101;
         const expectedStringKeys = totalErrors + additionalErrors;
         
         const totalStringKeys = Object.values(EciesStringKey).length;

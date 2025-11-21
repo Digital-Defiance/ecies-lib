@@ -224,6 +224,10 @@ export const japaneseTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Utils_ValueExceedsSafeIntegerRange]: '値が安全な整数範囲を超えています',
     [EciesStringKey.Error_Utils_ValueBelowSafeIntegerRange]: '値が安全な整数範囲を下回っています',
     [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]: 'ニーモニックを生成する前にECIESServiceを設定する必要があります',
-    [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: 'ECIESサービスが必要です',
-    [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: 'タイプ、名前、およびメールが必要です',
+    [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: 'ECIESServiceが必要です',
+    [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: 'タイプ、名前、メールアドレスが必要です',
+    [EciesStringKey.Error_GuidError_InvalidGuid]: '無効なGUID。',
+    [EciesStringKey.Error_GuidError_InvalidGuidWithDetailsTemplate]: '無効なGUID：{GUID}',
+    [EciesStringKey.Error_GuidError_InvalidGuidUnknownBrandTemplate]: '不明なGUIDブランド：{BRAND}。',
+    [EciesStringKey.Error_GuidError_InvalidGuidUnknownLengthTemplate]: '無効なGUID長：{LENGTH}。',
   };

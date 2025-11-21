@@ -3,3 +3,4 @@
  */
 
 export * from './crypto-container';
+export * from './guid';

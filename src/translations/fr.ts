@@ -235,4 +235,8 @@ export const frenchTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]: 'ECIESService doit être défini avant de générer le mnémonique',
     [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: 'ECIESService est requis',
     [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: 'Le type, le nom et l\'e-mail sont requis',
+    [EciesStringKey.Error_GuidError_InvalidGuid]: 'GUID invalide.',
+    [EciesStringKey.Error_GuidError_InvalidGuidWithDetailsTemplate]: 'GUID invalide : {GUID}',
+    [EciesStringKey.Error_GuidError_InvalidGuidUnknownBrandTemplate]: 'Marque GUID inconnue : {BRAND}.',
+    [EciesStringKey.Error_GuidError_InvalidGuidUnknownLengthTemplate]: 'Longueur GUID invalide : {LENGTH}.',
   };
