@@ -1,6 +1,7 @@
 import { EciesStringKey } from '../enumerations';
+import { createPluralString, PluralString } from '@digitaldefiance/i18n-lib';
 
-export const japaneseTranslations: Record<EciesStringKey, string> = {
+export const japaneseTranslations: Record<EciesStringKey, string | PluralString> = {
     // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
     [EciesStringKey.Error_ECIESError_InvalidECIESMultipleEncryptedKeySize]:
       '無効なECIES複数暗号化キーサイズ',
@@ -187,6 +188,7 @@ export const japaneseTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Stream_MaxRecipientsExceeded]: '最大65535人の受信者がサポートされています',
     [EciesStringKey.Error_Stream_InvalidRecipientPublicKeyLength]: '無効な受信者公開鍵: 33（圧縮）または65（非圧縮）バイトである必要があります',
     [EciesStringKey.Error_Stream_InvalidRecipientIdLength]: '無効な受信者ID: 32バイトである必要があります',
+    [EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate]: '無効な受信者ID: {expected}バイトである必要があります',
     [EciesStringKey.Error_Stream_InvalidRecipientIdMust32Bytes]: '無効な受信者ID: 32バイトである必要があります',
     [EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes]: '無効な秘密鍵: 32バイトである必要があります',
     [EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate]: 'チャンクシーケンスエラー: 期待される{expected}、実際の{actual}',
@@ -226,8 +228,25 @@ export const japaneseTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]: 'ニーモニックを生成する前にECIESServiceを設定する必要があります',
     [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: 'ECIESServiceが必要です',
     [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: 'タイプ、名前、メールアドレスが必要です',
+    [EciesStringKey.Error_DisposedError_ObjectDisposed]: 'オブジェクトは破棄されました',
     [EciesStringKey.Error_GuidError_InvalidGuid]: '無効なGUID。',
     [EciesStringKey.Error_GuidError_InvalidGuidWithDetailsTemplate]: '無効なGUID：{GUID}',
     [EciesStringKey.Error_GuidError_InvalidGuidUnknownBrandTemplate]: '不明なGUIDブランド：{BRAND}。',
     [EciesStringKey.Error_GuidError_InvalidGuidUnknownLengthTemplate]: '無効なGUID長：{LENGTH}。',
+    [EciesStringKey.Error_IdProviderError_InvalidLength]: 'IDの長さが一致しません：{context}で{expected}バイトが期待されましたが、{actual}バイトを受け取りました',
+    [EciesStringKey.Error_IdProviderError_InputMustBeString]: '入力は文字列である必要があります',
+    [EciesStringKey.Error_IdProviderError_InvalidStringLength]: '無効な文字列の長さ：{expected}文字が期待されましたが、{actual}文字を受け取りました',
+    [EciesStringKey.Error_IdProviderError_InvalidCharacters]: '文字列に無効な文字が含まれています',
+    [EciesStringKey.Error_IdProviderError_InvalidDeserializedId]: 'デシリアライズされたIDが検証に失敗しました',
+    [EciesStringKey.Error_IdProviderError_InvalidByteLengthParameter]: 'バイト長は1から255の整数である必要があります。{value}を受け取りました',
+    [EciesStringKey.Error_IdProviderError_ParseFailed]: 'IDの解析に失敗しました：{message}',
+    [EciesStringKey.Error_IdProviderError_InvalidGuidBuffer]: '無効なGUIDバッファ: {message}',
+    [EciesStringKey.Error_IdProviderError_InvalidUuidFormat]: '無効なUUID形式: {input}',
+
+    // Invariant Validation Errors
+    [EciesStringKey.Error_Invariant_ValidationFailedTemplate]: '不変条件の検証に失敗しました: {message}',
+    [EciesStringKey.Error_Invariant_UnknownInvariantTemplate]: '不明な不変条件: {name}',
+    [EciesStringKey.Error_Invariant_ConfigurationValidationFailedMultipleTemplate]: createPluralString({
+      other: '設定の検証に失敗しました（{count}個の不変条件）:\n\n{failures}'
+    }),
   };

@@ -11,8 +11,14 @@ import { uint8ArrayToHex } from './utils';
  * The buffer is encrypted with a key derived from a ObjectID.
  * The ObjectID is stored in the clear, but the buffer is encrypted with a key derived from the ObjectID.
  * This allows the buffer to be decrypted, but only if the ObjectID and salt are known.
+ * 
+ * Supports explicit resource management (TC39 proposal) for automatic disposal:
+ * ```typescript
+ * using buffer = new SecureBuffer(sensitiveData);
+ * // buffer automatically disposed when leaving scope
+ * ```
  */
-export class SecureBuffer {
+export class SecureBuffer implements Disposable {
   private _disposed: boolean = false;
   private readonly _id: ObjectId;
   private readonly _length: number;
@@ -20,6 +26,7 @@ export class SecureBuffer {
   private readonly _key: Uint8Array;
   private readonly _obfuscatedChecksum: Uint8Array;
   private _disposedAt?: string;
+
   constructor(data?: Uint8Array) {
     this._id = new ObjectId();
     // don't bother encrypting an empty buffer
@@ -47,6 +54,25 @@ export class SecureBuffer {
     this._obfuscatedChecksum.fill(0);
     this._disposed = true;
   }
+
+  /**
+   * Symbol.dispose implementation for explicit resource management
+   * Allows using 'using' keyword (TC39 proposal)
+   */
+  [Symbol.dispose](): void {
+    this.dispose();
+  }
+
+  /**
+   * Static factory method that creates a SecureBuffer for a symmetric key
+   * Useful for managing encryption keys securely
+   */
+  static allocateKey(sizeBytes: number = 32): SecureBuffer {
+    const keyData = new Uint8Array(sizeBytes);
+    // Will be filled by crypto.getRandomValues by caller
+    return new SecureBuffer(keyData);
+  }
+
   private assertNotDisposed(): void {
     if (this._disposed) {
       const e = new DisposedError();

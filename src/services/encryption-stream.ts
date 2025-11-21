@@ -1,5 +1,6 @@
 import { IECIESConstants } from '../interfaces/ecies-consts';
 import { Constants } from '../constants';
+import { IConstants } from '../interfaces/constants';
 import { IStreamConfig, DEFAULT_STREAM_CONFIG } from '../interfaces/stream-config';
 import { IEncryptedChunk } from '../interfaces/encrypted-chunk';
 import { IStreamHeader, STREAM_HEADER_CONSTANTS } from '../interfaces/stream-header';
@@ -45,10 +46,11 @@ export class EncryptionStream {
   constructor(
     private readonly ecies: ECIESService,
     private readonly config: IStreamConfig = DEFAULT_STREAM_CONFIG,
-    private readonly eciesConsts: IECIESConstants = Constants.ECIES
+    private readonly eciesConsts: IECIESConstants = Constants.ECIES,
+    private readonly constants: IConstants = Constants
   ) {
     this.processor = new ChunkProcessor(ecies, eciesConsts);
-    this.multiRecipientProcessor = new MultiRecipientProcessor(ecies);
+    this.multiRecipientProcessor = new MultiRecipientProcessor(ecies, constants);
   }
 
   /**
@@ -229,8 +231,12 @@ export class EncryptionStream {
       if (!recipient.publicKey || (recipient.publicKey.length !== 65 && recipient.publicKey.length !== 33)) {
         throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidRecipientPublicKeyLength));
       }
-      if (!recipient.id || recipient.id.length !== 32) {
-        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidRecipientIdLength));
+      if (!recipient.id || recipient.id.length !== this.constants.MEMBER_ID_LENGTH) {
+        throw new Error(engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate,
+          { expected: this.constants.MEMBER_ID_LENGTH }
+        ));
       }
     }
 
@@ -323,8 +329,8 @@ export class EncryptionStream {
     options: IDecryptStreamOptions = {}
   ): AsyncGenerator<Uint8Array, void, unknown> {
     const engine = getEciesI18nEngine();
-    if (!recipientId || recipientId.length !== 32) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidRecipientIdMust32Bytes));
+    if (!recipientId || recipientId.length !== this.constants.MEMBER_ID_LENGTH) {
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate, { expected: this.constants.MEMBER_ID_LENGTH }));
     }
     if (!privateKey || privateKey.length !== 32) {
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes));

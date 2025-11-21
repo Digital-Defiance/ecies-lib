@@ -1,6 +1,7 @@
 import { EciesStringKey } from '../enumerations';
+import { createPluralString, PluralString } from '@digitaldefiance/i18n-lib';
 
-export const mandarinChineseTranslations: Record<EciesStringKey, string> = {
+export const mandarinChineseTranslations: Record<EciesStringKey, string | PluralString> = {
     // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
     [EciesStringKey.Error_ECIESError_InvalidECIESMultipleEncryptedKeySize]:
       'ECIES 多重加密密钥大小无效',
@@ -162,8 +163,9 @@ export const mandarinChineseTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Stream_AtLeastOneRecipientRequired]: '至少需要一个收件人',
     [EciesStringKey.Error_Stream_MaxRecipientsExceeded]: '最多支持65535个收件人',
     [EciesStringKey.Error_Stream_InvalidRecipientPublicKeyLength]: '无效的收件人公钥：必须为33（压缩）或65（未压缩）字节',
-    [EciesStringKey.Error_Stream_InvalidRecipientIdLength]: '无效的收件人ID：必须为32字节',
-    [EciesStringKey.Error_Stream_InvalidRecipientIdMust32Bytes]: '无效的收件人ID：必须为32字节',
+    [EciesStringKey.Error_Stream_InvalidRecipientIdLength]: '无效的接收者ID：必须为32字节',
+    [EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate]: '无效的接收者ID：必须为{expected}字节',
+    [EciesStringKey.Error_Stream_InvalidRecipientIdMust32Bytes]: '无效的接收者ID：必须为32字节',
     [EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes]: '无效的私钥：必须为32字节',
     [EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate]: '块序列错误：预期{expected}，实际{actual}',
     [EciesStringKey.Error_Stream_DecryptionCancelled]: '解密已取消',
@@ -201,9 +203,26 @@ export const mandarinChineseTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Utils_ValueBelowSafeIntegerRange]: '值低于安全整数范围',
     [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]: '在生成助记词之前必须设置ECIESService',
     [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: '需要ECIESService',
-    [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: '类型、名称和电子邮件是必需的',
+    [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: '需要类型、名称和电子邮件',
+    [EciesStringKey.Error_DisposedError_ObjectDisposed]: '对象已被释放',
     [EciesStringKey.Error_GuidError_InvalidGuid]: '无效的GUID。',
     [EciesStringKey.Error_GuidError_InvalidGuidWithDetailsTemplate]: '无效的GUID：{GUID}',
     [EciesStringKey.Error_GuidError_InvalidGuidUnknownBrandTemplate]: '未知的GUID品牌：{BRAND}。',
     [EciesStringKey.Error_GuidError_InvalidGuidUnknownLengthTemplate]: '无效的GUID长度：{LENGTH}。',
+    [EciesStringKey.Error_IdProviderError_InvalidLength]: 'ID长度不匹配：在{context}中期望{expected}字节，实际收到{actual}字节',
+    [EciesStringKey.Error_IdProviderError_InputMustBeString]: '输入必须是字符串',
+    [EciesStringKey.Error_IdProviderError_InvalidStringLength]: '字符串长度无效：期望{expected}个字符，实际收到{actual}个',
+    [EciesStringKey.Error_IdProviderError_InvalidCharacters]: '字符串包含无效字符',
+    [EciesStringKey.Error_IdProviderError_InvalidDeserializedId]: '反序列化的ID验证失败',
+    [EciesStringKey.Error_IdProviderError_InvalidByteLengthParameter]: '字节长度必须是1到255之间的整数，收到{value}',
+    [EciesStringKey.Error_IdProviderError_ParseFailed]: '解析ID失败：{message}',
+    [EciesStringKey.Error_IdProviderError_InvalidGuidBuffer]: '无效的GUID缓冲区: {message}',
+    [EciesStringKey.Error_IdProviderError_InvalidUuidFormat]: '无效的UUID格式: {input}',
+
+    // Invariant Validation Errors
+    [EciesStringKey.Error_Invariant_ValidationFailedTemplate]: '不变量验证失败: {message}',
+    [EciesStringKey.Error_Invariant_UnknownInvariantTemplate]: '未知不变量: {name}',
+    [EciesStringKey.Error_Invariant_ConfigurationValidationFailedMultipleTemplate]: createPluralString({
+      other: '配置验证失败（{count}个不变量）:\n\n{failures}'
+    }),
   };

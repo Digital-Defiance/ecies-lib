@@ -26,8 +26,10 @@ describe('Custom Errors', () => {
   it('should create a DisposedError', () => {
     const error = new DisposedError();
     expect(error).toBeInstanceOf(DisposedError);
-    expect(error.message).toBe('Object has been disposed');
+    // TranslatableGenericError returns the string key when translation fails
+    expect(error.message).toContain('Error_DisposedError_ObjectDisposed');
     expect(error.name).toBe('DisposedError');
+    expect(error).toBeInstanceOf(Error);
   });
 
   it('should create an ECIESError', () => {

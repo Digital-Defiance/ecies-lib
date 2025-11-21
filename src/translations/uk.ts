@@ -1,6 +1,7 @@
 import { EciesStringKey } from '../enumerations';
+import { createPluralString, PluralString } from '@digitaldefiance/i18n-lib';
 
-export const ukrainianTranslations: Record<EciesStringKey, string> = {
+export const ukrainianTranslations: Record<EciesStringKey, string | PluralString> = {
     // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
     [EciesStringKey.Error_ECIESError_InvalidECIESMultipleEncryptedKeySize]:
       'Недійсний розмір множинного зашифрованого ключа ECIES',
@@ -196,6 +197,7 @@ export const ukrainianTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Stream_MaxRecipientsExceeded]: 'Підтримується максимум 65535 одержувачів',
     [EciesStringKey.Error_Stream_InvalidRecipientPublicKeyLength]: 'Недійсний відкритий ключ одержувача: повинен бути 33 (стиснутий) або 65 (нестиснутий) байти',
     [EciesStringKey.Error_Stream_InvalidRecipientIdLength]: 'Недійсний ID одержувача: повинен бути 32 байти',
+    [EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate]: 'Недійсний ID одержувача: повинен бути {expected} байти',
     [EciesStringKey.Error_Stream_InvalidRecipientIdMust32Bytes]: 'Недійсний ID одержувача: повинен бути 32 байти',
     [EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes]: 'Недійсний приватний ключ: повинен бути 32 байти',
     [EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate]: 'Помилка послідовності блоків: очікувалося {expected}, отримано {actual}',
@@ -235,8 +237,28 @@ export const ukrainianTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]: 'ECIESService повинен бути встановлений перед генерацією мнемоніки',
     [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: 'ECIESService є обов\'язковим',
     [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: 'Тип, ім\'я та електронна пошта є обов\'язковими',
+    [EciesStringKey.Error_DisposedError_ObjectDisposed]: 'Об\'єкт було видалено',
     [EciesStringKey.Error_GuidError_InvalidGuid]: 'Недійсний GUID.',
     [EciesStringKey.Error_GuidError_InvalidGuidWithDetailsTemplate]: 'Недійсний GUID: {GUID}',
     [EciesStringKey.Error_GuidError_InvalidGuidUnknownBrandTemplate]: 'Невідомий бренд GUID: {BRAND}.',
     [EciesStringKey.Error_GuidError_InvalidGuidUnknownLengthTemplate]: 'Невірна довжина GUID: {LENGTH}.',
+    [EciesStringKey.Error_IdProviderError_InvalidLength]: 'Невідповідність довжини ID: очікувалося {expected} байт, отримано {actual} у {context}',
+    [EciesStringKey.Error_IdProviderError_InputMustBeString]: 'Вхідні дані мають бути рядком',
+    [EciesStringKey.Error_IdProviderError_InvalidStringLength]: 'Недійсна довжина рядка: очікувалося {expected} символів, отримано {actual}',
+    [EciesStringKey.Error_IdProviderError_InvalidCharacters]: 'Рядок містить недійсні символи',
+    [EciesStringKey.Error_IdProviderError_InvalidDeserializedId]: 'Десеріалізований ID не пройшов перевірку',
+    [EciesStringKey.Error_IdProviderError_InvalidByteLengthParameter]: 'Довжина в байтах має бути цілим числом від 1 до 255, отримано {value}',
+    [EciesStringKey.Error_IdProviderError_ParseFailed]: 'Не вдалося розібрати ID: {message}',
+    [EciesStringKey.Error_IdProviderError_InvalidGuidBuffer]: 'Недійсний буфер GUID: {message}',
+    [EciesStringKey.Error_IdProviderError_InvalidUuidFormat]: 'Недійсний формат UUID: {input}',
+
+    // Invariant Validation Errors
+    [EciesStringKey.Error_Invariant_ValidationFailedTemplate]: 'Перевірка інваріанта не вдалася: {message}',
+    [EciesStringKey.Error_Invariant_UnknownInvariantTemplate]: 'Невідомий інваріант: {name}',
+    [EciesStringKey.Error_Invariant_ConfigurationValidationFailedMultipleTemplate]: createPluralString({
+      one: 'Перевірка конфігурації не вдалася ({count} інваріант):\n\n{failures}',
+      few: 'Перевірка конфігурації не вдалася ({count} інваріанти):\n\n{failures}',
+      many: 'Перевірка конфігурації не вдалася ({count} інваріантів):\n\n{failures}',
+      other: 'Перевірка конфігурації не вдалася ({count} інваріанта):\n\n{failures}'
+    }),
   };

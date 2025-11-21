@@ -1,6 +1,7 @@
 import { EciesStringKey } from '../enumerations';
+import { createPluralString, PluralString } from '@digitaldefiance/i18n-lib';
 
-export const spanishTranslations: Record<EciesStringKey, string> = {
+export const spanishTranslations: Record<EciesStringKey, string | PluralString> = {
     // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
     [EciesStringKey.Error_ECIESError_InvalidECIESMultipleEncryptedKeySize]:
       'Tamaño de clave cifrada múltiple de ECIES no válido',
@@ -197,8 +198,9 @@ export const spanishTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Stream_AtLeastOneRecipientRequired]: 'Se requiere al menos un destinatario',
     [EciesStringKey.Error_Stream_MaxRecipientsExceeded]: 'Máximo de 65535 destinatarios admitidos',
     [EciesStringKey.Error_Stream_InvalidRecipientPublicKeyLength]: 'Clave pública del destinatario no válida: debe ser de 33 (comprimida) o 65 (sin comprimir) bytes',
-    [EciesStringKey.Error_Stream_InvalidRecipientIdLength]: 'ID de destinatario no válido: debe ser de 32 bytes',
-    [EciesStringKey.Error_Stream_InvalidRecipientIdMust32Bytes]: 'ID de destinatario no válido: debe ser de 32 bytes',
+    [EciesStringKey.Error_Stream_InvalidRecipientIdLength]: 'ID de destinatario no válido: debe tener 32 bytes',
+    [EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate]: 'ID de destinatario no válido: debe tener {expected} bytes',
+    [EciesStringKey.Error_Stream_InvalidRecipientIdMust32Bytes]: 'ID de destinatario no válido: debe tener 32 bytes',
     [EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes]: 'Clave privada no válida: debe ser de 32 bytes',
     [EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate]: 'Error de secuencia de bloque: se esperaba {expected}, se obtuvo {actual}',
     [EciesStringKey.Error_Stream_DecryptionCancelled]: 'Descifrado cancelado',
@@ -237,8 +239,26 @@ export const spanishTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]: 'ECIESService debe configurarse antes de generar el mnemónico',
     [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: 'ECIESService es obligatorio',
     [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: 'El tipo, nombre y correo electrónico son obligatorios',
+    [EciesStringKey.Error_DisposedError_ObjectDisposed]: 'El objeto ha sido eliminado',
     [EciesStringKey.Error_GuidError_InvalidGuid]: 'GUID invalido.',
     [EciesStringKey.Error_GuidError_InvalidGuidWithDetailsTemplate]: 'GUID invalido: {GUID}',
     [EciesStringKey.Error_GuidError_InvalidGuidUnknownBrandTemplate]: 'Marca de GUID desconocida: {BRAND}.',
-    [EciesStringKey.Error_GuidError_InvalidGuidUnknownLengthTemplate]: 'Longitud de GUID invalida: {LENGTH}.',
+    [EciesStringKey.Error_GuidError_InvalidGuidUnknownLengthTemplate]: 'Longitud de GUID inválida: {LENGTH}.',
+    [EciesStringKey.Error_IdProviderError_InvalidLength]: 'Longitud de ID incorrecta: se esperaban {expected} bytes, se recibieron {actual} en {context}',
+    [EciesStringKey.Error_IdProviderError_InputMustBeString]: 'La entrada debe ser una cadena',
+    [EciesStringKey.Error_IdProviderError_InvalidStringLength]: 'Longitud de cadena no válida: se esperaban {expected} caracteres, se recibieron {actual}',
+    [EciesStringKey.Error_IdProviderError_InvalidCharacters]: 'La cadena contiene caracteres no válidos',
+    [EciesStringKey.Error_IdProviderError_InvalidDeserializedId]: 'El ID deserializado falló la validación',
+    [EciesStringKey.Error_IdProviderError_InvalidByteLengthParameter]: 'La longitud en bytes debe ser un entero entre 1 y 255, se recibió {value}',
+    [EciesStringKey.Error_IdProviderError_ParseFailed]: 'Error al analizar ID: {message}',
+    [EciesStringKey.Error_IdProviderError_InvalidGuidBuffer]: 'Búfer GUID inválido: {message}',
+    [EciesStringKey.Error_IdProviderError_InvalidUuidFormat]: 'Formato UUID inválido: {input}',
+
+    // Invariant Validation Errors
+    [EciesStringKey.Error_Invariant_ValidationFailedTemplate]: 'Validación de invariante falló: {message}',
+    [EciesStringKey.Error_Invariant_UnknownInvariantTemplate]: 'Invariante desconocido: {name}',
+    [EciesStringKey.Error_Invariant_ConfigurationValidationFailedMultipleTemplate]: createPluralString({
+      one: 'Validación de configuración falló ({count} invariante):\n\n{failures}',
+      other: 'Validación de configuración falló ({count} invariantes):\n\n{failures}'
+    }),
   };

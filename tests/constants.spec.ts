@@ -4,12 +4,15 @@ import {
   UINT32_SIZE,
   UINT64_SIZE,
   OBJECT_ID_LENGTH,
+  createRuntimeConfiguration,
 } from '../src/constants';
 import {
   ECIES,
   PBKDF2,
   PBKDF2_PROFILES,
 } from '../src/constants';
+import { ObjectIdProvider, GuidV4Provider } from '../src/lib/id-providers';
+
 const sampleMnemonic =
   'ability ability ability ability ability ability ability ability ability ability ability able';
 
@@ -32,7 +35,8 @@ describe('constants module', () => {
     expect(ECIES.MULTIPLE.ENCRYPTED_KEY_SIZE).toBe(129);
     expect(ECIES.MULTIPLE.RECIPIENT_COUNT_SIZE).toBe(UINT16_SIZE);
     expect(ECIES.MULTIPLE.DATA_LENGTH_SIZE).toBe(UINT64_SIZE);
-    expect(ECIES.MULTIPLE.RECIPIENT_ID_SIZE).toBe(OBJECT_ID_LENGTH);
+    // RECIPIENT_ID_SIZE should match the configured ID provider
+    expect(ECIES.MULTIPLE.RECIPIENT_ID_SIZE).toBe(Constants.idProvider.byteLength);
     expect(ECIES.PUBLIC_KEY_LENGTH).toBe(ECIES.RAW_PUBLIC_KEY_LENGTH + 1);
   });
 
@@ -45,5 +49,31 @@ describe('constants module', () => {
     expect(Constants.PasswordRegex.test('Passw0rd!')).toBe(true);
     expect(Constants.PasswordRegex.test('short1!')).toBe(false);
     expect(Constants.MnemonicRegex.test(sampleMnemonic)).toBe(true);
+  });
+
+  it('should have default ID provider (ObjectID, 12 bytes)', () => {
+    expect(Constants.idProvider).toBeInstanceOf(ObjectIdProvider);
+    expect(Constants.idProvider.byteLength).toBe(12);
+    expect(Constants.idProvider.name).toBe('ObjectID');
+    expect(Constants.MEMBER_ID_LENGTH).toBe(12);
+  });
+
+  it('should allow creating runtime configuration with different ID provider', () => {
+    const guidConfig = createRuntimeConfiguration({
+      idProvider: new GuidV4Provider(),
+    });
+
+    expect(guidConfig.idProvider).toBeInstanceOf(GuidV4Provider);
+    expect(guidConfig.idProvider.byteLength).toBe(16);
+    expect(guidConfig.idProvider.name).toBe('GUIDv4');
+    expect(guidConfig.MEMBER_ID_LENGTH).toBe(16);
+  });
+
+  it('should validate ID provider byteLength matches MEMBER_ID_LENGTH', () => {
+    expect(() => {
+      createRuntimeConfiguration({
+        MEMBER_ID_LENGTH: 99, // Mismatched with default provider
+      });
+    }).toThrow('MEMBER_ID_LENGTH');
   });
 });

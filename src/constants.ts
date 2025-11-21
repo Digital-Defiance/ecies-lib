@@ -9,6 +9,11 @@ import { IECIESConstants } from './interfaces/ecies-consts';
 import { IPBkdf2Consts } from './interfaces/pbkdf2-consts';
 import { Pbkdf2Profiles } from './pbkdf2-profiles';
 import { MNEMONIC_REGEX, PASSWORD_REGEX } from './regexes';
+import { ObjectIdProvider } from './lib/id-providers/objectid-provider';
+import { IIdProvider } from './interfaces/id-provider';
+import { InvariantValidator } from './lib/invariant-validator';
+import type { IConfigurationProvenance } from './interfaces/configuration-provenance';
+import { calculateConfigChecksum, captureCreationStack } from './interfaces/configuration-provenance';
 
 export const UINT8_SIZE: number = 1 as const;
 export const UINT16_SIZE: number = 2 as const;
@@ -169,6 +174,12 @@ export const ECIES: IECIESConstants = Object.freeze({
   } as const),
 });
 
+/**
+ * Default ID provider instance (singleton).
+ * Uses MongoDB ObjectID format (12 bytes).
+ */
+const DEFAULT_ID_PROVIDER = new ObjectIdProvider();
+
 export const Constants: IConstants = Object.freeze({
   UINT8_SIZE: UINT8_SIZE,
   UINT16_SIZE: UINT16_SIZE,
@@ -178,8 +189,9 @@ export const Constants: IConstants = Object.freeze({
   UINT64_SIZE: UINT64_SIZE,
   UINT64_MAX: UINT64_MAX,
   HEX_RADIX: 16 as const,
-  MEMBER_ID_LENGTH: OBJECT_ID_LENGTH,
+  MEMBER_ID_LENGTH: DEFAULT_ID_PROVIDER.byteLength,
   OBJECT_ID_LENGTH: OBJECT_ID_LENGTH,
+  idProvider: DEFAULT_ID_PROVIDER,
   CHECKSUM: CHECKSUM,
   ECIES: ECIES,
   PBKDF2: PBKDF2,
@@ -347,7 +359,29 @@ function validateConstants(config: IConstants): void {
     );
   }
 
-  if (ecies.MULTIPLE.RECIPIENT_ID_SIZE !== config.OBJECT_ID_LENGTH) {
+  // Validate ID provider is present and valid
+  if (!config.idProvider) {
+    throw new Error('ID provider is required in constants configuration');
+  }
+
+  if (typeof config.idProvider.byteLength !== 'number' || 
+      config.idProvider.byteLength < 1 || 
+      config.idProvider.byteLength > 255) {
+    throw new Error(
+      `Invalid ID provider byteLength: ${config.idProvider.byteLength}. Must be between 1 and 255.`
+    );
+  }
+
+  // Validate MEMBER_ID_LENGTH matches ID provider
+  if (config.MEMBER_ID_LENGTH !== config.idProvider.byteLength) {
+    throw new Error(
+      `MEMBER_ID_LENGTH (${config.MEMBER_ID_LENGTH}) must match idProvider.byteLength (${config.idProvider.byteLength})`
+    );
+  }
+
+  // NOTE: We now validate against idProvider.byteLength instead of OBJECT_ID_LENGTH
+  // This allows for flexible ID sizes (12 bytes for ObjectID, 16 for GUID, 32 for legacy, etc.)
+  if (ecies.MULTIPLE.RECIPIENT_ID_SIZE !== config.idProvider.byteLength) {
     throw new ECIESError(
       ECIESErrorTypeEnum.InvalidECIESMultipleRecipientIdSize,
       getEciesI18nEngine() as any,
@@ -360,6 +394,17 @@ validateConstants(Constants);
 const configurationRegistry = new Map<ConfigurationKey, IConstants>();
 configurationRegistry.set(DEFAULT_CONFIGURATION_KEY, Constants);
 
+// Provenance tracking
+const provenanceRegistry = new Map<ConfigurationKey, IConfigurationProvenance>();
+provenanceRegistry.set(DEFAULT_CONFIGURATION_KEY, {
+  baseConfigKey: 'none',
+  overrides: {},
+  timestamp: new Date(),
+  source: 'default',
+  checksum: calculateConfigChecksum(Constants),
+  description: 'Built-in default configuration',
+});
+
 function isFullConstantsConfig(value: unknown): value is IConstants {
   if (!isPlainObject(value)) {
     return false;
@@ -369,7 +414,8 @@ function isFullConstantsConfig(value: unknown): value is IConstants {
     candidate.CHECKSUM !== undefined &&
     candidate.ECIES !== undefined &&
     candidate.PBKDF2 !== undefined &&
-    candidate.PBKDF2_PROFILES !== undefined
+    candidate.PBKDF2_PROFILES !== undefined &&
+    candidate.idProvider !== undefined
   );
 }
 
@@ -379,7 +425,29 @@ export function createRuntimeConfiguration(
 ): IConstants {
   const merged = deepClone(base);
   applyOverrides(merged, overrides);
+  
+  // Auto-sync MEMBER_ID_LENGTH with idProvider.byteLength if provider changed
+  if (merged.idProvider && merged.idProvider !== base.idProvider) {
+    merged.MEMBER_ID_LENGTH = merged.idProvider.byteLength;
+  }
+  
+  // Auto-sync ECIES.MULTIPLE.RECIPIENT_ID_SIZE with idProvider.byteLength if provider changed
+  if (merged.idProvider && merged.idProvider !== base.idProvider) {
+    merged.ECIES = {
+      ...merged.ECIES,
+      MULTIPLE: {
+        ...merged.ECIES.MULTIPLE,
+        RECIPIENT_ID_SIZE: merged.idProvider.byteLength,
+      },
+    };
+  }
+  
+  // Validate individual properties
   validateConstants(merged);
+  
+  // Validate all invariants (relationships between properties)
+  InvariantValidator.validateAll(merged);
+  
   return deepFreeze(merged);
 }
 
@@ -401,6 +469,24 @@ export class ConstantsRegistry {
     );
   }
 
+  /**
+   * Get provenance information for a configuration
+   */
+  public static getProvenance(key: ConfigurationKey = DEFAULT_CONFIGURATION_KEY): IConfigurationProvenance | undefined {
+    return provenanceRegistry.get(key);
+  }
+
+  /**
+   * List all configurations with their provenance
+   */
+  public static listWithProvenance(): Array<{ key: ConfigurationKey; config: IConstants; provenance?: IConfigurationProvenance }> {
+    return Array.from(configurationRegistry.entries()).map(([key, config]) => ({
+      key,
+      config,
+      provenance: provenanceRegistry.get(key),
+    }));
+  }
+
   public static create(
     overrides?: DeepPartial<IConstants>,
     baseKey: ConfigurationKey = DEFAULT_CONFIGURATION_KEY,
@@ -412,7 +498,7 @@ export class ConstantsRegistry {
   public static register(
     key: ConfigurationKey,
     configOrOverrides?: DeepPartial<IConstants> | IConstants,
-    options?: { baseKey?: ConfigurationKey },
+    options?: { baseKey?: ConfigurationKey; description?: string },
   ): IConstants {
     if (key === DEFAULT_CONFIGURATION_KEY) {
       const engine = getEciesI18nEngine();
@@ -422,11 +508,24 @@ export class ConstantsRegistry {
     const baseKey = options?.baseKey ?? DEFAULT_CONFIGURATION_KEY;
     const baseConfig = ConstantsRegistry.get(baseKey);
 
-    const configuration = isFullConstantsConfig(configOrOverrides)
+    const isFullConfig = isFullConstantsConfig(configOrOverrides);
+    const configuration = isFullConfig
       ? createRuntimeConfiguration(undefined, configOrOverrides)
       : createRuntimeConfiguration(configOrOverrides, baseConfig);
 
+    // Track provenance
+    const provenance: IConfigurationProvenance = {
+      baseConfigKey: typeof baseKey === 'symbol' ? baseKey.toString() : baseKey,
+      overrides: isFullConfig ? {} : (configOrOverrides ?? {}),
+      timestamp: new Date(),
+      source: isFullConfig ? 'custom' : 'runtime',
+      checksum: calculateConfigChecksum(configuration),
+      description: options?.description,
+      creationStack: captureCreationStack(),
+    };
+
     configurationRegistry.set(key, configuration);
+    provenanceRegistry.set(key, provenance);
     return configuration;
   }
 
@@ -434,12 +533,18 @@ export class ConstantsRegistry {
     if (key === DEFAULT_CONFIGURATION_KEY) {
       return false;
     }
+    provenanceRegistry.delete(key);
     return configurationRegistry.delete(key);
   }
 
   public static clear(): void {
+    const defaultProvenance = provenanceRegistry.get(DEFAULT_CONFIGURATION_KEY);
     configurationRegistry.clear();
+    provenanceRegistry.clear();
     configurationRegistry.set(DEFAULT_CONFIGURATION_KEY, Constants);
+    if (defaultProvenance) {
+      provenanceRegistry.set(DEFAULT_CONFIGURATION_KEY, defaultProvenance);
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 import { EciesStringKey } from '../enumerations';
+import { createPluralString, PluralString } from '@digitaldefiance/i18n-lib';
 
-export const frenchTranslations: Record<EciesStringKey, string> = {
+export const frenchTranslations: Record<EciesStringKey, string | PluralString> = {
     // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
     [EciesStringKey.Error_ECIESError_InvalidECIESMultipleEncryptedKeySize]:
       'Taille invalide de clé ECIES multiple chiffrée',
@@ -195,8 +196,9 @@ export const frenchTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Stream_AtLeastOneRecipientRequired]: 'Au moins un destinataire requis',
     [EciesStringKey.Error_Stream_MaxRecipientsExceeded]: 'Maximum de 65535 destinataires pris en charge',
     [EciesStringKey.Error_Stream_InvalidRecipientPublicKeyLength]: 'Clé publique du destinataire invalide : doit faire 33 (compressée) ou 65 (non compressée) octets',
-    [EciesStringKey.Error_Stream_InvalidRecipientIdLength]: 'ID de destinataire invalide : doit faire 32 octets',
-    [EciesStringKey.Error_Stream_InvalidRecipientIdMust32Bytes]: 'ID de destinataire invalide : doit faire 32 octets',
+    [EciesStringKey.Error_Stream_InvalidRecipientIdLength]: 'ID de destinataire non valide : doit faire 32 octets',
+    [EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate]: 'ID de destinataire non valide : doit faire {expected} octets',
+    [EciesStringKey.Error_Stream_InvalidRecipientIdMust32Bytes]: 'ID de destinataire non valide : doit faire 32 octets',
     [EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes]: 'Clé privée invalide : doit faire 32 octets',
     [EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate]: 'Erreur de séquence de bloc : attendu {expected}, obtenu {actual}',
     [EciesStringKey.Error_Stream_DecryptionCancelled]: 'Déchiffrement annulé',
@@ -235,8 +237,26 @@ export const frenchTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]: 'ECIESService doit être défini avant de générer le mnémonique',
     [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: 'ECIESService est requis',
     [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: 'Le type, le nom et l\'e-mail sont requis',
+    [EciesStringKey.Error_DisposedError_ObjectDisposed]: 'L\'objet a été supprimé',
     [EciesStringKey.Error_GuidError_InvalidGuid]: 'GUID invalide.',
     [EciesStringKey.Error_GuidError_InvalidGuidWithDetailsTemplate]: 'GUID invalide : {GUID}',
     [EciesStringKey.Error_GuidError_InvalidGuidUnknownBrandTemplate]: 'Marque GUID inconnue : {BRAND}.',
     [EciesStringKey.Error_GuidError_InvalidGuidUnknownLengthTemplate]: 'Longueur GUID invalide : {LENGTH}.',
+    [EciesStringKey.Error_IdProviderError_InvalidLength]: 'Longueur d\'ID incorrecte : {expected} octets attendus, {actual} reçus dans {context}',
+    [EciesStringKey.Error_IdProviderError_InputMustBeString]: 'L\'entrée doit être une chaîne de caractères',
+    [EciesStringKey.Error_IdProviderError_InvalidStringLength]: 'Longueur de chaîne invalide : {expected} caractères attendus, {actual} reçus',
+    [EciesStringKey.Error_IdProviderError_InvalidCharacters]: 'La chaîne contient des caractères invalides',
+    [EciesStringKey.Error_IdProviderError_InvalidDeserializedId]: 'L\'ID désérialisé a échoué la validation',
+    [EciesStringKey.Error_IdProviderError_InvalidByteLengthParameter]: 'La longueur en octets doit être un entier entre 1 et 255, reçu {value}',
+    [EciesStringKey.Error_IdProviderError_ParseFailed]: 'Échec de l\'analyse de l\'ID : {message}',
+    [EciesStringKey.Error_IdProviderError_InvalidGuidBuffer]: 'Tampon GUID invalide: {message}',
+    [EciesStringKey.Error_IdProviderError_InvalidUuidFormat]: 'Format UUID invalide: {input}',
+
+    // Invariant Validation Errors
+    [EciesStringKey.Error_Invariant_ValidationFailedTemplate]: 'La validation de l\'invariant a échoué: {message}',
+    [EciesStringKey.Error_Invariant_UnknownInvariantTemplate]: 'Invariant inconnu: {name}',
+    [EciesStringKey.Error_Invariant_ConfigurationValidationFailedMultipleTemplate]: createPluralString({
+      one: 'La validation de la configuration a échoué ({count} invariant):\n\n{failures}',
+      other: 'La validation de la configuration a échoué ({count} invariants):\n\n{failures}'
+    }),
   };

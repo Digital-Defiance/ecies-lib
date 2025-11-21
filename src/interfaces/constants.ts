@@ -2,6 +2,7 @@ import { Pbkdf2Profiles } from '../pbkdf2-profiles';
 import { IChecksumConsts } from './checksum-consts';
 import { IECIESConstants } from './ecies-consts';
 import { IPBkdf2Consts } from './pbkdf2-consts';
+import { IIdProvider } from './id-provider';
 
 export interface IConstants {
   UINT8_SIZE: number;
@@ -14,14 +15,36 @@ export interface IConstants {
   HEX_RADIX: number;
 
   /**
-   * The length of user IDs in the system
+   * The length of user IDs in the system.
+   * This is dynamically determined by the configured ID provider.
+   * @deprecated Use idProvider.byteLength instead for direct access
    */
   MEMBER_ID_LENGTH: number;
 
   /**
-   * The length of a raw object ID (not the hex string representation)
+   * The length of a raw object ID (not the hex string representation).
+   * Standard MongoDB ObjectID is 12 bytes.
+   * @deprecated Use idProvider.byteLength instead for direct access
    */
   OBJECT_ID_LENGTH: number;
+
+  /**
+   * ID provider for recipient identification in multi-recipient encryption.
+   * This determines the format and size of recipient IDs used throughout the system.
+   * 
+   * Default: ObjectIdProvider (12 bytes, MongoDB compatible)
+   * 
+   * @example
+   * ```typescript
+   * import { GuidV4Provider } from './lib/id-providers';
+   * 
+   * // Use GUIDs instead of ObjectIDs
+   * const config = createRuntimeConfiguration({
+   *   idProvider: new GuidV4Provider()
+   * });
+   * ```
+   */
+  idProvider: IIdProvider;
 
   CHECKSUM: IChecksumConsts;
   ECIES: IECIESConstants;

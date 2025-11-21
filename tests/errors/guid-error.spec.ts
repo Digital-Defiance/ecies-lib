@@ -152,7 +152,7 @@ describe('GuidError', () => {
         undefined,
         LanguageCodes.ES,
       );
-      expect(error.message).toContain('Longitud de GUID invalida');
+      expect(error.message).toContain('Longitud de GUID inválida');
       expect(error.message).toContain('17');
     });
   });

@@ -79,7 +79,7 @@ export class GuidError extends TypedError<typeof GuidErrorType, EciesStringKey> 
    * Returns a string representation of the error with all relevant details.
    * @returns A detailed error string.
    */
-  public toString(): string {
+  public override toString(): string {
     const parts = [`${this.name}: ${this.message}`];
     
     if (this.brand !== undefined) {

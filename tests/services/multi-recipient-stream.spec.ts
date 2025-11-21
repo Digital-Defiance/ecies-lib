@@ -1,6 +1,7 @@
 import { ECIESService } from '../../src/services/ecies/service';
 import { EncryptionStream } from '../../src/services/encryption-stream';
 import { StreamTestUtils } from '../support/stream-test-utils';
+import { Constants } from '../../src/constants';
 
 describe('Multi-Recipient Streaming (Phase 4)', () => {
   let ecies: ECIESService;
@@ -15,8 +16,7 @@ describe('Multi-Recipient Streaming (Phase 4)', () => {
     const mnemonic = ecies.generateNewMnemonic();
     const keyPair = ecies.mnemonicToSimpleKeyPair(mnemonic);
     
-    const id = new Uint8Array(32);
-    id[0] = 1;
+    const id = Constants.idProvider.generate();
     const recipients = [
       { id, publicKey: keyPair.publicKey },
     ];
@@ -37,8 +37,7 @@ describe('Multi-Recipient Streaming (Phase 4)', () => {
     for (let i = 0; i < 3; i++) {
       const mnemonic = ecies.generateNewMnemonic();
       const keyPair = ecies.mnemonicToSimpleKeyPair(mnemonic);
-      const id = new Uint8Array(32);
-      id[0] = i;
+      const id = Constants.idProvider.generate();
       recipients.push({
         id,
         publicKey: keyPair.publicKey,
@@ -70,8 +69,7 @@ describe('Multi-Recipient Streaming (Phase 4)', () => {
   it('should reject too many recipients', async () => {
     const recipients: { id: Uint8Array; publicKey: Uint8Array }[] = [];
     for (let i = 0; i < 65536; i++) {
-      const id = new Uint8Array(32);
-      id[0] = i % 256;
+      const id = Constants.idProvider.generate();
       recipients.push({
         id,
         publicKey: new Uint8Array(33),
@@ -92,8 +90,7 @@ describe('Multi-Recipient Streaming (Phase 4)', () => {
     const mnemonic = ecies.generateNewMnemonic();
     const keyPair = ecies.mnemonicToSimpleKeyPair(mnemonic);
     
-    const id = new Uint8Array(32);
-    id[0] = 1;
+    const id = Constants.idProvider.generate();
     const recipients = [
       { id, publicKey: keyPair.publicKey },
     ];

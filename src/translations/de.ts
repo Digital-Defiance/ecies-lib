@@ -1,6 +1,7 @@
 import { EciesStringKey } from '../enumerations';
+import { createPluralString, PluralString } from '@digitaldefiance/i18n-lib';
 
-export const germanTranslations: Record<EciesStringKey, string> = {
+export const germanTranslations: Record<EciesStringKey, string | PluralString> = {
     // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
     [EciesStringKey.Error_ECIESError_InvalidECIESMultipleEncryptedKeySize]:
       'Ungültige ECIES mehrfache verschlüsselte Schlüssellänge',
@@ -187,6 +188,7 @@ export const germanTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Stream_MaxRecipientsExceeded]: 'Maximal 65535 Empfänger unterstützt',
     [EciesStringKey.Error_Stream_InvalidRecipientPublicKeyLength]: 'Ungültiger öffentlicher Empfängerschlüssel: muss 33 (komprimiert) oder 65 (unkomprimiert) Bytes sein',
     [EciesStringKey.Error_Stream_InvalidRecipientIdLength]: 'Ungültige Empfänger-ID: muss 32 Bytes sein',
+    [EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate]: 'Ungültige Empfänger-ID: muss {expected} Bytes sein',
     [EciesStringKey.Error_Stream_InvalidRecipientIdMust32Bytes]: 'Ungültige Empfänger-ID: muss 32 Bytes sein',
     [EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes]: 'Ungültiger privater Schlüssel: muss 32 Bytes sein',
     [EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate]: 'Block-Sequenzfehler: erwartet {expected}, erhalten {actual}',
@@ -226,8 +228,26 @@ export const germanTranslations: Record<EciesStringKey, string> = {
     [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]: 'ECIESService muss vor der Generierung der Mnemonik festgelegt werden',
     [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: 'ECIESService ist erforderlich',
     [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: 'Typ, Name und E-Mail sind erforderlich',
+    [EciesStringKey.Error_DisposedError_ObjectDisposed]: 'Objekt wurde freigegeben',
     [EciesStringKey.Error_GuidError_InvalidGuid]: 'Ungültige GUID.',
     [EciesStringKey.Error_GuidError_InvalidGuidWithDetailsTemplate]: 'Ungültige GUID: {GUID}',
     [EciesStringKey.Error_GuidError_InvalidGuidUnknownBrandTemplate]: 'Unbekannte GUID-Marke: {BRAND}.',
     [EciesStringKey.Error_GuidError_InvalidGuidUnknownLengthTemplate]: 'Ungültige GUID-Länge: {LENGTH}.',
+    [EciesStringKey.Error_IdProviderError_InvalidLength]: 'ID-Länge stimmt nicht überein: {expected} Bytes erwartet, {actual} in {context} erhalten',
+    [EciesStringKey.Error_IdProviderError_InputMustBeString]: 'Eingabe muss eine Zeichenkette sein',
+    [EciesStringKey.Error_IdProviderError_InvalidStringLength]: 'Ungültige Zeichenkettenlänge: {expected} Zeichen erwartet, {actual} erhalten',
+    [EciesStringKey.Error_IdProviderError_InvalidCharacters]: 'Zeichenkette enthält ungültige Zeichen',
+    [EciesStringKey.Error_IdProviderError_InvalidDeserializedId]: 'Deserialisierte ID hat Validierung nicht bestanden',
+    [EciesStringKey.Error_IdProviderError_InvalidByteLengthParameter]: 'Byte-Länge muss eine ganze Zahl zwischen 1 und 255 sein, {value} erhalten',
+    [EciesStringKey.Error_IdProviderError_ParseFailed]: 'ID konnte nicht geparst werden: {message}',
+    [EciesStringKey.Error_IdProviderError_InvalidGuidBuffer]: 'Ungültiger GUID-Puffer: {message}',
+    [EciesStringKey.Error_IdProviderError_InvalidUuidFormat]: 'Ungültiges UUID-Format: {input}',
+
+    // Invariant Validation Errors
+    [EciesStringKey.Error_Invariant_ValidationFailedTemplate]: 'Invariantenvalidierung fehlgeschlagen: {message}',
+    [EciesStringKey.Error_Invariant_UnknownInvariantTemplate]: 'Unbekannte Invariante: {name}',
+    [EciesStringKey.Error_Invariant_ConfigurationValidationFailedMultipleTemplate]: createPluralString({
+      one: 'Konfigurationsvalidierung fehlgeschlagen ({count} Invariante):\n\n{failures}',
+      other: 'Konfigurationsvalidierung fehlgeschlagen ({count} Invarianten):\n\n{failures}'
+    }),
   };

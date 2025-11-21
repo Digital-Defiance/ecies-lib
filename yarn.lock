@@ -379,7 +379,7 @@ __metadata:
   resolution: "@digitaldefiance/ecies-lib@workspace:."
   dependencies:
     "@digitaldefiance/express-suite-test-utils": "npm:1.0.10"
-    "@digitaldefiance/i18n-lib": "npm:3.6.3"
+    "@digitaldefiance/i18n-lib": "npm:3.7.2"
     "@ethereumjs/wallet": "npm:^10.0.0"
     "@noble/curves": "npm:^2.0.1"
     "@noble/hashes": "npm:^2.0.1"
@@ -403,14 +403,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digitaldefiance/i18n-lib@npm:3.6.3":
-  version: 3.6.3
-  resolution: "@digitaldefiance/i18n-lib@npm:3.6.3"
+"@digitaldefiance/i18n-lib@npm:3.7.2":
+  version: 3.7.2
+  resolution: "@digitaldefiance/i18n-lib@npm:3.7.2"
   dependencies:
     currency-codes: "npm:^2.2.0"
     moment: "npm:^2.30.1"
     moment-timezone: "npm:^0.6.0"
-  checksum: 10c0/f2c3c98da9b9cc550c6f5755bbd9d826da56a00e937c575d9cf7af17a34e5182562fdb698ed32c0fd663edbf83a62a08f6ba2a4575768f7a650db2243fc26016
+  checksum: 10c0/446b2cbd86ff3a365e67c97f03d445221ca9f2c3412f228746d63bd144f995deed59d55d68879a25e2f084e8fbf211c0dbfe38cdc406ed7f343cbc52033ff60d
   languageName: node
   linkType: hard
 

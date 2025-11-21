@@ -3,17 +3,35 @@ import {
   IMultiRecipientChunk,
   IMultiRecipientChunkHeader,
   IRecipientHeader,
-  MULTI_RECIPIENT_CONSTANTS,
+  IMultiRecipientConstants,
+  getMultiRecipientConstants,
 } from '../interfaces/multi-recipient-chunk';
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
 import { EciesStringKey } from '../enumerations';
+import { Constants } from '../constants';
+import { IConstants } from '../interfaces/constants';
 
 /**
- * Processes multi-recipient chunks using symmetric encryption
+ * Processes multi-recipient chunks using symmetric encryption.
+ * Supports dynamic recipient ID sizes based on the configured ID provider.
  */
 export class MultiRecipientProcessor {
-  constructor(private readonly ecies: ECIESService) {}
+  private readonly recipientIdSize: number;
+  private readonly constants: IMultiRecipientConstants;
+
+  /**
+   * Create a new multi-recipient processor.
+   * @param ecies - ECIES service for key encryption
+   * @param config - Configuration containing ID provider (defaults to global Constants)
+   */
+  constructor(
+    private readonly ecies: ECIESService,
+    private readonly config: IConstants = Constants
+  ) {
+    this.recipientIdSize = config.idProvider.byteLength;
+    this.constants = getMultiRecipientConstants(this.recipientIdSize);
+  }
 
   /**
    * Encrypt chunk for multiple recipients
@@ -27,7 +45,7 @@ export class MultiRecipientProcessor {
   ): Promise<IMultiRecipientChunk> {
     // Validate inputs
     const engine = getEciesI18nEngine();
-    if (recipients.length === 0 || recipients.length > MULTI_RECIPIENT_CONSTANTS.MAX_RECIPIENTS) {
+    if (recipients.length === 0 || recipients.length > this.constants.MAX_RECIPIENTS) {
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_InvalidRecipientCountTemplate, { count: recipients.length }));
     }
     if (symmetricKey.length !== 32) {
@@ -59,8 +77,10 @@ export class MultiRecipientProcessor {
     // Build recipient headers
     const recipientHeaders: IRecipientHeader[] = [];
     for (const recipient of recipients) {
-      if (recipient.id.length !== MULTI_RECIPIENT_CONSTANTS.RECIPIENT_ID_SIZE) {
-        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_RecipientIdMust32Bytes));
+      if (recipient.id.length !== this.recipientIdSize) {
+        throw new Error(
+          `Recipient ID must be ${this.recipientIdSize} bytes (configured by ID provider), got ${recipient.id.length} bytes`
+        );
       }
       
       const encryptedKey = await this.ecies.encryptSimpleOrSingle(
@@ -79,15 +99,15 @@ export class MultiRecipientProcessor {
     // Calculate sizes with overflow check
     let recipientHeadersSize = 0;
     for (const h of recipientHeaders) {
-      const headerSize = MULTI_RECIPIENT_CONSTANTS.RECIPIENT_ID_SIZE + 
-                        MULTI_RECIPIENT_CONSTANTS.KEY_SIZE_BYTES + h.keySize;
+      const headerSize = this.recipientIdSize + 
+                        this.constants.KEY_SIZE_BYTES + h.keySize;
       if (recipientHeadersSize + headerSize < recipientHeadersSize) {
         throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_RecipientHeadersSizeOverflow));
       }
       recipientHeadersSize += headerSize;
     }
 
-    const totalSize = MULTI_RECIPIENT_CONSTANTS.HEADER_SIZE + 
+    const totalSize = this.constants.HEADER_SIZE + 
                      recipientHeadersSize + 
                      12 + // IV
                      encrypted.length + 
@@ -104,9 +124,9 @@ export class MultiRecipientProcessor {
     let offset = 0;
 
     // Write header
-    view.setUint32(offset, MULTI_RECIPIENT_CONSTANTS.MAGIC, false);
+    view.setUint32(offset, this.constants.MAGIC, false);
     offset += 4;
-    view.setUint16(offset, MULTI_RECIPIENT_CONSTANTS.VERSION, false);
+    view.setUint16(offset, this.constants.VERSION, false);
     offset += 2;
     view.setUint16(offset, recipients.length, false);
     offset += 2;
@@ -116,17 +136,17 @@ export class MultiRecipientProcessor {
     offset += 4;
     view.setUint32(offset, encrypted.length, false);
     offset += 4;
-    view.setUint8(offset, isLast ? MULTI_RECIPIENT_CONSTANTS.FLAG_IS_LAST : 0);
+    view.setUint8(offset, isLast ? this.constants.FLAG_IS_LAST : 0);
     offset += 1;
     // Padding to 32 bytes
-    offset = MULTI_RECIPIENT_CONSTANTS.HEADER_SIZE;
+    offset = this.constants.HEADER_SIZE;
 
     // Write recipient headers
     for (const header of recipientHeaders) {
       chunk.set(header.id, offset);
-      offset += MULTI_RECIPIENT_CONSTANTS.RECIPIENT_ID_SIZE;
+      offset += this.recipientIdSize;
       view.setUint16(offset, header.keySize, false);
-      offset += MULTI_RECIPIENT_CONSTANTS.KEY_SIZE_BYTES;
+      offset += this.constants.KEY_SIZE_BYTES;
       chunk.set(header.encryptedKey, offset);
       offset += header.keySize;
     }
@@ -159,7 +179,7 @@ export class MultiRecipientProcessor {
     privateKey: Uint8Array
   ): Promise<{ data: Uint8Array; header: IMultiRecipientChunkHeader }> {
     const engine = getEciesI18nEngine();
-    if (chunkData.length < MULTI_RECIPIENT_CONSTANTS.HEADER_SIZE) {
+    if (chunkData.length < this.constants.HEADER_SIZE) {
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_ChunkTooSmall));
     }
 
@@ -169,19 +189,19 @@ export class MultiRecipientProcessor {
     // Parse header
     const magic = view.getUint32(offset, false);
     offset += 4;
-    if (magic !== MULTI_RECIPIENT_CONSTANTS.MAGIC) {
+    if (magic !== this.constants.MAGIC) {
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_InvalidChunkMagic));
     }
 
     const version = view.getUint16(offset, false);
     offset += 2;
-    if (version !== MULTI_RECIPIENT_CONSTANTS.VERSION) {
+    if (version !== this.constants.VERSION) {
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_UnsupportedVersionTemplate, { version }));
     }
 
     const recipientCount = view.getUint16(offset, false);
     offset += 2;
-    if (recipientCount === 0 || recipientCount > MULTI_RECIPIENT_CONSTANTS.MAX_RECIPIENTS) {
+    if (recipientCount === 0 || recipientCount > this.constants.MAX_RECIPIENTS) {
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_InvalidRecipientCountTemplate, { count: recipientCount }));
     }
     const chunkIndex = view.getUint32(offset, false);
@@ -191,10 +211,10 @@ export class MultiRecipientProcessor {
     const encryptedSize = view.getUint32(offset, false);
     offset += 4;
     const flags = view.getUint8(offset);
-    offset = MULTI_RECIPIENT_CONSTANTS.HEADER_SIZE;
+    offset = this.constants.HEADER_SIZE;
 
     // Validate encryptedSize against chunk size
-    const minChunkSize = MULTI_RECIPIENT_CONSTANTS.HEADER_SIZE + 12 + encryptedSize + 16;
+    const minChunkSize = this.constants.HEADER_SIZE + 12 + encryptedSize + 16;
     if (chunkData.length < minChunkSize) {
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_ChunkTooSmallForEncryptedSize));
     }
@@ -205,20 +225,20 @@ export class MultiRecipientProcessor {
     
     for (let i = 0; i < recipientCount; i++) {
       // Check if we have enough data for recipient ID
-      if (tempOffset + MULTI_RECIPIENT_CONSTANTS.RECIPIENT_ID_SIZE > chunkData.length) {
+      if (tempOffset + this.recipientIdSize > chunkData.length) {
         throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_ChunkTruncatedRecipientId));
       }
       
-      const id = chunkData.slice(tempOffset, tempOffset + MULTI_RECIPIENT_CONSTANTS.RECIPIENT_ID_SIZE);
-      tempOffset += MULTI_RECIPIENT_CONSTANTS.RECIPIENT_ID_SIZE;
+      const id = chunkData.slice(tempOffset, tempOffset + this.recipientIdSize);
+      tempOffset += this.recipientIdSize;
       
       // Check if we have enough data for keySize field
-      if (tempOffset + MULTI_RECIPIENT_CONSTANTS.KEY_SIZE_BYTES > chunkData.length) {
+      if (tempOffset + this.constants.KEY_SIZE_BYTES > chunkData.length) {
         throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_ChunkTruncatedKeySize));
       }
       
       const keySize = view.getUint16(tempOffset, false);
-      tempOffset += MULTI_RECIPIENT_CONSTANTS.KEY_SIZE_BYTES;
+      tempOffset += this.constants.KEY_SIZE_BYTES;
 
       // Validate keySize (typical ECIES: 100-400 bytes)
       if (keySize === 0 || keySize > 1000) {

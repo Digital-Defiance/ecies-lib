@@ -38,6 +38,28 @@ export { SecureBuffer } from './secure-buffer';
 export { Constants, ConstantsRegistry } from './constants';
 export type { IConstants } from './interfaces';
 
+// ID Provider system
+export * from './lib/id-providers';
+export type { IIdProvider } from './interfaces/id-provider';
+export { BaseIdProvider } from './interfaces/id-provider';
+
+// Invariant validation system
+export { InvariantValidator } from './lib/invariant-validator';
+export type { IInvariant } from './interfaces/invariant';
+export { BaseInvariant } from './interfaces/invariant';
+export * from './lib/invariants';
+
+// Configuration helpers
+export {
+  createRuntimeConfiguration,
+  registerRuntimeConfiguration,
+  unregisterRuntimeConfiguration,
+  clearRuntimeConfigurations,
+  getRuntimeConfiguration,
+} from './constants';
+export type { IConfigurationProvenance } from './interfaces/configuration-provenance';
+export { calculateConfigChecksum, captureCreationStack } from './interfaces/configuration-provenance';
+
 // Note: Existing services will be re-exported once migrated to v2
 // For now, import from main index.ts for backward compatibility
 
