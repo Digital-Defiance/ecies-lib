@@ -713,6 +713,10 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+### v3.7.5
+
+- Fix export
+
 ### v3.7.4
 
 - Fix export

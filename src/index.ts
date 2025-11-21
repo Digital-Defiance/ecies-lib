@@ -48,6 +48,7 @@ export type {
 export type { HexString } from './types';
 export { LengthEncodingType } from './enumerations/length-encoding-type';
 export { MemberErrorType } from './enumerations/member-error-type';
+export { InvalidEmailErrorType } from './enumerations/invalid-email-type';
 export { 
   EciesEncryptionTypeEnum, 
   type EciesEncryptionType, 
