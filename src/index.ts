@@ -37,11 +37,40 @@ export { SecureBuffer } from './secure-buffer';
 // Re-export constants (unchanged)
 export { Constants, ConstantsRegistry } from './constants';
 export type { IConstants } from './interfaces';
+// Also export specific interfaces, types, and enums that are needed
+export type {
+  IECIESConstants,
+  IECIESConfig,
+  IPbkdf2Config,
+  IPBkdf2Consts,
+  IMemberStorageData,
+} from './interfaces';
+export type { HexString } from './types';
+export { LengthEncodingType } from './enumerations/length-encoding-type';
+export { MemberErrorType } from './enumerations/member-error-type';
+export { 
+  EciesEncryptionTypeEnum, 
+  type EciesEncryptionType, 
+  EciesEncryptionTypeMap,
+  encryptionTypeEnumToType,
+  encryptionTypeToString,
+  ensureEciesEncryptionTypeEnum,
+} from './enumerations/ecies-encryption-type';
+export { ECIESErrorTypeEnum } from './enumerations/ecies-error-type';
+export { ECIESError } from './errors/ecies';
+export { Pbkdf2ErrorType } from './enumerations/pbkdf2-error-type';
+export { ECIES, UINT32_MAX, UINT64_SIZE, OBJECT_ID_LENGTH } from './constants';
+export { 
+  getLengthEncodingTypeForLength, 
+  getLengthEncodingTypeFromValue, 
+  getLengthForLengthType,
+} from './utils';
 
 // ID Provider system
 export * from './lib/id-providers';
 export type { IIdProvider } from './interfaces/id-provider';
 export { BaseIdProvider } from './interfaces/id-provider';
+export { ObjectIdProvider } from './lib/id-providers/objectid-provider';
 
 // Invariant validation system
 export { InvariantValidator } from './lib/invariant-validator';
