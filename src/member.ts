@@ -1,6 +1,5 @@
 import { Wallet } from '@ethereumjs/wallet';
-import { ObjectId } from 'bson';
-import { ECIES } from './constants';
+import { ECIES, Constants } from './constants';
 import { EmailString } from './email-string';
 import MemberErrorType from './enumerations/member-error-type';
 import MemberType from './enumerations/member-type';
@@ -27,14 +26,14 @@ import { IECIESConstants } from './interfaces/ecies-consts';
  * This class provides methods for signing, verifying, encrypting, and decrypting data.
  * It also manages the member's keys and wallet.
  */
-export class Member implements IFrontendMemberOperational {
+export class Member implements IFrontendMemberOperational<Uint8Array> {
   private readonly _eciesService: ECIESService;
-  private readonly _id: ObjectId;
+  private readonly _id: Uint8Array;
   private readonly _type: MemberType;
   private readonly _name: string;
   private readonly _email: EmailString;
   private readonly _publicKey: Uint8Array;
-  private readonly _creatorId: ObjectId;
+  private readonly _creatorId: Uint8Array;
   private readonly _dateCreated: Date;
   private readonly _dateUpdated: Date;
   private _privateKey?: SecureBuffer;
@@ -50,16 +49,16 @@ export class Member implements IFrontendMemberOperational {
     publicKey: Uint8Array,
     privateKey?: SecureBuffer,
     wallet?: Wallet,
-    id?: ObjectId,
+    id?: Uint8Array,
     dateCreated?: Date,
     dateUpdated?: Date,
-    creatorId?: ObjectId,
+    creatorId?: Uint8Array,
   ) {
     // Assign injected services
     this._eciesService = eciesService;
     // Assign original parameters
     this._type = type;
-    this._id = id ?? new ObjectId();
+    this._id = id ?? Constants.idProvider.generate();
     this._name = name;
     if (!this._name || this._name.length == 0) {
       throw new MemberError(
@@ -92,7 +91,7 @@ export class Member implements IFrontendMemberOperational {
   }
 
   // Required getters
-  public get id(): ObjectId {
+  public get id(): Uint8Array {
     return this._id;
   }
   public get type(): MemberType {
@@ -107,7 +106,7 @@ export class Member implements IFrontendMemberOperational {
   public get publicKey(): Uint8Array {
     return this._publicKey;
   }
-  public get creatorId(): ObjectId {
+  public get creatorId(): Uint8Array {
     return this._creatorId;
   }
   public get dateCreated(): Date {
@@ -382,12 +381,12 @@ export class Member implements IFrontendMemberOperational {
 
   public toJson(): string {
     const storage: IMemberStorageData = {
-      id: this._id.toHexString(),
+      id: Constants.idProvider.serialize(this._id),
       type: this._type,
       name: this._name,
       email: this._email.toString(),
       publicKey: uint8ArrayToBase64(this._publicKey),
-      creatorId: this._creatorId.toHexString(),
+      creatorId: Constants.idProvider.serialize(this._creatorId),
       dateCreated: this._dateCreated.toISOString(),
       dateUpdated: this._dateUpdated.toISOString(),
     };
@@ -429,10 +428,10 @@ export class Member implements IFrontendMemberOperational {
       base64ToUint8Array(storage.publicKey),
       undefined,
       undefined,
-      new ObjectId(storage.id),
+      Constants.idProvider.deserialize(storage.id),
       dateCreated,
       new Date(storage.dateUpdated),
-      new ObjectId(storage.creatorId),
+      Constants.idProvider.deserialize(storage.creatorId),
     );
   }
 
@@ -468,7 +467,7 @@ export class Member implements IFrontendMemberOperational {
     name: string,
     email: EmailString,
     forceMnemonic?: SecureString,
-    createdBy?: ObjectId,
+    createdBy?: Uint8Array,
     eciesParams?: IECIESConstants,
   ): IMemberWithMnemonic {
     // Validate inputs first
@@ -507,7 +506,7 @@ export class Member implements IFrontendMemberOperational {
     // Get compressed public key
     const publicKey = eciesService.getPublicKey(privateKey);
 
-    const newId = new ObjectId();
+    const newId = Constants.idProvider.generate();
     const dateCreated = new Date();
     return {
       // Pass injected services to constructor

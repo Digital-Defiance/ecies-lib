@@ -8,7 +8,6 @@ import { Member } from '../member';
 import { IMemberWithMnemonic } from '../interfaces/member-with-mnemonic';
 import { ECIESService } from '../services/ecies/service';
 import { SecureString } from '../secure-string';
-import { ObjectId } from 'bson';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
 import { EciesStringKey } from '../enumerations';
 
@@ -18,7 +17,7 @@ export class MemberBuilder {
   private name?: string;
   private email?: EmailString;
   private mnemonic?: SecureString;
-  private createdBy?: ObjectId;
+  private createdBy?: Uint8Array; // ID of the creator
 
   static create(): MemberBuilder {
     return new MemberBuilder();
@@ -49,7 +48,7 @@ export class MemberBuilder {
     return this;
   }
 
-  withCreatedBy(creatorId: ObjectId): this {
+  withCreatedBy(creatorId: Uint8Array): this {
     this.createdBy = creatorId;
     return this;
   }
@@ -78,7 +77,7 @@ export class MemberBuilder {
       this.name,
       this.email,
       this.mnemonic,
-      this.createdBy
+      this.createdBy as unknown as Uint8Array | undefined
     );
   }
 }

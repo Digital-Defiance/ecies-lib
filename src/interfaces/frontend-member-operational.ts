@@ -1,7 +1,6 @@
 import { Wallet } from '@ethereumjs/wallet';
 import { EmailString } from '../email-string';
 import MemberType from '../enumerations/member-type';
-import { ObjectId } from 'bson';
 import { SecureBuffer } from '../secure-buffer';
 import { SecureString } from '../secure-string';
 import { SignatureUint8Array } from '../types';
@@ -13,7 +12,7 @@ import { ProgressCallback } from './stream-progress';
  * Operational interface for member - defines getters and methods
  */
 export interface IFrontendMemberOperational<
-  TID = ObjectId,
+  TID = Uint8Array,
   TData = Uint8Array,
   TSignature = SignatureUint8Array,
 > {

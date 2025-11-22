@@ -16,6 +16,7 @@ export interface IWalletSeed {
 }
 
 export interface ISingleEncryptedParsedHeader {
+  preamble?: Uint8Array;
   encryptionType: EciesEncryptionTypeEnum;
   ephemeralPublicKey: Uint8Array;
   iv: Uint8Array;

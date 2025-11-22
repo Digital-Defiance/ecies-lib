@@ -1,7 +1,7 @@
 import { SecureStorageErrorType } from './enumerations/secure-storage-error-type';
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
-import { ObjectId } from 'bson';
+import { Constants } from './constants';
 import { getEciesI18nEngine } from './i18n-setup';
 import { XorService } from './services/xor';
 import { uint8ArrayToHex } from './utils';
@@ -12,14 +12,14 @@ import { uint8ArrayToHex } from './utils';
 export class SecureString {
   private _disposed: boolean = false;
   private readonly _isNull: boolean;
-  private readonly _id: ObjectId;
+  private readonly _id: Uint8Array;
   private readonly _length: number;
   private readonly _obfuscatedValue: Uint8Array;
   private readonly _key: Uint8Array;
   private readonly _obfuscatedChecksum: Uint8Array;
   private _disposedAt?: string;
   constructor(data?: string | Uint8Array | null) {
-    this._id = new ObjectId();
+    this._id = Constants.idProvider.generate();
     // only treat null/undefined as null, empty strings/arrays are valid empty data
     if (data === null || data === undefined) {
       this._isNull = true;
@@ -30,7 +30,7 @@ export class SecureString {
       return;
     }
     this._isNull = false;
-    this._key = this.idUint8Array;
+    this._key = this._id;
     const dataAsUint8Array =
       typeof data === 'string'
         ? new TextEncoder().encode(data)
@@ -68,11 +68,11 @@ export class SecureString {
   }
   public get id(): string {
     this.assertNotDisposed();
-    return this._id.toHexString();
+    return Constants.idProvider.serialize(this._id);
   }
   public get idUint8Array(): Uint8Array {
     this.assertNotDisposed();
-    return this._id.id;
+    return this._id;
   }
   public get originalLength(): number {
     this.assertNotDisposed();

@@ -713,6 +713,10 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+### v4.1.0
+
+- ID Provider drives Member model as well
+
 ### v4.0.0 - ECIES Protocol v4.0: Enterprise-Grade Security & Efficiency
 
 #### 🛡️ Major Protocol Upgrade (Breaking Changes)

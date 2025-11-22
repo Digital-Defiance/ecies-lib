@@ -140,11 +140,11 @@ describe('Encrypted Message Structure Validation', () => {
       
       // Expected structure:
       // - Chunk Header: 64 bytes (Fixed Header + Shared Ephemeral Key + Padding)
-      // - Per recipient: recipientId(12) + keySize(2) + encryptedKey(64)
-      // - Encrypted Message: IV(16) + Tag(16) + Data(10) = 42 bytes
+      // - Per recipient: recipientId(12) + keySize(2) + encryptedKey(60)
+      // - Encrypted Message: IV(12) + Tag(16) + Data(10) = 38 bytes
       
-      const perRecipientSize = 12 + 2 + 64;
-      const expectedTotal = 64 + (perRecipientSize * recipientCount) + 42;
+      const perRecipientSize = 12 + 2 + 60;
+      const expectedTotal = 64 + (perRecipientSize * recipientCount) + 38;
       
       expect(structure.recipientIdSize).toBe(12);
       expect(structure.totalLength).toBe(expectedTotal);
@@ -159,8 +159,8 @@ describe('Encrypted Message Structure Validation', () => {
       const structure = await analyzeMultiRecipientStructure(config, recipientCount);
       
       // Expected structure with 16-byte IDs
-      const perRecipientSize = 16 + 2 + 64;
-      const expectedTotal = 64 + (perRecipientSize * recipientCount) + 42;
+      const perRecipientSize = 16 + 2 + 60;
+      const expectedTotal = 64 + (perRecipientSize * recipientCount) + 38;
       
       expect(structure.recipientIdSize).toBe(16);
       expect(structure.totalLength).toBe(expectedTotal);
@@ -181,7 +181,7 @@ describe('Encrypted Message Structure Validation', () => {
       });
       
       // Measure actual encrypted key size
-      const encryptedKeySize = 64; // Fixed size
+      const encryptedKeySize = 60; // Fixed size
       
       const recipientIdSize = 12;
       
@@ -261,8 +261,8 @@ describe('Encrypted Message Structure Validation', () => {
       expect(uniqueLengths.size).toBe(1);
       
       // Verify expected SIMPLE structure:
-      // Type (1) + Version (1) + Suite (1) + Public Key (33) + IV (16) + Encrypted Data (10) + Auth Tag (16) = 78
-      expect(lengths[0]).toBe(78);
+      // Type (1) + Version (1) + Suite (1) + Public Key (33) + IV (12) + Encrypted Data (10) + Auth Tag (16) = 74
+      expect(lengths[0]).toBe(74);
     });
   });
 
@@ -295,8 +295,8 @@ describe('Encrypted Message Structure Validation', () => {
       expect(uniqueLengths.size).toBe(1);
       
       // Verify expected SINGLE structure:
-      // Type (1) + Version (1) + Suite (1) + Public Key (33) + IV (16) + Encrypted Data (10) + Auth Tag (16) + Data Length (8) = 86
-      expect(lengths[0]).toBe(86);
+      // Type (1) + Version (1) + Suite (1) + Public Key (33) + IV (12) + Encrypted Data (10) + Auth Tag (16) + Data Length (8) = 82
+      expect(lengths[0]).toBe(82);
     });
   });
 

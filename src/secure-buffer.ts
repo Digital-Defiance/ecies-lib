@@ -1,16 +1,16 @@
 import { SecureStorageErrorType } from './enumerations/secure-storage-error-type';
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
-import { ObjectId } from 'bson';
+import { Constants } from './constants';
 import { getEciesI18nEngine } from './i18n-setup';
 import { XorService } from './services/xor';
 import { uint8ArrayToHex } from './utils';
 
 /**
  * A secure string buffer is a buffer whose intent is to prevent the raw password from being stored in memory.
- * The buffer is encrypted with a key derived from a ObjectID.
- * The ObjectID is stored in the clear, but the buffer is encrypted with a key derived from the ObjectID.
- * This allows the buffer to be decrypted, but only if the ObjectID and salt are known.
+ * The buffer is encrypted with a key derived from a random ID.
+ * The ID is stored in the clear, but the buffer is encrypted with a key derived from the ID.
+ * This allows the buffer to be decrypted, but only if the ID and salt are known.
  * 
  * Supports explicit resource management (TC39 proposal) for automatic disposal:
  * ```typescript
@@ -20,7 +20,7 @@ import { uint8ArrayToHex } from './utils';
  */
 export class SecureBuffer implements Disposable {
   private _disposed: boolean = false;
-  private readonly _id: ObjectId;
+  private readonly _id: Uint8Array;
   private readonly _length: number;
   private readonly _obfuscatedValue: Uint8Array;
   private readonly _key: Uint8Array;
@@ -28,7 +28,7 @@ export class SecureBuffer implements Disposable {
   private _disposedAt?: string;
 
   constructor(data?: Uint8Array) {
-    this._id = new ObjectId();
+    this._id = Constants.idProvider.generate();
     // don't bother encrypting an empty buffer
     if (data === undefined || data.length === 0) {
       this._length = 0;
@@ -38,7 +38,7 @@ export class SecureBuffer implements Disposable {
       return;
     }
     this._length = data.length;
-    this._key = this.idUint8Array;
+    this._key = this._id;
     this._obfuscatedValue = this.obfuscateData(data);
     // Create a simple checksum without crypto for synchronous operation
     this._obfuscatedChecksum = this.createSimpleObfuscatedChecksum(data);
@@ -92,11 +92,11 @@ export class SecureBuffer implements Disposable {
   }
   public get id(): string {
     this.assertNotDisposed();
-    return this._id.toHexString();
+    return Constants.idProvider.serialize(this._id);
   }
   public get idUint8Array(): Uint8Array {
     this.assertNotDisposed();
-    return this._id.id;
+    return this._id;
   }
   public get originalLength(): number {
     this.assertNotDisposed();

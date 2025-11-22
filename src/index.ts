@@ -57,6 +57,8 @@ export {
   encryptionTypeToString,
   ensureEciesEncryptionTypeEnum,
 } from './enumerations/ecies-encryption-type';
+export { EciesVersionEnum } from './enumerations/ecies-version';
+export { EciesCipherSuiteEnum } from './enumerations/ecies-cipher-suite';
 export { ECIESErrorTypeEnum } from './enumerations/ecies-error-type';
 export { ECIESError } from './errors/ecies';
 export { Pbkdf2ErrorType } from './enumerations/pbkdf2-error-type';

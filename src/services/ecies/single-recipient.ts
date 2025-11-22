@@ -67,11 +67,32 @@ export class EciesSingleRecipient {
       normalizedReceiverPublicKey,
     );
 
-    // Use first 32 bytes as symmetric key
-    const symKey = sharedSecret.slice(0, this.eciesConsts.SYMMETRIC.KEY_SIZE);
+    // Use HKDF to derive the key
+    const symKey = this.cryptoCore.deriveSharedKey(
+      sharedSecret,
+      new Uint8Array(0), // No salt
+      new TextEncoder().encode('ecies-v2-key-derivation'), // Info
+      this.eciesConsts.SYMMETRIC.KEY_SIZE
+    );
+
+    // Construct AAD
+    const aad = new Uint8Array(
+      preamble.length +
+      versionArray.length +
+      cipherSuiteArray.length +
+      encryptionTypeArray.length +
+      ephemeralPublicKey.length
+    );
+    
+    let aadOffset = 0;
+    aad.set(preamble, aadOffset); aadOffset += preamble.length;
+    aad.set(versionArray, aadOffset); aadOffset += versionArray.length;
+    aad.set(cipherSuiteArray, aadOffset); aadOffset += cipherSuiteArray.length;
+    aad.set(encryptionTypeArray, aadOffset); aadOffset += encryptionTypeArray.length;
+    aad.set(ephemeralPublicKey, aadOffset);
 
     // Encrypt using AES-GCM
-    const encryptResult = await AESGCMService.encrypt(message, symKey, true, this.eciesConsts);
+    const encryptResult = await AESGCMService.encrypt(message, symKey, true, this.eciesConsts, aad);
     const { encrypted, iv } = encryptResult;
     const authTag = encryptResult.tag;
 
@@ -266,6 +287,7 @@ export class EciesSingleRecipient {
 
     return {
       header: {
+        preamble,
         encryptionType: actualEncryptionType,
         ephemeralPublicKey: normalizedKey,
         iv,
@@ -317,12 +339,39 @@ export class EciesSingleRecipient {
       options,
     );
 
+    // Construct AAD
+    const versionArray = new Uint8Array([EciesVersionEnum.V1]);
+    const cipherSuiteArray = new Uint8Array([EciesCipherSuiteEnum.Secp256k1_Aes256Gcm_Sha256]);
+    const encryptionTypeArray = new Uint8Array([
+      header.encryptionType === EciesEncryptionTypeEnum.Simple
+        ? this.eciesConsts.ENCRYPTION_TYPE.SIMPLE
+        : this.eciesConsts.ENCRYPTION_TYPE.SINGLE,
+    ]);
+
+    const preamble = header.preamble ?? new Uint8Array(preambleSize);
+
+    const aad = new Uint8Array(
+      preamble.length +
+      versionArray.length +
+      cipherSuiteArray.length +
+      encryptionTypeArray.length +
+      header.ephemeralPublicKey.length
+    );
+    
+    let offset = 0;
+    aad.set(preamble, offset); offset += preamble.length;
+    aad.set(versionArray, offset); offset += versionArray.length;
+    aad.set(cipherSuiteArray, offset); offset += cipherSuiteArray.length;
+    aad.set(encryptionTypeArray, offset); offset += encryptionTypeArray.length;
+    aad.set(header.ephemeralPublicKey, offset);
+
     const decrypted = await this.decryptWithComponents(
       privateKey,
       header.ephemeralPublicKey,
       header.iv,
       header.authTag,
       data,
+      aad
     );
 
     return {
@@ -340,6 +389,7 @@ export class EciesSingleRecipient {
     iv: Uint8Array,
     authTag: Uint8Array,
     encrypted: Uint8Array,
+    aad?: Uint8Array,
   ): Promise<Uint8Array> {
     // Validate private key
     if (!privateKey || privateKey.length !== 32) {
@@ -395,8 +445,13 @@ export class EciesSingleRecipient {
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidSharedSecret));
     }
 
-    // Use first 32 bytes as symmetric key
-    const symKey = sharedSecret.slice(0, this.eciesConsts.SYMMETRIC.KEY_SIZE);
+    // Use HKDF to derive the key
+    const symKey = this.cryptoCore.deriveSharedKey(
+      sharedSecret,
+      new Uint8Array(0), // No salt
+      new TextEncoder().encode('ecies-v2-key-derivation'), // Info
+      this.eciesConsts.SYMMETRIC.KEY_SIZE
+    );
 
     // Combine encrypted data with auth tag for AES-GCM
     const encryptedWithTag = AESGCMService.combineEncryptedDataAndTag(
@@ -405,7 +460,7 @@ export class EciesSingleRecipient {
     );
 
     // Decrypt
-    return await AESGCMService.decrypt(iv, encryptedWithTag, symKey, true, this.eciesConsts);
+    return await AESGCMService.decrypt(iv, encryptedWithTag, symKey, true, this.eciesConsts, aad);
   }
 
   private arraysEqual(a: Uint8Array, b: Uint8Array): boolean {
