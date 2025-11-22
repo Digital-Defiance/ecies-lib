@@ -46,6 +46,8 @@ export const spanishTranslations: Record<EciesStringKey, string | PluralString> 
       'Longitud de clave cifrada no válida',
     [EciesStringKey.Error_ECIESError_InvalidEphemeralPublicKey]:
       'Clave pública efímera no válida',
+    [EciesStringKey.Error_ECIESError_MissingEphemeralPublicKey]:
+      'Falta la clave pública efímera',
     [EciesStringKey.Error_ECIESError_RecipientNotFound]:
       'Destinatario no encontrado en los identificadores de destinatarios',
     [EciesStringKey.Error_ECIESError_InvalidSignature]: 'Firma no válida',

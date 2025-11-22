@@ -45,6 +45,8 @@ export const ukrainianTranslations: Record<EciesStringKey, string | PluralString
       'Недійсна довжина зашифрованого ключа',
     [EciesStringKey.Error_ECIESError_InvalidEphemeralPublicKey]:
       'Недійсний ефемерний відкритий ключ',
+    [EciesStringKey.Error_ECIESError_MissingEphemeralPublicKey]:
+      'Відсутній ефемерний відкритий ключ',
     [EciesStringKey.Error_ECIESError_RecipientNotFound]:
       'Одержувача не знайдено серед ідентифікаторів одержувачів',
     [EciesStringKey.Error_ECIESError_InvalidSignature]: 'Недійсний підпис',

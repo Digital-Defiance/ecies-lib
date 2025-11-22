@@ -713,6 +713,42 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+### v4.0.0 - ECIES Protocol v4.0: Enterprise-Grade Security & Efficiency
+
+#### 🛡️ Major Protocol Upgrade (Breaking Changes)
+
+Version 4.0 introduces a complete overhaul of the ECIES protocol to meet modern security standards and improve efficiency. This is a **breaking change**; messages encrypted with v4.0 cannot be decrypted by v3.x libraries, and vice versa.
+
+**Key Improvements:**
+
+- **Compressed Keys (33 bytes)**: Switched from uncompressed (65 bytes) to compressed public keys, reducing overhead and aligning with modern crypto standards.
+- **HKDF Key Derivation**: Replaced simple SHA-256 hashing with **HKDF-SHA256** (RFC 5869) for cryptographically robust key derivation.
+- **Shared Ephemeral Key**: Multi-recipient encryption now uses a **single ephemeral key pair** for all recipients, significantly reducing encryption time and message size.
+- **AAD Binding**: Header fields (version, algorithm, recipient IDs) are now bound to the encryption via **Additional Authenticated Data (AAD)**. This prevents header tampering and context manipulation attacks.
+- **Sign-then-Encrypt**: Added native support for signing messages before encryption, ensuring sender authenticity.
+
+#### 💥 v4.0 Breaking Changes
+
+1. **Message Format**: The version byte is now `0x04`. The internal structure of encrypted messages has changed completely.
+2. **API Changes**:
+   - `encryptMultiple` now takes a `SharedKeyMode` parameter (default: `Shared`).
+   - `EciesRecipient` now expects compressed public keys (33 bytes).
+3. **Key Management**:
+   - `mnemonicToSimpleKeyPair` and other key utilities now return compressed public keys by default.
+
+#### 🔒 Security Enhancements
+
+- **Strict Header Validation**: Decryption now strictly validates all header fields against the AAD tag.
+- **Recipient ID Binding**: Recipient IDs are included in the AAD, preventing ID swapping attacks.
+- **Robust Signatures**: Improved signature handling with strict type checking for `@noble/curves` return values.
+
+#### 📚 Documentation
+
+- **Architecture**: See [ECIES_V4_ARCHITECTURE.md](./docs/ECIES_V4_ARCHITECTURE.md) for the full protocol specification.
+- **Migration**: See [NODE_ECIES_V4_MIGRATION_INSTRUCTIONS.md](./docs/NODE_ECIES_V4_MIGRATION_INSTRUCTIONS.md) for porting guidelines.
+
+---
+
 ### v3.8.0
 
 - Add recipient ID length to header

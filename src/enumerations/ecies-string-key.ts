@@ -23,6 +23,7 @@ export enum EciesStringKey {
   Error_ECIESError_MessageLengthMismatch = 'Error_ECIESError_MessageLengthMismatch',
   Error_ECIESError_InvalidEncryptedKeyLength = 'Error_ECIESError_InvalidEncryptedKeyLength',
   Error_ECIESError_InvalidEphemeralPublicKey = 'Error_ECIESError_InvalidEphemeralPublicKey',
+  Error_ECIESError_MissingEphemeralPublicKey = 'Error_ECIESError_MissingEphemeralPublicKey',
   Error_ECIESError_RecipientNotFound = 'Error_ECIESError_RecipientNotFound',
   Error_ECIESError_InvalidSignature = 'Error_ECIESError_InvalidSignature',
   Error_ECIESError_InvalidSenderPublicKey = 'Error_ECIESError_InvalidSenderPublicKey',

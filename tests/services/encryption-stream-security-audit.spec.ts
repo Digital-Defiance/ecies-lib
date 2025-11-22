@@ -531,11 +531,11 @@ describe('EncryptionStream - Security Audit', () => {
       // Private key should be 32 bytes (256 bits)
       expect(keyPair.privateKey.length).toBe(32);
       
-      // Public key should be 65 bytes (uncompressed secp256k1)
-      expect(keyPair.publicKey.length).toBe(65);
+      // Public key should be 33 bytes (compressed secp256k1)
+      expect(keyPair.publicKey.length).toBe(33);
       
-      // First byte should be 0x04 (uncompressed point)
-      expect(keyPair.publicKey[0]).toBe(0x04);
+      // First byte should be 0x02 or 0x03 (compressed point)
+      expect([0x02, 0x03]).toContain(keyPair.publicKey[0]);
     });
 
     it('should use NIST-approved algorithms', async () => {

@@ -135,17 +135,16 @@ describe('Encrypted Message Structure Validation', () => {
       const symmetricKey = cryptoCore.generatePrivateKey();
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       const encryptedKey = await eciesService.encryptSimpleOrSingle(false, keyPair.publicKey, symmetricKey);
-      const encryptedKeySize = encryptedKey.length;
+      // Note: encryptSimpleOrSingle returns full ECIES message, but MultiRecipient uses encryptKey which returns 64 bytes
+      // We use fixed 64 bytes for calculation as per new architecture
       
       // Expected structure:
-      // - Header: 32 bytes
-      // - Per recipient: recipientId(12) + keySize(2) + encryptedKey
-      // - IV: 12 bytes
-      // - Encrypted data: 10 bytes
-      // - Auth tag: 16 bytes
+      // - Chunk Header: 64 bytes (Fixed Header + Shared Ephemeral Key + Padding)
+      // - Per recipient: recipientId(12) + keySize(2) + encryptedKey(64)
+      // - Encrypted Message: IV(16) + Tag(16) + Data(10) = 42 bytes
       
-      const perRecipientSize = 12 + 2 + encryptedKeySize;
-      const expectedTotal = 32 + (perRecipientSize * recipientCount) + 12 + testData.length + 16;
+      const perRecipientSize = 12 + 2 + 64;
+      const expectedTotal = 64 + (perRecipientSize * recipientCount) + 42;
       
       expect(structure.recipientIdSize).toBe(12);
       expect(structure.totalLength).toBe(expectedTotal);
@@ -159,15 +158,9 @@ describe('Encrypted Message Structure Validation', () => {
       
       const structure = await analyzeMultiRecipientStructure(config, recipientCount);
       
-      // Measure actual encrypted key size
-      const symmetricKey = cryptoCore.generatePrivateKey();
-      const keyPair = await cryptoCore.generateEphemeralKeyPair();
-      const encryptedKey = await eciesService.encryptSimpleOrSingle(false, keyPair.publicKey, symmetricKey);
-      const encryptedKeySize = encryptedKey.length;
-      
       // Expected structure with 16-byte IDs
-      const perRecipientSize = 16 + 2 + encryptedKeySize;
-      const expectedTotal = 32 + (perRecipientSize * recipientCount) + 12 + testData.length + 16;
+      const perRecipientSize = 16 + 2 + 64;
+      const expectedTotal = 64 + (perRecipientSize * recipientCount) + 42;
       
       expect(structure.recipientIdSize).toBe(16);
       expect(structure.totalLength).toBe(expectedTotal);
@@ -188,10 +181,7 @@ describe('Encrypted Message Structure Validation', () => {
       });
       
       // Measure actual encrypted key size
-      const symmetricKey = cryptoCore.generatePrivateKey();
-      const keyPair = await cryptoCore.generateEphemeralKeyPair();
-      const encryptedKey = await eciesService.encryptSimpleOrSingle(false, keyPair.publicKey, symmetricKey);
-      const encryptedKeySize = encryptedKey.length;
+      const encryptedKeySize = 64; // Fixed size
       
       const recipientIdSize = 12;
       
@@ -205,7 +195,7 @@ describe('Encrypted Message Structure Validation', () => {
       // Calculate per-recipient overhead
       const perRecipientOverhead = 
         recipientIdSize + // ID in recipient header
-        2 + // keySize field
+        2 + // Key size field (2 bytes)
         encryptedKeySize; // Encrypted symmetric key
       
       for (let i = 1; i < structures.length; i++) {
@@ -271,8 +261,8 @@ describe('Encrypted Message Structure Validation', () => {
       expect(uniqueLengths.size).toBe(1);
       
       // Verify expected SIMPLE structure:
-      // Type (1) + Version (1) + Suite (1) + Public Key (65) + IV (16) + Encrypted Data (10) + Auth Tag (16) = 110
-      expect(lengths[0]).toBe(110);
+      // Type (1) + Version (1) + Suite (1) + Public Key (33) + IV (16) + Encrypted Data (10) + Auth Tag (16) = 78
+      expect(lengths[0]).toBe(78);
     });
   });
 
@@ -305,8 +295,8 @@ describe('Encrypted Message Structure Validation', () => {
       expect(uniqueLengths.size).toBe(1);
       
       // Verify expected SINGLE structure:
-      // Type (1) + Version (1) + Suite (1) + Public Key (65) + IV (16) + Encrypted Data (10) + Auth Tag (16) + Data Length (8) = 118
-      expect(lengths[0]).toBe(118);
+      // Type (1) + Version (1) + Suite (1) + Public Key (33) + IV (16) + Encrypted Data (10) + Auth Tag (16) + Data Length (8) = 86
+      expect(lengths[0]).toBe(86);
     });
   });
 
@@ -387,9 +377,9 @@ describe('Encrypted Message Structure Validation', () => {
         
         const buffer = encrypted.data;
         
-        // Multi-recipient format has 32-byte header, then recipient headers
-        // Verify the recipient ID is present starting at offset 32
-        const recipientIdInBuffer = buffer.slice(32, 32 + idSize);
+        // Multi-recipient format has 64-byte header, then recipient headers
+        // Verify the recipient ID is present starting at offset 64
+        const recipientIdInBuffer = buffer.slice(64, 64 + idSize);
         expect(recipientIdInBuffer.length).toBe(idSize);
         
         // Verify bytes match (compare as arrays to handle Buffer vs Uint8Array)

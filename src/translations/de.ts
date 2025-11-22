@@ -43,6 +43,8 @@ export const germanTranslations: Record<EciesStringKey, string | PluralString> =
       'Ungültige verschlüsselte Schlüssellänge',
     [EciesStringKey.Error_ECIESError_InvalidEphemeralPublicKey]:
       'Ungültiger ephemerer öffentlicher Schlüssel',
+    [EciesStringKey.Error_ECIESError_MissingEphemeralPublicKey]:
+      'Fehlender ephemerer öffentlicher Schlüssel',
     [EciesStringKey.Error_ECIESError_RecipientNotFound]:
       'Empfänger nicht in den Empfänger-IDs gefunden',
     [EciesStringKey.Error_ECIESError_InvalidSignature]: 'Ungültige Signatur',

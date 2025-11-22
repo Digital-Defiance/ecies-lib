@@ -82,8 +82,8 @@ export const PBKDF2_PROFILES: Pbkdf2Profiles = Object.freeze({
 } as const);
 
 const ECIES_SYMMETRIC_KEY_SIZE = 32 as const;
-const ECIES_PUBLIC_KEY_LENGTH = 65 as const;
-const ECIES_RAW_PUBLIC_KEY_LENGTH = 64 as const;
+const ECIES_PUBLIC_KEY_LENGTH = 33 as const;
+const ECIES_RAW_PUBLIC_KEY_LENGTH = 32 as const;
 const ECIES_IV_SIZE = 16 as const;
 const ECIES_AUTH_TAG_SIZE = 16 as const;
 const ECIES_MULTIPLE_RECIPIENT_ID_SIZE = 12 as const;
@@ -100,17 +100,18 @@ const expectedSimpleOverhead =
   ECIES_AUTH_TAG_SIZE;
 
 // Define the expected value for MULTIPLE.FIXED_OVERHEAD_SIZE
-// Includes: version (1) + cipher suite (1) + type (1) + IV (16) + auth tag (16) = 35 (no CRC, AES-GCM provides authentication)
+// Includes: version (1) + cipher suite (1) + type (1) + public key (33) + IV (16) + auth tag (16) = 68 (no CRC, AES-GCM provides authentication)
 const expectedMultipleOverhead =
   ECIES_VERSION_SIZE +
   ECIES_CIPHER_SUITE_SIZE +
   UINT8_SIZE +
+  ECIES_PUBLIC_KEY_LENGTH +
   ECIES_IV_SIZE +
   ECIES_AUTH_TAG_SIZE;
 
 // Update ENCRYPTED_KEY_SIZE to match Simple encryption (no CRC)
+// Now only contains IV + Tag + EncryptedSymKey (Public Key is moved to global header)
 const expectedMultipleEncryptedKeySize =
-  ECIES_PUBLIC_KEY_LENGTH +
   ECIES_IV_SIZE +
   ECIES_AUTH_TAG_SIZE +
   ECIES_SYMMETRIC_KEY_SIZE;
@@ -130,10 +131,10 @@ export const ECIES: IECIESConstants = Object.freeze({
   /** Length of raw public keys in bytes (without 0x04 prefix) */
   RAW_PUBLIC_KEY_LENGTH: ECIES_RAW_PUBLIC_KEY_LENGTH,
 
-  /** Length of public keys in bytes (with 0x04 prefix) */
+  /** Length of public keys in bytes (with 0x02/0x03 prefix) */
   PUBLIC_KEY_LENGTH: ECIES_PUBLIC_KEY_LENGTH,
 
-  PUBLIC_KEY_MAGIC: 0x04 as const,
+  PUBLIC_KEY_MAGIC: 0x02 as const, // Compressed keys start with 0x02 or 0x03
 
   /** Mnemonic strength in bits. This will produce a 32-bit key for ECDSA */
   MNEMONIC_STRENGTH: 256 as const,
@@ -158,7 +159,7 @@ export const ECIES: IECIESConstants = Object.freeze({
    * Message encrypts without data length or crc
    */
   SIMPLE: Object.freeze({
-    FIXED_OVERHEAD_SIZE: expectedSimpleOverhead, // version (1) + cipher suite (1) + type (1) + public key (65) + IV (16) + auth tag (16)
+    FIXED_OVERHEAD_SIZE: expectedSimpleOverhead, // version (1) + cipher suite (1) + type (1) + public key (33) + IV (16) + auth tag (16)
     DATA_LENGTH_SIZE: 0 as const,
   } as const),
 
@@ -166,7 +167,7 @@ export const ECIES: IECIESConstants = Object.freeze({
    * Message encrypts with data length but no CRC (AES-GCM provides authentication)
    */
   SINGLE: Object.freeze({
-    FIXED_OVERHEAD_SIZE: 108 as const, // version (1) + cipher suite (1) + type (1) + public key (65) + IV (16) + auth tag (16) + data length (8)
+    FIXED_OVERHEAD_SIZE: expectedSimpleOverhead + 8, // version (1) + cipher suite (1) + type (1) + public key (33) + IV (16) + auth tag (16) + data length (8)
     DATA_LENGTH_SIZE: 8,
   } as const),
 
@@ -174,8 +175,8 @@ export const ECIES: IECIESConstants = Object.freeze({
    * Message encrypts for multiple recipients
    */
   MULTIPLE: Object.freeze({
-    FIXED_OVERHEAD_SIZE: expectedMultipleOverhead, // version (1) + cipher suite (1) + type (1) + IV (16) + auth tag (16), no CRC
-    ENCRYPTED_KEY_SIZE: expectedMultipleEncryptedKeySize, // 129
+    FIXED_OVERHEAD_SIZE: expectedMultipleOverhead, // version (1) + cipher suite (1) + type (1) + public key (33) + IV (16) + auth tag (16)
+    ENCRYPTED_KEY_SIZE: expectedMultipleEncryptedKeySize, // 64
     MAX_RECIPIENTS: 65535,
     RECIPIENT_ID_SIZE: ECIES_MULTIPLE_RECIPIENT_ID_SIZE,
     RECIPIENT_COUNT_SIZE: 2,
@@ -326,7 +327,6 @@ function deepFreeze<T>(value: T): T {
 
 function computeMultipleEncryptedKeySize(ecies: IECIESConstants): number {
   return (
-    ecies.PUBLIC_KEY_LENGTH +
     ecies.IV_SIZE +
     ecies.AUTH_TAG_SIZE +
     ecies.SYMMETRIC.KEY_SIZE

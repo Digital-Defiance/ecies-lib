@@ -37,18 +37,18 @@ describe('EciesCryptoCore', () => {
       expect(normalized).toEqual(publicKey);
     });
 
-    it('should add the prefix to a raw public key', () => {
-      const rawPublicKey = new Uint8Array(ECIES.RAW_PUBLIC_KEY_LENGTH).fill(1);
+    it('should add the prefix to a raw public key (legacy 64-byte)', () => {
+      const rawPublicKey = new Uint8Array(64).fill(1);
       const normalized = cryptoCore.normalizePublicKey(rawPublicKey);
-      expect(normalized.length).toBe(ECIES.PUBLIC_KEY_LENGTH);
-      expect(normalized[0]).toBe(ECIES.PUBLIC_KEY_MAGIC);
+      expect(normalized.length).toBe(65);
+      expect(normalized[0]).toBe(0x04);
       expect(normalized.slice(1)).toEqual(rawPublicKey);
     });
 
     it('should throw on invalid public key length', () => {
-      const invalidKey = new Uint8Array(32);
+      const invalidKey = new Uint8Array(31);
       expect(() => cryptoCore.normalizePublicKey(invalidKey)).toThrow(
-        'Invalid public key format or length: 32',
+        'Invalid public key format or length: 31',
       );
     });
   });
@@ -81,13 +81,13 @@ describe('EciesCryptoCore', () => {
       const { seed } = cryptoCore.walletAndSeedFromMnemonic(mnemonic);
       const keyPair = cryptoCore.seedToSimpleKeyPair(seed);
       expect(keyPair.privateKey.length).toBe(32);
-      expect(keyPair.publicKey.length).toBe(65);
+      expect(keyPair.publicKey.length).toBe(33);
     });
 
     it('should generate a new key pair', async () => {
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       expect(keyPair.privateKey.length).toBe(32);
-      expect(keyPair.publicKey.length).toBe(65);
+      expect(keyPair.publicKey.length).toBe(33);
     });
 
     it('should derive the same public key from a private key', () => {

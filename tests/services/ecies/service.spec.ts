@@ -25,7 +25,7 @@ describe('ECIESService', () => {
       expect(keyPair.privateKey).toBeInstanceOf(Uint8Array);
       expect(keyPair.publicKey).toBeInstanceOf(Uint8Array);
       expect(keyPair.privateKey.length).toBe(32);
-      expect(keyPair.publicKey.length).toBe(65);
+      expect(keyPair.publicKey.length).toBe(33);
     });
 
     it('should derive the same public key from a private key', () => {

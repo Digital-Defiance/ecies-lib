@@ -57,7 +57,12 @@ export class ECIESError extends TypedHandleableError<
     otherVars?: Record<string, string | number>,
     context?: Partial<IErrorContext>,
   ) {
-    const source = options?.cause instanceof Error ? options.cause : new Error();
+    let source: Error;
+    if (options && typeof options === 'object' && 'cause' in options && (options as any).cause instanceof Error) {
+      source = (options as any).cause;
+    } else {
+      source = new Error();
+    }
     super(
       EciesComponentId,
       type,

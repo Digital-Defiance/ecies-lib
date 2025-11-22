@@ -32,7 +32,7 @@ describe('constants module', () => {
     expect(ECIES.SYMMETRIC.MODE).toBe('gcm');
     expect(ECIES.SYMMETRIC.KEY_BITS).toBe(256);
     expect(ECIES.SYMMETRIC.KEY_SIZE).toBe(32);
-    expect(ECIES.MULTIPLE.ENCRYPTED_KEY_SIZE).toBe(129);
+    expect(ECIES.MULTIPLE.ENCRYPTED_KEY_SIZE).toBe(64);
     expect(ECIES.MULTIPLE.RECIPIENT_COUNT_SIZE).toBe(UINT16_SIZE);
     expect(ECIES.MULTIPLE.DATA_LENGTH_SIZE).toBe(UINT64_SIZE);
     // RECIPIENT_ID_SIZE should match the configured ID provider

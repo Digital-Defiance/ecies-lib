@@ -43,6 +43,8 @@ export const japaneseTranslations: Record<EciesStringKey, string | PluralString>
       '無効な暗号化キー長さ',
     [EciesStringKey.Error_ECIESError_InvalidEphemeralPublicKey]:
       '無効な一時公開鍵',
+    [EciesStringKey.Error_ECIESError_MissingEphemeralPublicKey]:
+      '一時的な公開鍵がありません',
     [EciesStringKey.Error_ECIESError_RecipientNotFound]:
       '受信者IDに受信者が見つかりません',
     [EciesStringKey.Error_ECIESError_InvalidSignature]: '無効な署名',

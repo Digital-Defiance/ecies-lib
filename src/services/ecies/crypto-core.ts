@@ -12,6 +12,8 @@ import { SecureString } from '../../secure-string';
 import { ISimpleKeyPair, IWalletSeed } from './interfaces';
 
 import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { hkdf } from '@noble/hashes/hkdf.js';
+import { sha256 } from '@noble/hashes/sha2.js';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
 import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
 import { EciesStringKey } from '../../enumerations';
@@ -47,17 +49,26 @@ export class EciesCryptoCore {
     const keyLength = publicKey.length;
     let normalizedKey: Uint8Array;
 
-    // Already in correct format (65 bytes with 0x04 prefix)
+    // Compressed key (33 bytes) - 0x02 or 0x03 prefix
     if (
-      keyLength === this._eciesConsts.PUBLIC_KEY_LENGTH &&
-      publicKey[0] === this._eciesConsts.PUBLIC_KEY_MAGIC
+      keyLength === 33 &&
+      (publicKey[0] === 0x02 || publicKey[0] === 0x03)
+    ) {
+      normalizedKey = publicKey;
+    }
+    // Uncompressed key (65 bytes) - 0x04 prefix
+    // We accept this for backward compatibility with existing keys
+    else if (
+      keyLength === 65 &&
+      publicKey[0] === 0x04
     ) {
       normalizedKey = publicKey;
     }
     // Raw key without prefix (64 bytes) - add the 0x04 prefix
-    else if (keyLength === this._eciesConsts.RAW_PUBLIC_KEY_LENGTH) {
-      normalizedKey = new Uint8Array(this._eciesConsts.PUBLIC_KEY_LENGTH);
-      normalizedKey[0] = this._eciesConsts.PUBLIC_KEY_MAGIC;
+    // Legacy support
+    else if (keyLength === 64) {
+      normalizedKey = new Uint8Array(65);
+      normalizedKey[0] = 0x04;
       normalizedKey.set(publicKey, 1);
     }
     else {
@@ -67,7 +78,7 @@ export class EciesCryptoCore {
 
     // Basic validation: check it's not all zeros
     let allZeros = true;
-    for (let i = 1; i < normalizedKey.length; i++) { // Skip first byte (0x04 prefix)
+    for (let i = 1; i < normalizedKey.length; i++) { // Skip first byte (prefix)
       if (normalizedKey[i] !== 0) {
         allZeros = false;
         break;
@@ -131,7 +142,7 @@ export class EciesCryptoCore {
     }
 
     const privateKey = derivedKey.privateKey;
-    const publicKey = secp256k1.getPublicKey(privateKey, false); // uncompressed with 0x04 prefix
+    const publicKey = secp256k1.getPublicKey(privateKey, true); // compressed
 
     return {
       privateKey,
@@ -158,8 +169,7 @@ export class EciesCryptoCore {
    * Get public key from private key
    */
   public getPublicKey(privateKey: Uint8Array): Uint8Array {
-    const publicKeyPoint = secp256k1.getPublicKey(privateKey, false); // uncompressed
-    // publicKeyPoint already includes the 0x04 prefix, so return as-is
+    const publicKeyPoint = secp256k1.getPublicKey(privateKey, true); // compressed
     return publicKeyPoint;
   }
 
@@ -191,5 +201,54 @@ export class EciesCryptoCore {
     );
     // Return only the x-coordinate (first 32 bytes after the 0x04 prefix)
     return sharedSecret.slice(1, 33);
+  }
+
+  /**
+   * Derive a symmetric key from a shared secret using HKDF
+   * @param sharedSecret The shared secret (ECDH output)
+   * @param salt Optional salt
+   * @param info Optional context info
+   * @param length Length of the output key (default 32 for AES-256)
+   */
+  public deriveSharedKey(
+    sharedSecret: Uint8Array,
+    salt: Uint8Array = new Uint8Array(0),
+    info: Uint8Array = new Uint8Array(0),
+    length: number = 32
+  ): Uint8Array {
+    return hkdf(sha256, sharedSecret, salt, info, length);
+  }
+
+  /**
+   * Sign a message using ECDSA
+   * @param privateKey The private key to sign with
+   * @param message The message to sign
+   */
+  public sign(privateKey: Uint8Array, message: Uint8Array): Uint8Array {
+    const hash = sha256(message);
+    const signature = secp256k1.sign(hash, privateKey);
+    if (signature instanceof Uint8Array) {
+        return signature;
+    }
+    if (typeof (signature as any).toCompactRawBytes === 'function') {
+        return (signature as any).toCompactRawBytes();
+    }
+    // Fallback or error
+    throw new Error('Unknown signature format');
+  }
+
+  /**
+   * Verify a signature using ECDSA
+   * @param publicKey The public key to verify with
+   * @param message The message that was signed
+   * @param signature The signature to verify
+   */
+  public verify(publicKey: Uint8Array, message: Uint8Array, signature: Uint8Array): boolean {
+    const hash = sha256(message);
+    try {
+      return secp256k1.verify(signature, hash, publicKey);
+    } catch (e) {
+      return false;
+    }
   }
 }

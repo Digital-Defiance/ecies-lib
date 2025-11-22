@@ -48,6 +48,7 @@ export interface IMultiEncryptedMessage {
   recipientKeys: Uint8Array[];
   encryptedMessage: Uint8Array;
   headerSize: number;
+  ephemeralPublicKey?: Uint8Array; // Added for shared ephemeral key optimization
 }
 
 export interface IMultiEncryptedParsedHeader {
@@ -56,4 +57,5 @@ export interface IMultiEncryptedParsedHeader {
   recipientIds: Uint8Array[];
   recipientKeys: Uint8Array[];
   headerSize: number;
+  ephemeralPublicKey?: Uint8Array; // Added for shared ephemeral key optimization
 }

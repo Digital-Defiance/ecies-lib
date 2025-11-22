@@ -161,13 +161,11 @@ export class Member implements IFrontendMemberOperational {
     const eciesConsts = eciesParams ?? ECIES;
     const { wallet } = this._eciesService.walletAndSeedFromMnemonic(mnemonic);
     const privateKey = wallet.getPrivateKey();
-    const publicKey = wallet.getPublicKey();
-    const publicKeyWithPrefix = new Uint8Array(publicKey.length + 1);
-    publicKeyWithPrefix[0] = eciesConsts.PUBLIC_KEY_MAGIC;
-    publicKeyWithPrefix.set(publicKey, 1);
+    // Use service to get compressed public key
+    const publicKey = this._eciesService.getPublicKey(privateKey);
 
     if (
-      uint8ArrayToHex(publicKeyWithPrefix) !== uint8ArrayToHex(this._publicKey)
+      uint8ArrayToHex(publicKey) !== uint8ArrayToHex(this._publicKey)
     ) {
       throw new MemberError(
         MemberErrorType.InvalidMnemonic,
@@ -448,17 +446,15 @@ export class Member implements IFrontendMemberOperational {
     const eciesConsts = eciesParams ?? ECIES;
     const { wallet } = eciesService.walletAndSeedFromMnemonic(mnemonic);
     const privateKey = wallet.getPrivateKey();
-    const publicKey = wallet.getPublicKey();
-    const publicKeyWithPrefix = new Uint8Array(publicKey.length + 1);
-    publicKeyWithPrefix[0] = eciesConsts.PUBLIC_KEY_MAGIC;
-    publicKeyWithPrefix.set(publicKey, 1);
+    // Use service to get compressed public key
+    const publicKey = eciesService.getPublicKey(privateKey);
 
     return new Member(
       eciesService,
       MemberType.User,
       name,
       email,
-      publicKeyWithPrefix,
+      publicKey,
       new SecureBuffer(privateKey),
       wallet,
     );
@@ -508,11 +504,8 @@ export class Member implements IFrontendMemberOperational {
 
     // Get private key from wallet
     const privateKey = wallet.getPrivateKey();
-    // Get public key with 0x04 prefix
-    const publicKey = wallet.getPublicKey();
-    const publicKeyWithPrefix = new Uint8Array(publicKey.length + 1);
-    publicKeyWithPrefix[0] = eciesConsts.PUBLIC_KEY_MAGIC;
-    publicKeyWithPrefix.set(publicKey, 1);
+    // Get compressed public key
+    const publicKey = eciesService.getPublicKey(privateKey);
 
     const newId = new ObjectId();
     const dateCreated = new Date();
@@ -523,7 +516,7 @@ export class Member implements IFrontendMemberOperational {
         type,
         name,
         email,
-        publicKeyWithPrefix,
+        publicKey,
         new SecureBuffer(privateKey),
         wallet,
         newId,

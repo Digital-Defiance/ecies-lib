@@ -333,4 +333,38 @@ export class ECIESService {
         preamble,
       );
     }
+
+    /**
+   * Encrypt a symmetric key for a recipient using an ephemeral private key
+   */
+  public async encryptKey(
+    receiverPublicKey: Uint8Array,
+    messageSymmetricKey: Uint8Array,
+    ephemeralPrivateKey: Uint8Array,
+    aad?: Uint8Array,
+  ): Promise<Uint8Array> {
+    return this.multiRecipient.encryptKey(
+      receiverPublicKey,
+      messageSymmetricKey,
+      ephemeralPrivateKey,
+      aad,
+    );
+  }
+
+  /**
+   * Decrypt a symmetric key using an ephemeral public key
+   */
+  public async decryptKey(
+    privateKey: Uint8Array,
+    encryptedKey: Uint8Array,
+    ephemeralPublicKey: Uint8Array,
+    aad?: Uint8Array,
+  ): Promise<Uint8Array> {
+    return this.multiRecipient.decryptKey(
+      privateKey,
+      encryptedKey,
+      ephemeralPublicKey,
+      aad,
+    );
+  }
   }

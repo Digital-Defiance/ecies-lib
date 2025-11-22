@@ -52,8 +52,8 @@ describe('EciesMultiRecipient Header MSB Logic', () => {
 
     const header = multiRecipientService.buildHeader(encryptedData);
     const view = new DataView(header.buffer);
-    // Offset 3 because of Version (1) + Suite (1) + Type (1)
-    const combinedLength = view.getBigUint64(3, false);
+    // Offset 36 because of Version (1) + Suite (1) + Type (1) + Ephemeral Public Key (33)
+    const combinedLength = view.getBigUint64(36, false);
     
     const storedRecipientIdSize = Number(combinedLength >> 56n);
     const dataLength = Number(combinedLength & 0x00FFFFFFFFFFFFFFn);
@@ -96,10 +96,10 @@ describe('EciesMultiRecipient Header MSB Logic', () => {
     const header = multiRecipientService.buildHeader(encryptedData);
     const view = new DataView(header.buffer);
     
-    // Clear the MSB (offset 3)
-    const combinedLength = view.getBigUint64(3, false);
+    // Clear the MSB (offset 36)
+    const combinedLength = view.getBigUint64(36, false);
     const legacyLength = combinedLength & 0x00FFFFFFFFFFFFFFn;
-    view.setBigUint64(3, legacyLength, false);
+    view.setBigUint64(36, legacyLength, false);
 
     const parsedHeader = multiRecipientService.parseHeader(header);
 

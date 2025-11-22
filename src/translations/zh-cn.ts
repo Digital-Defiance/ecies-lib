@@ -39,6 +39,7 @@ export const mandarinChineseTranslations: Record<EciesStringKey, string | Plural
     [EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLength]:
       '加密密钥长度无效',
     [EciesStringKey.Error_ECIESError_InvalidEphemeralPublicKey]: '临时公钥无效',
+    [EciesStringKey.Error_ECIESError_MissingEphemeralPublicKey]: '缺少临时公钥',
     [EciesStringKey.Error_ECIESError_RecipientNotFound]:
       '在收件人 ID 中未找到收件人',
     [EciesStringKey.Error_ECIESError_InvalidSignature]: '签名无效',

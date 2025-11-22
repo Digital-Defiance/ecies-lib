@@ -16,6 +16,7 @@ export abstract class AESGCMService {
     key: Uint8Array,
     authTag: boolean = false,
     eciesParams: IECIESConstants = Constants.ECIES,
+    aad?: Uint8Array,
   ): Promise<{ encrypted: Uint8Array; iv: Uint8Array; tag?: Uint8Array }> {
     // Validate key length (AES supports 16, 24, or 32 bytes)
     if (!key || (key.length !== 16 && key.length !== 24 && key.length !== 32)) {
@@ -47,6 +48,7 @@ export abstract class AESGCMService {
       {
         name: AESGCMService.ALGORITHM_NAME,
         iv,
+        additionalData: aad,
         ...(authTag && { tagLength: eciesConsts.AUTH_TAG_SIZE * 8 }),
       },
       cryptoKey,
@@ -157,6 +159,7 @@ export abstract class AESGCMService {
     key: Uint8Array,
     authTag: boolean = false,
     eciesParams: IECIESConstants = Constants.ECIES,
+    aad?: Uint8Array,
   ): Promise<Uint8Array> {
     const eciesConsts = eciesParams;
 
@@ -188,7 +191,11 @@ export abstract class AESGCMService {
 
     if (!authTag) {
       const decrypted = await crypto.subtle.decrypt(
-        { name: AESGCMService.ALGORITHM_NAME, iv: new Uint8Array(iv) },
+        { 
+          name: AESGCMService.ALGORITHM_NAME, 
+          iv: new Uint8Array(iv),
+          additionalData: aad,
+        },
         cryptoKey,
         new Uint8Array(encryptedData),
       );
@@ -202,6 +209,7 @@ export abstract class AESGCMService {
         name: AESGCMService.ALGORITHM_NAME,
         iv: new Uint8Array(iv),
         tagLength: eciesConsts.AUTH_TAG_SIZE * 8,
+        additionalData: aad,
       },
       cryptoKey,
       new Uint8Array(encryptedData),

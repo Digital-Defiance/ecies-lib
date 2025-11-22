@@ -45,6 +45,8 @@ export const frenchTranslations: Record<EciesStringKey, string | PluralString> =
       'Longueur de clé chiffrée invalide',
     [EciesStringKey.Error_ECIESError_InvalidEphemeralPublicKey]:
       'Clé publique éphémère invalide',
+    [EciesStringKey.Error_ECIESError_MissingEphemeralPublicKey]:
+      'Clé publique éphémère manquante',
     [EciesStringKey.Error_ECIESError_RecipientNotFound]:
       'Destinataire introuvable dans les identifiants',
     [EciesStringKey.Error_ECIESError_InvalidSignature]: 'Signature invalide',

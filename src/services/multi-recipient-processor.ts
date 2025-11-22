@@ -6,11 +6,12 @@ import {
   IMultiRecipientConstants,
   getMultiRecipientConstants,
 } from '../interfaces/multi-recipient-chunk';
-import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
 import { EciesStringKey } from '../enumerations';
 import { Constants } from '../constants';
 import { IConstants } from '../interfaces/constants';
+import { AESGCMService } from './aes-gcm';
+import { concatUint8Arrays } from '../utils';
 
 /**
  * Processes multi-recipient chunks using symmetric encryption.
@@ -41,7 +42,8 @@ export class MultiRecipientProcessor {
     recipients: Array<{ id: Uint8Array; publicKey: Uint8Array }>,
     chunkIndex: number,
     isLast: boolean,
-    symmetricKey: Uint8Array
+    symmetricKey: Uint8Array,
+    senderPrivateKey?: Uint8Array,
   ): Promise<IMultiRecipientChunk> {
     // Validate inputs
     const engine = getEciesI18nEngine();
@@ -54,8 +56,16 @@ export class MultiRecipientProcessor {
     if (chunkIndex < 0 || chunkIndex > 0xFFFFFFFF) {
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_InvalidChunkIndexTemplate, { index: chunkIndex }));
     }
-    if (data.length > 0x7FFFFFFF) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_DataSizeExceedsMaximumTemplate, { size: data.length }));
+    
+    // Sign-then-Encrypt
+    let dataToEncrypt = data;
+    if (senderPrivateKey) {
+      const signature = this.ecies.core.sign(senderPrivateKey, data);
+      dataToEncrypt = concatUint8Arrays(signature, data);
+    }
+
+    if (dataToEncrypt.length > 0x7FFFFFFF) {
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_DataSizeExceedsMaximumTemplate, { size: dataToEncrypt.length }));
     }
 
     // Check for duplicate recipient IDs
@@ -68,11 +78,8 @@ export class MultiRecipientProcessor {
       seenIds.add(idStr);
     }
 
-    // Encrypt data with AES-256-GCM
-    const iv = randomBytes(12);
-    const cipher = createCipheriv('aes-256-gcm', symmetricKey, iv);
-    const encrypted = Buffer.concat([cipher.update(data), cipher.final()]);
-    const authTag = cipher.getAuthTag();
+    // Generate ONE ephemeral key pair for all recipients
+    const ephemeralKeyPair = await this.ecies.core.generateEphemeralKeyPair();
 
     // Build recipient headers
     const recipientHeaders: IRecipientHeader[] = [];
@@ -83,10 +90,12 @@ export class MultiRecipientProcessor {
         );
       }
       
-      const encryptedKey = await this.ecies.encryptSimpleOrSingle(
-        false,
+      // Use Recipient ID as AAD for key encryption
+      const encryptedKey = await this.ecies.encryptKey(
         recipient.publicKey,
-        symmetricKey
+        symmetricKey,
+        ephemeralKeyPair.privateKey,
+        recipient.id
       );
       
       recipientHeaders.push({
@@ -107,18 +116,21 @@ export class MultiRecipientProcessor {
       recipientHeadersSize += headerSize;
     }
 
+    // Calculate encrypted size (Data + Tag)
+    // AES-GCM tag is 16 bytes
+    const encryptedSize = dataToEncrypt.length + 16;
+
     const totalSize = this.constants.HEADER_SIZE + 
                      recipientHeadersSize + 
-                     12 + // IV
-                     encrypted.length + 
-                     16; // Auth tag
+                     Constants.ECIES.IV_SIZE + // IV
+                     encryptedSize;
 
     // Check for integer overflow (max safe: 2^31 - 1 for Uint8Array)
     if (totalSize > 0x7FFFFFFF || totalSize < 0) {
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_ChunkSizeOverflow));
     }
 
-    // Build chunk
+    // Build chunk buffer
     const chunk = new Uint8Array(totalSize);
     const view = new DataView(chunk.buffer);
     let offset = 0;
@@ -132,13 +144,18 @@ export class MultiRecipientProcessor {
     offset += 2;
     view.setUint32(offset, chunkIndex, false);
     offset += 4;
-    view.setUint32(offset, data.length, false);
+    view.setUint32(offset, dataToEncrypt.length, false); // Original Size (includes signature if present)
     offset += 4;
-    view.setUint32(offset, encrypted.length, false);
+    view.setUint32(offset, encryptedSize, false);
     offset += 4;
     view.setUint8(offset, isLast ? this.constants.FLAG_IS_LAST : 0);
     offset += 1;
-    // Padding to 32 bytes
+
+    // Write Ephemeral Public Key (33 bytes)
+    chunk.set(ephemeralKeyPair.publicKey, offset);
+    offset += 33;
+
+    // Padding to HEADER_SIZE (64 bytes)
     offset = this.constants.HEADER_SIZE;
 
     // Write recipient headers
@@ -151,16 +168,30 @@ export class MultiRecipientProcessor {
       offset += header.keySize;
     }
 
+    // Extract the full header (including recipient headers) to use as AAD
+    const headerBytes = chunk.slice(0, offset);
+
+    // Encrypt data with AES-256-GCM using Header as AAD
+    const encryptResult = await AESGCMService.encrypt(
+      dataToEncrypt,
+      symmetricKey,
+      true, // Return tag separately
+      Constants.ECIES,
+      headerBytes // AAD
+    );
+
     // Write IV
-    chunk.set(iv, offset);
-    offset += 12;
+    chunk.set(encryptResult.iv, offset);
+    offset += Constants.ECIES.IV_SIZE;
 
     // Write encrypted data
-    chunk.set(encrypted, offset);
-    offset += encrypted.length;
+    chunk.set(encryptResult.encrypted, offset);
+    offset += encryptResult.encrypted.length;
 
     // Write auth tag
-    chunk.set(authTag, offset);
+    if (encryptResult.tag) {
+      chunk.set(encryptResult.tag, offset);
+    }
 
     return {
       index: chunkIndex,
@@ -176,7 +207,8 @@ export class MultiRecipientProcessor {
   async decryptChunk(
     chunkData: Uint8Array,
     recipientId: Uint8Array,
-    privateKey: Uint8Array
+    privateKey: Uint8Array,
+    senderPublicKey?: Uint8Array,
   ): Promise<{ data: Uint8Array; header: IMultiRecipientChunkHeader }> {
     const engine = getEciesI18nEngine();
     if (chunkData.length < this.constants.HEADER_SIZE) {
@@ -211,10 +243,17 @@ export class MultiRecipientProcessor {
     const encryptedSize = view.getUint32(offset, false);
     offset += 4;
     const flags = view.getUint8(offset);
+    offset += 1;
+
+    // Read Ephemeral Public Key (33 bytes)
+    const ephemeralPublicKey = chunkData.slice(offset, offset + 33);
+    offset += 33;
+
     offset = this.constants.HEADER_SIZE;
 
     // Validate encryptedSize against chunk size
-    const minChunkSize = this.constants.HEADER_SIZE + 12 + encryptedSize + 16;
+    // We know it must be at least HEADER + IV + EncryptedSize (which includes tag)
+    const minChunkSize = this.constants.HEADER_SIZE + Constants.ECIES.IV_SIZE + encryptedSize;
     if (chunkData.length < minChunkSize) {
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_ChunkTooSmallForEncryptedSize));
     }
@@ -255,7 +294,8 @@ export class MultiRecipientProcessor {
 
       // Check if this is our recipient
       if (this.arraysEqual(id, recipientId)) {
-        symmetricKey = await this.ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encryptedKey);
+        // Use Recipient ID as AAD for key decryption
+        symmetricKey = await this.ecies.decryptKey(privateKey, encryptedKey, ephemeralPublicKey, id);
         // Don't break - need to skip all recipient headers
       }
     }
@@ -267,24 +307,51 @@ export class MultiRecipientProcessor {
     // Update offset to after all recipient headers
     offset = tempOffset;
 
-    // Read IV
-    const iv = chunkData.slice(offset, offset + 12);
-    offset += 12;
+    // Extract header bytes for AAD
+    const headerBytes = chunkData.slice(0, offset);
 
-    // Read encrypted data
-    const encrypted = chunkData.slice(offset, offset + encryptedSize);
+    // Read IV
+    if (offset + Constants.ECIES.IV_SIZE > chunkData.length) {
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_ChunkTooSmall));
+    }
+    const iv = chunkData.slice(offset, offset + Constants.ECIES.IV_SIZE);
+    offset += Constants.ECIES.IV_SIZE;
+
+    // Read encrypted data (includes auth tag)
+    if (offset + encryptedSize > chunkData.length) {
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_MultiRecipient_ChunkTooSmall));
+    }
+    const encryptedWithTag = chunkData.slice(offset, offset + encryptedSize);
     offset += encryptedSize;
 
-    // Read auth tag
-    const authTag = chunkData.slice(offset, offset + 16);
+    // Decrypt with AAD
+    const decrypted = await AESGCMService.decrypt(
+      iv, 
+      encryptedWithTag, 
+      symmetricKey, 
+      true, 
+      Constants.ECIES, 
+      headerBytes
+    );
 
-    // Decrypt
-    const decipher = createDecipheriv('aes-256-gcm', symmetricKey, iv);
-    decipher.setAuthTag(authTag);
-    const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
+    // Verify signature if sender public key provided
+    let finalData = decrypted;
+    if (senderPublicKey) {
+      if (decrypted.length < 64) {
+        throw new Error('Decrypted chunk too short to contain signature');
+      }
+      const signature = decrypted.slice(0, 64);
+      const message = decrypted.slice(64);
+      
+      const isValid = this.ecies.core.verify(senderPublicKey, message, signature);
+      if (!isValid) {
+        throw new Error('Invalid sender signature in chunk');
+      }
+      finalData = message;
+    }
 
     return {
-      data: new Uint8Array(decrypted),
+      data: finalData,
       header: {
         magic,
         version,

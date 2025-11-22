@@ -39,6 +39,8 @@ import { createPluralString, PluralString } from '@digitaldefiance/i18n-lib';
       'Invalid encrypted key length',
     [EciesStringKey.Error_ECIESError_InvalidEphemeralPublicKey]:
       'Invalid ephemeral public key',
+    [EciesStringKey.Error_ECIESError_MissingEphemeralPublicKey]:
+      'Missing ephemeral public key',
     [EciesStringKey.Error_ECIESError_RecipientNotFound]:
       'Recipient not found in recipient IDs',
     [EciesStringKey.Error_ECIESError_InvalidSignature]: 'Invalid signature',

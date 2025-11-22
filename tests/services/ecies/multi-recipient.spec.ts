@@ -56,10 +56,12 @@ describe('EciesMultiRecipient', () => {
   describe('encryptKey / decryptKey', () => {
     it('should encrypt and decrypt a symmetric key for a recipient', async () => {
       const symmetricKey = cryptoCore.generatePrivateKey(); // 32-byte key
+      const ephemeralKeyPair = await cryptoCore.generateEphemeralKeyPair();
 
       const encryptedKey = await multiRecipientService.encryptKey(
         recipient1.publicKey,
         symmetricKey,
+        ephemeralKeyPair.privateKey,
       );
 
       expect(encryptedKey).toBeInstanceOf(Uint8Array);
@@ -68,6 +70,7 @@ describe('EciesMultiRecipient', () => {
       const decryptedKey = await multiRecipientService.decryptKey(
         recipient1.privateKey,
         encryptedKey,
+        ephemeralKeyPair.publicKey,
       );
 
       expect(decryptedKey).toEqual(symmetricKey);
@@ -76,30 +79,43 @@ describe('EciesMultiRecipient', () => {
     it('should fail to decrypt a key with the wrong private key', async () => {
       await withConsoleMocks({ mute: true }, async () => {
         const symmetricKey = cryptoCore.generatePrivateKey();
+        const ephemeralKeyPair = await cryptoCore.generateEphemeralKeyPair();
 
         const encryptedKey = await multiRecipientService.encryptKey(
           recipient1.publicKey,
           symmetricKey,
+          ephemeralKeyPair.privateKey,
         );
 
         // Attempt to decrypt with recipient2's private key
         await expect(
-          multiRecipientService.decryptKey(recipient2.privateKey, encryptedKey),
+          multiRecipientService.decryptKey(
+            recipient2.privateKey,
+            encryptedKey,
+            ephemeralKeyPair.publicKey,
+          ),
         ).rejects.toThrow('Failed to decrypt key');
       });
     });
 
     it('should reject keys with incorrect serialized length', async () => {
       const symmetricKey = cryptoCore.generatePrivateKey();
+      const ephemeralKeyPair = await cryptoCore.generateEphemeralKeyPair();
+      
       const encryptedKey = await multiRecipientService.encryptKey(
         recipient1.publicKey,
         symmetricKey,
+        ephemeralKeyPair.privateKey,
       );
 
       const truncatedKey = encryptedKey.slice(0, encryptedKey.length - 1);
 
       await expect(
-        multiRecipientService.decryptKey(recipient1.privateKey, truncatedKey),
+        multiRecipientService.decryptKey(
+          recipient1.privateKey,
+          truncatedKey,
+          ephemeralKeyPair.publicKey,
+        ),
       ).rejects.toThrow(
         `Invalid encrypted key length: expected ${ECIES.MULTIPLE.ENCRYPTED_KEY_SIZE}, got ${truncatedKey.length}`,
       );
@@ -253,18 +269,20 @@ describe('EciesMultiRecipient', () => {
 
     it('should reject headers that are too small', () => {
       expect(() =>
-        multiRecipientService.parseHeader(new Uint8Array(5)),
+        multiRecipientService.parseHeader(new Uint8Array(45)),
       ).toThrow('Data too short for multi-recipient header');
     });
 
     it('should reject headers with invalid data length', () => {
-      const header = new Uint8Array(13);
+      const header = new Uint8Array(46);
       header[0] = 1; // Version
       header[1] = 1; // CipherSuite
       header[2] = 99; // Type (Multiple)
+      // Bytes 3-35 are Ephemeral Public Key (leave as 0s for this test, or set valid if needed)
+      
       const view = new DataView(header.buffer);
-      view.setBigUint64(3, 0n, false); // invalid length (offset 3)
-      view.setUint16(11, 1, false); // count (offset 11)
+      view.setBigUint64(36, 0n, false); // invalid length (offset 36)
+      view.setUint16(44, 1, false); // count (offset 44)
 
       expect(() => multiRecipientService.parseHeader(header)).toThrow(
         'Invalid data length',
@@ -272,13 +290,14 @@ describe('EciesMultiRecipient', () => {
     });
 
     it('should reject headers with invalid recipient count', () => {
-      const header = new Uint8Array(13);
+      const header = new Uint8Array(46);
       header[0] = 1; // Version
       header[1] = 1; // CipherSuite
       header[2] = 99; // Type (Multiple)
+      
       const view = new DataView(header.buffer);
-      view.setBigUint64(3, 1n, false); // valid length
-      view.setUint16(11, 0, false); // invalid count
+      view.setBigUint64(36, 1n, false); // valid length (offset 36)
+      view.setUint16(44, 0, false); // invalid count (offset 44)
 
       expect(() => multiRecipientService.parseHeader(header)).toThrow(
         'Invalid recipient count',
@@ -293,6 +312,7 @@ describe('EciesMultiRecipient', () => {
         ECIES.VERSION_SIZE +
         ECIES.CIPHER_SUITE_SIZE +
         ECIES.ENCRYPTION_TYPE_SIZE +
+        ECIES.PUBLIC_KEY_LENGTH + // Shared ephemeral public key
         ECIES.MULTIPLE.DATA_LENGTH_SIZE +
         ECIES.MULTIPLE.RECIPIENT_COUNT_SIZE +
         recipientCount * ECIES.MULTIPLE.RECIPIENT_ID_SIZE +

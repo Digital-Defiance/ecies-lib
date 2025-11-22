@@ -94,8 +94,8 @@ export function getMultiRecipientConstants(
 
   return Object.freeze({
     MAGIC: 0x4D524543, // "MREC"
-    VERSION: 0x0001,
-    HEADER_SIZE: 32,
+    VERSION: 0x0002, // Updated to 0x0002 for Shared Ephemeral Key support
+    HEADER_SIZE: 64, // Increased to 64 bytes to accommodate Ephemeral Public Key (33 bytes)
     RECIPIENT_ID_SIZE: recipientIdSize,
     KEY_SIZE_BYTES: 2,
     FLAG_IS_LAST: 0x01,
