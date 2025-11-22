@@ -1,6 +1,6 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "Digital Defiance ECIES Library",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -19,6 +19,7 @@
     "build:stream": "npx nx build --outputStyle=stream digitaldefiance-ecies-lib",
     "build:logged": "npx nx build --outputStyle=stream digitaldefiance-ecies-lib 2>&1 | ansifilter -o build.log",
     "test": "npx nx test digitaldefiance-ecies-lib",
+    "test:nocache": "npx nx test --skip-nx-cache digitaldefiance-ecies-lib",
     "test:stream": "npx nx test --outputStyle=stream digitaldefiance-ecies-lib",
     "test:logged": "npx nx test --outputStyle=stream digitaldefiance-ecies-lib 2>&1 | ansifilter -o test.log",
     "test:coverage": "npx jest --coverage --testPathPattern=digitaldefiance-ecies-lib --coverageReporters=text",

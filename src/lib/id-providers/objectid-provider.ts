@@ -26,7 +26,16 @@ export class ObjectIdProvider extends BaseIdProvider {
   generate(): Uint8Array {
     const buffer = new Uint8Array(12);
     const objectId = new ObjectId();
-    buffer.set(objectId.id, 0);
+    
+    if (typeof objectId.id === 'string') {
+      const hex = objectId.id as string;
+      for (let i = 0; i < 12; i++) {
+        buffer[i] = parseInt(hex.substring(i * 2, (i * 2) + 2), 16);
+      }
+    } else {
+      buffer.set(objectId.id, 0);
+    }
+    
     return buffer;
   }
 
