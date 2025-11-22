@@ -90,4 +90,20 @@ export class CustomIdProvider extends BaseIdProvider {
 
     return buffer;
   }
+
+  /**
+   * Convert an ID of unknown type to a string representation.
+   * Delegates to base implementation.
+   */
+  override idToString(id: unknown): string {
+    return super.idToString(id);
+  }
+
+  /**
+   * Convert a string representation of an ID back to an ID buffer.
+   * Delegates to deserialize.
+   */
+  override idFromString(str: string): Uint8Array {
+    return this.deserialize(str);
+  }
 }

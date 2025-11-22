@@ -119,4 +119,23 @@ export class GuidV4Provider extends BaseIdProvider {
       return false;
     }
   }
+
+  /**
+   * Convert an ID of unknown type to a string representation.
+   * Handles Uint8Array, GuidV4 instances, and falls back to String().
+   */
+  override idToString(id: unknown): string {
+    if (id instanceof GuidV4) {
+      return id.asBase64Guid;
+    }
+    return super.idToString(id);
+  }
+
+  /**
+   * Convert a string representation of an ID back to an ID buffer.
+   * Delegates to deserialize.
+   */
+  override idFromString(str: string): Uint8Array {
+    return this.deserialize(str);
+  }
 }

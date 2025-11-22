@@ -251,6 +251,10 @@ The library maintains **100% test coverage** with over 1,200 tests, including:
 
 ## ChangeLog
 
+### v4.2.0
+
+- Add idToString/idFromString to id provider
+
 ### v4.1.1
 
 - Tweak to objectId provider to make generate() more robust

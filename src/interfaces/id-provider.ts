@@ -63,6 +63,22 @@ export interface IIdProvider {
    * @returns A new Uint8Array with the same contents
    */
   clone(id: Uint8Array): Uint8Array;
+
+  /**
+   * Convert an ID of unknown type to a string representation.
+   * This is useful when dealing with generic IDs that might be Uint8Array, string, or other types.
+   * @param id The ID to convert
+   * @returns A string representation of the ID
+   */
+  idToString(id: unknown): string;
+
+  /**
+   * Convert a string representation of an ID back to an ID buffer.
+   * This is an alias for `deserialize` to provide symmetry with `idToString`.
+   * @param str The string representation of the ID
+   * @returns The ID as a Uint8Array of length `byteLength`
+   */
+  idFromString(str: string): Uint8Array;
 }
 
 /**
@@ -76,6 +92,25 @@ export abstract class BaseIdProvider implements IIdProvider {
   abstract validate(id: Uint8Array): boolean;
   abstract serialize(id: Uint8Array): string;
   abstract deserialize(str: string): Uint8Array;
+
+  /**
+   * Convert an ID of unknown type to a string representation.
+   * Default implementation handles Uint8Array using serialize(), and falls back to String().
+   */
+  idToString(id: unknown): string {
+    if (id instanceof Uint8Array) {
+      return this.serialize(id);
+    }
+    return String(id);
+  }
+
+  /**
+   * Convert a string representation of an ID back to an ID buffer.
+   * Default implementation delegates to `deserialize`.
+   */
+  idFromString(str: string): Uint8Array {
+    return this.deserialize(str);
+  }
 
   /**
    * Constant-time comparison to prevent timing attacks.
