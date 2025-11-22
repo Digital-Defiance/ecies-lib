@@ -92,6 +92,11 @@ export const ukrainianTranslations: Record<EciesStringKey, string | PluralString
     [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Обʼєднані дані занадто короткі, щоб містити необхідні компоненти',
     [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: 'Недійсні константи контрольної суми',
     [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: 'Неможливо перезаписати конфігурацію за замовчуванням',
+    [EciesStringKey.Error_ECIESError_RecipientIdSizeTooLargeTemplate]: 'Recipient ID size {size} exceeds maximum of 255 bytes',
+    [EciesStringKey.Error_ECIESError_InvalidVersion]: 'Недійсна версія ECIES',
+    [EciesStringKey.Error_ECIESError_InvalidVersionTemplate]: 'Недійсна версія ECIES: {version}',
+    [EciesStringKey.Error_ECIESError_InvalidCipherSuite]: 'Недійсний набір шифрів ECIES',
+    [EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate]: 'Недійсний набір шифрів ECIES: {cipherSuite}',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:
@@ -112,14 +117,14 @@ export const ukrainianTranslations: Record<EciesStringKey, string | PluralString
       'Відсутній приватний ключ.',
     [EciesStringKey.Error_MemberError_NoWallet]: 'Гаманець не завантажено.',
     [EciesStringKey.Error_MemberError_WalletAlreadyLoaded]:
-      'Гаманець уже завантажено.',
+      'Гаманець вже завантажено.',
     [EciesStringKey.Error_MemberError_InvalidMnemonic]:
       'Недійсний мнемонік гаманця.',
     [EciesStringKey.Error_MemberError_IncorrectOrInvalidPrivateKey]:
       'Неправильний або недійсний приватний ключ для цього відкритого ключа',
     [EciesStringKey.Error_MemberError_MemberNotFound]: 'Учасника не знайдено.',
     [EciesStringKey.Error_MemberError_MemberAlreadyExists]:
-      'Учасник уже існує.',
+      'Учасник вже існує.',
     [EciesStringKey.Error_MemberError_FailedToHydrateMember]:
       'Не вдалося ініціалізувати учасника.',
     [EciesStringKey.Error_MemberError_InvalidMemberData]:

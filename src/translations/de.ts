@@ -89,6 +89,11 @@ export const germanTranslations: Record<EciesStringKey, string | PluralString> =
     [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Kombinierte Daten sind zu kurz, um die erforderlichen Komponenten zu enthalten',
     [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: 'Ungültige Prüfziffernkonstanten',
     [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: 'Die Standardkonfiguration kann nicht überschrieben werden',
+    [EciesStringKey.Error_ECIESError_RecipientIdSizeTooLargeTemplate]: 'Recipient ID size {size} exceeds maximum of 255 bytes',
+    [EciesStringKey.Error_ECIESError_InvalidVersion]: 'Ungültige ECIES-Version',
+    [EciesStringKey.Error_ECIESError_InvalidVersionTemplate]: 'Ungültige ECIES-Version: {version}',
+    [EciesStringKey.Error_ECIESError_InvalidCipherSuite]: 'Ungültige ECIES-Verschlüsselungssuite',
+    [EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate]: 'Ungültige ECIES-Verschlüsselungssuite: {cipherSuite}',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:
@@ -225,8 +230,8 @@ export const germanTranslations: Record<EciesStringKey, string | PluralString> =
     [EciesStringKey.Error_Utils_HexStringContainsInvalidCharacters]: 'Hex-Zeichenfolge enthält ungültige Zeichen',
     [EciesStringKey.Error_Utils_ValueExceedsSafeIntegerRange]: 'Wert überschreitet den sicheren Ganzzahlbereich',
     [EciesStringKey.Error_Utils_ValueBelowSafeIntegerRange]: 'Wert liegt unter dem sicheren Ganzzahlbereich',
-    [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]: 'ECIESService muss vor der Generierung der Mnemonik festgelegt werden',
-    [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: 'ECIESService ist erforderlich',
+    [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]: 'ECIEService muss vor der Generierung der Mnemonik festgelegt werden',
+    [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: 'ECIEService ist erforderlich',
     [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: 'Typ, Name und E-Mail sind erforderlich',
     [EciesStringKey.Error_DisposedError_ObjectDisposed]: 'Objekt wurde freigegeben',
     [EciesStringKey.Error_GuidError_InvalidGuid]: 'Ungültige GUID.',

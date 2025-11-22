@@ -92,6 +92,7 @@ export const frenchTranslations: Record<EciesStringKey, string | PluralString> =
     [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Les données combinées sont trop courtes pour contenir les composants requis.',
     [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: 'Constantes de somme de contrôle invalides',
     [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: 'Impossible d’écraser la configuration par défaut.',
+    [EciesStringKey.Error_ECIESError_RecipientIdSizeTooLargeTemplate]: 'La taille de l\'identifiant du destinataire {size} dépasse le maximum de 255 octets',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:
@@ -259,4 +260,8 @@ export const frenchTranslations: Record<EciesStringKey, string | PluralString> =
       one: 'La validation de la configuration a échoué ({count} invariant):\n\n{failures}',
       other: 'La validation de la configuration a échoué ({count} invariants):\n\n{failures}'
     }),
+    [EciesStringKey.Error_ECIESError_InvalidVersion]: 'Version invalide',
+    [EciesStringKey.Error_ECIESError_InvalidVersionTemplate]: 'Version invalide : {version}',
+    [EciesStringKey.Error_ECIESError_InvalidCipherSuite]: 'Suite de chiffrement invalide',
+    [EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate]: 'Suite de chiffrement invalide : {cipherSuite}',
   };

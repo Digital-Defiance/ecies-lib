@@ -252,4 +252,9 @@ import { createPluralString, PluralString } from '@digitaldefiance/i18n-lib';
       one: 'Configuration validation failed ({count} invariant):\n\n{failures}',
       other: 'Configuration validation failed ({count} invariants):\n\n{failures}'
     }),
+    [EciesStringKey.Error_ECIESError_RecipientIdSizeTooLargeTemplate]: 'Recipient ID size {size} exceeds maximum of 255 bytes',
+    [EciesStringKey.Error_ECIESError_InvalidVersion]: 'Invalid ECIES version',
+    [EciesStringKey.Error_ECIESError_InvalidVersionTemplate]: 'Invalid ECIES version: {version}',
+    [EciesStringKey.Error_ECIESError_InvalidCipherSuite]: 'Invalid ECIES cipher suite',
+    [EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate]: 'Invalid ECIES cipher suite: {cipherSuite}',
   };

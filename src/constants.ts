@@ -87,15 +87,26 @@ const ECIES_RAW_PUBLIC_KEY_LENGTH = 64 as const;
 const ECIES_IV_SIZE = 16 as const;
 const ECIES_AUTH_TAG_SIZE = 16 as const;
 const ECIES_MULTIPLE_RECIPIENT_ID_SIZE = 12 as const;
+const ECIES_VERSION_SIZE = 1 as const;
+const ECIES_CIPHER_SUITE_SIZE = 1 as const;
 
 // Define the expected value for SIMPLE.FIXED_OVERHEAD_SIZE
 const expectedSimpleOverhead =
-  UINT8_SIZE + ECIES_PUBLIC_KEY_LENGTH + ECIES_IV_SIZE + ECIES_AUTH_TAG_SIZE;
+  ECIES_VERSION_SIZE +
+  ECIES_CIPHER_SUITE_SIZE +
+  UINT8_SIZE +
+  ECIES_PUBLIC_KEY_LENGTH +
+  ECIES_IV_SIZE +
+  ECIES_AUTH_TAG_SIZE;
 
 // Define the expected value for MULTIPLE.FIXED_OVERHEAD_SIZE
-// Includes: type (1) + IV (16) + auth tag (16) = 33 (no CRC, AES-GCM provides authentication)
+// Includes: version (1) + cipher suite (1) + type (1) + IV (16) + auth tag (16) = 35 (no CRC, AES-GCM provides authentication)
 const expectedMultipleOverhead =
-  UINT8_SIZE + ECIES_IV_SIZE + ECIES_AUTH_TAG_SIZE;
+  ECIES_VERSION_SIZE +
+  ECIES_CIPHER_SUITE_SIZE +
+  UINT8_SIZE +
+  ECIES_IV_SIZE +
+  ECIES_AUTH_TAG_SIZE;
 
 // Update ENCRYPTED_KEY_SIZE to match Simple encryption (no CRC)
 const expectedMultipleEncryptedKeySize =
@@ -139,11 +150,15 @@ export const ECIES: IECIESConstants = Object.freeze({
   AUTH_TAG_SIZE: ECIES_AUTH_TAG_SIZE,
   MAX_RAW_DATA_SIZE: 9007199254740991 as const, // 2^53 - 1 (max safe integer for JS)
 
+  VERSION_SIZE: ECIES_VERSION_SIZE,
+  CIPHER_SUITE_SIZE: ECIES_CIPHER_SUITE_SIZE,
+  ENCRYPTION_TYPE_SIZE: 1 as const,
+
   /**
    * Message encrypts without data length or crc
    */
   SIMPLE: Object.freeze({
-    FIXED_OVERHEAD_SIZE: expectedSimpleOverhead, // type (1) + public key (65) + IV (16) + auth tag (16)
+    FIXED_OVERHEAD_SIZE: expectedSimpleOverhead, // version (1) + cipher suite (1) + type (1) + public key (65) + IV (16) + auth tag (16)
     DATA_LENGTH_SIZE: 0 as const,
   } as const),
 
@@ -151,7 +166,7 @@ export const ECIES: IECIESConstants = Object.freeze({
    * Message encrypts with data length but no CRC (AES-GCM provides authentication)
    */
   SINGLE: Object.freeze({
-    FIXED_OVERHEAD_SIZE: 106 as const, // type (1) + public key (65) + IV (16) + auth tag (16) + data length (8)
+    FIXED_OVERHEAD_SIZE: 108 as const, // version (1) + cipher suite (1) + type (1) + public key (65) + IV (16) + auth tag (16) + data length (8)
     DATA_LENGTH_SIZE: 8,
   } as const),
 
@@ -159,7 +174,7 @@ export const ECIES: IECIESConstants = Object.freeze({
    * Message encrypts for multiple recipients
    */
   MULTIPLE: Object.freeze({
-    FIXED_OVERHEAD_SIZE: expectedMultipleOverhead, // type (1) + IV (16) + auth tag (16), no CRC
+    FIXED_OVERHEAD_SIZE: expectedMultipleOverhead, // version (1) + cipher suite (1) + type (1) + IV (16) + auth tag (16), no CRC
     ENCRYPTED_KEY_SIZE: expectedMultipleEncryptedKeySize, // 129
     MAX_RECIPIENTS: 65535,
     RECIPIENT_ID_SIZE: ECIES_MULTIPLE_RECIPIENT_ID_SIZE,

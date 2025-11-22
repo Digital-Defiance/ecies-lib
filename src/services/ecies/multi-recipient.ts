@@ -11,6 +11,9 @@ import {
 } from './interfaces';
 import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
 import { EciesStringKey } from '../../enumerations';
+import { EciesVersionEnum } from '../../enumerations/ecies-version';
+import { EciesCipherSuiteEnum } from '../../enumerations/ecies-cipher-suite';
+import { EciesEncryptionTypeEnum } from '../../enumerations/ecies-encryption-type';
 
 /**
  * Browser-compatible multi-recipient ECIES encryption/decryption
@@ -29,6 +32,9 @@ export class EciesMultiRecipient {
    */
   public getHeaderSize(recipientCount: number): number {
     return (
+      this.eciesConsts.VERSION_SIZE +
+      this.eciesConsts.CIPHER_SUITE_SIZE +
+      this.eciesConsts.ENCRYPTION_TYPE_SIZE +
       this.eciesConsts.MULTIPLE.DATA_LENGTH_SIZE +
       this.eciesConsts.MULTIPLE.RECIPIENT_COUNT_SIZE +
       recipientCount * this.eciesConsts.MULTIPLE.RECIPIENT_ID_SIZE +
@@ -283,11 +289,28 @@ export class EciesMultiRecipient {
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidDataLength));
     }
 
+    const versionArray = new Uint8Array([EciesVersionEnum.V1]);
+    const cipherSuiteArray = new Uint8Array([EciesCipherSuiteEnum.Secp256k1_Aes256Gcm_Sha256]);
+    const encryptionTypeArray = new Uint8Array([EciesEncryptionTypeEnum.Multiple]);
+
     // Data length (8 bytes)
+    // We use the most significant byte (MSB) to store the recipient ID size
+    // This allows parsing the header without knowing the configured ID provider
+    // Max data size is 2^53-1, so the top byte is always 0 for valid data lengths
+    const recipientIdSize = this.eciesConsts.MULTIPLE.RECIPIENT_ID_SIZE;
+    if (recipientIdSize > 255) {
+      const engine = getEciesI18nEngine();
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_RecipientIdSizeTooLargeTemplate, { size: recipientIdSize }));
+    }
+
+    const dataLengthBigInt = BigInt(data.dataLength);
+    const recipientIdSizeBigInt = BigInt(recipientIdSize);
+    const combinedLength = (recipientIdSizeBigInt << 56n) | dataLengthBigInt;
+
     const dataLengthUint8Array = new Uint8Array(8);
     new DataView(dataLengthUint8Array.buffer).setBigUint64(
       0,
-      BigInt(data.dataLength),
+      combinedLength,
       false,
     );
 
@@ -306,6 +329,9 @@ export class EciesMultiRecipient {
     const encryptedKeysUint8Array = concatUint8Arrays(...data.recipientKeys);
 
     return concatUint8Arrays(
+      versionArray,
+      cipherSuiteArray,
+      encryptionTypeArray,
       dataLengthUint8Array,
       recipientCountUint8Array,
       recipientIdsUint8Array,
@@ -317,30 +343,60 @@ export class EciesMultiRecipient {
    * Parse multi-recipient header
    */
   public parseHeader(data: Uint8Array): IMultiEncryptedParsedHeader {
-    if (data.length < 10) {
-      const engine = getEciesI18nEngine();
+    const engine = getEciesI18nEngine();
+    if (data.length < 13) {
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_DataTooShortForMultiRecipientHeader));
-      // minimum: 8 + 2
+      // minimum: 1 (ver) + 1 (suite) + 1 (type) + 8 (len) + 2 (count) = 13
     }
 
     let offset = 0;
     const view = new DataView(data.buffer, data.byteOffset);
 
-    // Read data length
-    const dataLength = Number(view.getBigUint64(offset, false));
+    // Read Version
+    const version = data[offset];
+    offset += this.eciesConsts.VERSION_SIZE;
+    if (version !== EciesVersionEnum.V1) {
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidVersionTemplate, { version }));
+    }
+
+    // Read CipherSuite
+    const cipherSuite = data[offset];
+    offset += this.eciesConsts.CIPHER_SUITE_SIZE;
+    if (cipherSuite !== EciesCipherSuiteEnum.Secp256k1_Aes256Gcm_Sha256) {
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate, { cipherSuite }));
+    }
+
+    // Read Encryption Type
+    const encryptionType = data[offset];
+    offset += this.eciesConsts.ENCRYPTION_TYPE_SIZE;
+    if (encryptionType !== EciesEncryptionTypeEnum.Multiple) {
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate, { encryptionType: encryptionType.toString(16) }));
+    }
+
+    // Read data length and recipient ID size
+    const combinedLength = view.getBigUint64(offset, false);
     offset += 8;
 
+    // Extract recipient ID size from MSB (top 8 bits)
+    const storedRecipientIdSize = Number(combinedLength >> 56n);
+    
+    // Extract data length from lower 56 bits
+    const dataLength = Number(combinedLength & 0x00FFFFFFFFFFFFFFn);
+
     if (dataLength <= 0 || dataLength > this.eciesConsts.MAX_RAW_DATA_SIZE) {
-      const engine = getEciesI18nEngine();
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidDataLength));
     }
+
+    // Use stored recipient ID size if available (non-legacy), otherwise fallback to config
+    const recipientIdSize = storedRecipientIdSize > 0 
+      ? storedRecipientIdSize 
+      : this.eciesConsts.MULTIPLE.RECIPIENT_ID_SIZE;
 
     // Read recipient count
     const recipientCount = view.getUint16(offset, false);
     offset += 2;
 
     if (recipientCount <= 0 || recipientCount > this.eciesConsts.MULTIPLE.MAX_RECIPIENTS) {
-      const engine = getEciesI18nEngine();
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidRecipientCount));
     }
 
@@ -348,9 +404,9 @@ export class EciesMultiRecipient {
     const recipientIds: Uint8Array[] = [];
     for (let i = 0; i < recipientCount; i++) {
       recipientIds.push(
-        data.slice(offset, offset + this.eciesConsts.MULTIPLE.RECIPIENT_ID_SIZE),
+        data.slice(offset, offset + recipientIdSize),
       );
-      offset += this.eciesConsts.MULTIPLE.RECIPIENT_ID_SIZE;
+      offset += recipientIdSize;
     }
 
     // Read encrypted keys

@@ -1,4 +1,3 @@
-
 export enum EciesStringKey {
   Error_ECIESError_InvalidECIESMultipleEncryptedKeySize = 'Error_ECIESError_InvalidECIESMultipleEncryptedKeySize',
   Error_ECIESError_InvalidECIESPublicKeyLength = 'Error_ECIESError_InvalidECIESPublicKeyLength',
@@ -197,4 +196,9 @@ export enum EciesStringKey {
   Error_Invariant_ValidationFailedTemplate = 'Error_Invariant_ValidationFailedTemplate',
   Error_Invariant_UnknownInvariantTemplate = 'Error_Invariant_UnknownInvariantTemplate',
   Error_Invariant_ConfigurationValidationFailedMultipleTemplate = 'Error_Invariant_ConfigurationValidationFailedMultipleTemplate',
+  Error_ECIESError_RecipientIdSizeTooLargeTemplate = 'error_ecies_error_recipient_id_size_too_large_template',
+  Error_ECIESError_InvalidVersion = 'Error_ECIESError_InvalidVersion',
+  Error_ECIESError_InvalidVersionTemplate = 'Error_ECIESError_InvalidVersionTemplate',
+  Error_ECIESError_InvalidCipherSuite = 'Error_ECIESError_InvalidCipherSuite',
+  Error_ECIESError_InvalidCipherSuiteTemplate = 'Error_ECIESError_InvalidCipherSuiteTemplate',
 }

@@ -713,6 +713,10 @@ const passwordLogin = new PasswordLoginService(ecies, pbkdf2);
 
 ## ChangeLog
 
+### v3.8.0
+
+- Add recipient ID length to header
+
 ### v3.7.5
 
 - Fix export

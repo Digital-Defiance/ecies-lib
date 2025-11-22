@@ -258,10 +258,13 @@ describe('EciesMultiRecipient', () => {
     });
 
     it('should reject headers with invalid data length', () => {
-      const header = new Uint8Array(10);
+      const header = new Uint8Array(13);
+      header[0] = 1; // Version
+      header[1] = 1; // CipherSuite
+      header[2] = 99; // Type (Multiple)
       const view = new DataView(header.buffer);
-      view.setBigUint64(0, 0n, false); // invalid length
-      view.setUint16(8, 1, false);
+      view.setBigUint64(3, 0n, false); // invalid length (offset 3)
+      view.setUint16(11, 1, false); // count (offset 11)
 
       expect(() => multiRecipientService.parseHeader(header)).toThrow(
         'Invalid data length',
@@ -269,10 +272,13 @@ describe('EciesMultiRecipient', () => {
     });
 
     it('should reject headers with invalid recipient count', () => {
-      const header = new Uint8Array(10);
+      const header = new Uint8Array(13);
+      header[0] = 1; // Version
+      header[1] = 1; // CipherSuite
+      header[2] = 99; // Type (Multiple)
       const view = new DataView(header.buffer);
-      view.setBigUint64(0, 1n, false);
-      view.setUint16(8, 0, false); // invalid count
+      view.setBigUint64(3, 1n, false); // valid length
+      view.setUint16(11, 0, false); // invalid count
 
       expect(() => multiRecipientService.parseHeader(header)).toThrow(
         'Invalid recipient count',
@@ -284,6 +290,9 @@ describe('EciesMultiRecipient', () => {
     it('should compute header size based on recipient count', () => {
       const recipientCount = 3;
       const expectedSize =
+        ECIES.VERSION_SIZE +
+        ECIES.CIPHER_SUITE_SIZE +
+        ECIES.ENCRYPTION_TYPE_SIZE +
         ECIES.MULTIPLE.DATA_LENGTH_SIZE +
         ECIES.MULTIPLE.RECIPIENT_COUNT_SIZE +
         recipientCount * ECIES.MULTIPLE.RECIPIENT_ID_SIZE +

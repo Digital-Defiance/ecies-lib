@@ -271,8 +271,8 @@ describe('Encrypted Message Structure Validation', () => {
       expect(uniqueLengths.size).toBe(1);
       
       // Verify expected SIMPLE structure:
-      // Type (1) + Public Key (65) + IV (16) + Encrypted Data (10) + Auth Tag (16) = 108
-      expect(lengths[0]).toBe(108);
+      // Type (1) + Version (1) + Suite (1) + Public Key (65) + IV (16) + Encrypted Data (10) + Auth Tag (16) = 110
+      expect(lengths[0]).toBe(110);
     });
   });
 
@@ -305,8 +305,8 @@ describe('Encrypted Message Structure Validation', () => {
       expect(uniqueLengths.size).toBe(1);
       
       // Verify expected SINGLE structure:
-      // Type (1) + Public Key (65) + IV (16) + Encrypted Data (10) + Auth Tag (16) + Data Length (8) = 116
-      expect(lengths[0]).toBe(116);
+      // Type (1) + Version (1) + Suite (1) + Public Key (65) + IV (16) + Encrypted Data (10) + Auth Tag (16) + Data Length (8) = 118
+      expect(lengths[0]).toBe(118);
     });
   });
 

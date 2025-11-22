@@ -4,6 +4,8 @@ import {
   EciesEncryptionType,
   EciesEncryptionTypeEnum,
 } from '../../enumerations/ecies-encryption-type';
+import { EciesVersionEnum } from '../../enumerations/ecies-version';
+import { EciesCipherSuiteEnum } from '../../enumerations/ecies-cipher-suite';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { AESGCMService } from '../aes-gcm';
 
@@ -43,6 +45,9 @@ export class EciesSingleRecipient {
         ? this.eciesConsts.ENCRYPTION_TYPE.SIMPLE
         : this.eciesConsts.ENCRYPTION_TYPE.SINGLE,
     ]);
+
+    const versionArray = new Uint8Array([EciesVersionEnum.V1]);
+    const cipherSuiteArray = new Uint8Array([EciesCipherSuiteEnum.Secp256k1_Aes256Gcm_Sha256]);
 
     if (message.length > this.eciesConsts.MAX_RAW_DATA_SIZE) {
       const engine = getEciesI18nEngine();
@@ -91,9 +96,11 @@ export class EciesSingleRecipient {
       view.setBigUint64(0, BigInt(message.length), false); // big-endian
     }
 
-    // Format: [preamble] | type (1) | ephemeralPublicKey (65) | iv (16) | authTag (16) | length (8) | encryptedData
+    // Format: [preamble] | version (1) | cipherSuite (1) | type (1) | ephemeralPublicKey (65) | iv (16) | authTag (16) | length (8) | encryptedData
     const result = new Uint8Array(
       preamble.length +
+        versionArray.length +
+        cipherSuiteArray.length +
         encryptionTypeArray.length +
         ephemeralPublicKey.length +
         iv.length +
@@ -105,6 +112,10 @@ export class EciesSingleRecipient {
     let offset = 0;
     result.set(preamble, offset);
     offset += preamble.length;
+    result.set(versionArray, offset);
+    offset += versionArray.length;
+    result.set(cipherSuiteArray, offset);
+    offset += cipherSuiteArray.length;
     result.set(encryptionTypeArray, offset);
     offset += encryptionTypeArray.length;
     result.set(ephemeralPublicKey, offset);
@@ -133,10 +144,27 @@ export class EciesSingleRecipient {
     data: Uint8Array;
     remainder: Uint8Array;
   } {
-    // Read encryption type from first byte after preamble
-    const actualEncryptionTypeByte = data[preambleSize];
-    let actualEncryptionType: EciesEncryptionTypeEnum;
     const engine = getEciesI18nEngine();
+    let offset = preambleSize;
+    const preamble = data.slice(0, preambleSize);
+
+    // Read Version
+    const version = data[offset];
+    offset += this.eciesConsts.VERSION_SIZE;
+    if (version !== EciesVersionEnum.V1) {
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidVersionTemplate, { version }));
+    }
+
+    // Read CipherSuite
+    const cipherSuite = data[offset];
+    offset += this.eciesConsts.CIPHER_SUITE_SIZE;
+    if (cipherSuite !== EciesCipherSuiteEnum.Secp256k1_Aes256Gcm_Sha256) {
+      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate, { cipherSuite }));
+    }
+
+    // Read encryption type from first byte after preamble and version/suite
+    const actualEncryptionTypeByte = data[offset];
+    let actualEncryptionType: EciesEncryptionTypeEnum;
 
     switch (actualEncryptionTypeByte) {
       case this.eciesConsts.ENCRYPTION_TYPE.SIMPLE:
@@ -157,7 +185,6 @@ export class EciesSingleRecipient {
       encryptionType !== undefined &&
       actualEncryptionType !== encryptionType
     ) {
-      const engine = getEciesI18nEngine();
       throw new Error(
         engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_EncryptionTypeMismatchTemplate, { encryptionType, actualEncryptionType }),
       );
@@ -170,14 +197,10 @@ export class EciesSingleRecipient {
       : this.eciesConsts.SIMPLE.FIXED_OVERHEAD_SIZE;
 
     if (data.length < requiredSize) {
-      const engine = getEciesI18nEngine();
       throw new Error(
         engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_DataTooShortTemplate, { requiredSize, dataLength: data.length }),
       );
     }
-
-    let offset = preambleSize;
-    const preamble = data.slice(0, preambleSize);
 
     // Skip encryption type byte
     offset += 1;
@@ -218,7 +241,6 @@ export class EciesSingleRecipient {
 
     // Validate data length is reasonable
     if (includeLengthAndCrc && (dataLength < 0 || dataLength > this.eciesConsts.MAX_RAW_DATA_SIZE)) {
-      const engine = getEciesI18nEngine();
       throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidDataLength));
     }
 
@@ -227,7 +249,6 @@ export class EciesSingleRecipient {
       options?.dataLength !== undefined &&
       dataLength !== options.dataLength
     ) {
-      const engine = getEciesI18nEngine();
       throw new Error(
         engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate, { expectedDataLength: dataLength, receivedDataLength: options.dataLength }),
       );

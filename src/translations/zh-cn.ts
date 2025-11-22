@@ -82,6 +82,11 @@ export const mandarinChineseTranslations: Record<EciesStringKey, string | Plural
     [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: '组合数据过短，无法包含所需组件',
     [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: '无效的校验和常量',
     [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: '无法覆盖默认配置',
+    [EciesStringKey.Error_ECIESError_RecipientIdSizeTooLargeTemplate]: 'Recipient ID size {size} exceeds maximum of 255 bytes',
+    [EciesStringKey.Error_ECIESError_InvalidVersion]: '无效的 ECIES 版本',
+    [EciesStringKey.Error_ECIESError_InvalidVersionTemplate]: '无效的 ECIES 版本：{version}',
+    [EciesStringKey.Error_ECIESError_InvalidCipherSuite]: '无效的 ECIES 密码套件',
+    [EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate]: '无效的 ECIES 密码套件：{cipherSuite}',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]: '缺少成员名称。',

@@ -34,6 +34,10 @@ export interface IECIESConstants {
   AUTH_TAG_SIZE: number;
   MAX_RAW_DATA_SIZE: number; // 2^53 - 1 (max safe integer for JS)
 
+  VERSION_SIZE: number;
+  CIPHER_SUITE_SIZE: number;
+  ENCRYPTION_TYPE_SIZE: number;
+
   /**
    * Message encrypts without data length or crc
    */

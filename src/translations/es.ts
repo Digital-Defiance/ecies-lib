@@ -93,6 +93,11 @@ export const spanishTranslations: Record<EciesStringKey, string | PluralString> 
     [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: 'Los datos combinados son demasiado cortos para contener los componentes requeridos.',
     [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: 'Constantes de suma de control no válidas',
     [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: 'No se puede sobrescribir la configuración predeterminada.',
+    [EciesStringKey.Error_ECIESError_RecipientIdSizeTooLargeTemplate]: 'Recipient ID size {size} exceeds maximum of 255 bytes',
+    [EciesStringKey.Error_ECIESError_InvalidVersion]: 'Versión ECIES inválida',
+    [EciesStringKey.Error_ECIESError_InvalidVersionTemplate]: 'Versión ECIES inválida: {version}',
+    [EciesStringKey.Error_ECIESError_InvalidCipherSuite]: 'Suite de cifrado ECIES inválida',
+    [EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate]: 'Suite de cifrado ECIES inválida: {cipherSuite}',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:

@@ -89,6 +89,11 @@ export const japaneseTranslations: Record<EciesStringKey, string | PluralString>
     [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: '結合データが必要なコンポーネントを含むには短すぎます',
     [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: '無効なチェックサム定数です',
     [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: 'デフォルト設定を上書きできません',
+    [EciesStringKey.Error_ECIESError_RecipientIdSizeTooLargeTemplate]: 'Recipient ID size {size} exceeds maximum of 255 bytes',
+    [EciesStringKey.Error_ECIESError_InvalidVersion]: '無効なECIESバージョン',
+    [EciesStringKey.Error_ECIESError_InvalidVersionTemplate]: '無効なECIESバージョン：{version}',
+    [EciesStringKey.Error_ECIESError_InvalidCipherSuite]: '無効なECIES暗号スイート',
+    [EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate]: '無効なECIES暗号スイート：{cipherSuite}',
 
     // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
     [EciesStringKey.Error_MemberError_MissingMemberName]:

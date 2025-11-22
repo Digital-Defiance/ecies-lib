@@ -78,7 +78,7 @@ describe('Error Coverage Validation', () => {
         
         // Additional errors include template variants, utility error strings, and GUID errors (4)
         // Plus IdProviderError (9 types) + DisposedError (1) + Error_Stream_InvalidRecipientIdLengthTemplate (1) = 11 new strings
-        const additionalErrors = 115;
+        const additionalErrors = 118;
         const expectedStringKeys = totalErrors + additionalErrors;
         
         const totalStringKeys = Object.values(EciesStringKey).length;

@@ -38,4 +38,6 @@ export enum ECIESErrorTypeEnum {
   DecryptedDataLengthMismatch = 'DecryptedDataLengthMismatch',
   RecipientCountMismatch = 'RecipientCountMismatch',
   DataTooShortForMultiRecipientHeader = 'DataTooShortForMultiRecipientHeader',
+  InvalidVersion = 'InvalidVersion',
+  InvalidCipherSuite = 'InvalidCipherSuite',
 }
