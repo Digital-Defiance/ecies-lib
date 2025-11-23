@@ -10,10 +10,18 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/tests/test-setup.ts'],
   transform: {
     '^.+\\.(ts|tsx)$': [
-      'ts-jest',
+      '@swc/jest',
       {
-        tsconfig: '<rootDir>/tsconfig.spec.json',
-        babelConfig: true,
+        jsc: {
+          parser: {
+            syntax: 'typescript',
+            decorators: true,
+          },
+          target: 'es2020',
+        },
+        module: {
+          type: 'commonjs',
+        },
       },
     ],
     '^.+\\.(js|jsx)$': 'babel-jest',

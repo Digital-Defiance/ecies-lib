@@ -1,7 +1,3 @@
-import { ECIESError } from '../errors/ecies';
-import { getEciesI18nEngine } from '../i18n-setup';
-import { ECIESErrorTypeEnum } from './ecies-error-type';
-
 export type EciesEncryptionType = 'simple' | 'single' | 'multiple';
 
 export enum EciesEncryptionTypeEnum {
@@ -30,73 +26,16 @@ export const EciesEncryptionTypeEnumTypeMap: Record<
   EciesEncryptionTypeEnum,
   EciesEncryptionType
 > = {
-  [EciesEncryptionTypeEnum.Simple]: 'simple',
-  [EciesEncryptionTypeEnum.Single]: 'single',
-  [EciesEncryptionTypeEnum.Multiple]: 'multiple',
+  33: 'simple',
+  66: 'single',
+  99: 'multiple',
 };
 
 export const EciesEncryptionTypeEnumStringMap: Record<
   EciesEncryptionTypeEnum,
   string
 > = {
-  [EciesEncryptionTypeEnum.Simple]: 'simple',
-  [EciesEncryptionTypeEnum.Single]: 'single',
-  [EciesEncryptionTypeEnum.Multiple]: 'multiple',
+  33: 'simple',
+  66: 'single',
+  99: 'multiple',
 };
-
-export function encryptionTypeToString(
-  type: EciesEncryptionType | EciesEncryptionTypeEnum,
-): string {
-  // if enum
-  let resultType: EciesEncryptionType;
-  if (typeof type === 'number') {
-    resultType = EciesEncryptionTypeEnumTypeMap[type];
-    if (resultType === undefined) {
-      throw new ECIESError(
-        ECIESErrorTypeEnum.InvalidEncryptionType,
-        
-      );
-    }
-  } else {
-    resultType = type;
-  }
-  const result = EciesEncryptionTypeStringMap[resultType];
-  if (result === undefined) {
-    throw new ECIESError(
-      ECIESErrorTypeEnum.InvalidEncryptionType,
-      
-    );
-  }
-  return result;
-}
-
-export function encryptionTypeEnumToType(
-  type: EciesEncryptionTypeEnum,
-): EciesEncryptionType {
-  const result = EciesEncryptionTypeEnumTypeMap[type];
-  if (result === undefined) {
-    throw new ECIESError(
-      ECIESErrorTypeEnum.InvalidEncryptionType,
-      
-    );
-  }
-  return result;
-}
-
-export function validateEciesEncryptionTypeEnum(
-  type: EciesEncryptionTypeEnum,
-): boolean {
-  return Object.values(EciesEncryptionTypeEnum).includes(type);
-}
-
-export function ensureEciesEncryptionTypeEnum(
-  type: EciesEncryptionTypeEnum,
-): EciesEncryptionTypeEnum {
-  if (!validateEciesEncryptionTypeEnum(type)) {
-    throw new ECIESError(
-      ECIESErrorTypeEnum.InvalidEncryptionType,
-      
-    );
-  }
-  return type;
-}

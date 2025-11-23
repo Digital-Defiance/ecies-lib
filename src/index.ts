@@ -10,9 +10,9 @@
  */
 
 // Core v2 exports
-export * from './builders/index.js';
-export * from './core/index.js';
-export * from './lib/index.js';
+export * from './builders';
+export * from './core';
+export * from './lib';
 
 // i18n v2
 export {
@@ -43,11 +43,10 @@ export { EciesCipherSuiteEnum } from './enumerations/ecies-cipher-suite';
 export {
   EciesEncryptionTypeEnum,
   EciesEncryptionTypeMap,
-  encryptionTypeEnumToType,
-  encryptionTypeToString,
-  ensureEciesEncryptionTypeEnum,
   type EciesEncryptionType,
 } from './enumerations/ecies-encryption-type';
+
+// Export utility functions from utils module (moved from enumerations for circular dependency fix)
 export { ECIESErrorTypeEnum } from './enumerations/ecies-error-type';
 export { EciesVersionEnum } from './enumerations/ecies-version';
 export { InvalidEmailErrorType } from './enumerations/invalid-email-type';
@@ -68,6 +67,12 @@ export {
   getLengthEncodingTypeFromValue,
   getLengthForLengthType,
 } from './utils';
+export {
+  encryptionTypeEnumToType,
+  encryptionTypeToString,
+  ensureEciesEncryptionTypeEnum,
+  validateEciesEncryptionTypeEnum,
+} from './utils/encryption-type-utils';
 
 // ID Provider system
 export { BaseIdProvider } from './interfaces/id-provider';

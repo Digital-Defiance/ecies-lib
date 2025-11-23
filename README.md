@@ -305,6 +305,10 @@ This release focuses on eliminating type safety escape hatches while maintaining
 
 **Migration Guide:** No migration needed - this is a drop-in replacement for 4.2.x versions
 
+### v4.2.7
+
+- Minor bump. Fix tests
+
 ### v4.2.6
 
 - Minor bump. Fix exports

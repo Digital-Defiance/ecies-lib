@@ -1,6 +1,6 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "4.2.6",
+  "version": "4.2.7",
   "description": "Digital Defiance ECIES Library",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -23,6 +23,9 @@
     "test:stream": "npx nx test --outputStyle=stream digitaldefiance-ecies-lib",
     "test:logged": "npx nx test --outputStyle=stream digitaldefiance-ecies-lib 2>&1 | ansifilter -o test.log",
     "test:coverage": "npx jest --coverage --testPathPattern=digitaldefiance-ecies-lib --coverageReporters=text",
+    "check:circular": "madge --circular --extensions ts src/index.ts",
+    "check:circular:json": "madge --circular --extensions ts --json src/index.ts",
+    "check:circular:enums": "madge --circular --extensions ts src/enumerations/index.ts",
     "lint": "npx nx lint digitaldefiance-ecies-lib",
     "lint:fix": "npx nx lint digitaldefiance-ecies-lib --fix",
     "prettier:check": "prettier --check 'src/**/*.{ts,tsx}'",
@@ -56,6 +59,9 @@
   },
   "devDependencies": {
     "@digitaldefiance/express-suite-test-utils": "1.0.10",
-    "fast-check": "^4.3.0"
+    "@swc/core": "^1.15.3",
+    "@swc/jest": "^0.2.39",
+    "fast-check": "^4.3.0",
+    "madge": "^8.0.0"
   }
 }
