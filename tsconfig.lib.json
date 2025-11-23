@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../dist/out-tsc/packages/digitaldefiance-ecies-lib",
+    "outDir": "../../dist/packages/digitaldefiance-ecies-lib/src",
     "rootDir": "./src",
     "target": "es2022",
     "module": "esnext",
