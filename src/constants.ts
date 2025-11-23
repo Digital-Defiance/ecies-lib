@@ -3,17 +3,19 @@ import { Pbkdf2ProfileEnum } from './enumerations/pbkdf2-profile';
 import { ECIESError } from './errors/ecies';
 import { EciesComponentId, getEciesI18nEngine } from './i18n-setup';
 import { IChecksumConsts } from './interfaces';
+import type { IConfigurationProvenance } from './interfaces/configuration-provenance';
+import {
+  calculateConfigChecksum,
+  captureCreationStack,
+} from './interfaces/configuration-provenance';
 import { IConstants } from './interfaces/constants';
-import { DeepPartial } from './types/deep-partial';
 import { IECIESConstants } from './interfaces/ecies-consts';
 import { IPBkdf2Consts } from './interfaces/pbkdf2-consts';
+import { ObjectIdProvider } from './lib/id-providers/objectid-provider';
+import { InvariantValidator } from './lib/invariant-validator';
 import { Pbkdf2Profiles } from './pbkdf2-profiles';
 import { MNEMONIC_REGEX, PASSWORD_REGEX } from './regexes';
-import { ObjectIdProvider } from './lib/id-providers/objectid-provider';
-import { IIdProvider } from './interfaces/id-provider';
-import { InvariantValidator } from './lib/invariant-validator';
-import type { IConfigurationProvenance } from './interfaces/configuration-provenance';
-import { calculateConfigChecksum, captureCreationStack } from './interfaces/configuration-provenance';
+import { DeepPartial } from './types/deep-partial';
 
 export const UINT8_SIZE: number = 1 as const;
 export const UINT16_SIZE: number = 2 as const;
@@ -112,9 +114,7 @@ const expectedMultipleOverhead =
 // Update ENCRYPTED_KEY_SIZE to match Simple encryption (no CRC)
 // Now only contains IV + Tag + EncryptedSymKey (Public Key is moved to global header)
 const expectedMultipleEncryptedKeySize =
-  ECIES_IV_SIZE +
-  ECIES_AUTH_TAG_SIZE +
-  ECIES_SYMMETRIC_KEY_SIZE;
+  ECIES_IV_SIZE + ECIES_AUTH_TAG_SIZE + ECIES_SYMMETRIC_KEY_SIZE;
 
 export const ECIES: IECIESConstants = Object.freeze({
   /** The elliptic curve to use for all ECDSA operations */
@@ -258,18 +258,26 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 function deepClone<T>(input: T): T {
-  if (input === null) {
+  if (input === null || input === undefined) {
     return input;
   }
+
+  if (typeof input !== 'object') {
+    return input;
+  }
+
   if (Array.isArray(input)) {
-    return input.map((item) => deepClone(item)) as unknown as T;
+    return input.map((item) => deepClone(item)) as T;
   }
+
   if (input instanceof RegExp) {
-    return new RegExp(input.source, input.flags) as unknown as T;
+    return new RegExp(input.source, input.flags) as T;
   }
+
   if (input instanceof Date) {
-    return new Date(input.getTime()) as unknown as T;
+    return new Date(input.getTime()) as T;
   }
+
   if (isPlainObject(input)) {
     const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(input)) {
@@ -277,6 +285,7 @@ function deepClone<T>(input: T): T {
     }
     return result as T;
   }
+
   return input;
 }
 
@@ -291,15 +300,16 @@ function applyOverrides<T>(target: T, overrides?: DeepPartial<T>): T {
       continue;
     }
 
-    const currentValue = (target as any)[typedKey];
+    const currentValue = target[typedKey];
 
     if (isPlainObject(currentValue) && isPlainObject(overrideValue)) {
-      (target as any)[typedKey] = applyOverrides(
+      (target as Record<string, unknown>)[typedKey as string] = applyOverrides(
         currentValue,
-        overrideValue as any,
+        overrideValue as DeepPartial<typeof currentValue>,
       );
     } else {
-      (target as any)[typedKey] = deepClone(overrideValue);
+      (target as Record<string, unknown>)[typedKey as string] =
+        deepClone(overrideValue);
     }
   }
 
@@ -317,20 +327,17 @@ function deepFreeze<T>(value: T): T {
   Object.freeze(value);
 
   for (const property of Object.getOwnPropertyNames(value)) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const nestedValue = (value as any)[property];
-    deepFreeze(nestedValue);
+    const nestedValue = (value as Record<string, unknown>)[property];
+    if (nestedValue && typeof nestedValue === 'object') {
+      deepFreeze(nestedValue);
+    }
   }
 
   return value;
 }
 
 function computeMultipleEncryptedKeySize(ecies: IECIESConstants): number {
-  return (
-    ecies.IV_SIZE +
-    ecies.AUTH_TAG_SIZE +
-    ecies.SYMMETRIC.KEY_SIZE
-  );
+  return ecies.IV_SIZE + ecies.AUTH_TAG_SIZE + ecies.SYMMETRIC.KEY_SIZE;
 }
 
 function validateConstants(config: IConstants): void {
@@ -342,36 +349,33 @@ function validateConstants(config: IConstants): void {
     checksum.SHA3_BUFFER_LENGTH !== checksum.SHA3_DEFAULT_HASH_BITS / 8
   ) {
     const engine = getEciesI18nEngine();
-    throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidChecksumConstants));
+    throw new Error(
+      engine.translate(
+        EciesComponentId,
+        EciesStringKey.Error_ECIESError_InvalidChecksumConstants,
+      ),
+    );
   }
 
   const expectedEncryptedKeySize = computeMultipleEncryptedKeySize(ecies);
   if (ecies.MULTIPLE.ENCRYPTED_KEY_SIZE !== expectedEncryptedKeySize) {
     throw new ECIESError(
       ECIESErrorTypeEnum.InvalidECIESMultipleEncryptedKeySize,
-      getEciesI18nEngine() as any,
     );
   }
 
   if (ecies.PUBLIC_KEY_LENGTH !== ecies.RAW_PUBLIC_KEY_LENGTH + 1) {
-    throw new ECIESError(
-      ECIESErrorTypeEnum.InvalidECIESPublicKeyLength,
-      getEciesI18nEngine() as any,
-    );
+    throw new ECIESError(ECIESErrorTypeEnum.InvalidECIESPublicKeyLength);
   }
 
   if (ecies.MULTIPLE.RECIPIENT_COUNT_SIZE !== UINT16_SIZE) {
     throw new ECIESError(
       ECIESErrorTypeEnum.InvalidECIESMultipleRecipientCountSize,
-      getEciesI18nEngine() as any,
     );
   }
 
   if (ecies.MULTIPLE.DATA_LENGTH_SIZE !== UINT64_SIZE) {
-    throw new ECIESError(
-      ECIESErrorTypeEnum.InvalidECIESMultipleDataLengthSize,
-      getEciesI18nEngine() as any,
-    );
+    throw new ECIESError(ECIESErrorTypeEnum.InvalidECIESMultipleDataLengthSize);
   }
 
   // Validate ID provider is present and valid
@@ -379,18 +383,20 @@ function validateConstants(config: IConstants): void {
     throw new Error('ID provider is required in constants configuration');
   }
 
-  if (typeof config.idProvider.byteLength !== 'number' || 
-      config.idProvider.byteLength < 1 || 
-      config.idProvider.byteLength > 255) {
+  if (
+    typeof config.idProvider.byteLength !== 'number' ||
+    config.idProvider.byteLength < 1 ||
+    config.idProvider.byteLength > 255
+  ) {
     throw new Error(
-      `Invalid ID provider byteLength: ${config.idProvider.byteLength}. Must be between 1 and 255.`
+      `Invalid ID provider byteLength: ${config.idProvider.byteLength}. Must be between 1 and 255.`,
     );
   }
 
   // Validate MEMBER_ID_LENGTH matches ID provider
   if (config.MEMBER_ID_LENGTH !== config.idProvider.byteLength) {
     throw new Error(
-      `MEMBER_ID_LENGTH (${config.MEMBER_ID_LENGTH}) must match idProvider.byteLength (${config.idProvider.byteLength})`
+      `MEMBER_ID_LENGTH (${config.MEMBER_ID_LENGTH}) must match idProvider.byteLength (${config.idProvider.byteLength})`,
     );
   }
 
@@ -399,7 +405,6 @@ function validateConstants(config: IConstants): void {
   if (ecies.MULTIPLE.RECIPIENT_ID_SIZE !== config.idProvider.byteLength) {
     throw new ECIESError(
       ECIESErrorTypeEnum.InvalidECIESMultipleRecipientIdSize,
-      getEciesI18nEngine() as any,
     );
   }
 }
@@ -410,7 +415,10 @@ const configurationRegistry = new Map<ConfigurationKey, IConstants>();
 configurationRegistry.set(DEFAULT_CONFIGURATION_KEY, Constants);
 
 // Provenance tracking
-const provenanceRegistry = new Map<ConfigurationKey, IConfigurationProvenance>();
+const provenanceRegistry = new Map<
+  ConfigurationKey,
+  IConfigurationProvenance
+>();
 provenanceRegistry.set(DEFAULT_CONFIGURATION_KEY, {
   baseConfigKey: 'none',
   overrides: {},
@@ -440,12 +448,12 @@ export function createRuntimeConfiguration(
 ): IConstants {
   const merged = deepClone(base);
   applyOverrides(merged, overrides);
-  
+
   // Auto-sync MEMBER_ID_LENGTH with idProvider.byteLength if provider changed
   if (merged.idProvider && merged.idProvider !== base.idProvider) {
     merged.MEMBER_ID_LENGTH = merged.idProvider.byteLength;
   }
-  
+
   // Auto-sync ECIES.MULTIPLE.RECIPIENT_ID_SIZE with idProvider.byteLength if provider changed
   if (merged.idProvider && merged.idProvider !== base.idProvider) {
     merged.ECIES = {
@@ -456,13 +464,13 @@ export function createRuntimeConfiguration(
       },
     };
   }
-  
+
   // Validate individual properties
   validateConstants(merged);
-  
+
   // Validate all invariants (relationships between properties)
   InvariantValidator.validateAll(merged);
-  
+
   return deepFreeze(merged);
 }
 
@@ -477,7 +485,9 @@ export class ConstantsRegistry {
     return configurationRegistry.has(key);
   }
 
-  public static get(key: ConfigurationKey = DEFAULT_CONFIGURATION_KEY): IConstants {
+  public static get(
+    key: ConfigurationKey = DEFAULT_CONFIGURATION_KEY,
+  ): IConstants {
     return (
       configurationRegistry.get(key) ??
       configurationRegistry.get(DEFAULT_CONFIGURATION_KEY)!
@@ -487,14 +497,20 @@ export class ConstantsRegistry {
   /**
    * Get provenance information for a configuration
    */
-  public static getProvenance(key: ConfigurationKey = DEFAULT_CONFIGURATION_KEY): IConfigurationProvenance | undefined {
+  public static getProvenance(
+    key: ConfigurationKey = DEFAULT_CONFIGURATION_KEY,
+  ): IConfigurationProvenance | undefined {
     return provenanceRegistry.get(key);
   }
 
   /**
    * List all configurations with their provenance
    */
-  public static listWithProvenance(): Array<{ key: ConfigurationKey; config: IConstants; provenance?: IConfigurationProvenance }> {
+  public static listWithProvenance(): Array<{
+    key: ConfigurationKey;
+    config: IConstants;
+    provenance?: IConfigurationProvenance;
+  }> {
     return Array.from(configurationRegistry.entries()).map(([key, config]) => ({
       key,
       config,
@@ -517,7 +533,12 @@ export class ConstantsRegistry {
   ): IConstants {
     if (key === DEFAULT_CONFIGURATION_KEY) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration,
+        ),
+      );
     }
 
     const baseKey = options?.baseKey ?? DEFAULT_CONFIGURATION_KEY;
@@ -531,7 +552,7 @@ export class ConstantsRegistry {
     // Track provenance
     const provenance: IConfigurationProvenance = {
       baseConfigKey: typeof baseKey === 'symbol' ? baseKey.toString() : baseKey,
-      overrides: isFullConfig ? {} : (configOrOverrides ?? {}),
+      overrides: isFullConfig ? {} : configOrOverrides ?? {},
       timestamp: new Date(),
       source: isFullConfig ? 'custom' : 'runtime',
       checksum: calculateConfigChecksum(configuration),
@@ -577,9 +598,7 @@ export function registerRuntimeConfiguration(
   return ConstantsRegistry.register(key, configOrOverrides, options);
 }
 
-export function unregisterRuntimeConfiguration(
-  key: ConfigurationKey,
-): boolean {
+export function unregisterRuntimeConfiguration(key: ConfigurationKey): boolean {
   return ConstantsRegistry.unregister(key);
 }
 
@@ -587,4 +606,4 @@ export function clearRuntimeConfigurations(): void {
   ConstantsRegistry.clear();
 }
 
-export { PASSWORD_REGEX, MNEMONIC_REGEX } from './regexes';
+export { MNEMONIC_REGEX, PASSWORD_REGEX } from './regexes';

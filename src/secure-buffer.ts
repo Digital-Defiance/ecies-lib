@@ -1,8 +1,8 @@
+/// <reference path="../../../types/global.d.ts" />
+import { Constants } from './constants';
 import { SecureStorageErrorType } from './enumerations/secure-storage-error-type';
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
-import { Constants } from './constants';
-import { getEciesI18nEngine } from './i18n-setup';
 import { XorService } from './services/xor';
 import { uint8ArrayToHex } from './utils';
 
@@ -11,7 +11,7 @@ import { uint8ArrayToHex } from './utils';
  * The buffer is encrypted with a key derived from a random ID.
  * The ID is stored in the clear, but the buffer is encrypted with a key derived from the ID.
  * This allows the buffer to be decrypted, but only if the ID and salt are known.
- * 
+ *
  * Supports explicit resource management (TC39 proposal) for automatic disposal:
  * ```typescript
  * using buffer = new SecureBuffer(sensitiveData);
@@ -45,8 +45,8 @@ export class SecureBuffer implements Disposable {
   }
   public dispose(): void {
     const err = new DisposedError();
-    if (typeof (Error as any).captureStackTrace === 'function') {
-      (Error as any).captureStackTrace(err, this.dispose);
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(err, this.dispose);
     }
     this._disposedAt = err.stack ?? 'stack unavailable';
     this._obfuscatedValue.fill(0);
@@ -77,7 +77,7 @@ export class SecureBuffer implements Disposable {
     if (this._disposed) {
       const e = new DisposedError();
       try {
-        (e as any).disposedAt = this._disposedAt;
+        e.disposedAt = this._disposedAt;
       } catch {
         // ignore if Error object is sealed/frozen
       }
@@ -112,13 +112,11 @@ export class SecureBuffer implements Disposable {
       if (deobfuscatedResult.length !== this._length) {
         throw new SecureStorageError(
           SecureStorageErrorType.DecryptedValueLengthMismatch,
-          getEciesI18nEngine() as any,
         );
       }
       if (!this.validateObfuscatedChecksum(deobfuscatedResult)) {
         throw new SecureStorageError(
           SecureStorageErrorType.DecryptedValueChecksumMismatch,
-          getEciesI18nEngine() as any,
         );
       }
       return deobfuscatedResult;
@@ -130,7 +128,6 @@ export class SecureBuffer implements Disposable {
       // Convert any other error (including AES-GCM authentication errors) to SecureStorageError
       throw new SecureStorageError(
         SecureStorageErrorType.DecryptedValueChecksumMismatch,
-        getEciesI18nEngine() as any,
       );
     }
   }

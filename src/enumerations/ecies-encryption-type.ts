@@ -54,7 +54,7 @@ export function encryptionTypeToString(
     if (resultType === undefined) {
       throw new ECIESError(
         ECIESErrorTypeEnum.InvalidEncryptionType,
-        getEciesI18nEngine() as any,
+        
       );
     }
   } else {
@@ -64,7 +64,7 @@ export function encryptionTypeToString(
   if (result === undefined) {
     throw new ECIESError(
       ECIESErrorTypeEnum.InvalidEncryptionType,
-      getEciesI18nEngine() as any,
+      
     );
   }
   return result;
@@ -77,7 +77,7 @@ export function encryptionTypeEnumToType(
   if (result === undefined) {
     throw new ECIESError(
       ECIESErrorTypeEnum.InvalidEncryptionType,
-      getEciesI18nEngine() as any,
+      
     );
   }
   return result;
@@ -95,7 +95,7 @@ export function ensureEciesEncryptionTypeEnum(
   if (!validateEciesEncryptionTypeEnum(type)) {
     throw new ECIESError(
       ECIESErrorTypeEnum.InvalidEncryptionType,
-      getEciesI18nEngine() as any,
+      
     );
   }
   return type;

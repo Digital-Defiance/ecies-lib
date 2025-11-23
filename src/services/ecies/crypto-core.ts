@@ -14,9 +14,9 @@ import { ISimpleKeyPair, IWalletSeed } from './interfaces';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { hkdf } from '@noble/hashes/hkdf.js';
 import { sha256 } from '@noble/hashes/sha2.js';
-import { IECIESConstants } from '../../interfaces/ecies-consts';
-import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
 import { EciesStringKey } from '../../enumerations';
+import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import { IECIESConstants } from '../../interfaces/ecies-consts';
 
 /**
  * Browser-compatible crypto core for ECIES operations
@@ -26,12 +26,13 @@ export class EciesCryptoCore {
   protected readonly _config: IECIESConfig;
   protected readonly _eciesConsts: IECIESConstants;
 
-  constructor(config: IECIESConfig, eciesParams: IECIESConstants = Constants.ECIES) {
+  constructor(
+    config: IECIESConfig,
+    eciesParams: IECIESConstants = Constants.ECIES,
+  ) {
     this._config = config;
     this._eciesConsts = eciesParams;
   }
-
-
 
   public get config(): IECIESConfig {
     return this._config;
@@ -43,25 +44,24 @@ export class EciesCryptoCore {
   public normalizePublicKey(publicKey: Uint8Array): Uint8Array {
     if (!publicKey) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_ReceivedNullOrUndefinedPublicKey));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_ReceivedNullOrUndefinedPublicKey,
+        ),
+      );
     }
 
     const keyLength = publicKey.length;
     let normalizedKey: Uint8Array;
 
     // Compressed key (33 bytes) - 0x02 or 0x03 prefix
-    if (
-      keyLength === 33 &&
-      (publicKey[0] === 0x02 || publicKey[0] === 0x03)
-    ) {
+    if (keyLength === 33 && (publicKey[0] === 0x02 || publicKey[0] === 0x03)) {
       normalizedKey = publicKey;
     }
     // Uncompressed key (65 bytes) - 0x04 prefix
     // We accept this for backward compatibility with existing keys
-    else if (
-      keyLength === 65 &&
-      publicKey[0] === 0x04
-    ) {
+    else if (keyLength === 65 && publicKey[0] === 0x04) {
       normalizedKey = publicKey;
     }
     // Raw key without prefix (64 bytes) - add the 0x04 prefix
@@ -70,15 +70,21 @@ export class EciesCryptoCore {
       normalizedKey = new Uint8Array(65);
       normalizedKey[0] = 0x04;
       normalizedKey.set(publicKey, 1);
-    }
-    else {
+    } else {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate, { keyLength }));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate,
+          { keyLength },
+        ),
+      );
     }
 
     // Basic validation: check it's not all zeros
     let allZeros = true;
-    for (let i = 1; i < normalizedKey.length; i++) { // Skip first byte (prefix)
+    for (let i = 1; i < normalizedKey.length; i++) {
+      // Skip first byte (prefix)
       if (normalizedKey[i] !== 0) {
         allZeros = false;
         break;
@@ -86,7 +92,12 @@ export class EciesCryptoCore {
     }
     if (allZeros) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidPublicKeyNotOnCurve));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_InvalidPublicKeyNotOnCurve,
+        ),
+      );
     }
 
     return normalizedKey;
@@ -107,7 +118,12 @@ export class EciesCryptoCore {
   public walletAndSeedFromMnemonic(mnemonic: SecureString): IWalletSeed {
     if (!mnemonic || !validateMnemonic(mnemonic.value ?? '', wordlist)) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidMnemonic));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_InvalidMnemonic,
+        ),
+      );
     }
 
     const seed = mnemonicToSeedSync(mnemonic.value ?? '');
@@ -116,7 +132,12 @@ export class EciesCryptoCore {
 
     if (!derivedKey.privateKey) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey,
+        ),
+      );
     }
 
     const privateKey = derivedKey.privateKey;
@@ -138,7 +159,12 @@ export class EciesCryptoCore {
 
     if (!derivedKey.privateKey) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey,
+        ),
+      );
     }
 
     const privateKey = derivedKey.privateKey;
@@ -214,7 +240,7 @@ export class EciesCryptoCore {
     sharedSecret: Uint8Array,
     salt: Uint8Array = new Uint8Array(0),
     info: Uint8Array = new Uint8Array(0),
-    length: number = 32
+    length: number = 32,
   ): Uint8Array {
     return hkdf(sha256, sharedSecret, salt, info, length);
   }
@@ -228,10 +254,18 @@ export class EciesCryptoCore {
     const hash = sha256(message);
     const signature = secp256k1.sign(hash, privateKey);
     if (signature instanceof Uint8Array) {
-        return signature;
+      return signature;
     }
-    if (typeof (signature as any).toCompactRawBytes === 'function') {
-        return (signature as any).toCompactRawBytes();
+    // Check if signature has toCompactRawBytes method
+    if (
+      signature &&
+      typeof signature === 'object' &&
+      'toCompactRawBytes' in signature
+    ) {
+      const sig = signature as { toCompactRawBytes: () => Uint8Array };
+      if (typeof sig.toCompactRawBytes === 'function') {
+        return sig.toCompactRawBytes();
+      }
     }
     // Fallback or error
     throw new Error('Unknown signature format');
@@ -243,7 +277,11 @@ export class EciesCryptoCore {
    * @param message The message that was signed
    * @param signature The signature to verify
    */
-  public verify(publicKey: Uint8Array, message: Uint8Array, signature: Uint8Array): boolean {
+  public verify(
+    publicKey: Uint8Array,
+    message: Uint8Array,
+    signature: Uint8Array,
+  ): boolean {
     const hash = sha256(message);
     try {
       return secp256k1.verify(signature, hash, publicKey);

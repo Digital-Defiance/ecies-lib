@@ -2,14 +2,14 @@
  * Fluent builder for Member
  */
 
-import { MemberType } from '../enumerations/member-type';
 import { EmailString } from '../email-string';
-import { Member } from '../member';
-import { IMemberWithMnemonic } from '../interfaces/member-with-mnemonic';
-import { ECIESService } from '../services/ecies/service';
-import { SecureString } from '../secure-string';
-import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
 import { EciesStringKey } from '../enumerations';
+import { MemberType } from '../enumerations/member-type';
+import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { IMemberWithMnemonic } from '../interfaces/member-with-mnemonic';
+import { Member } from '../member';
+import { SecureString } from '../secure-string';
+import { ECIESService } from '../services/ecies/service';
 
 export class MemberBuilder {
   private eciesService?: ECIESService;
@@ -56,7 +56,12 @@ export class MemberBuilder {
   generateMnemonic(): this {
     if (!this.eciesService) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic,
+        ),
+      );
     }
     this.mnemonic = this.eciesService.generateNewMnemonic();
     return this;
@@ -65,19 +70,29 @@ export class MemberBuilder {
   build(): IMemberWithMnemonic {
     const engine = getEciesI18nEngine();
     if (!this.eciesService) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Builder_ECIESServiceIsRequired));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Builder_ECIESServiceIsRequired,
+        ),
+      );
     }
     if (!this.type || !this.name || !this.email) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired,
+        ),
+      );
     }
-    
+
     return Member.newMember(
       this.eciesService,
       this.type,
       this.name,
       this.email,
       this.mnemonic,
-      this.createdBy as unknown as Uint8Array | undefined
+      this.createdBy,
     );
   }
 }

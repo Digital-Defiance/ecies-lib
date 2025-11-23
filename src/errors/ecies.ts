@@ -1,4 +1,8 @@
-import { buildReasonMap, HandleableErrorOptions, TypedHandleableError } from '@digitaldefiance/i18n-lib';
+import {
+  buildReasonMap,
+  HandleableErrorOptions,
+  TypedHandleableError,
+} from '@digitaldefiance/i18n-lib';
 import { ECIESErrorTypeEnum } from '../enumerations/ecies-error-type';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
 import { EciesComponentId } from '../i18n-setup';
@@ -58,8 +62,13 @@ export class ECIESError extends TypedHandleableError<
     context?: Partial<IErrorContext>,
   ) {
     let source: Error;
-    if (options && typeof options === 'object' && 'cause' in options && (options as any).cause instanceof Error) {
-      source = (options as any).cause;
+    if (
+      options &&
+      typeof options === 'object' &&
+      'cause' in options &&
+      options.cause instanceof Error
+    ) {
+      source = options.cause;
     } else {
       source = new Error();
     }
@@ -81,7 +90,8 @@ export class ECIESError extends TypedHandleableError<
     if (context) {
       this.context = {
         operation: context.operation ?? 'unknown',
-        stackTrace: context.stackTrace ?? new Error().stack ?? 'stack unavailable',
+        stackTrace:
+          context.stackTrace ?? new Error().stack ?? 'stack unavailable',
         config: context.config,
         timestamp: context.timestamp ?? new Date(),
         metadata: context.metadata,
@@ -98,10 +108,13 @@ export class ECIESError extends TypedHandleableError<
       message: this.message,
       type: this.type,
       context: this.context,
-      cause: this.cause instanceof Error ? {
-        name: this.cause.name,
-        message: this.cause.message,
-      } : undefined,
+      cause:
+        this.cause instanceof Error
+          ? {
+              name: this.cause.name,
+              message: this.cause.message,
+            }
+          : undefined,
     };
   }
 
@@ -109,10 +122,7 @@ export class ECIESError extends TypedHandleableError<
    * Get a detailed error report including all context
    */
   getDetailedReport(): string {
-    const parts = [
-      `${this.name}: ${this.message}`,
-      `Type: ${this.type}`,
-    ];
+    const parts = [`${this.name}: ${this.message}`, `Type: ${this.type}`];
 
     if (this.context) {
       parts.push(`Operation: ${this.context.operation}`);

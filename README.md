@@ -251,6 +251,60 @@ The library maintains **100% test coverage** with over 1,200 tests, including:
 
 ## ChangeLog
 
+### v4.2.5
+
+#### Changed
+
+##### Type Safety Improvements
+- **Removed ~60 type safety escape hatches** from production code as part of comprehensive type safety audit
+- Updated dependency `@digitaldefiance/i18n-lib` from 3.7.2 to 3.7.5 for improved type safety
+- Removed all 32 instances of `getEciesI18nEngine() as any` casts - now properly typed
+- Removed unnecessary type casts in builder methods (`MemberBuilder`)
+- Improved generic type constraints in utility functions
+
+##### Error Handling
+- Fixed `Error.captureStackTrace` usage to use ambient type declarations instead of type casts
+- Fixed error cause handling to use proper TypeScript types without casts
+- Updated `GuidError` to properly extend `TypedHandleableError` with correct constructor parameters
+- Added `toJSON()` method to `GuidError` for proper serialization of custom properties (brand, length, guid)
+- Fixed `CryptoError` to properly override metadata property
+
+##### Core Utilities
+- Improved `deepClone` function with better type safety (removed `as unknown as T` casts)
+- Enhanced `applyOverrides` function with proper generic type constraints
+- Improved `deepFreeze` function to avoid unsafe type assertions
+- Fixed dynamic property access patterns in constants and utilities
+
+##### Cryptographic Operations
+- Enhanced signature handling in `crypto-core.ts` with proper type guards instead of type assertions
+- Improved cipher type handling throughout the codebase
+
+##### Progress Tracking
+- Cleaned up `ProgressTracker` to return properly typed `IStreamProgress` objects
+- Removed unnecessary `throughput` alias property that wasn't in the interface
+
+##### Secure Storage
+- Added triple-slash reference directives to `secure-buffer.ts` and `secure-string.ts` for proper ambient type resolution
+- Fixed `disposedAt` property access using ambient Error interface extensions
+
+#### Fixed
+- All TypeScript strict mode compilation errors resolved
+- All 1,214 tests passing (including new property-based tests)
+- Build process completes successfully with no type errors
+
+#### Added
+- Property-based tests for deep clone functionality using `fast-check` library
+- Validates type preservation and value equality across 100 random test cases
+- Added `fast-check` as dev dependency for property-based testing
+
+#### Technical Details
+
+This release focuses on eliminating type safety escape hatches while maintaining full backward compatibility. All changes are internal improvements to type safety and do not affect the public API or behavior of the library.
+
+**Breaking Changes:** None - all changes are internal type improvements
+
+**Migration Guide:** No migration needed - this is a drop-in replacement for 4.2.x versions
+
 ### v4.2.0
 
 - Add idToString/idFromString to id provider

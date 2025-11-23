@@ -1,8 +1,8 @@
+/// <reference path="../../../types/global.d.ts" />
+import { Constants } from './constants';
 import { SecureStorageErrorType } from './enumerations/secure-storage-error-type';
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
-import { Constants } from './constants';
-import { getEciesI18nEngine } from './i18n-setup';
 import { XorService } from './services/xor';
 import { uint8ArrayToHex } from './utils';
 
@@ -45,7 +45,7 @@ export class SecureString {
     if (this._disposed) {
       const e = new DisposedError();
       try {
-        (e as any).disposedAt = this._disposedAt;
+        e.disposedAt = this._disposedAt;
       } catch {
         // ignore if Error object is sealed/frozen
       }
@@ -54,8 +54,8 @@ export class SecureString {
   }
   public dispose(): void {
     const err = new DisposedError();
-    if (typeof (Error as any).captureStackTrace === 'function') {
-      (Error as any).captureStackTrace(err, this.dispose);
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(err, this.dispose);
     }
     this._disposedAt = err.stack ?? 'stack unavailable';
     this._obfuscatedValue.fill(0);
@@ -88,7 +88,6 @@ export class SecureString {
       if (deobfuscatedResult.length !== this._length) {
         throw new SecureStorageError(
           SecureStorageErrorType.DecryptedValueLengthMismatch,
-          getEciesI18nEngine() as any,
         );
       }
 
@@ -103,7 +102,6 @@ export class SecureString {
       if (!this.timingSafeEqual(expectedBytes, storedBytes)) {
         throw new SecureStorageError(
           SecureStorageErrorType.DecryptedValueChecksumMismatch,
-          getEciesI18nEngine() as any,
         );
       }
 
@@ -116,7 +114,6 @@ export class SecureString {
       // Convert any other error to SecureStorageError
       throw new SecureStorageError(
         SecureStorageErrorType.DecryptedValueChecksumMismatch,
-        getEciesI18nEngine() as any,
       );
     }
   }
@@ -130,10 +127,7 @@ export class SecureString {
   public get notNullValue(): string {
     this.assertNotDisposed();
     if (this._isNull) {
-      throw new SecureStorageError(
-        SecureStorageErrorType.ValueIsNull,
-        getEciesI18nEngine() as any,
-      );
+      throw new SecureStorageError(SecureStorageErrorType.ValueIsNull);
     }
     return new TextDecoder().decode(this.valueAsUint8Array);
   }
