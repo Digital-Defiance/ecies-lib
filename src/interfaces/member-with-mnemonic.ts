@@ -1,5 +1,5 @@
-import { Member } from '../member';
-import { SecureString } from '../secure-string';
+import type { Member } from '../member';
+import type { SecureString } from '../secure-string';
 
 export interface IMemberWithMnemonic {
   member: Member;

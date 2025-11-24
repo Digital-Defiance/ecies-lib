@@ -1,12 +1,12 @@
-import { Wallet } from '@ethereumjs/wallet';
-import { EmailString } from '../email-string';
-import MemberType from '../enumerations/member-type';
-import { SecureBuffer } from '../secure-buffer';
-import { SecureString } from '../secure-string';
-import { SignatureUint8Array } from '../types';
-import { IECIESConstants } from './ecies-consts';
-import { IEncryptedChunk } from './encrypted-chunk';
-import { ProgressCallback } from './stream-progress';
+import type { Wallet } from '@ethereumjs/wallet';
+import type { EmailString } from '../email-string';
+import type MemberType from '../enumerations/member-type';
+import type { SecureBuffer } from '../secure-buffer';
+import type { SecureString } from '../secure-string';
+import type { SignatureUint8Array } from '../types';
+import type { IECIESConstants } from './ecies-consts';
+import type { IEncryptedChunk } from './encrypted-chunk';
+import type { ProgressCallback } from './stream-progress';
 
 /**
  * Operational interface for member - defines getters and methods
@@ -36,7 +36,10 @@ export interface IFrontendMemberOperational<
   // Methods
   sign(data: TData): TSignature;
   verify(signature: TSignature, data: TData): boolean;
-  encryptData(data: string | TData, recipientPublicKey?: Uint8Array): Promise<TData>;
+  encryptData(
+    data: string | TData,
+    recipientPublicKey?: Uint8Array,
+  ): Promise<TData>;
   decryptData(encryptedData: TData): Promise<TData>;
   toJson(): string;
   dispose(): void;
@@ -48,7 +51,7 @@ export interface IFrontendMemberOperational<
       recipientPublicKey?: Uint8Array;
       onProgress?: ProgressCallback;
       signal?: AbortSignal;
-    }
+    },
   ): AsyncGenerator<IEncryptedChunk, void, unknown>;
 
   decryptDataStream(
@@ -56,7 +59,7 @@ export interface IFrontendMemberOperational<
     options?: {
       onProgress?: ProgressCallback;
       signal?: AbortSignal;
-    }
+    },
   ): AsyncGenerator<Uint8Array, void, unknown>;
 
   // Private key management

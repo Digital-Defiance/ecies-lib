@@ -497,6 +497,10 @@ The library maintains **100% test coverage** with over 1,200 tests, including:
 
 ## ChangeLog
 
+### v4.2.8
+
+- Improve type safety/circular dependency protection
+
 ### v4.2.5
 
 #### Changed

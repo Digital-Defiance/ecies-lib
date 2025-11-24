@@ -1,4 +1,4 @@
-import { EciesEncryptionTypeEnum } from '../enumerations/ecies-encryption-type';
+import type { EciesEncryptionTypeEnum } from '../enumerations/ecies-encryption-type';
 
 /**
  * Serializable encryption state for resumption

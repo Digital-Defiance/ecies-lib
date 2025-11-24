@@ -1,4 +1,4 @@
-import { MemberType } from '../enumerations/member-type';
+import type { MemberType } from '../enumerations/member-type';
 
 /**
  * Storage format for member data - all serializable types

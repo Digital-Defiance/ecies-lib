@@ -1,8 +1,8 @@
-import { Pbkdf2Profiles } from '../pbkdf2-profiles';
-import { IChecksumConsts } from './checksum-consts';
-import { IECIESConstants } from './ecies-consts';
-import { IPBkdf2Consts } from './pbkdf2-consts';
-import { IIdProvider } from './id-provider';
+import type { Pbkdf2Profiles } from '../pbkdf2-profiles';
+import type { IChecksumConsts } from './checksum-consts';
+import type { IECIESConstants } from './ecies-consts';
+import type { IIdProvider } from './id-provider';
+import type { IPBkdf2Consts } from './pbkdf2-consts';
 
 export interface IConstants {
   UINT8_SIZE: number;
@@ -31,13 +31,13 @@ export interface IConstants {
   /**
    * ID provider for recipient identification in multi-recipient encryption.
    * This determines the format and size of recipient IDs used throughout the system.
-   * 
+   *
    * Default: ObjectIdProvider (12 bytes, MongoDB compatible)
-   * 
+   *
    * @example
    * ```typescript
    * import { GuidV4Provider } from './lib/id-providers';
-   * 
+   *
    * // Use GUIDs instead of ObjectIDs
    * const config = createRuntimeConfiguration({
    *   idProvider: new GuidV4Provider()

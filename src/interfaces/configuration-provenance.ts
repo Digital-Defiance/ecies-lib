@@ -1,6 +1,6 @@
-import { IConstants } from './constants';
-import { DeepPartial } from '../types/deep-partial';
 import { createHash } from 'crypto';
+import type { DeepPartial } from '../types/deep-partial';
+import type { IConstants } from './constants';
 
 /**
  * Provenance information for a configuration.
@@ -54,7 +54,8 @@ export interface IConfigurationProvenance {
  */
 export function calculateConfigChecksum(config: IConstants): string {
   // Create a stable JSON representation with BigInt support
-  const replacer = (key: string, value: any) => (typeof value === 'bigint' ? value.toString() : value);
+  const replacer = (key: string, value: any) =>
+    typeof value === 'bigint' ? value.toString() : value;
   const stable = JSON.stringify(config, replacer);
   return createHash('sha256').update(stable).digest('hex');
 }
@@ -65,7 +66,7 @@ export function calculateConfigChecksum(config: IConstants): string {
 export function captureCreationStack(): string {
   const stack = new Error().stack;
   if (!stack) return 'stack unavailable';
-  
+
   // Remove the first two lines (Error message and this function)
   const lines = stack.split('\n').slice(2);
   return lines.join('\n');

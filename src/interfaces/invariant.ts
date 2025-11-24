@@ -1,11 +1,11 @@
-import { IConstants } from './constants';
+import type { IConstants } from './constants';
 
 /**
  * An invariant is a relationship between configuration values that must always hold true.
  * Unlike simple property validation, invariants check consistency across multiple related values.
- * 
+ *
  * Example: MEMBER_ID_LENGTH must equal idProvider.byteLength
- * 
+ *
  * Invariants help catch configuration errors that simple property validation would miss,
  * such as the 12 vs 32 byte discrepancy we encountered.
  */
@@ -40,7 +40,7 @@ export interface IInvariant {
 export abstract class BaseInvariant implements IInvariant {
   constructor(
     public readonly name: string,
-    public readonly description: string
+    public readonly description: string,
   ) {}
 
   abstract check(config: IConstants): boolean;
@@ -53,7 +53,7 @@ export abstract class BaseInvariant implements IInvariant {
     property1: string,
     value1: unknown,
     property2: string,
-    value2: unknown
+    value2: unknown,
   ): string {
     return `Invariant '${this.name}' failed: ${property1} (${value1}) must equal ${property2} (${value2})`;
   }

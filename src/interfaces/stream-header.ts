@@ -1,4 +1,4 @@
-import { EciesEncryptionTypeEnum } from '../enumerations/ecies-encryption-type';
+import type { EciesEncryptionTypeEnum } from '../enumerations/ecies-encryption-type';
 
 /**
  * Stream header structure (128 bytes fixed)
