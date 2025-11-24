@@ -1,10 +1,16 @@
 /// <reference path="../../../types/global.d.ts" />
-import { Constants } from './constants';
 import { SecureStorageErrorType } from './enumerations/secure-storage-error-type';
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
+import type { IIdProvider } from './interfaces/id-provider';
+import { ObjectIdProvider } from './lib/id-providers/objectid-provider';
 import { XorService } from './services/xor';
 import { uint8ArrayToHex } from './utils';
+
+/**
+ * Default ID provider (singleton, no circular dependency)
+ */
+const DEFAULT_ID_PROVIDER = new ObjectIdProvider();
 
 /**
  * A secure string buffer is a buffer whose intent is to prevent the raw password from being stored in memory.
@@ -21,14 +27,19 @@ import { uint8ArrayToHex } from './utils';
 export class SecureBuffer implements Disposable {
   private _disposed: boolean = false;
   private readonly _id: Uint8Array;
+  private readonly _idProvider: IIdProvider;
   private readonly _length: number;
   private readonly _obfuscatedValue: Uint8Array;
   private readonly _key: Uint8Array;
   private readonly _obfuscatedChecksum: Uint8Array;
   private _disposedAt?: string;
 
-  constructor(data?: Uint8Array) {
-    this._id = Constants.idProvider.generate();
+  constructor(
+    data?: Uint8Array,
+    idProvider: IIdProvider = DEFAULT_ID_PROVIDER,
+  ) {
+    this._idProvider = idProvider;
+    this._id = this._idProvider.generate();
     // don't bother encrypting an empty buffer
     if (data === undefined || data.length === 0) {
       this._length = 0;
@@ -64,6 +75,16 @@ export class SecureBuffer implements Disposable {
   }
 
   /**
+   * Factory method for backward compatibility that uses Constants.idProvider
+   * @param data Optional data to secure
+   * @returns A new SecureBuffer instance using the global ID provider
+   */
+  static create(data?: Uint8Array): SecureBuffer {
+    const { Constants } = require('./constants');
+    return new SecureBuffer(data, Constants.idProvider);
+  }
+
+  /**
    * Static factory method that creates a SecureBuffer for a symmetric key
    * Useful for managing encryption keys securely
    */
@@ -92,7 +113,7 @@ export class SecureBuffer implements Disposable {
   }
   public get id(): string {
     this.assertNotDisposed();
-    return Constants.idProvider.serialize(this._id);
+    return this._idProvider.serialize(this._id);
   }
   public get idUint8Array(): Uint8Array {
     this.assertNotDisposed();

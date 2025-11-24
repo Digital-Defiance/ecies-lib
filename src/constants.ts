@@ -2,20 +2,20 @@ import { ECIESErrorTypeEnum, EciesStringKey } from './enumerations';
 import { Pbkdf2ProfileEnum } from './enumerations/pbkdf2-profile';
 import { ECIESError } from './errors/ecies';
 import { EciesComponentId, getEciesI18nEngine } from './i18n-setup';
-import { IChecksumConsts } from './interfaces';
+import type { IChecksumConsts } from './interfaces';
 import type { IConfigurationProvenance } from './interfaces/configuration-provenance';
 import {
   calculateConfigChecksum,
   captureCreationStack,
 } from './interfaces/configuration-provenance';
-import { IConstants } from './interfaces/constants';
-import { IECIESConstants } from './interfaces/ecies-consts';
-import { IPBkdf2Consts } from './interfaces/pbkdf2-consts';
+import type { IConstants } from './interfaces/constants';
+import type { IECIESConstants } from './interfaces/ecies-consts';
+import type { IPBkdf2Consts } from './interfaces/pbkdf2-consts';
 import { ObjectIdProvider } from './lib/id-providers/objectid-provider';
 import { InvariantValidator } from './lib/invariant-validator';
-import { Pbkdf2Profiles } from './pbkdf2-profiles';
+import type { Pbkdf2Profiles } from './pbkdf2-profiles';
 import { MNEMONIC_REGEX, PASSWORD_REGEX } from './regexes';
-import { DeepPartial } from './types/deep-partial';
+import type { DeepPartial } from './types/deep-partial';
 
 export const UINT8_SIZE: number = 1 as const;
 export const UINT16_SIZE: number = 2 as const;
