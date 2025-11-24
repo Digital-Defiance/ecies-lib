@@ -63,6 +63,74 @@ yarn add @digitaldefiance/ecies-lib
 
 ## Architecture & Protocol
 
+### Module Dependency Architecture
+
+The library follows a strict hierarchical module dependency structure to prevent circular dependencies and ensure reliable initialization:
+
+```mermaid
+graph TD
+    A[Level 1: Enumerations] --> B[Level 2: Translations]
+    B --> C[Level 3: i18n Setup]
+    C --> D[Level 4: Errors & Utils]
+    D --> E[Level 5: Constants & Services]
+    
+    A1[ecies-string-key.ts] -.-> A
+    A2[ecies-error-type.ts] -.-> A
+    A3[ecies-encryption-type.ts] -.-> A
+    
+    B1[en-US.ts] -.-> B
+    B2[fr.ts] -.-> B
+    B3[es.ts] -.-> B
+    
+    C1[i18n-setup.ts] -.-> C
+    
+    D1[errors/ecies.ts] -.-> D
+    D2[utils/encryption-type-utils.ts] -.-> D
+    
+    E1[constants.ts] -.-> E
+    E2[services/ecies/service.ts] -.-> E
+    
+    style A fill:#e1f5e1
+    style B fill:#e3f2fd
+    style C fill:#fff3e0
+    style D fill:#fce4ec
+    style E fill:#f3e5f5
+```
+
+**Dependency Levels:**
+
+1. **Level 1 - Enumerations** (Pure, no dependencies)
+   - Contains only TypeScript enums and type definitions
+   - No imports from other project modules
+   - Examples: `EciesStringKey`, `EciesErrorType`, `EciesEncryptionType`
+
+2. **Level 2 - Translations** (Depends only on Level 1)
+   - Translation objects mapping enum keys to localized strings
+   - Only imports enumerations
+   - Examples: `en-US.ts`, `fr.ts`, `es.ts`
+
+3. **Level 3 - i18n Setup** (Depends on Levels 1-2)
+   - Initializes the internationalization engine
+   - Imports enumerations and translations
+   - Example: `i18n-setup.ts`
+
+4. **Level 4 - Errors & Utilities** (Depends on Levels 1-3)
+   - Error classes with lazy i18n initialization
+   - Utility functions that may throw errors
+   - Examples: `errors/ecies.ts`, `utils/encryption-type-utils.ts`
+
+5. **Level 5 - Constants & Services** (Depends on Levels 1-4)
+   - Configuration constants and validation
+   - Business logic and cryptographic services
+   - Examples: `constants.ts`, `services/ecies/service.ts`
+
+**Key Principles:**
+
+- **Enumerations are pure**: No imports except TypeScript types
+- **Translations are data-only**: Only import enumerations
+- **Errors use lazy i18n**: Translation lookup deferred until message access
+- **Constants validate safely**: Early errors use basic Error class with fallback messages
+
 ### ECIES v4.0 Protocol Flow
 
 The library implements a robust ECIES variant designed for security and efficiency.
@@ -228,7 +296,185 @@ const encrypted = await member.encryptData('My Secrets');
   - `dispose()` method to explicitly zero out memory.
   - Prevents accidental leakage via `console.log` or serialization.
 
+## Documentation
+
+### Architecture & Design
+
+- **[ECIES V4 Architecture](docs/ECIES_V4_ARCHITECTURE.md)** - Protocol specification and cryptographic design
+- **[Streaming Encryption Architecture](docs/STREAMING_ENCRYPTION_ARCHITECTURE.md)** - Memory-efficient streaming design
+- **[Circular Dependency Prevention](docs/CIRCULAR_DEPENDENCY_PREVENTION.md)** - Module dependency architecture
+
+### Developer Guides
+
+- **[Contributing Guide](docs/CONTRIBUTING.md)** - How to contribute to the project
+- **[Module Import Rules](docs/MODULE_IMPORT_RULES.md)** - Quick reference for import rules
+- **[Migration Guide v3.7](docs/MIGRATION_GUIDE_v3.7.md)** - Upgrading from v3.x to v4.x
+
+### Quick References
+
+- **[Streaming API Quickstart](docs/STREAMING_API_QUICKSTART.md)** - Get started with streaming encryption
+- **[V2 Quickstart](docs/V2_QUICKSTART.md)** - Quick start guide for v2.x architecture
+
 ## Development
+
+### Avoiding Circular Dependencies
+
+This library maintains a strict module hierarchy to prevent circular dependencies. When contributing, follow these rules:
+
+#### Import Rules by Module Type
+
+**Enumerations** (`src/enumerations/*.ts`):
+- ✅ **CAN** import: TypeScript types only
+- ❌ **CANNOT** import: Translations, i18n, errors, constants, services, utilities
+
+**Translations** (`src/translations/*.ts`):
+- ✅ **CAN** import: Enumerations, external libraries
+- ❌ **CANNOT** import: i18n setup, errors, constants, services
+
+**i18n Setup** (`src/i18n-setup.ts`):
+- ✅ **CAN** import: Enumerations, translations, external libraries
+- ❌ **CANNOT** import: Errors, constants, services
+
+**Errors** (`src/errors/*.ts`):
+- ✅ **CAN** import: Enumerations, i18n setup, external libraries
+- ❌ **CANNOT** import: Constants, services (except as lazy imports)
+- ⚠️ **MUST** use lazy i18n initialization (translation lookup on message access, not in constructor)
+
+**Utilities** (`src/utils/*.ts`):
+- ✅ **CAN** import: Enumerations, i18n setup, errors, external libraries
+- ❌ **CANNOT** import: Constants, services (except as lazy imports)
+
+**Constants** (`src/constants.ts`):
+- ✅ **CAN** import: Enumerations, errors, utilities, external libraries
+- ❌ **CANNOT** import: Services
+- ⚠️ **MUST** handle early initialization errors gracefully (use fallback messages)
+
+**Services** (`src/services/**/*.ts`):
+- ✅ **CAN** import: All of the above
+- ⚠️ **SHOULD** avoid circular dependencies with other services
+
+#### Detecting Circular Dependencies
+
+The project uses `madge` to detect circular dependencies. Run these commands to check:
+
+```bash
+# Check for circular dependencies in the entire project
+npx madge --circular --extensions ts src/index.ts
+
+# Check a specific module
+npx madge --circular --extensions ts src/enumerations/index.ts
+
+# Generate a visual dependency graph
+npx madge --image graph.svg --extensions ts src/index.ts
+```
+
+#### Common Patterns to Avoid
+
+**❌ Bad: Enumeration importing error class**
+```typescript
+// src/enumerations/ecies-encryption-type.ts
+import { ECIESError } from '../errors/ecies'; // Creates circular dependency!
+
+export function validateType(type: EciesEncryptionTypeEnum): void {
+  if (!isValid(type)) {
+    throw new ECIESError(ECIESErrorTypeEnum.InvalidEncryptionType);
+  }
+}
+```
+
+**✅ Good: Move validation to utility module**
+```typescript
+// src/enumerations/ecies-encryption-type.ts
+export enum EciesEncryptionTypeEnum {
+  Simple = 33,
+  Single = 66,
+  Multiple = 99,
+}
+
+// src/utils/encryption-type-utils.ts
+import { ECIESError } from '../errors/ecies';
+import { EciesEncryptionTypeEnum } from '../enumerations/ecies-encryption-type';
+
+export function validateType(type: EciesEncryptionTypeEnum): void {
+  if (!isValid(type)) {
+    throw new ECIESError(ECIESErrorTypeEnum.InvalidEncryptionType);
+  }
+}
+```
+
+**❌ Bad: Error class with eager i18n initialization**
+```typescript
+// src/errors/ecies.ts
+export class ECIESError extends Error {
+  constructor(type: ECIESErrorTypeEnum) {
+    const engine = getEciesI18nEngine(); // May not be initialized yet!
+    super(engine.translate(EciesComponentId, getKeyForType(type)));
+  }
+}
+```
+
+**✅ Good: Error class with lazy i18n initialization**
+```typescript
+// src/errors/ecies.ts
+export class ECIESError extends TypedHandleableError {
+  constructor(type: ECIESErrorTypeEnum) {
+    super(type); // Don't access i18n in constructor
+  }
+  
+  // Message is accessed lazily via getter when needed
+  get message(): string {
+    const engine = getEciesI18nEngine();
+    return engine.translate(EciesComponentId, getKeyForType(this.type));
+  }
+}
+```
+
+**❌ Bad: Constants validation with hard i18n dependency**
+```typescript
+// src/constants.ts
+function validateConstants(config: IConstants): void {
+  const engine = getEciesI18nEngine(); // May fail during module init!
+  if (config.CHECKSUM.SHA3_BUFFER_LENGTH !== 32) {
+    throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_InvalidChecksum));
+  }
+}
+```
+
+**✅ Good: Constants validation with fallback**
+```typescript
+// src/constants.ts
+function safeTranslate(key: EciesStringKey, fallback: string): string {
+  try {
+    const engine = getEciesI18nEngine();
+    return engine.translate(EciesComponentId, key);
+  } catch {
+    return fallback; // Use fallback during early initialization
+  }
+}
+
+function validateConstants(config: IConstants): void {
+  if (config.CHECKSUM.SHA3_BUFFER_LENGTH !== 32) {
+    throw new Error(safeTranslate(
+      EciesStringKey.Error_InvalidChecksum,
+      'Invalid checksum constants'
+    ));
+  }
+}
+```
+
+#### Pre-commit Checks
+
+Consider adding a pre-commit hook to catch circular dependencies early:
+
+```bash
+# .husky/pre-commit
+#!/bin/sh
+npx madge --circular --extensions ts src/index.ts
+if [ $? -ne 0 ]; then
+  echo "❌ Circular dependencies detected! Please fix before committing."
+  exit 1
+fi
+```
 
 ### Commands
 
