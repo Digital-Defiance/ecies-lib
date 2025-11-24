@@ -1,32 +1,32 @@
 import { Wallet } from '@ethereumjs/wallet';
-import { ECIES, Constants } from './constants';
+import { Constants, ECIES } from './constants';
 import { EmailString } from './email-string';
 import MemberErrorType from './enumerations/member-error-type';
 import MemberType from './enumerations/member-type';
 import { MemberError } from './errors/member';
-import { getEciesI18nEngine } from './i18n-setup';
-import { EncryptionStream } from './services/encryption-stream';
+import { IECIESConstants } from './interfaces/ecies-consts';
+import { IEncryptedChunk } from './interfaces/encrypted-chunk';
 import { IFrontendMemberOperational } from './interfaces/frontend-member-operational';
+import { IMember } from './interfaces/member';
 import { IMemberStorageData } from './interfaces/member-storage';
 import { IMemberWithMnemonic } from './interfaces/member-with-mnemonic';
-import { IEncryptedChunk } from './interfaces/encrypted-chunk';
 import { SecureBuffer } from './secure-buffer';
 import { SecureString } from './secure-string';
 import { ECIESService } from './services/ecies/service';
+import { EncryptionStream } from './services/encryption-stream';
 import { SignatureUint8Array } from './types';
 import {
   base64ToUint8Array,
   uint8ArrayToBase64,
   uint8ArrayToHex,
 } from './utils';
-import { IECIESConstants } from './interfaces/ecies-consts';
 
 /**
  * Represents a member with cryptographic capabilities.
  * This class provides methods for signing, verifying, encrypting, and decrypting data.
  * It also manages the member's keys and wallet.
  */
-export class Member implements IFrontendMemberOperational<Uint8Array> {
+export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
   private readonly _eciesService: ECIESService;
   private readonly _id: Uint8Array;
   private readonly _type: MemberType;
@@ -61,16 +61,10 @@ export class Member implements IFrontendMemberOperational<Uint8Array> {
     this._id = id ?? Constants.idProvider.generate();
     this._name = name;
     if (!this._name || this._name.length == 0) {
-      throw new MemberError(
-        MemberErrorType.MissingMemberName,
-        
-      );
+      throw new MemberError(MemberErrorType.MissingMemberName);
     }
     if (this._name.trim() != this._name) {
-      throw new MemberError(
-        MemberErrorType.InvalidMemberNameWhitespace,
-        
-      );
+      throw new MemberError(MemberErrorType.InvalidMemberNameWhitespace);
     }
     this._email = email;
     this._publicKey = publicKey;
@@ -122,10 +116,7 @@ export class Member implements IFrontendMemberOperational<Uint8Array> {
   }
   public get wallet(): Wallet {
     if (!this._wallet) {
-      throw new MemberError(
-        MemberErrorType.NoWallet,
-        
-      );
+      throw new MemberError(MemberErrorType.NoWallet);
     }
     return this._wallet;
   }
@@ -150,12 +141,12 @@ export class Member implements IFrontendMemberOperational<Uint8Array> {
     this.unloadPrivateKey();
   }
 
-  public loadWallet(mnemonic: SecureString, eciesParams?: IECIESConstants): void {
+  public loadWallet(
+    mnemonic: SecureString,
+    eciesParams?: IECIESConstants,
+  ): void {
     if (this._wallet) {
-      throw new MemberError(
-        MemberErrorType.WalletAlreadyLoaded,
-        
-      );
+      throw new MemberError(MemberErrorType.WalletAlreadyLoaded);
     }
     const eciesConsts = eciesParams ?? ECIES;
     const { wallet } = this._eciesService.walletAndSeedFromMnemonic(mnemonic);
@@ -163,13 +154,8 @@ export class Member implements IFrontendMemberOperational<Uint8Array> {
     // Use service to get compressed public key
     const publicKey = this._eciesService.getPublicKey(privateKey);
 
-    if (
-      uint8ArrayToHex(publicKey) !== uint8ArrayToHex(this._publicKey)
-    ) {
-      throw new MemberError(
-        MemberErrorType.InvalidMnemonic,
-        
-      );
+    if (uint8ArrayToHex(publicKey) !== uint8ArrayToHex(this._publicKey)) {
+      throw new MemberError(MemberErrorType.InvalidMnemonic);
     }
     this._wallet = wallet;
     this._privateKey?.dispose();
@@ -188,20 +174,14 @@ export class Member implements IFrontendMemberOperational<Uint8Array> {
 
   public sign(data: Uint8Array): SignatureUint8Array {
     if (!this._privateKey) {
-      throw new MemberError(
-        MemberErrorType.MissingPrivateKey,
-        
-      );
+      throw new MemberError(MemberErrorType.MissingPrivateKey);
     }
     return this._eciesService.signMessage(this._privateKey.value, data);
   }
 
   public signData(data: Uint8Array): SignatureUint8Array {
     if (!this._privateKey) {
-      throw new MemberError(
-        MemberErrorType.MissingPrivateKey,
-        
-      );
+      throw new MemberError(MemberErrorType.MissingPrivateKey);
     }
     return this._eciesService.signMessage(
       new Uint8Array(this._privateKey.value),
@@ -235,34 +215,41 @@ export class Member implements IFrontendMemberOperational<Uint8Array> {
     source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
     options?: {
       recipientPublicKey?: Uint8Array;
-      onProgress?: (progress: { bytesProcessed: number; chunksProcessed: number }) => void;
+      onProgress?: (progress: {
+        bytesProcessed: number;
+        chunksProcessed: number;
+      }) => void;
       signal?: AbortSignal;
-    }
+    },
   ): AsyncGenerator<IEncryptedChunk, void, unknown> {
     if (!this._privateKey && !options?.recipientPublicKey) {
-      throw new MemberError(
-        MemberErrorType.MissingPrivateKey,
-        
-      );
+      throw new MemberError(MemberErrorType.MissingPrivateKey);
     }
 
     const targetPublicKey = options?.recipientPublicKey || this._publicKey;
     const stream = new EncryptionStream(this._eciesService);
 
     // Convert ReadableStream to AsyncIterable if needed
-    const asyncSource = 'getReader' in source
-      ? this.readableStreamToAsyncIterable(source as ReadableStream<Uint8Array>)
-      : source as AsyncIterable<Uint8Array>;
+    const asyncSource =
+      'getReader' in source
+        ? this.readableStreamToAsyncIterable(
+            source as ReadableStream<Uint8Array>,
+          )
+        : (source as AsyncIterable<Uint8Array>);
 
     let bytesProcessed = 0;
     let chunksProcessed = 0;
 
-    for await (const chunk of stream.encryptStream(asyncSource, targetPublicKey, {
-      signal: options?.signal,
-    })) {
+    for await (const chunk of stream.encryptStream(
+      asyncSource,
+      targetPublicKey,
+      {
+        signal: options?.signal,
+      },
+    )) {
       bytesProcessed += chunk.metadata?.originalSize || 0;
       chunksProcessed++;
-      
+
       if (options?.onProgress) {
         options.onProgress({ bytesProcessed, chunksProcessed });
       }
@@ -277,23 +264,26 @@ export class Member implements IFrontendMemberOperational<Uint8Array> {
   async *decryptDataStream(
     source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
     options?: {
-      onProgress?: (progress: { bytesProcessed: number; chunksProcessed: number }) => void;
+      onProgress?: (progress: {
+        bytesProcessed: number;
+        chunksProcessed: number;
+      }) => void;
       signal?: AbortSignal;
-    }
+    },
   ): AsyncGenerator<Uint8Array, void, unknown> {
     if (!this._privateKey) {
-      throw new MemberError(
-        MemberErrorType.MissingPrivateKey,
-        
-      );
+      throw new MemberError(MemberErrorType.MissingPrivateKey);
     }
 
     const stream = new EncryptionStream(this._eciesService);
 
     // Convert ReadableStream to AsyncIterable if needed
-    const asyncSource = 'getReader' in source
-      ? this.readableStreamToAsyncIterable(source as ReadableStream<Uint8Array>)
-      : source as AsyncIterable<Uint8Array>;
+    const asyncSource =
+      'getReader' in source
+        ? this.readableStreamToAsyncIterable(
+            source as ReadableStream<Uint8Array>,
+          )
+        : (source as AsyncIterable<Uint8Array>);
 
     let bytesProcessed = 0;
     let chunksProcessed = 0;
@@ -301,11 +291,11 @@ export class Member implements IFrontendMemberOperational<Uint8Array> {
     for await (const chunk of stream.decryptStream(
       asyncSource,
       new Uint8Array(this._privateKey.value),
-      { signal: options?.signal }
+      { signal: options?.signal },
     )) {
       bytesProcessed += chunk.length;
       chunksProcessed++;
-      
+
       if (options?.onProgress) {
         options.onProgress({ bytesProcessed, chunksProcessed });
       }
@@ -318,7 +308,7 @@ export class Member implements IFrontendMemberOperational<Uint8Array> {
    * Convert ReadableStream to AsyncIterable
    */
   private async *readableStreamToAsyncIterable(
-    stream: ReadableStream<Uint8Array>
+    stream: ReadableStream<Uint8Array>,
   ): AsyncIterable<Uint8Array> {
     const reader = stream.getReader();
     try {
@@ -338,20 +328,14 @@ export class Member implements IFrontendMemberOperational<Uint8Array> {
   ): Promise<Uint8Array> {
     // Validate input
     if (!data) {
-      throw new MemberError(
-        MemberErrorType.MissingEncryptionData,
-        
-      );
+      throw new MemberError(MemberErrorType.MissingEncryptionData);
     }
 
     // Check size limit
     const arr: Uint8Array =
       data instanceof Uint8Array ? data : new TextEncoder().encode(data);
     if (arr.length > Member.MAX_ENCRYPTION_SIZE) {
-      throw new MemberError(
-        MemberErrorType.EncryptionDataTooLarge,
-        
-      );
+      throw new MemberError(MemberErrorType.EncryptionDataTooLarge);
     }
 
     // Use recipient public key or self public key
@@ -366,10 +350,7 @@ export class Member implements IFrontendMemberOperational<Uint8Array> {
 
   public async decryptData(encryptedData: Uint8Array): Promise<Uint8Array> {
     if (!this._privateKey) {
-      throw new MemberError(
-        MemberErrorType.MissingPrivateKey,
-        
-      );
+      throw new MemberError(MemberErrorType.MissingPrivateKey);
     }
     // decryptSingleWithHeader now returns the Uint8Array directly
     return await this._eciesService.decryptSimpleOrSingleWithHeader(
@@ -411,10 +392,7 @@ export class Member implements IFrontendMemberOperational<Uint8Array> {
     try {
       storage = JSON.parse(json);
     } catch (error) {
-      throw new MemberError(
-        MemberErrorType.InvalidMemberData,
-        
-      );
+      throw new MemberError(MemberErrorType.InvalidMemberData);
     }
     const email = new EmailString(storage.email);
 
@@ -472,28 +450,16 @@ export class Member implements IFrontendMemberOperational<Uint8Array> {
   ): IMemberWithMnemonic {
     // Validate inputs first
     if (!name || name.length == 0) {
-      throw new MemberError(
-        MemberErrorType.MissingMemberName,
-        
-      );
+      throw new MemberError(MemberErrorType.MissingMemberName);
     }
     if (name.trim() != name) {
-      throw new MemberError(
-        MemberErrorType.InvalidMemberNameWhitespace,
-        
-      );
+      throw new MemberError(MemberErrorType.InvalidMemberNameWhitespace);
     }
     if (!email || email.toString().length == 0) {
-      throw new MemberError(
-        MemberErrorType.MissingEmail,
-        
-      );
+      throw new MemberError(MemberErrorType.MissingEmail);
     }
     if (email.toString().trim() != email.toString()) {
-      throw new MemberError(
-        MemberErrorType.InvalidEmailWhitespace,
-        
-      );
+      throw new MemberError(MemberErrorType.InvalidEmailWhitespace);
     }
 
     const eciesConsts = eciesParams ?? ECIES;

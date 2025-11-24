@@ -8,7 +8,7 @@ import { Wallet } from '@ethereumjs/wallet';
 import { faker } from '@faker-js/faker';
 
 import { ObjectId } from 'bson';
-import { IFrontendMemberOperational } from '../interfaces';
+import type { IFrontendMemberOperational } from '../interfaces/frontend-member-operational';
 import { SignatureUint8Array } from '../types';
 
 const hexToUint8Array = (hex: string): Uint8Array => {
@@ -22,8 +22,10 @@ const hexToUint8Array = (hex: string): Uint8Array => {
 
 const createMockWallet = (): Wallet =>
   ({
-    getPrivateKey: () => hexToUint8Array(faker.string.hexadecimal({ length: 64 })),
-    getPublicKey: () => hexToUint8Array(faker.string.hexadecimal({ length: 128 })),
+    getPrivateKey: () =>
+      hexToUint8Array(faker.string.hexadecimal({ length: 64 })),
+    getPublicKey: () =>
+      hexToUint8Array(faker.string.hexadecimal({ length: 128 })),
     getAddress: () => hexToUint8Array(faker.string.hexadecimal({ length: 40 })),
     sign: () => hexToUint8Array(faker.string.hexadecimal({ length: 128 })),
   } as any);
@@ -144,10 +146,17 @@ export class MockFrontendMember
     source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
     options?: {
       recipientPublicKey?: Uint8Array;
-      onProgress?: (progress: { bytesProcessed: number; chunksProcessed: number }) => void;
+      onProgress?: (progress: {
+        bytesProcessed: number;
+        chunksProcessed: number;
+      }) => void;
       signal?: AbortSignal;
-    }
-  ): AsyncGenerator<import('../interfaces/encrypted-chunk').IEncryptedChunk, void, unknown> {
+    },
+  ): AsyncGenerator<
+    import('../interfaces/encrypted-chunk').IEncryptedChunk,
+    void,
+    unknown
+  > {
     // Mock implementation
     const chunks = [];
     if ('getReader' in source) {
@@ -170,7 +179,9 @@ export class MockFrontendMember
     for (const chunk of chunks) {
       yield {
         index: index++,
-        data: hexToUint8Array(faker.string.hexadecimal({ length: chunk.length * 2 })),
+        data: hexToUint8Array(
+          faker.string.hexadecimal({ length: chunk.length * 2 }),
+        ),
         isLast: index === chunks.length,
         metadata: {
           originalSize: chunk.length,
@@ -184,9 +195,12 @@ export class MockFrontendMember
   async *decryptDataStream(
     source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
     options?: {
-      onProgress?: (progress: { bytesProcessed: number; chunksProcessed: number }) => void;
+      onProgress?: (progress: {
+        bytesProcessed: number;
+        chunksProcessed: number;
+      }) => void;
       signal?: AbortSignal;
-    }
+    },
   ): AsyncGenerator<Uint8Array, void, unknown> {
     // Mock implementation
     if ('getReader' in source) {

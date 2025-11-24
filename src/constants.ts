@@ -2,7 +2,7 @@ import { ECIESErrorTypeEnum, EciesStringKey } from './enumerations';
 import { Pbkdf2ProfileEnum } from './enumerations/pbkdf2-profile';
 import { ECIESError } from './errors/ecies';
 import { EciesComponentId, getEciesI18nEngine } from './i18n-setup';
-import type { IChecksumConsts } from './interfaces';
+import type { IChecksumConsts } from './interfaces/checksum-consts';
 import type { IConfigurationProvenance } from './interfaces/configuration-provenance';
 import {
   calculateConfigChecksum,
