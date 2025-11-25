@@ -839,6 +839,206 @@ This release focuses on eliminating type safety escape hatches while maintaining
 
   - Initial release of the ECIES library with multi-recipient support, AES-GCM helpers, PBKDF2 profiles, and password-login tooling
 
+## Testing
+
+### Testing Approach
+
+The ecies-lib package employs a rigorous testing strategy with over 1,200 tests covering all cryptographic operations, protocol flows, and edge cases.
+
+**Test Framework**: Jest with TypeScript support  
+**Property-Based Testing**: fast-check for cryptographic property validation  
+**Coverage Target**: 100% for critical cryptographic paths  
+**Binary Compatibility**: Cross-platform tests with node-ecies-lib
+
+### Test Structure
+
+```
+tests/
+  ├── unit/              # Unit tests for individual services
+  ├── integration/       # Integration tests for protocol flows
+  ├── e2e/               # End-to-end encryption/decryption tests
+  ├── property/          # Property-based tests for cryptographic properties
+  ├── compatibility/     # Cross-platform compatibility tests
+  └── vectors/           # Test vectors for protocol validation
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run with coverage
+npm test -- --coverage
+
+# Run specific test suite
+npm test -- ecies-service.spec.ts
+
+# Run compatibility tests
+npm test -- cross-platform-compatibility.spec.ts
+
+# Run in watch mode
+npm test -- --watch
+```
+
+### Test Patterns
+
+#### Testing Encryption/Decryption
+
+```typescript
+import { ECIESService, getEciesI18nEngine } from '@digitaldefiance/ecies-lib';
+
+describe('ECIES Encryption', () => {
+  let ecies: ECIESService;
+
+  beforeAll(() => {
+    getEciesI18nEngine(); // Initialize i18n
+  });
+
+  beforeEach(() => {
+    ecies = new ECIESService();
+  });
+
+  it('should encrypt and decrypt data', async () => {
+    const mnemonic = ecies.generateNewMnemonic();
+    const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
+    
+    const message = new TextEncoder().encode('Secret Message');
+    const encrypted = await ecies.encryptSimpleOrSingle(false, publicKey, message);
+    const decrypted = await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encrypted);
+    
+    expect(new TextDecoder().decode(decrypted)).toBe('Secret Message');
+  });
+});
+```
+
+#### Testing Multi-Recipient Encryption
+
+```typescript
+import { ECIESService, Member, MemberType, EmailString } from '@digitaldefiance/ecies-lib';
+
+describe('Multi-Recipient Encryption', () => {
+  it('should encrypt for multiple recipients', async () => {
+    const ecies = new ECIESService();
+    
+    // Create recipients
+    const alice = Member.newMember(ecies, MemberType.User, 'Alice', new EmailString('alice@example.com'));
+    const bob = Member.newMember(ecies, MemberType.User, 'Bob', new EmailString('bob@example.com'));
+    
+    const message = new TextEncoder().encode('Shared Secret');
+    
+    // Encrypt for both recipients
+    const encrypted = await ecies.encryptMultiple(
+      [alice.member.publicKey, bob.member.publicKey],
+      message
+    );
+    
+    // Both can decrypt
+    const aliceDecrypted = await ecies.decryptMultiple(
+      alice.member.id,
+      alice.member.privateKey,
+      encrypted
+    );
+    const bobDecrypted = await ecies.decryptMultiple(
+      bob.member.id,
+      bob.member.privateKey,
+      encrypted
+    );
+    
+    expect(new TextDecoder().decode(aliceDecrypted)).toBe('Shared Secret');
+    expect(new TextDecoder().decode(bobDecrypted)).toBe('Shared Secret');
+  });
+});
+```
+
+#### Testing ID Providers
+
+```typescript
+import { createRuntimeConfiguration, GuidV4Provider, ObjectIdProvider } from '@digitaldefiance/ecies-lib';
+
+describe('ID Provider System', () => {
+  it('should work with ObjectId provider', () => {
+    const config = createRuntimeConfiguration({
+      idProvider: new ObjectIdProvider()
+    });
+    
+    const id = config.idProvider.generate();
+    expect(id.length).toBe(12); // ObjectId is 12 bytes
+  });
+
+  it('should work with GUID provider', () => {
+    const config = createRuntimeConfiguration({
+      idProvider: new GuidV4Provider()
+    });
+    
+    const id = config.idProvider.generate();
+    expect(id.length).toBe(16); // GUID is 16 bytes
+  });
+});
+```
+
+#### Property-Based Testing for Cryptographic Properties
+
+```typescript
+import * as fc from 'fast-check';
+import { ECIESService } from '@digitaldefiance/ecies-lib';
+
+describe('Cryptographic Properties', () => {
+  it('should maintain round-trip property for any message', async () => {
+    const ecies = new ECIESService();
+    const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(ecies.generateNewMnemonic());
+    
+    await fc.assert(
+      fc.asyncProperty(
+        fc.uint8Array({ minLength: 1, maxLength: 1000 }),
+        async (message) => {
+          const encrypted = await ecies.encryptSimpleOrSingle(false, publicKey, message);
+          const decrypted = await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encrypted);
+          
+          expect(decrypted).toEqual(message);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+});
+```
+
+### Testing Best Practices
+
+1. **Initialize i18n** before running tests with `getEciesI18nEngine()`
+2. **Test all encryption modes** (Simple, Single, Multiple)
+3. **Test with different ID providers** to ensure compatibility
+4. **Use property-based tests** for cryptographic invariants
+5. **Test error conditions** like invalid keys, corrupted data, and wrong recipients
+6. **Verify binary compatibility** with node-ecies-lib
+
+### Cross-Platform Testing
+
+Testing compatibility with node-ecies-lib:
+
+```typescript
+import { ECIESService as BrowserECIES } from '@digitaldefiance/ecies-lib';
+// In Node.js environment:
+// import { ECIESService as NodeECIES } from '@digitaldefiance/node-ecies-lib';
+
+describe('Cross-Platform Compatibility', () => {
+  it('should decrypt node-encrypted data in browser', async () => {
+    // Data encrypted in Node.js
+    const nodeEncrypted = Buffer.from('...'); // From node-ecies-lib
+    
+    const browserEcies = new BrowserECIES();
+    const decrypted = await browserEcies.decryptSimpleOrSingleWithHeader(
+      false,
+      privateKey,
+      new Uint8Array(nodeEncrypted)
+    );
+    
+    expect(new TextDecoder().decode(decrypted)).toBe('Expected Message');
+  });
+});
+```
+
 ## License
 
 MIT © Digital Defiance
