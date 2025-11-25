@@ -61,6 +61,10 @@
     "@digitaldefiance/express-suite-test-utils": "1.0.10",
     "@swc/core": "^1.15.3",
     "@swc/jest": "^0.2.39",
+    "@typescript-eslint/eslint-plugin": "^8.48.0",
+    "@typescript-eslint/parser": "^8.48.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.4",
     "fast-check": "^4.3.0",
     "madge": "^8.0.0"
   }
