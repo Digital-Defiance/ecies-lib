@@ -497,6 +497,10 @@ The library maintains **100% test coverage** with over 1,200 tests, including:
 
 ## ChangeLog
 
+### v4.4.2
+
+- Update test-utils
+
 ### v4.4.1
 
 - Mainly changes to testing
