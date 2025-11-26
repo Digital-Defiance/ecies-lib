@@ -8,6 +8,8 @@ module.exports = {
   testMatch: ['**/*.spec.ts'],
   collectCoverageFrom: ['src/**/*.ts'],
   setupFilesAfterEnv: ['<rootDir>/tests/test-setup.ts'],
+  forceExit: true,
+  detectOpenHandles: false,
   transform: {
     '^.+\\.(ts|tsx)$': [
       '@swc/jest',
