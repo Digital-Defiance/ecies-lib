@@ -497,6 +497,11 @@ The library maintains **100% test coverage** with over 1,200 tests, including:
 
 ## ChangeLog
 
+### v4.4.1
+
+- Mainly changes to testing
+- Slight changes to reduce warnings
+
 ### v4.4.0
 
 - Upgrade i18n

@@ -23,7 +23,11 @@ export interface IStreamHeader {
 /**
  * Constants for stream header format
  */
-export const STREAM_HEADER_CONSTANTS = {
+export const STREAM_HEADER_CONSTANTS: {
+  readonly MAGIC: 0x45435354;
+  readonly VERSION: 0x0001;
+  readonly HEADER_SIZE: 128;
+} = {
   MAGIC: 0x45435354, // "ECST"
   VERSION: 0x0001,
   HEADER_SIZE: 128,

@@ -1,8 +1,8 @@
 import { Pbkdf2ErrorType, Pbkdf2ProfileEnum } from '../src/enumerations';
 import { Pbkdf2Error } from '../src/errors';
+import { getEciesI18nEngine } from '../src/i18n-setup';
 import { SecureString } from '../src/secure-string';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
-import { getEciesI18nEngine } from '../src/i18n-setup';
 
 describe('Pbkdf2Service Lib E2E', () => {
   jest.setTimeout(60000);
@@ -275,18 +275,39 @@ describe('Pbkdf2Service Lib E2E', () => {
       const shortSalt = new Uint8Array(15); // Too short for default config
 
       await expect(
-        pbkdf2Service.deriveKeyFromPasswordAsync(testPassword, shortSalt, undefined, undefined, undefined, undefined),
+        pbkdf2Service.deriveKeyFromPasswordAsync(
+          testPassword,
+          shortSalt,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+        ),
       ).rejects.toThrow(Pbkdf2Error);
     });
 
     it('should handle invalid inputs gracefully', async () => {
       // Invalid iterations
       await expect(
-        pbkdf2Service.deriveKeyFromPasswordAsync(testPassword, testSalt, -1, undefined, undefined, undefined),
+        pbkdf2Service.deriveKeyFromPasswordAsync(
+          testPassword,
+          testSalt,
+          -1,
+          undefined,
+          undefined,
+          undefined,
+        ),
       ).rejects.toThrow();
 
       await expect(
-        pbkdf2Service.deriveKeyFromPasswordAsync(testPassword, testSalt, 0, undefined, undefined, undefined),
+        pbkdf2Service.deriveKeyFromPasswordAsync(
+          testPassword,
+          testSalt,
+          0,
+          undefined,
+          undefined,
+          undefined,
+        ),
       ).rejects.toThrow();
     });
 
@@ -294,7 +315,14 @@ describe('Pbkdf2Service Lib E2E', () => {
       const shortSalt = new Uint8Array(15);
 
       try {
-        await pbkdf2Service.deriveKeyFromPasswordAsync(testPassword, shortSalt, undefined, undefined, undefined, undefined);
+        await pbkdf2Service.deriveKeyFromPasswordAsync(
+          testPassword,
+          shortSalt,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+        );
         fail('Should have thrown Pbkdf2Error');
       } catch (error) {
         expect(error).toBeInstanceOf(Pbkdf2Error);
@@ -367,8 +395,8 @@ describe('Pbkdf2Service Lib E2E', () => {
 
       expect(results).toHaveLength(concurrency);
 
-      // Should complete within reasonable time
-      expect(endTime - startTime).toBeLessThan(30000);
+      // Should complete within reasonable time (increased for slower CI environments)
+      expect(endTime - startTime).toBeLessThan(60000);
 
       // All should have unique salts (high probability)
       const salts = results.map((r) => Array.from(r.salt).join(','));

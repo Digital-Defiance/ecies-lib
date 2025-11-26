@@ -47,7 +47,14 @@ export interface IChunkHeader {
 /**
  * Constants for chunk format
  */
-export const CHUNK_CONSTANTS = {
+export const CHUNK_CONSTANTS: {
+  readonly MAGIC: 0x45434945;
+  readonly VERSION: 0x0001;
+  readonly HEADER_SIZE: 32;
+  readonly FLAG_IS_LAST: 0x01;
+  readonly FLAG_HAS_CHECKSUM: 0x02;
+  readonly CHECKSUM_SIZE: 32;
+} = {
   MAGIC: 0x45434945, // "ECIE"
   VERSION: 0x0001,
   HEADER_SIZE: 32,

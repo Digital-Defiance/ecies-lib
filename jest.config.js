@@ -24,7 +24,20 @@ module.exports = {
         },
       },
     ],
-    '^.+\\.(js|jsx)$': 'babel-jest',
+    '^.+\\.(js|jsx)$': [
+      '@swc/jest',
+      {
+        jsc: {
+          parser: {
+            syntax: 'ecmascript',
+          },
+          target: 'es2020',
+        },
+        module: {
+          type: 'commonjs',
+        },
+      },
+    ],
   },
   transformIgnorePatterns: [
     'node_modules/(?!(@faker-js|@noble|@scure|@ethereumjs))',

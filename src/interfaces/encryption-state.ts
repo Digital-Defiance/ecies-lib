@@ -16,4 +16,4 @@ export interface IEncryptionState {
   hmac?: string; // hex SHA-256 HMAC for integrity
 }
 
-export const ENCRYPTION_STATE_VERSION = 1;
+export const ENCRYPTION_STATE_VERSION: number = 1;
