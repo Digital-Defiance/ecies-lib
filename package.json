@@ -1,8 +1,8 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "4.4.4",
+  "version": "4.4.5",
   "description": "Digital Defiance ECIES Library",
-  "homepage": "https://github.com/Digital-Defiance/ecies-lib/blob/main/README.md",
+  "homepage": "https://github.com/Digital-Defiance/ecies-lib",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Digital-Defiance/ecies-lib.git"
