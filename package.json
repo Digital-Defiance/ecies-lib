@@ -1,6 +1,6 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "4.4.6",
+  "version": "4.4.7",
   "description": "Digital Defiance ECIES Library",
   "homepage": "https://github.com/Digital-Defiance/ecies-lib",
   "repository": {
@@ -63,7 +63,7 @@
     "ts-brand": "^0.2.0"
   },
   "devDependencies": {
-    "@digitaldefiance/express-suite-test-utils": "1.0.11",
+    "@digitaldefiance/express-suite-test-utils": "1.0.12",
     "@swc/core": "^1.15.3",
     "@swc/jest": "^0.2.39",
     "@typescript-eslint/eslint-plugin": "^8.48.0",
