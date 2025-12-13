@@ -1,4 +1,5 @@
-import { createHash } from 'crypto';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { bytesToHex } from '@noble/hashes/utils.js';
 import type { IConstants } from '../interfaces/constants';
 
 /**
@@ -10,7 +11,9 @@ export function calculateConfigChecksum(config: IConstants): string {
   const replacer = (_key: string, value: any) =>
     typeof value === 'bigint' ? value.toString() : value;
   const stable = JSON.stringify(config, replacer);
-  return createHash('sha256').update(stable).digest('hex');
+  const encoder = new TextEncoder();
+  const data = encoder.encode(stable);
+  return bytesToHex(sha256(data));
 }
 
 /**
