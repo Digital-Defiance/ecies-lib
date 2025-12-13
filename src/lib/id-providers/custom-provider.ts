@@ -1,4 +1,4 @@
-import { randomBytes } from '@noble/hashes/utils';
+import { randomBytes } from '@noble/hashes/utils.js';
 import { IdProviderErrorType } from '../../enumerations/id-provider-error-type';
 import { IdProviderError } from '../../errors/id-provider';
 import { BaseIdProvider } from '../../interfaces/id-provider';

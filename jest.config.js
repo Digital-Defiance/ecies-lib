@@ -44,7 +44,13 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!(@faker-js|@noble|@scure|@ethereumjs))',
   ],
-  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
-    prefix: '<rootDir>/../../',
-  }),
+  moduleNameMapper: {
+    '^@noble/hashes/(.*)\\.js$':
+      '<rootDir>/../../node_modules/@noble/hashes/$1.js',
+    '^@noble/curves/(.*)\\.js$':
+      '<rootDir>/../../node_modules/@noble/curves/$1.js',
+    ...pathsToModuleNameMapper(compilerOptions.paths, {
+      prefix: '<rootDir>/../../',
+    }),
+  },
 };
