@@ -1,22 +1,22 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "4.4.8",
+  "version": "4.4.9",
   "description": "Digital Defiance ECIES Library",
   "homepage": "https://github.com/Digital-Defiance/ecies-lib",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Digital-Defiance/ecies-lib.git"
   },
-  "main": "src/index.js",
-  "types": "src/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.d.ts",
-      "default": "./src/index.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "./testing": {
-      "types": "./src/testing.d.ts",
-      "default": "./src/testing.js"
+      "types": "./dist/testing.d.ts",
+      "default": "./dist/testing.js"
     }
   },
   "scripts": {
@@ -54,7 +54,7 @@
   "license": "MIT",
   "packageManager": "yarn@4.11.0",
   "dependencies": {
-    "@digitaldefiance/i18n-lib": "3.8.3",
+    "@digitaldefiance/i18n-lib": "3.8.4",
     "@ethereumjs/wallet": "^10.0.0",
     "@noble/curves": "^2.0.1",
     "@noble/hashes": "^2.0.1",
