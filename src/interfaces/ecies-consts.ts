@@ -1,4 +1,6 @@
-import { CipherGCMTypes } from 'crypto';
+// Type definition for GCM cipher algorithms (from Node.js crypto module)
+export type CipherGCMTypes = 'aes-128-gcm' | 'aes-192-gcm' | 'aes-256-gcm';
+
 export interface IECIESConstants {
   /** The elliptic curve to use for all ECDSA operations */
   CURVE_NAME: string;
