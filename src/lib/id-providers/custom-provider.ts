@@ -1,14 +1,14 @@
-import { BaseIdProvider } from '../../interfaces/id-provider';
-import { randomBytes } from 'crypto';
-import { IdProviderError } from '../../errors/id-provider';
+import { randomBytes } from '@noble/hashes/utils';
 import { IdProviderErrorType } from '../../enumerations/id-provider-error-type';
+import { IdProviderError } from '../../errors/id-provider';
+import { BaseIdProvider } from '../../interfaces/id-provider';
 
 /**
  * Custom ID provider that accepts any fixed byte length.
- * 
+ *
  * Use this when you need a non-standard ID size or custom validation logic.
  * For standard formats, prefer ObjectIdProvider, GuidV4Provider, or UuidProvider.
- * 
+ *
  * Example:
  * ```typescript
  * // 20-byte SHA-1 hash as recipient ID
@@ -27,7 +27,7 @@ export class CustomIdProvider extends BaseIdProvider {
         IdProviderErrorType.InvalidByteLengthParameter,
         undefined,
         undefined,
-        { value: byteLength }
+        { value: byteLength },
       );
     }
 
@@ -55,9 +55,9 @@ export class CustomIdProvider extends BaseIdProvider {
    */
   serialize(id: Uint8Array): string {
     this.validateLength(id, `${this.name}.serialize`);
-    
+
     return Array.from(id)
-      .map(b => b.toString(16).padStart(2, '0'))
+      .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
   }
 
@@ -75,7 +75,7 @@ export class CustomIdProvider extends BaseIdProvider {
         IdProviderErrorType.InvalidStringLength,
         undefined,
         undefined,
-        { expected: expectedLength, actual: str.length }
+        { expected: expectedLength, actual: str.length },
       );
     }
 
