@@ -10,9 +10,9 @@
  */
 
 // Core v2 exports
-export * from './builders/index.js';
-export * from './core/index.js';
-export * from './lib/index.js';
+export * from './builders/index';
+export * from './core/index';
+export * from './lib/index';
 
 // i18n v2
 export {
