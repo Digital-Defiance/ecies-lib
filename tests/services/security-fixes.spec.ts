@@ -1,15 +1,18 @@
+import {
+  ENCRYPTION_STATE_VERSION,
+  IEncryptionState,
+} from '../../src/interfaces/encryption-state';
 import { ECIESService } from '../../src/services/ecies/service';
 import { EncryptionStream } from '../../src/services/encryption-stream';
 import { ResumableEncryption } from '../../src/services/resumable-encryption';
-import { IEncryptionState, ENCRYPTION_STATE_VERSION } from '../../src/interfaces/encryption-state';
-import { StreamTestUtils } from '../support/stream-test-utils';
 import { uint8ArrayToHex } from '../../src/utils';
+import { StreamTestUtils } from '../support/stream-test-utils';
 
 describe('Security Fixes', () => {
   let ecies: ECIESService;
   let stream: EncryptionStream;
   let publicKey: Uint8Array;
-  let privateKey: Uint8Array;
+  let _privateKey: Uint8Array;
 
   beforeEach(() => {
     ecies = new ECIESService();
@@ -26,7 +29,10 @@ describe('Security Fixes', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024);
 
       await expect(async () => {
-        for await (const chunk of stream.encryptStream(source, new Uint8Array(0))) {
+        for await (const _chunk of stream.encryptStream(
+          source,
+          new Uint8Array(0),
+        )) {
           // Should throw
         }
       }).rejects.toThrow('Invalid public key');
@@ -37,7 +43,10 @@ describe('Security Fixes', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024);
 
       await expect(async () => {
-        for await (const chunk of stream.encryptStream(source, new Uint8Array(32))) {
+        for await (const _chunk of stream.encryptStream(
+          source,
+          new Uint8Array(32),
+        )) {
           // Should throw
         }
       }).rejects.toThrow('Invalid public key');
@@ -48,7 +57,10 @@ describe('Security Fixes', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 100);
 
       await expect(async () => {
-        for await (const chunk of stream.decryptStream(source, new Uint8Array(0))) {
+        for await (const _chunk of stream.decryptStream(
+          source,
+          new Uint8Array(0),
+        )) {
           // Should throw
         }
       }).rejects.toThrow('Invalid private key');
@@ -59,7 +71,10 @@ describe('Security Fixes', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 100);
 
       await expect(async () => {
-        for await (const chunk of stream.decryptStream(source, new Uint8Array(33))) {
+        for await (const _chunk of stream.decryptStream(
+          source,
+          new Uint8Array(33),
+        )) {
           // Should throw
         }
       }).rejects.toThrow('Invalid private key');
@@ -69,14 +84,14 @@ describe('Security Fixes', () => {
   describe('buffer exhaustion protection', () => {
     it('should reject source that exceeds buffer limit', async () => {
       const maxSingleChunk = 100 * 1024 * 1024; // 100MB
-      
+
       // Create source that sends data larger than maxSingleChunk
       const source = (async function* () {
         yield new Uint8Array(maxSingleChunk + 1);
       })();
 
       await expect(async () => {
-        for await (const chunk of stream.encryptStream(source, publicKey)) {
+        for await (const _chunk of stream.encryptStream(source, publicKey)) {
           // Should throw
         }
       }).rejects.toThrow('Buffer overflow');
@@ -89,7 +104,7 @@ describe('Security Fixes', () => {
       const data = StreamTestUtils.generateRandomData(2 * 1024 * 1024);
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
-      for await (const chunk of resumable.encrypt(source, publicKey)) {
+      for await (const _chunk of resumable.encrypt(source, publicKey)) {
         // Process
       }
 
@@ -111,7 +126,9 @@ describe('Security Fixes', () => {
         hmac: 'invalid_hmac',
       };
 
-      expect(() => new ResumableEncryption(stream, state)).toThrow('State integrity check failed');
+      expect(() => new ResumableEncryption(stream, state)).toThrow(
+        'State integrity check failed',
+      );
     });
   });
 
@@ -121,7 +138,9 @@ describe('Security Fixes', () => {
       const data = StreamTestUtils.generateRandomData(2 * 1024 * 1024);
       const source1 = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
-      for await (const chunk of resumable1.encrypt(source1, publicKey, { chunkSize: 1024 * 1024 })) {
+      for await (const _chunk of resumable1.encrypt(source1, publicKey, {
+        chunkSize: 1024 * 1024,
+      })) {
         // Process
       }
 
@@ -130,7 +149,9 @@ describe('Security Fixes', () => {
       const source2 = StreamTestUtils.createAsyncIterable(data, 512 * 1024);
 
       await expect(async () => {
-        for await (const chunk of resumable2.encrypt(source2, publicKey, { chunkSize: 512 * 1024 })) {
+        for await (const _chunk of resumable2.encrypt(source2, publicKey, {
+          chunkSize: 512 * 1024,
+        })) {
           // Should throw
         }
       }).rejects.toThrow('Chunk size mismatch');
@@ -141,7 +162,9 @@ describe('Security Fixes', () => {
       const data = StreamTestUtils.generateRandomData(2 * 1024 * 1024);
       const source1 = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
-      for await (const chunk of resumable1.encrypt(source1, publicKey, { includeChecksums: false })) {
+      for await (const _chunk of resumable1.encrypt(source1, publicKey, {
+        includeChecksums: false,
+      })) {
         // Process
       }
 
@@ -150,7 +173,9 @@ describe('Security Fixes', () => {
       const source2 = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
       await expect(async () => {
-        for await (const chunk of resumable2.encrypt(source2, publicKey, { includeChecksums: true })) {
+        for await (const _chunk of resumable2.encrypt(source2, publicKey, {
+          includeChecksums: true,
+        })) {
           // Should throw
         }
       }).rejects.toThrow('Include checksums mismatch with saved state');

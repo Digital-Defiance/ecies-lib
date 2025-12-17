@@ -1,15 +1,17 @@
 import {
+  clearRuntimeConfigurations,
+  ConfigurationKey,
   Constants,
   ConstantsRegistry,
   createRuntimeConfiguration,
   getRuntimeConfiguration,
   registerRuntimeConfiguration,
   unregisterRuntimeConfiguration,
-  clearRuntimeConfigurations,
-  ConfigurationKey,
 } from '../src/constants';
 import { ECIESError } from '../src/errors/ecies';
 import { getEciesI18nEngine } from '../src/i18n-setup';
+import type { IConstants } from '../src/interfaces/constants';
+import type { DeepPartial } from '../src/types/deep-partial';
 
 describe('ConstantsRegistry', () => {
   beforeAll(() => {
@@ -64,7 +66,7 @@ describe('ConstantsRegistry', () => {
     expect(() =>
       registerRuntimeConfiguration(ConstantsRegistry.DEFAULT_KEY, {
         BcryptRounds: 4,
-      } as any),
+      } as DeepPartial<IConstants>),
     ).toThrow('Cannot overwrite the default configuration');
   });
 

@@ -1,6 +1,6 @@
 import { LanguageCodes } from '@digitaldefiance/i18n-lib';
 import { ECIESErrorTypeEnum } from '../src/enumerations/ecies-error-type';
-import MemberErrorType from '../src/enumerations/member-error-type';
+import { MemberErrorType } from '../src/enumerations/member-error-type';
 import { ECIESError } from '../src/errors/ecies';
 import { MemberError } from '../src/errors/member';
 import { getEciesI18nEngine } from '../src/i18n-setup';
@@ -9,9 +9,7 @@ describe('I18n Error Translation', () => {
   describe('ECIES Error Translation', () => {
     it('should translate ECIES errors to English', () => {
       getEciesI18nEngine(); // Ensure engine is initialized
-      const error = new ECIESError(
-        ECIESErrorTypeEnum.DecryptionFailed,
-      );
+      const error = new ECIESError(ECIESErrorTypeEnum.DecryptionFailed);
       expect(error.message).toBe('Decryption operation failed');
     });
 
@@ -52,9 +50,7 @@ describe('I18n Error Translation', () => {
   describe('Member Error Translation', () => {
     it('should translate Member errors to English', () => {
       getEciesI18nEngine(); // Ensure engine is initialized
-      const error = new MemberError(
-        MemberErrorType.MissingMemberName,
-      );
+      const error = new MemberError(MemberErrorType.MissingMemberName);
       expect(error.message).toBe('Member name is required');
     });
 
@@ -86,9 +82,7 @@ describe('I18n Error Translation', () => {
     it('should verify buildReasonMap generates correct keys', () => {
       getEciesI18nEngine(); // Ensure engine is initialized
       // Test that the generated keys match our enum
-      const eciesError = new ECIESError(
-        ECIESErrorTypeEnum.InvalidMnemonic,
-      );
+      const eciesError = new ECIESError(ECIESErrorTypeEnum.InvalidMnemonic);
       const memberError = new MemberError(MemberErrorType.NoWallet);
 
       // Verify the errors use the i18n system

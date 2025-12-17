@@ -297,7 +297,7 @@ describe('Dependency Injection Integration', () => {
 
       // Create multiple members
       const members: Member[] = [];
-      const mnemonics: any[] = [];
+      const mnemonics: string[] = [];
 
       for (let i = 0; i < 3; i++) {
         const { member, mnemonic } = Member.newMember(
@@ -383,7 +383,7 @@ describe('Dependency Injection Integration', () => {
         source,
         recipient.publicKey,
         {
-          onProgress: (processed, total) => {
+          onProgress: (processed, _total) => {
             tracker.update(processed);
           },
         },

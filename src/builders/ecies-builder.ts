@@ -3,9 +3,9 @@
  */
 
 import { PluginI18nEngine } from '@digitaldefiance/i18n-lib';
-import { IECIESConstants } from '../interfaces/ecies-consts';
-import { IECIESConfig } from '../interfaces/ecies-config';
 import { Constants } from '../constants';
+import { IECIESConfig } from '../interfaces/ecies-config';
+import { IECIESConstants } from '../interfaces/ecies-consts';
 import { ECIESService } from '../services/ecies/service';
 
 export class ECIESBuilder {

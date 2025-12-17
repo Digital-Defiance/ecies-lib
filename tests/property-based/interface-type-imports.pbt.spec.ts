@@ -8,9 +8,11 @@
  * from other project modules, ensuring interfaces don't create circular dependencies.
  */
 
+/* eslint-disable import/order */
 import * as fc from 'fast-check';
 import * as fs from 'fs';
 import * as path from 'path';
+/* eslint-enable import/order */
 
 describe('Property-Based Test: Interface Type-Only Imports', () => {
   const interfacesDir = path.join(__dirname, '../../src/interfaces');
@@ -40,8 +42,8 @@ describe('Property-Based Test: Interface Type-Only Imports', () => {
         // Pattern to match value imports from relative paths (project modules)
         // Matches: import { X } from './...' or import { X } from '../...'
         // But NOT: import type { X } from './...'
-        const valueImportPattern =
-          /import\s+(?!type\s)(?!.*from\s+['"][^.\/])/g;
+        const _valueImportPattern =
+          /import\s+(?!type\s)(?!.*from\s+['"][^./])/g;
 
         // Find all import statements
         const importStatements =
@@ -89,7 +91,7 @@ describe('Property-Based Test: Interface Type-Only Imports', () => {
   });
 
   /**
-   * Additional property: Interface files should not execute runtime code
+   * Additional property: Interface files should not contain runtime code
    */
   it('should not contain runtime code in interface files', () => {
     fc.assert(
@@ -164,9 +166,9 @@ describe('Property-Based Test: Interface Type-Only Imports', () => {
         const Module = require('module');
         const originalRequire = Module.prototype.require;
 
-        Module.prototype.require = function (id: string) {
+        Module.prototype.require = function (id: string, ...args: unknown[]) {
           loadedModules.add(id);
-          return originalRequire.apply(this, arguments);
+          return originalRequire.apply(this, [id, ...args]);
         };
 
         try {

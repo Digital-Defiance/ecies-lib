@@ -1,11 +1,11 @@
 import { TranslatableGenericError } from '@digitaldefiance/i18n-lib';
-import { EciesComponentId } from '../i18n-setup';
 import { EciesStringKey } from '../enumerations';
+import { EciesComponentId } from '../i18n-setup';
 
 /**
  * Error thrown when operations are attempted on disposed objects.
  * Uses TranslatableGenericError for simple i18n support since there's only one error type.
- * 
+ *
  * @example
  * ```typescript
  * throw new DisposedError();
@@ -14,8 +14,13 @@ import { EciesStringKey } from '../enumerations';
  */
 export class DisposedError extends TranslatableGenericError<EciesStringKey> {
   /**
+   * Optional timestamp when the object was disposed
+   */
+  public disposedAt?: string | Date;
+
+  /**
    * Creates a new DisposedError instance.
-   * 
+   *
    * @param language - Optional language code for error message localization.
    * @param instanceKey - Optional i18n engine instance key (defaults to ecies engine).
    */
@@ -26,10 +31,10 @@ export class DisposedError extends TranslatableGenericError<EciesStringKey> {
       undefined,
       language,
       undefined,
-      instanceKey
+      instanceKey,
     );
     this.name = 'DisposedError';
-    
+
     // Maintains proper prototype chain for instanceof checks
     Object.setPrototypeOf(this, DisposedError.prototype);
   }

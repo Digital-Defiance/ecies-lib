@@ -21,9 +21,12 @@ describe('Module Independence Tests', () => {
       const originalRequire = module.constructor.prototype.require;
 
       // Mock require to track module loads
-      module.constructor.prototype.require = function (modulePath: string) {
+      module.constructor.prototype.require = function (
+        modulePath: string,
+        ...args: unknown[]
+      ) {
         loadedModules.add(modulePath);
-        return originalRequire.apply(this, arguments);
+        return originalRequire.apply(this, [modulePath, ...args]);
       };
 
       try {
@@ -57,9 +60,12 @@ describe('Module Independence Tests', () => {
       const loadedModules = new Set<string>();
       const originalRequire = module.constructor.prototype.require;
 
-      module.constructor.prototype.require = function (modulePath: string) {
+      module.constructor.prototype.require = function (
+        modulePath: string,
+        ...args: unknown[]
+      ) {
         loadedModules.add(modulePath);
-        return originalRequire.apply(this, arguments);
+        return originalRequire.apply(this, [modulePath, ...args]);
       };
 
       try {
@@ -87,9 +93,12 @@ describe('Module Independence Tests', () => {
       const loadedModules = new Set<string>();
       const originalRequire = module.constructor.prototype.require;
 
-      module.constructor.prototype.require = function (modulePath: string) {
+      module.constructor.prototype.require = function (
+        modulePath: string,
+        ...args: unknown[]
+      ) {
         loadedModules.add(modulePath);
-        return originalRequire.apply(this, arguments);
+        return originalRequire.apply(this, [modulePath, ...args]);
       };
 
       try {
@@ -141,9 +150,12 @@ describe('Module Independence Tests', () => {
       const loadedModules = new Set<string>();
       const originalRequire = module.constructor.prototype.require;
 
-      module.constructor.prototype.require = function (modulePath: string) {
+      module.constructor.prototype.require = function (
+        modulePath: string,
+        ...args: unknown[]
+      ) {
         loadedModules.add(modulePath);
-        return originalRequire.apply(this, arguments);
+        return originalRequire.apply(this, [modulePath, ...args]);
       };
 
       try {

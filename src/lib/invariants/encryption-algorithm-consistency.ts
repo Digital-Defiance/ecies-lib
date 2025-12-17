@@ -3,7 +3,7 @@ import { BaseInvariant } from '../../interfaces/invariant';
 
 /**
  * Validates that encryption algorithm parameters are consistent.
- * 
+ *
  * Checks:
  * - Symmetric key size matches the algorithm (AES-256 = 32 bytes)
  * - Curve name is supported
@@ -20,7 +20,7 @@ export class EncryptionAlgorithmConsistencyInvariant extends BaseInvariant {
   constructor() {
     super(
       'EncryptionAlgorithmConsistency',
-      'Encryption algorithm parameters must be consistent'
+      'Encryption algorithm parameters must be consistent',
     );
   }
 
@@ -31,9 +31,11 @@ export class EncryptionAlgorithmConsistencyInvariant extends BaseInvariant {
     }
 
     // Check curve is supported
-    if (!EncryptionAlgorithmConsistencyInvariant.SUPPORTED_CURVES.includes(
-      config.ECIES.CURVE_NAME
-    )) {
+    if (
+      !EncryptionAlgorithmConsistencyInvariant.SUPPORTED_CURVES.includes(
+        config.ECIES.CURVE_NAME,
+      )
+    ) {
       return false;
     }
 
@@ -50,21 +52,27 @@ export class EncryptionAlgorithmConsistencyInvariant extends BaseInvariant {
 
     if (config.ECIES.SYMMETRIC.KEY_SIZE !== 32) {
       issues.push(
-        `SYMMETRIC.KEY_SIZE (${config.ECIES.SYMMETRIC.KEY_SIZE}) must be 32 for AES-256`
+        `SYMMETRIC.KEY_SIZE (${config.ECIES.SYMMETRIC.KEY_SIZE}) must be 32 for AES-256`,
       );
     }
 
-    if (!EncryptionAlgorithmConsistencyInvariant.SUPPORTED_CURVES.includes(
-      config.ECIES.CURVE_NAME
-    )) {
+    if (
+      !EncryptionAlgorithmConsistencyInvariant.SUPPORTED_CURVES.includes(
+        config.ECIES.CURVE_NAME,
+      )
+    ) {
       issues.push(
-        `CURVE_NAME (${config.ECIES.CURVE_NAME}) must be one of: ${EncryptionAlgorithmConsistencyInvariant.SUPPORTED_CURVES.join(', ')}`
+        `CURVE_NAME (${
+          config.ECIES.CURVE_NAME
+        }) must be one of: ${EncryptionAlgorithmConsistencyInvariant.SUPPORTED_CURVES.join(
+          ', ',
+        )}`,
       );
     }
 
     if (!config.ECIES.PRIMARY_KEY_DERIVATION_PATH.startsWith('m/')) {
       issues.push(
-        `PRIMARY_KEY_DERIVATION_PATH (${config.ECIES.PRIMARY_KEY_DERIVATION_PATH}) must be a valid BIP32 path starting with 'm/'`
+        `PRIMARY_KEY_DERIVATION_PATH (${config.ECIES.PRIMARY_KEY_DERIVATION_PATH}) must be a valid BIP32 path starting with 'm/'`,
       );
     }
 

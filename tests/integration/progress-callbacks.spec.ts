@@ -1,7 +1,7 @@
+import { IStreamProgress } from '../../src/interfaces/stream-progress';
 import { ECIESService } from '../../src/services/ecies/service';
 import { EncryptionStream } from '../../src/services/encryption-stream';
 import { StreamTestUtils } from '../support/stream-test-utils';
-import { IStreamProgress } from '../../src/interfaces/stream-progress';
 
 describe('Progress Callbacks', () => {
   let ecies: ECIESService;
@@ -28,7 +28,7 @@ describe('Progress Callbacks', () => {
     };
 
     await StreamTestUtils.collectChunks(
-      stream.encryptStream(source, publicKey, { onProgress })
+      stream.encryptStream(source, publicKey, { onProgress }),
     );
 
     expect(progressUpdates.length).toBeGreaterThan(0);
@@ -45,11 +45,11 @@ describe('Progress Callbacks', () => {
     };
 
     await StreamTestUtils.collectChunks(
-      stream.encryptStream(source, publicKey, { onProgress })
+      stream.encryptStream(source, publicKey, { onProgress }),
     );
 
     expect(progressUpdates.length).toBe(5);
-    
+
     for (let i = 0; i < progressUpdates.length; i++) {
       expect(progressUpdates[i].chunksProcessed).toBe(i + 1);
       expect(progressUpdates[i].bytesProcessed).toBeGreaterThan(0);
@@ -69,7 +69,7 @@ describe('Progress Callbacks', () => {
     };
 
     await StreamTestUtils.collectChunks(
-      stream.encryptStream(source, publicKey, { onProgress })
+      stream.encryptStream(source, publicKey, { onProgress }),
     );
 
     const lastProgress = progressUpdates[progressUpdates.length - 1];
@@ -91,7 +91,7 @@ describe('Progress Callbacks', () => {
       progressUpdates.push({ ...progress });
     };
 
-    const decryptedChunks = await StreamTestUtils.collectChunks(
+    const _decryptedChunks = await StreamTestUtils.collectChunks(
       stream.decryptStream(
         (async function* () {
           for (const chunk of encryptedChunks) {
@@ -99,8 +99,8 @@ describe('Progress Callbacks', () => {
           }
         })(),
         privateKey,
-        { onProgress }
-      )
+        { onProgress },
+      ),
     );
 
     expect(progressUpdates.length).toBeGreaterThan(0);

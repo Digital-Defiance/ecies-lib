@@ -7,8 +7,10 @@
  * This test verifies that the module dependency graph contains no circular dependencies.
  */
 
+/* eslint-disable import/order */
 import madge from 'madge';
 import * as path from 'path';
+/* eslint-enable import/order */
 
 describe('Property-Based Test: Module Dependency Graph', () => {
   /**

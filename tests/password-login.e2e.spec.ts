@@ -1,10 +1,10 @@
 import { Wallet } from '@ethereumjs/wallet';
-import { PasswordLoginService } from '../src/services/password-login';
-import { ECIESService } from '../src/services/ecies';
-import { SecureString } from '../src/secure-string';
-import { Pbkdf2ProfileEnum } from '../src/enumerations';
-import { Pbkdf2Service } from '../src/services/pbkdf2';
+import { Pbkdf2ProfileEnum } from '../src/enumerations/pbkdf2-profile';
 import { getEciesI18nEngine } from '../src/i18n-setup';
+import { SecureString } from '../src/secure-string';
+import { ECIESService } from '../src/services/ecies';
+import { PasswordLoginService } from '../src/services/password-login';
+import { Pbkdf2Service } from '../src/services/pbkdf2';
 
 describe('PasswordLoginService E2E', () => {
   let passwordLoginService: PasswordLoginService;
@@ -20,7 +20,10 @@ describe('PasswordLoginService E2E', () => {
     getEciesI18nEngine(); // Ensure engine is initialized for error messages
     eciesService = new ECIESService();
     pbkdf2Service = new Pbkdf2Service();
-    passwordLoginService = new PasswordLoginService(eciesService, pbkdf2Service);
+    passwordLoginService = new PasswordLoginService(
+      eciesService,
+      pbkdf2Service,
+    );
 
     // Use real test data
     testMnemonic = new SecureString(
@@ -38,7 +41,10 @@ describe('PasswordLoginService E2E', () => {
   describe('Full Password Login Flow', () => {
     it('should complete setup and recovery cycle successfully', async () => {
       // Setup password login
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+      );
 
       // Verify localStorage contains required data
       expect(localStorage.getItem('passwordLoginSalt')).toBeTruthy();
@@ -87,39 +93,45 @@ describe('PasswordLoginService E2E', () => {
           const originalGetItem = localStorage.getItem;
           const originalRemoveItem = localStorage.removeItem;
           const originalClear = localStorage.clear;
-          
+
           const prefix = `test_${index}_`;
-          
+
           // Mock localStorage with prefixed keys for parallel execution
           const mockStorage: { [key: string]: string } = {};
-          
+
           localStorage.setItem = (key: string, value: string) => {
             mockStorage[prefix + key] = value;
           };
-          
+
           localStorage.getItem = (key: string) => {
             return mockStorage[prefix + key] || null;
           };
-          
+
           localStorage.removeItem = (key: string) => {
             delete mockStorage[prefix + key];
           };
-          
+
           localStorage.clear = () => {
-            Object.keys(mockStorage).forEach(key => {
+            Object.keys(mockStorage).forEach((key) => {
               if (key.startsWith(prefix)) {
                 delete mockStorage[key];
               }
             });
           };
 
-          await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, password, Pbkdf2ProfileEnum.TEST_FAST);
+          await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+            testMnemonic,
+            password,
+            Pbkdf2ProfileEnum.TEST_FAST,
+          );
           const result =
-            await passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(password);
+            await passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(
+              password,
+            );
 
           expect(result.mnemonic.value).toBe(testMnemonic.value);
           result.mnemonic.dispose();
-          
+
           // Restore original localStorage methods
           localStorage.setItem = originalSetItem;
           localStorage.getItem = originalGetItem;
@@ -144,7 +156,11 @@ describe('PasswordLoginService E2E', () => {
         const mnemonic = new SecureString(mnemonicPhrase);
         localStorage.clear();
 
-        await passwordLoginService.setupPasswordLoginLocalStorageBundle(mnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+        await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+          mnemonic,
+          testPassword,
+          Pbkdf2ProfileEnum.TEST_FAST,
+        );
         const result =
           await passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(
             testPassword,
@@ -158,43 +174,65 @@ describe('PasswordLoginService E2E', () => {
     });
 
     it('should fail with wrong password', async () => {
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
 
       const wrongPassword = new SecureString('wrong-password');
 
       await expect(
-        passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(wrongPassword),
+        passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(
+          wrongPassword,
+        ),
       ).rejects.toThrow();
 
       wrongPassword.dispose();
     });
 
     it('should fail when localStorage is cleared', async () => {
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
 
       // Clear localStorage
       localStorage.clear();
 
       await expect(
-        passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(testPassword),
+        passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(
+          testPassword,
+        ),
       ).rejects.toThrow('Password login is not set up');
     });
 
     it('should fail when localStorage data is corrupted', async () => {
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
 
       // Corrupt the salt
       localStorage.setItem('passwordLoginSalt', 'invalid-hex-data');
 
       await expect(
-        passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(testPassword),
+        passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(
+          testPassword,
+        ),
       ).rejects.toThrow();
     });
   });
 
   describe('createPasswordLoginBundle', () => {
     it('should create bundle without localStorage', async () => {
-      const bundle = await passwordLoginService.createPasswordLoginBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      const bundle = await passwordLoginService.createPasswordLoginBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
 
       expect(bundle.salt).toBeInstanceOf(Uint8Array);
       expect(bundle.encryptedPrivateKey).toBeInstanceOf(Uint8Array);
@@ -208,15 +246,20 @@ describe('PasswordLoginService E2E', () => {
 
   describe('getWalletAndMnemonicFromEncryptedPasswordBundle', () => {
     it('should decrypt bundle without localStorage', async () => {
-      const bundle = await passwordLoginService.createPasswordLoginBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
-      
-      const result = await passwordLoginService.getWalletAndMnemonicFromEncryptedPasswordBundle(
-        bundle.salt,
-        bundle.encryptedPrivateKey,
-        bundle.encryptedMnemonic,
+      const bundle = await passwordLoginService.createPasswordLoginBundle(
+        testMnemonic,
         testPassword,
-        Pbkdf2ProfileEnum.TEST_FAST
+        Pbkdf2ProfileEnum.TEST_FAST,
       );
+
+      const result =
+        await passwordLoginService.getWalletAndMnemonicFromEncryptedPasswordBundle(
+          bundle.salt,
+          bundle.encryptedPrivateKey,
+          bundle.encryptedMnemonic,
+          testPassword,
+          Pbkdf2ProfileEnum.TEST_FAST,
+        );
 
       expect(result.wallet).toBeInstanceOf(Wallet);
       expect(result.mnemonic.value).toBe(testMnemonic.value);
@@ -236,7 +279,7 @@ describe('PasswordLoginService E2E', () => {
         await passwordLoginService.setupPasswordLoginLocalStorageBundle(
           testMnemonic,
           testPassword,
-          Pbkdf2ProfileEnum.TEST_FAST
+          Pbkdf2ProfileEnum.TEST_FAST,
         );
         const result =
           await passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(
@@ -267,7 +310,7 @@ describe('PasswordLoginService E2E', () => {
         await passwordLoginService.setupPasswordLoginLocalStorageBundle(
           testMnemonic,
           testPassword,
-          Pbkdf2ProfileEnum.TEST_FAST
+          Pbkdf2ProfileEnum.TEST_FAST,
         );
         const salt = localStorage.getItem('passwordLoginSalt');
 
@@ -286,7 +329,7 @@ describe('PasswordLoginService E2E', () => {
         await passwordLoginService.setupPasswordLoginLocalStorageBundle(
           testMnemonic,
           testPassword,
-          Pbkdf2ProfileEnum.TEST_FAST
+          Pbkdf2ProfileEnum.TEST_FAST,
         );
         const encryptedKey = localStorage.getItem('encryptedPrivateKey');
 
@@ -300,7 +343,11 @@ describe('PasswordLoginService E2E', () => {
   describe('Cross-Platform Compatibility', () => {
     it('should work with different crypto implementations', async () => {
       // Test that the service works with the actual Web Crypto API
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
 
       const result =
         await passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(
@@ -319,7 +366,11 @@ describe('PasswordLoginService E2E', () => {
         'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art',
       );
 
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(longMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        longMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
       const result =
         await passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(
           testPassword,
@@ -336,7 +387,11 @@ describe('PasswordLoginService E2E', () => {
     it('should complete setup within reasonable time', async () => {
       const startTime = Date.now();
 
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
 
       const endTime = Date.now();
       const duration = endTime - startTime;
@@ -346,7 +401,11 @@ describe('PasswordLoginService E2E', () => {
     });
 
     it('should complete recovery within reasonable time', async () => {
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
 
       const startTime = Date.now();
 
@@ -369,7 +428,11 @@ describe('PasswordLoginService E2E', () => {
     it('should use BROWSER_PASSWORD profile for PBKDF2', async () => {
       // This is tested indirectly by ensuring the operation completes
       // and produces consistent results
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.BROWSER_PASSWORD);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.BROWSER_PASSWORD,
+      );
 
       const result1 =
         await passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(
@@ -389,7 +452,11 @@ describe('PasswordLoginService E2E', () => {
     }, 60000);
 
     it('should not store plaintext passwords or mnemonics', async () => {
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
 
       const salt = localStorage.getItem('passwordLoginSalt');
       const encryptedKey = localStorage.getItem('encryptedPrivateKey');
@@ -408,7 +475,11 @@ describe('PasswordLoginService E2E', () => {
       const promises = Array(3)
         .fill(null)
         .map(() =>
-          passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST),
+          passwordLoginService.setupPasswordLoginLocalStorageBundle(
+            testMnemonic,
+            testPassword,
+            Pbkdf2ProfileEnum.TEST_FAST,
+          ),
         );
 
       // All should complete without throwing
@@ -416,12 +487,18 @@ describe('PasswordLoginService E2E', () => {
     });
 
     it('should handle concurrent recovery attempts gracefully', async () => {
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
 
       const promises = Array(3)
         .fill(null)
         .map(() =>
-          passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(testPassword),
+          passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(
+            testPassword,
+          ),
         );
 
       const results = await Promise.all(promises);
@@ -446,13 +523,21 @@ describe('PasswordLoginService E2E', () => {
     it('should return true after successful setup', async () => {
       expect(PasswordLoginService.isPasswordLoginSetup()).toBe(false);
 
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
 
       expect(PasswordLoginService.isPasswordLoginSetup()).toBe(true);
     });
 
     it('should return false after localStorage is cleared', async () => {
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
       expect(PasswordLoginService.isPasswordLoginSetup()).toBe(true);
 
       localStorage.clear();
@@ -460,7 +545,11 @@ describe('PasswordLoginService E2E', () => {
     });
 
     it('should return false when only salt is present', async () => {
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
       expect(PasswordLoginService.isPasswordLoginSetup()).toBe(true);
 
       // Remove encrypted private key and mnemonic, leaving only salt
@@ -471,7 +560,11 @@ describe('PasswordLoginService E2E', () => {
     });
 
     it('should return false when only encrypted private key is present', async () => {
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
       expect(PasswordLoginService.isPasswordLoginSetup()).toBe(true);
 
       // Remove salt and encrypted mnemonic, leaving only encrypted private key
@@ -482,7 +575,11 @@ describe('PasswordLoginService E2E', () => {
     });
 
     it('should return false when only encrypted mnemonic is present', async () => {
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
       expect(PasswordLoginService.isPasswordLoginSetup()).toBe(true);
 
       // Remove salt and encrypted private key, leaving only encrypted mnemonic
@@ -493,7 +590,11 @@ describe('PasswordLoginService E2E', () => {
     });
 
     it('should return false when salt is corrupted to empty string', async () => {
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
       expect(PasswordLoginService.isPasswordLoginSetup()).toBe(true);
 
       localStorage.setItem('passwordLoginSalt', '');
@@ -501,7 +602,11 @@ describe('PasswordLoginService E2E', () => {
     });
 
     it('should return false when encrypted private key is corrupted to empty string', async () => {
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
       expect(PasswordLoginService.isPasswordLoginSetup()).toBe(true);
 
       localStorage.setItem('encryptedPrivateKey', '');
@@ -509,7 +614,11 @@ describe('PasswordLoginService E2E', () => {
     });
 
     it('should return false when encrypted mnemonic is corrupted to empty string', async () => {
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
       expect(PasswordLoginService.isPasswordLoginSetup()).toBe(true);
 
       localStorage.setItem('encryptedMnemonic', '');
@@ -523,7 +632,11 @@ describe('PasswordLoginService E2E', () => {
       }
 
       // Setup and test when setup
-      await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+      await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+        testMnemonic,
+        testPassword,
+        Pbkdf2ProfileEnum.TEST_FAST,
+      );
       for (let i = 0; i < 5; i++) {
         expect(PasswordLoginService.isPasswordLoginSetup()).toBe(true);
       }
@@ -541,7 +654,11 @@ describe('PasswordLoginService E2E', () => {
       for (let i = 0; i < iterations; i++) {
         expect(PasswordLoginService.isPasswordLoginSetup()).toBe(false);
 
-        await passwordLoginService.setupPasswordLoginLocalStorageBundle(testMnemonic, testPassword, Pbkdf2ProfileEnum.TEST_FAST);
+        await passwordLoginService.setupPasswordLoginLocalStorageBundle(
+          testMnemonic,
+          testPassword,
+          Pbkdf2ProfileEnum.TEST_FAST,
+        );
         expect(PasswordLoginService.isPasswordLoginSetup()).toBe(true);
 
         localStorage.clear();

@@ -1,6 +1,5 @@
 export * from './disposed';
 export * from './ecies';
-export type { IErrorContext } from './ecies';
 export * from './guid';
 export * from './id-provider';
 export * from './invalid-email';

@@ -1,8 +1,8 @@
 import { ObjectId } from 'bson';
-import { SecureString } from '../src/secure-string';
 import { IFrontendMemberOperational } from '../src/interfaces';
-import { SignatureUint8Array } from '../src/types';
+import { SecureString } from '../src/secure-string';
 import { MockFrontendMember } from '../src/test-mocks/mock-frontend-member';
+import { SignatureUint8Array } from '../src/types';
 
 describe('IFrontendMemberOperational interface compliance', () => {
   let member: IFrontendMemberOperational<ObjectId>;
@@ -114,7 +114,9 @@ describe('IFrontendMemberOperational interface compliance', () => {
 
   describe('polymorphic usage', () => {
     it('should work as IFrontendMemberOperational type', () => {
-      const processMembers = (members: IFrontendMemberOperational<ObjectId>[]) => {
+      const processMembers = (
+        members: IFrontendMemberOperational<ObjectId>[],
+      ) => {
         return members.map((m) => m.name);
       };
 

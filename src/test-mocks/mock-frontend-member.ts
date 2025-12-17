@@ -6,7 +6,6 @@ import {
 } from '@digitaldefiance/ecies-lib';
 import { Wallet } from '@ethereumjs/wallet';
 import { faker } from '@faker-js/faker';
-
 import { ObjectId } from 'bson';
 import type { IFrontendMemberOperational } from '../interfaces/frontend-member-operational';
 import { SignatureUint8Array } from '../types';
@@ -28,7 +27,7 @@ const createMockWallet = (): Wallet =>
       hexToUint8Array(faker.string.hexadecimal({ length: 128 })),
     getAddress: () => hexToUint8Array(faker.string.hexadecimal({ length: 40 })),
     sign: () => hexToUint8Array(faker.string.hexadecimal({ length: 128 })),
-  } as any);
+  } as unknown as Wallet);
 
 export class MockFrontendMember
   implements IFrontendMemberOperational<ObjectId>
@@ -119,32 +118,32 @@ export class MockFrontendMember
 
   unloadWalletAndPrivateKey(): void {}
 
-  loadWallet(mnemonic: SecureString): void {}
+  loadWallet(_mnemonic: SecureString): void {}
 
-  loadPrivateKey(privateKey: SecureBuffer): void {}
+  loadPrivateKey(_privateKey: SecureBuffer): void {}
 
-  sign(data: Uint8Array): SignatureUint8Array {
+  sign(_data: Uint8Array): SignatureUint8Array {
     return hexToUint8Array(
       faker.string.hexadecimal({ length: 128 }),
     ) as SignatureUint8Array;
   }
 
-  verify(signature: SignatureUint8Array, data: Uint8Array): boolean {
+  verify(_signature: SignatureUint8Array, _data: Uint8Array): boolean {
     return true;
   }
 
-  async encryptData(data: string | Uint8Array): Promise<Uint8Array> {
+  async encryptData(_data: string | Uint8Array): Promise<Uint8Array> {
     return hexToUint8Array(faker.string.hexadecimal({ length: 256 }));
   }
 
-  async decryptData(encryptedData: Uint8Array): Promise<Uint8Array> {
+  async decryptData(_encryptedData: Uint8Array): Promise<Uint8Array> {
     const text = faker.lorem.paragraph();
     return new TextEncoder().encode(text);
   }
 
   async *encryptDataStream(
     source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
-    options?: {
+    _options?: {
       recipientPublicKey?: Uint8Array;
       onProgress?: (progress: {
         bytesProcessed: number;
@@ -194,7 +193,7 @@ export class MockFrontendMember
 
   async *decryptDataStream(
     source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
-    options?: {
+    _options?: {
       onProgress?: (progress: {
         bytesProcessed: number;
         chunksProcessed: number;

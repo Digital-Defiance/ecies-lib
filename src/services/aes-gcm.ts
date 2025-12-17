@@ -1,7 +1,7 @@
-import { IECIESConstants } from '../interfaces/ecies-consts';
 import { Constants } from '../constants';
-import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
 import { EciesStringKey } from '../enumerations';
+import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { IECIESConstants } from '../interfaces/ecies-consts';
 
 export abstract class AESGCMService {
   public static readonly ALGORITHM_NAME = 'AES-GCM';
@@ -21,17 +21,33 @@ export abstract class AESGCMService {
     // Validate key length (AES supports 16, 24, or 32 bytes)
     if (!key || (key.length !== 16 && key.length !== 24 && key.length !== 32)) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidAESKeyLength));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_InvalidAESKeyLength,
+        ),
+      );
     }
 
     // Validate data exists (empty data is allowed for AES-GCM)
     if (!data) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_CannotEncryptEmptyData));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_CannotEncryptEmptyData,
+        ),
+      );
     }
     if (data.length > eciesParams.MAX_RAW_DATA_SIZE) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate, { messageLength: data.length }));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate,
+          { messageLength: data.length },
+        ),
+      );
     }
 
     const cryptoKey = await crypto.subtle.importKey(
@@ -135,7 +151,10 @@ export abstract class AESGCMService {
     if (combinedData.length < ivLength + tagLength) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents),
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents,
+        ),
       );
     }
 
@@ -166,19 +185,34 @@ export abstract class AESGCMService {
     // Validate key length
     if (!key || (key.length !== 16 && key.length !== 24 && key.length !== 32)) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidAESKeyLength));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_InvalidAESKeyLength,
+        ),
+      );
     }
 
     // Validate IV
     if (!iv || iv.length !== eciesConsts.IV_SIZE) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidIV));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_InvalidIV,
+        ),
+      );
     }
 
     // Validate encrypted data exists (empty encrypted data is allowed)
     if (!encryptedData) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_CannotDecryptEmptyData));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_CannotDecryptEmptyData,
+        ),
+      );
     }
 
     const cryptoKey = await crypto.subtle.importKey(
@@ -191,8 +225,8 @@ export abstract class AESGCMService {
 
     if (!authTag) {
       const decrypted = await crypto.subtle.decrypt(
-        { 
-          name: AESGCMService.ALGORITHM_NAME, 
+        {
+          name: AESGCMService.ALGORITHM_NAME,
           iv: new Uint8Array(iv),
           additionalData: aad,
         },

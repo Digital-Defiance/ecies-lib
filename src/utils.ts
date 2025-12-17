@@ -58,7 +58,7 @@ export function decodeLengthEncodedData(buffer: Uint8Array): {
     throw new LengthError(LengthErrorType.LengthIsTooShort);
   }
 
-  let length: number | BigInt;
+  let length: number | bigint;
   switch (lengthType) {
     case LengthEncodingType.UInt8:
       length = view.getUint8(1);
@@ -230,9 +230,9 @@ export function concatUint8Arrays(...arrays: Uint8Array[]): Uint8Array {
  * @returns The corresponding LengthEncodingType
  */
 export function getLengthEncodingTypeForLength<
-  TStringKey extends string,
-  TLanguage extends string,
->(length: number | BigInt): LengthEncodingType {
+  _TStringKey extends string,
+  _TLanguage extends string,
+>(length: number | bigint): LengthEncodingType {
   if (typeof length === 'number') {
     if (length < 256) {
       return LengthEncodingType.UInt8;
@@ -268,8 +268,8 @@ export function getLengthEncodingTypeForLength<
  * @returns The corresponding LengthEncodingType
  */
 export function getLengthEncodingTypeFromValue<
-  TStringKey extends string,
-  TLanguage extends string,
+  _TStringKey extends string,
+  _TLanguage extends string,
 >(value: number): LengthEncodingType {
   for (const length of Object.values(LengthEncodingType)) {
     if (length === value) {
@@ -311,8 +311,8 @@ export function safeBigIntToNumber(value: bigint): number {
  * @returns The length in bytes
  */
 export function getLengthForLengthType<
-  TStringKey extends string,
-  TLanguage extends string,
+  _TStringKey extends string,
+  _TLanguage extends string,
 >(type: LengthEncodingType): number {
   switch (type) {
     case LengthEncodingType.UInt8:

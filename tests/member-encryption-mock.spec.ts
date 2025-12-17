@@ -118,9 +118,9 @@ describe('MockFrontendMember encryption/decryption', () => {
     it('should work without private key', async () => {
       const memberNoKey = MockFrontendMember.createWithoutPrivateKey();
 
-      await expect(
-        memberNoKey.encryptData('test'),
-      ).resolves.toBeInstanceOf(Uint8Array);
+      await expect(memberNoKey.encryptData('test')).resolves.toBeInstanceOf(
+        Uint8Array,
+      );
     });
 
     it('should not require real cryptographic initialization', async () => {

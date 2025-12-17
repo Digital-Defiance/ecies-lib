@@ -3,15 +3,16 @@
  * These tests are designed to catch discrepancies like the 12 vs 32 byte issue.
  */
 
-import { Constants, createRuntimeConfiguration, ECIES } from '../../src/constants';
 import {
-  ObjectIdProvider,
-  GuidV4Provider,
-} from '../../src/lib/id-providers';
+  Constants,
+  createRuntimeConfiguration,
+  ECIES,
+} from '../../src/constants';
 import { getMultiRecipientConstants } from '../../src/interfaces/multi-recipient-chunk';
-import { MultiRecipientProcessor } from '../../src/services/multi-recipient-processor';
-import { ECIESService } from '../../src/services/ecies/service';
+import { GuidV4Provider, ObjectIdProvider } from '../../src/lib/id-providers';
 import { EciesCryptoCore } from '../../src/services/ecies/crypto-core';
+import { ECIESService } from '../../src/services/ecies/service';
+import { MultiRecipientProcessor } from '../../src/services/multi-recipient-processor';
 
 describe('Recipient ID Consistency Integration Tests', () => {
   describe('Critical: All constants must align with ID provider', () => {
@@ -20,7 +21,7 @@ describe('Recipient ID Consistency Integration Tests', () => {
       const config = Constants;
 
       expect(config.ECIES.MULTIPLE.RECIPIENT_ID_SIZE).toBe(
-        config.idProvider.byteLength
+        config.idProvider.byteLength,
       );
       expect(config.MEMBER_ID_LENGTH).toBe(config.idProvider.byteLength);
       expect(config.OBJECT_ID_LENGTH).toBe(12); // Hardcoded reference value
@@ -30,12 +31,12 @@ describe('Recipient ID Consistency Integration Tests', () => {
     it('should enforce getMultiRecipientConstants matches idProvider', () => {
       const config = Constants;
       const mrConstants = getMultiRecipientConstants(
-        config.idProvider.byteLength
+        config.idProvider.byteLength,
       );
 
       expect(mrConstants.RECIPIENT_ID_SIZE).toBe(config.idProvider.byteLength);
       expect(mrConstants.RECIPIENT_ID_SIZE).toBe(
-        config.ECIES.MULTIPLE.RECIPIENT_ID_SIZE
+        config.ECIES.MULTIPLE.RECIPIENT_ID_SIZE,
       );
     });
 
@@ -101,13 +102,13 @@ describe('Recipient ID Consistency Integration Tests', () => {
         recipients,
         0,
         true,
-        symmetricKey
+        symmetricKey,
       );
 
       const decrypted = await processor.decryptChunk(
         encrypted.data,
         recipientId,
-        keyPair.privateKey
+        keyPair.privateKey,
       );
 
       expect(decrypted.data).toEqual(data);
@@ -133,13 +134,13 @@ describe('Recipient ID Consistency Integration Tests', () => {
         recipients,
         0,
         true,
-        symmetricKey
+        symmetricKey,
       );
 
       const decrypted = await processor.decryptChunk(
         encrypted.data,
         recipientId,
-        keyPair.privateKey
+        keyPair.privateKey,
       );
 
       expect(decrypted.data).toEqual(data);
@@ -165,13 +166,13 @@ describe('Recipient ID Consistency Integration Tests', () => {
         recipients,
         0,
         true,
-        symmetricKey
+        symmetricKey,
       );
 
       const decrypted = await processor.decryptChunk(
         encrypted.data,
         recipientId,
-        keyPair.privateKey
+        keyPair.privateKey,
       );
 
       expect(decrypted.data).toEqual(data);
@@ -192,7 +193,7 @@ describe('Recipient ID Consistency Integration Tests', () => {
       const symmetricKey = cryptoCore.generatePrivateKey();
 
       await expect(
-        processor.encryptChunk(data, recipients, 0, true, symmetricKey)
+        processor.encryptChunk(data, recipients, 0, true, symmetricKey),
       ).rejects.toThrow('must be 12 bytes');
     });
 
@@ -214,7 +215,7 @@ describe('Recipient ID Consistency Integration Tests', () => {
       const symmetricKey = cryptoCore.generatePrivateKey();
 
       await expect(
-        processor.encryptChunk(data, recipients, 0, true, symmetricKey)
+        processor.encryptChunk(data, recipients, 0, true, symmetricKey),
       ).rejects.toThrow('must be 12 bytes');
     });
   });
@@ -235,17 +236,14 @@ describe('Recipient ID Consistency Integration Tests', () => {
     });
 
     it('should maintain consistency when switching providers', () => {
-      const providers = [
-        new ObjectIdProvider(),
-        new GuidV4Provider(),
-      ];
+      const providers = [new ObjectIdProvider(), new GuidV4Provider()];
 
       for (const provider of providers) {
         const config = createRuntimeConfiguration({ idProvider: provider });
 
         expect(config.MEMBER_ID_LENGTH).toBe(provider.byteLength);
         expect(config.ECIES.MULTIPLE.RECIPIENT_ID_SIZE).toBe(
-          provider.byteLength
+          provider.byteLength,
         );
         expect(config.idProvider.byteLength).toBe(provider.byteLength);
 
@@ -276,12 +274,12 @@ describe('Recipient ID Consistency Integration Tests', () => {
       // This is the core issue that slipped through
       const config = Constants;
       const mrConstants = getMultiRecipientConstants(
-        config.idProvider.byteLength
+        config.idProvider.byteLength,
       );
 
       // These MUST match
       expect(mrConstants.RECIPIENT_ID_SIZE).toBe(
-        config.ECIES.MULTIPLE.RECIPIENT_ID_SIZE
+        config.ECIES.MULTIPLE.RECIPIENT_ID_SIZE,
       );
     });
 
@@ -300,7 +298,7 @@ describe('Recipient ID Consistency Integration Tests', () => {
 
       // Should reject because config expects 12 bytes
       await expect(
-        processor.encryptChunk(data, recipients, 0, true, symmetricKey)
+        processor.encryptChunk(data, recipients, 0, true, symmetricKey),
       ).rejects.toThrow();
     });
   });

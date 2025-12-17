@@ -1,7 +1,7 @@
-import { EncryptionStream } from '../../src/services/encryption-stream';
-import { ECIESService } from '../../src/services/ecies/service';
-import { StreamTestUtils } from '../support/stream-test-utils';
 import { getEciesI18nEngine } from '../../src/i18n-setup';
+import { ECIESService } from '../../src/services/ecies/service';
+import { EncryptionStream } from '../../src/services/encryption-stream';
+import { StreamTestUtils } from '../support/stream-test-utils';
 
 describe('EncryptionStream - Edge Cases', () => {
   let ecies: ECIESService;
@@ -17,7 +17,7 @@ describe('EncryptionStream - Edge Cases', () => {
   beforeEach(() => {
     ecies = new ECIESService();
     stream = new EncryptionStream(ecies);
-    
+
     const mnemonic = ecies.generateNewMnemonic();
     const keyPair = ecies.mnemonicToSimpleKeyPair(mnemonic);
     publicKey = keyPair.publicKey;
@@ -42,13 +42,13 @@ describe('EncryptionStream - Edge Cases', () => {
 
       // Try to decrypt with wrong key
       await expect(async () => {
-        for await (const chunk of stream.decryptStream(
+        for await (const _chunk of stream.decryptStream(
           (async function* () {
             for (const encrypted of encryptedChunks) {
               yield encrypted;
             }
           })(),
-          wrongPrivateKey
+          wrongPrivateKey,
         )) {
           // Should fail before yielding
         }
@@ -67,12 +67,12 @@ describe('EncryptionStream - Edge Cases', () => {
 
       // Try to decrypt with duplicate chunk
       await expect(async () => {
-        for await (const chunk of stream.decryptStream(
+        for await (const _chunk of stream.decryptStream(
           (async function* () {
             yield encryptedChunks[0];
             yield encryptedChunks[0]; // Duplicate!
           })(),
-          privateKey
+          privateKey,
         )) {
           // Should fail on sequence validation
         }
@@ -97,14 +97,14 @@ describe('EncryptionStream - Edge Cases', () => {
           yield encryptedChunks[1];
           // Missing chunk 2!
         })(),
-        privateKey
+        privateKey,
       )) {
         decryptedChunks.push(chunk);
       }
 
       // Should only get 2 chunks
       expect(decryptedChunks.length).toBe(2);
-      
+
       // Verify data is incomplete
       const decrypted = StreamTestUtils.concatenateChunks(decryptedChunks);
       expect(decrypted.length).toBeLessThan(original.length);
@@ -132,7 +132,7 @@ describe('EncryptionStream - Edge Cases', () => {
             yield encrypted.data;
           }
         })(),
-        privateKey
+        privateKey,
       )) {
         decryptedChunks.push(chunk);
       }
@@ -161,7 +161,7 @@ describe('EncryptionStream - Edge Cases', () => {
             yield encrypted.data;
           }
         })(),
-        privateKey
+        privateKey,
       )) {
         decryptedChunks.push(chunk);
       }
@@ -177,7 +177,9 @@ describe('EncryptionStream - Edge Cases', () => {
       const source = StreamTestUtils.createAsyncIterable(exact, chunkSize);
 
       const encryptedChunks = [];
-      for await (const chunk of stream.encryptStream(source, publicKey, { chunkSize })) {
+      for await (const chunk of stream.encryptStream(source, publicKey, {
+        chunkSize,
+      })) {
         encryptedChunks.push(chunk);
       }
 
@@ -193,7 +195,7 @@ describe('EncryptionStream - Edge Cases', () => {
             yield encrypted.data;
           }
         })(),
-        privateKey
+        privateKey,
       )) {
         decryptedChunks.push(chunk);
       }
@@ -207,7 +209,9 @@ describe('EncryptionStream - Edge Cases', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 10);
 
       const encryptedChunks = [];
-      for await (const chunk of stream.encryptStream(source, publicKey, { chunkSize: 1 })) {
+      for await (const chunk of stream.encryptStream(source, publicKey, {
+        chunkSize: 1,
+      })) {
         encryptedChunks.push(chunk);
       }
 
@@ -223,7 +227,7 @@ describe('EncryptionStream - Edge Cases', () => {
             yield encrypted.data;
           }
         })(),
-        privateKey
+        privateKey,
       )) {
         decryptedChunks.push(chunk);
       }
@@ -234,12 +238,12 @@ describe('EncryptionStream - Edge Cases', () => {
 
     it('should handle memory pressure (100+ chunks)', async () => {
       const chunkSize = 1024 * 1024; // 1MB
-      const totalSize = 100 * chunkSize; // 100MB
-      
+      const _totalSize = 100 * chunkSize; // 100MB
+
       // Generate and encrypt in streaming fashion
       let encryptedCount = 0;
       const encryptedChunks = [];
-      
+
       for await (const chunk of stream.encryptStream(
         (async function* () {
           for (let i = 0; i < 100; i++) {
@@ -247,7 +251,7 @@ describe('EncryptionStream - Edge Cases', () => {
           }
         })(),
         publicKey,
-        { chunkSize }
+        { chunkSize },
       )) {
         encryptedCount++;
         encryptedChunks.push(chunk.data);
@@ -257,13 +261,13 @@ describe('EncryptionStream - Edge Cases', () => {
 
       // Decrypt in streaming fashion
       let decryptedCount = 0;
-      for await (const chunk of stream.decryptStream(
+      for await (const _chunk of stream.decryptStream(
         (async function* () {
           for (const encrypted of encryptedChunks) {
             yield encrypted;
           }
         })(),
-        privateKey
+        privateKey,
       )) {
         decryptedCount++;
       }
@@ -280,7 +284,10 @@ describe('EncryptionStream - Edge Cases', () => {
       };
 
       await expect(async () => {
-        for await (const chunk of stream.encryptStream(errorSource(), publicKey)) {
+        for await (const _chunk of stream.encryptStream(
+          errorSource(),
+          publicKey,
+        )) {
           // Should propagate error
         }
       }).rejects.toThrow('Stream source error');
@@ -296,11 +303,15 @@ describe('EncryptionStream - Edge Cases', () => {
 
       let chunkCount = 0;
       try {
-        for await (const chunk of stream.encryptStream(throwingIterator(), publicKey, { chunkSize })) {
+        for await (const _chunk of stream.encryptStream(
+          throwingIterator(),
+          publicKey,
+          { chunkSize },
+        )) {
           chunkCount++;
         }
         fail('Should have thrown Iterator error');
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.message).toBe('Iterator error');
         // Chunks are yielded as they're produced, so we should have gotten 2
         expect(chunkCount).toBeGreaterThanOrEqual(2);
@@ -316,10 +327,10 @@ describe('EncryptionStream - Edge Cases', () => {
         const controller = new AbortController();
 
         try {
-          for await (const chunk of stream.encryptStream(
+          for await (const _chunk of stream.encryptStream(
             StreamTestUtils.createAsyncIterable(data, 1024 * 1024),
             publicKey,
-            { signal: controller.signal }
+            { signal: controller.signal },
           )) {
             chunkCount++;
             if (chunkCount === cancelAt) {
@@ -327,7 +338,7 @@ describe('EncryptionStream - Edge Cases', () => {
             }
           }
           fail(`Should have thrown AbortError at chunk ${cancelAt}`);
-        } catch (error: any) {
+        } catch (error: unknown) {
           expect(error.name).toBe('AbortError');
           expect(chunkCount).toBe(cancelAt);
         }
@@ -353,7 +364,7 @@ describe('EncryptionStream - Edge Cases', () => {
             yield encrypted;
           }
         })(),
-        privateKey
+        privateKey,
       )) {
         decryptedChunks.push(chunk);
       }
@@ -385,7 +396,7 @@ describe('EncryptionStream - Edge Cases', () => {
             yield encrypted;
           }
         })(),
-        privateKey
+        privateKey,
       )) {
         decryptedChunks.push(chunk);
       }

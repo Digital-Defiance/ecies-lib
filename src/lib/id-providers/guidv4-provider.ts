@@ -1,14 +1,14 @@
-import { BaseIdProvider } from '../../interfaces/id-provider';
-import { GuidV4 } from '../guid';
-import { IdProviderError } from '../../errors/id-provider';
 import { IdProviderErrorType } from '../../enumerations/id-provider-error-type';
+import { IdProviderError } from '../../errors/id-provider';
+import { BaseIdProvider } from '../base-id-provider';
+import { GuidV4 } from '../guid';
 
 /**
  * ID provider for GUIDv4 (16 bytes raw, 24 bytes base64).
- * 
+ *
  * Uses the GuidV4 class which provides RFC 4122 compliant v4 GUIDs.
  * The raw binary representation is 16 bytes (128 bits).
- * 
+ *
  * Serialization uses base64 for compactness (24 characters vs 36 for hex with dashes).
  */
 export class GuidV4Provider extends BaseIdProvider {
@@ -46,7 +46,7 @@ export class GuidV4Provider extends BaseIdProvider {
    */
   serialize(id: Uint8Array): string {
     this.validateLength(id, 'GuidV4Provider.serialize');
-    
+
     try {
       const guid = new GuidV4(Buffer.from(id));
       return guid.asBase64Guid;
@@ -55,7 +55,7 @@ export class GuidV4Provider extends BaseIdProvider {
         IdProviderErrorType.InvalidGuidBuffer,
         { cause: error instanceof Error ? error : undefined },
         undefined,
-        { message: error instanceof Error ? error.message : String(error) }
+        { message: error instanceof Error ? error.message : String(error) },
       );
     }
   }
@@ -77,7 +77,10 @@ export class GuidV4Provider extends BaseIdProvider {
         IdProviderErrorType.ParseFailed,
         { cause: error instanceof Error ? error : undefined },
         undefined,
-        { input: str, message: error instanceof Error ? error.message : String(error) }
+        {
+          input: str,
+          message: error instanceof Error ? error.message : String(error),
+        },
       );
     }
   }
@@ -97,7 +100,7 @@ export class GuidV4Provider extends BaseIdProvider {
    */
   getVersion(id: Uint8Array): number | undefined {
     this.validateLength(id, 'GuidV4Provider.getVersion');
-    
+
     try {
       const guid = new GuidV4(Buffer.from(id));
       return guid.getVersion();
@@ -111,7 +114,7 @@ export class GuidV4Provider extends BaseIdProvider {
    */
   isEmpty(id: Uint8Array): boolean {
     this.validateLength(id, 'GuidV4Provider.isEmpty');
-    
+
     try {
       const guid = new GuidV4(Buffer.from(id));
       return guid.isEmpty();

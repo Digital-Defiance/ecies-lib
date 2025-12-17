@@ -1,4 +1,4 @@
-/// <reference path="../../../types/global.d.ts" />
+import { Constants } from './constants';
 import { SecureStorageErrorType } from './enumerations/secure-storage-error-type';
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
@@ -59,7 +59,6 @@ export class SecureString {
    * @returns A new SecureString instance using the global ID provider
    */
   static create(data?: string | Uint8Array | null): SecureString {
-    const { Constants } = require('./constants');
     return new SecureString(data, Constants.idProvider);
   }
 

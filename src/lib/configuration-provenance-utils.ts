@@ -8,7 +8,7 @@ import type { IConstants } from '../interfaces/constants';
  */
 export function calculateConfigChecksum(config: IConstants): string {
   // Create a stable JSON representation with BigInt support
-  const replacer = (_key: string, value: any) =>
+  const replacer = (_key: string, value: unknown) =>
     typeof value === 'bigint' ? value.toString() : value;
   const stable = JSON.stringify(config, replacer);
   const encoder = new TextEncoder();

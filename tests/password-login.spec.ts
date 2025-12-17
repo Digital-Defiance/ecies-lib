@@ -1,12 +1,12 @@
 import { Wallet } from '@ethereumjs/wallet';
 import { EciesEncryptionTypeEnum } from '../src/enumerations/ecies-encryption-type';
 import { Pbkdf2ProfileEnum } from '../src/enumerations/pbkdf2-profile';
+import { getEciesI18nEngine } from '../src/i18n-setup';
 import { SecureString } from '../src/secure-string';
 import { ECIESService } from '../src/services/ecies/service';
 import { PasswordLoginService } from '../src/services/password-login';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
 import { hexToUint8Array, uint8ArrayToHex } from '../src/utils';
-import { getEciesI18nEngine } from '../src/i18n-setup';
 
 // Mock dependencies
 jest.mock('../src/services/pbkdf2');
@@ -65,7 +65,7 @@ describe('PasswordLoginService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock AESGCMService methods
     const { AESGCMService } = require('../src/services/aes-gcm');
     AESGCMService.encrypt.mockResolvedValue({
@@ -78,19 +78,25 @@ describe('PasswordLoginService', () => {
       iv: new Uint8Array(16).fill(1),
       encryptedDataWithTag: new Uint8Array(32).fill(4),
     });
-    AESGCMService.combineIvTagAndEncryptedData.mockImplementation((iv, encrypted, tag) => {
-      const result = new Uint8Array(iv.length + encrypted.length + tag.length);
-      result.set(iv, 0);
-      result.set(encrypted, iv.length);
-      result.set(tag, iv.length + encrypted.length);
-      return result;
-    });
-    AESGCMService.combineEncryptedDataAndTag.mockImplementation((encrypted, tag) => {
-      const result = new Uint8Array(encrypted.length + tag.length);
-      result.set(encrypted, 0);
-      result.set(tag, encrypted.length);
-      return result;
-    });
+    AESGCMService.combineIvTagAndEncryptedData.mockImplementation(
+      (iv, encrypted, tag) => {
+        const result = new Uint8Array(
+          iv.length + encrypted.length + tag.length,
+        );
+        result.set(iv, 0);
+        result.set(encrypted, iv.length);
+        result.set(tag, iv.length + encrypted.length);
+        return result;
+      },
+    );
+    AESGCMService.combineEncryptedDataAndTag.mockImplementation(
+      (encrypted, tag) => {
+        const result = new Uint8Array(encrypted.length + tag.length);
+        result.set(encrypted, 0);
+        result.set(tag, encrypted.length);
+        return result;
+      },
+    );
 
     // Setup mocks
     mockEciesService = {
@@ -131,7 +137,11 @@ describe('PasswordLoginService', () => {
       getProfileConfig: jest.fn(),
     } as any;
 
-    passwordLoginService = new PasswordLoginService(mockEciesService, mockPbkdf2Service, getEciesI18nEngine());
+    passwordLoginService = new PasswordLoginService(
+      mockEciesService,
+      mockPbkdf2Service,
+      getEciesI18nEngine(),
+    );
 
     mockEciesService.walletAndSeedFromMnemonic.mockReturnValue({
       wallet: mockWallet,
@@ -176,7 +186,7 @@ describe('PasswordLoginService', () => {
       const result = await passwordLoginService.createPasswordLoginBundle(
         mockMnemonic,
         mockPassword,
-        Pbkdf2ProfileEnum.TEST_FAST
+        Pbkdf2ProfileEnum.TEST_FAST,
       );
 
       expect(result.salt).toBeInstanceOf(Uint8Array);
@@ -235,7 +245,9 @@ describe('PasswordLoginService', () => {
     });
 
     it('should handle PBKDF2 derivation failure', async () => {
-      mockPbkdf2Service.deriveKeyFromPasswordWithProfileAsync.mockRejectedValue(new Error('PBKDF2 failed'));
+      mockPbkdf2Service.deriveKeyFromPasswordWithProfileAsync.mockRejectedValue(
+        new Error('PBKDF2 failed'),
+      );
 
       await expect(
         passwordLoginService.setupPasswordLoginLocalStorageBundle(
@@ -322,7 +334,7 @@ describe('PasswordLoginService', () => {
     const mockEncryptedPrivateKeyHex =
       '0102030405060708090a0b0c0d0e0f10' + // IV (16 bytes)
       '04040404040404040404040404040404' + // encrypted data (16 bytes)
-      '04040404040404040404040404040404';  // auth tag (16 bytes)
+      '04040404040404040404040404040404'; // auth tag (16 bytes)
     const mockEncryptedMnemonicHex = '05060708';
     const mockDecryptedMnemonic = new Uint8Array([
       109, 110, 101, 109, 111, 110, 105, 99,
@@ -440,7 +452,9 @@ describe('PasswordLoginService', () => {
     });
 
     it('should handle PBKDF2 derivation failure during recovery', async () => {
-      mockPbkdf2Service.deriveKeyFromPasswordWithProfileAsync.mockRejectedValue(new Error('PBKDF2 failed'));
+      mockPbkdf2Service.deriveKeyFromPasswordWithProfileAsync.mockRejectedValue(
+        new Error('PBKDF2 failed'),
+      );
 
       await expect(
         passwordLoginService.getWalletAndMnemonicFromLocalStorageBundle(

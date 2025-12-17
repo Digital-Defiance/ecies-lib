@@ -1,15 +1,18 @@
+import {
+  ENCRYPTION_STATE_VERSION,
+  IEncryptionState,
+} from '../../src/interfaces/encryption-state';
 import { ECIESService } from '../../src/services/ecies/service';
 import { EncryptionStream } from '../../src/services/encryption-stream';
 import { ResumableEncryption } from '../../src/services/resumable-encryption';
-import { IEncryptionState, ENCRYPTION_STATE_VERSION } from '../../src/interfaces/encryption-state';
-import { StreamTestUtils } from '../support/stream-test-utils';
 import { uint8ArrayToHex } from '../../src/utils';
+import { StreamTestUtils } from '../support/stream-test-utils';
 
 describe('ResumableEncryption Security Audit', () => {
   let ecies: ECIESService;
   let stream: EncryptionStream;
   let publicKey: Uint8Array;
-  let privateKey: Uint8Array;
+  let _privateKey: Uint8Array;
 
   beforeEach(() => {
     ecies = new ECIESService();
@@ -22,7 +25,9 @@ describe('ResumableEncryption Security Audit', () => {
 
   describe('state validation', () => {
     it('should reject state with wrong public key', async () => {
-      const wrongKey = ecies.mnemonicToSimpleKeyPair(ecies.generateNewMnemonic()).publicKey;
+      const wrongKey = ecies.mnemonicToSimpleKeyPair(
+        ecies.generateNewMnemonic(),
+      ).publicKey;
       const state: IEncryptionState = {
         version: ENCRYPTION_STATE_VERSION,
         chunkIndex: 1,
@@ -39,7 +44,7 @@ describe('ResumableEncryption Security Audit', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
       await expect(async () => {
-        for await (const chunk of resumable.encrypt(source, publicKey)) {
+        for await (const _chunk of resumable.encrypt(source, publicKey)) {
           // Should throw
         }
       }).rejects.toThrow('Public key mismatch');
@@ -57,7 +62,9 @@ describe('ResumableEncryption Security Audit', () => {
         timestamp: Date.now() - 25 * 60 * 60 * 1000, // 25 hours ago
       };
 
-      expect(() => new ResumableEncryption(stream, oldState)).toThrow('State too old');
+      expect(() => new ResumableEncryption(stream, oldState)).toThrow(
+        'State too old',
+      );
     });
 
     it('should validate autoSaveInterval', async () => {
@@ -66,7 +73,7 @@ describe('ResumableEncryption Security Audit', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
       await expect(async () => {
-        for await (const chunk of resumable.encrypt(source, publicKey, {
+        for await (const _chunk of resumable.encrypt(source, publicKey, {
           autoSaveInterval: -1,
         })) {
           // Process
@@ -80,7 +87,7 @@ describe('ResumableEncryption Security Audit', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
       await expect(async () => {
-        for await (const chunk of resumable.encrypt(source, publicKey, {
+        for await (const _chunk of resumable.encrypt(source, publicKey, {
           autoSaveInterval: 0,
         })) {
           // Process
@@ -95,11 +102,11 @@ describe('ResumableEncryption Security Audit', () => {
       const data = StreamTestUtils.generateRandomData(3 * 1024 * 1024);
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
-      let capturedState: IEncryptionState | null = null;
-      for await (const chunk of resumable.encrypt(source, publicKey, {
+      let _capturedState: IEncryptionState | null = null;
+      for await (const _chunk of resumable.encrypt(source, publicKey, {
         autoSaveInterval: 1,
         onStateSaved: (state) => {
-          capturedState = state;
+          _capturedState = state;
           state.chunkIndex = 999; // Try to mutate
         },
       })) {
@@ -114,10 +121,10 @@ describe('ResumableEncryption Security Audit', () => {
   describe('chunk skipping correctness', () => {
     it('should document chunk skipping limitation', async () => {
       const data = StreamTestUtils.generateRandomData(3 * 1024 * 1024);
-      
+
       const resumable1 = new ResumableEncryption(stream);
       const source1 = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
-      
+
       const chunks = [];
       for await (const chunk of resumable1.encrypt(source1, publicKey)) {
         chunks.push(chunk);
@@ -134,13 +141,13 @@ describe('ResumableEncryption Security Audit', () => {
       const data = StreamTestUtils.generateRandomData(1024 * 1024);
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
-      for await (const chunk of resumable.encrypt(source, publicKey)) {
+      for await (const _chunk of resumable.encrypt(source, publicKey)) {
         // Process
       }
 
       const state = resumable.saveState();
       const serialized = JSON.stringify(state);
-      
+
       // State should be small (<1KB)
       expect(serialized.length).toBeLessThan(1024);
     });
@@ -173,7 +180,7 @@ describe('ResumableEncryption Security Audit', () => {
       const data = StreamTestUtils.generateRandomData(2 * 1024 * 1024);
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
-      for await (const chunk of resumable.encrypt(source, publicKey)) {
+      for await (const _chunk of resumable.encrypt(source, publicKey)) {
         // Process
       }
 
@@ -189,7 +196,7 @@ describe('ResumableEncryption Security Audit', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
       await expect(async () => {
-        for await (const chunk of resumable.encrypt(source, publicKey, {
+        for await (const _chunk of resumable.encrypt(source, publicKey, {
           autoSaveInterval: 1,
           onStateSaved: () => {
             throw new Error('Callback error');
@@ -206,7 +213,7 @@ describe('ResumableEncryption Security Audit', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
       await expect(async () => {
-        for await (const chunk of resumable.encrypt(source, publicKey, {
+        for await (const _chunk of resumable.encrypt(source, publicKey, {
           autoSaveInterval: 1,
           onStateSaved: async () => {
             throw new Error('Async callback error');

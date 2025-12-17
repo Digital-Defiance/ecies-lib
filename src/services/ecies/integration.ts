@@ -2,6 +2,7 @@
  * Integration helpers for using the browser ECIES service with existing web-crypto functionality
  */
 
+import { EciesStringKey } from '../../enumerations';
 import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
 import { SecureString } from '../../secure-string';
 import { SignatureUint8Array } from '../../types';
@@ -13,7 +14,6 @@ import {
 } from '../../utils';
 import { IWalletSeed } from './interfaces';
 import { ECIESService } from './service';
-import { EciesStringKey } from '../../enumerations';
 
 /**
  * Enhanced web crypto service that uses the new ECIES implementation
@@ -67,7 +67,13 @@ export class EnhancedWebCryptoService {
       }
     } catch (error) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_FailedToDecryptChallengeTemplate, { error: String(error) }));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_FailedToDecryptChallengeTemplate,
+          { error: String(error) },
+        ),
+      );
     }
   }
 
@@ -147,7 +153,11 @@ export class EnhancedWebCryptoService {
 
     if (!isValid) {
       const engine = getEciesI18nEngine();
-      const error = engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidChallengeSignature);
+      const errorMessage = engine.translate(
+        EciesComponentId,
+        EciesStringKey.Error_ECIESError_InvalidChallengeSignature,
+      );
+      throw new Error(errorMessage);
     }
 
     return uint8ArrayToHex(decryptedPayload);

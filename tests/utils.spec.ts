@@ -1,21 +1,20 @@
 import { LengthEncodingType } from '../src/enumerations/length-encoding-type';
-import { LengthErrorType } from '../src/enumerations/length-error-type';
 import { LengthError } from '../src/errors';
 import {
-  lengthEncodeData,
-  decodeLengthEncodedData,
-  base64ToUint8Array,
-  uint8ArrayToHex,
-  hexToUint8Array,
-  crc16,
-  stringToUint8Array,
-  uint8ArrayToString,
-  randomBytes,
   arraysEqual,
+  base64ToUint8Array,
   concatUint8Arrays,
+  crc16,
+  decodeLengthEncodedData,
   getLengthEncodingTypeForLength,
   getLengthEncodingTypeFromValue,
   getLengthForLengthType,
+  hexToUint8Array,
+  lengthEncodeData,
+  randomBytes,
+  stringToUint8Array,
+  uint8ArrayToHex,
+  uint8ArrayToString,
 } from '../src/utils';
 
 describe('utils', () => {
@@ -31,7 +30,11 @@ describe('utils', () => {
     it('encodes UInt16 length', () => {
       const data = new Uint8Array(300);
       const result = lengthEncodeData(data);
-      const view = new DataView(result.buffer, result.byteOffset, result.byteLength);
+      const view = new DataView(
+        result.buffer,
+        result.byteOffset,
+        result.byteLength,
+      );
       expect(result[0]).toBe(LengthEncodingType.UInt16);
       expect(view.getUint16(1, false)).toBe(300); // big-endian
     });
@@ -39,7 +42,11 @@ describe('utils', () => {
     it('encodes UInt32 length', () => {
       const data = new Uint8Array(70000);
       const result = lengthEncodeData(data);
-      const view = new DataView(result.buffer, result.byteOffset, result.byteLength);
+      const view = new DataView(
+        result.buffer,
+        result.byteOffset,
+        result.byteLength,
+      );
       expect(result[0]).toBe(LengthEncodingType.UInt32);
       expect(view.getUint32(1, false)).toBe(70000); // big-endian
     });
@@ -55,7 +62,9 @@ describe('utils', () => {
     });
 
     it('throws on empty buffer', () => {
-      expect(() => decodeLengthEncodedData(new Uint8Array(0))).toThrow(LengthError);
+      expect(() => decodeLengthEncodedData(new Uint8Array(0))).toThrow(
+        LengthError,
+      );
     });
 
     it('throws on insufficient length data', () => {
@@ -184,33 +193,51 @@ describe('utils', () => {
 
   describe('getLengthEncodingTypeForLength', () => {
     it('returns UInt8 for small numbers', () => {
-      expect(getLengthEncodingTypeForLength(255)).toBe(LengthEncodingType.UInt8);
+      expect(getLengthEncodingTypeForLength(255)).toBe(
+        LengthEncodingType.UInt8,
+      );
     });
 
     it('returns UInt16 for medium numbers', () => {
-      expect(getLengthEncodingTypeForLength(65535)).toBe(LengthEncodingType.UInt16);
+      expect(getLengthEncodingTypeForLength(65535)).toBe(
+        LengthEncodingType.UInt16,
+      );
     });
 
     it('returns UInt32 for large numbers', () => {
-      expect(getLengthEncodingTypeForLength(4294967295)).toBe(LengthEncodingType.UInt32);
+      expect(getLengthEncodingTypeForLength(4294967295)).toBe(
+        LengthEncodingType.UInt32,
+      );
     });
 
     it('returns UInt64 for very large numbers', () => {
-      expect(getLengthEncodingTypeForLength(Number.MAX_SAFE_INTEGER - 1)).toBe(LengthEncodingType.UInt64);
+      expect(getLengthEncodingTypeForLength(Number.MAX_SAFE_INTEGER - 1)).toBe(
+        LengthEncodingType.UInt64,
+      );
     });
 
     it('handles BigInt values', () => {
-      expect(getLengthEncodingTypeForLength(255n)).toBe(LengthEncodingType.UInt8);
-      expect(getLengthEncodingTypeForLength(65535n)).toBe(LengthEncodingType.UInt16);
+      expect(getLengthEncodingTypeForLength(255n)).toBe(
+        LengthEncodingType.UInt8,
+      );
+      expect(getLengthEncodingTypeForLength(65535n)).toBe(
+        LengthEncodingType.UInt16,
+      );
     });
 
     it('throws for too large values', () => {
-      expect(() => getLengthEncodingTypeForLength(Number.MAX_SAFE_INTEGER + 1)).toThrow(LengthError);
-      expect(() => getLengthEncodingTypeForLength(18446744073709551616n)).toThrow(LengthError);
+      expect(() =>
+        getLengthEncodingTypeForLength(Number.MAX_SAFE_INTEGER + 1),
+      ).toThrow(LengthError);
+      expect(() =>
+        getLengthEncodingTypeForLength(18446744073709551616n),
+      ).toThrow(LengthError);
     });
 
     it('throws for invalid types', () => {
-      expect(() => getLengthEncodingTypeForLength('invalid' as any)).toThrow(LengthError);
+      expect(() => getLengthEncodingTypeForLength('invalid' as any)).toThrow(
+        LengthError,
+      );
     });
   });
 

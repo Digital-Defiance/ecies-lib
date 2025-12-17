@@ -8,7 +8,13 @@ export class PhoneNumber {
     // make sure the phone number fits the regex
     if (!PhoneNumberRegex.test(number)) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_PhoneNumber_InvalidTemplate, { phoneNumber: number }));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_PhoneNumber_InvalidTemplate,
+          { phoneNumber: number },
+        ),
+      );
     }
     this._number = number;
   }

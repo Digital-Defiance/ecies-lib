@@ -1,7 +1,7 @@
-import { I18nEngine } from '@digitaldefiance/i18n-lib';
-import { getEciesI18nEngine, EciesComponentId } from '../src/i18n-setup';
-import { EciesStringKey } from '../src/enumerations/ecies-string-key';
 import { withConsoleMocks } from '@digitaldefiance/express-suite-test-utils';
+import { I18nEngine } from '@digitaldefiance/i18n-lib';
+import { EciesStringKey } from '../src/enumerations/ecies-string-key';
+import { EciesComponentId, getEciesI18nEngine } from '../src/i18n-setup';
 
 describe('I18n Debug', () => {
   it('should have engine registered', () => {
@@ -28,12 +28,20 @@ describe('I18n Debug', () => {
     withConsoleMocks({ mute: true }, () => {
       const engine = getEciesI18nEngine();
       const components = engine.getComponents();
-      const eciesComponent = components.find(c => c.id === EciesComponentId);
+      const eciesComponent = components.find((c) => c.id === EciesComponentId);
       console.log('ECIES component:', eciesComponent);
       console.log('Has strings:', !!eciesComponent?.strings);
       console.log('Languages:', Object.keys(eciesComponent?.strings || {}));
-      console.log('en-US keys count:', Object.keys(eciesComponent?.strings?.['en-US'] || {}).length);
-      console.log('Sample key:', eciesComponent?.strings?.['en-US']?.[EciesStringKey.Error_ECIESError_DecryptionFailed]);
+      console.log(
+        'en-US keys count:',
+        Object.keys(eciesComponent?.strings?.['en-US'] || {}).length,
+      );
+      console.log(
+        'Sample key:',
+        eciesComponent?.strings?.['en-US']?.[
+          EciesStringKey.Error_ECIESError_DecryptionFailed
+        ],
+      );
     });
   });
 
@@ -42,12 +50,13 @@ describe('I18n Debug', () => {
     try {
       const result = engine.translate(
         EciesComponentId,
-        EciesStringKey.Error_ECIESError_DecryptionFailed
+        EciesStringKey.Error_ECIESError_DecryptionFailed,
       );
       console.log('Translation result:', result);
       expect(result).toBe('Decryption operation failed');
-    } catch (e: any) {
-      console.error('Translation error:', e.message);
+    } catch (e: unknown) {
+      const error = e as Error;
+      console.error('Translation error:', error.message);
       throw e;
     }
   });

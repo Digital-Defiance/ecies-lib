@@ -64,7 +64,7 @@ describe('ProgressTracker', () => {
 
     it('should handle very fast updates (same millisecond)', async () => {
       const tracker = new ProgressTracker();
-      const progress1 = tracker.update(1024);
+      const _progress1 = tracker.update(1024);
       const progress2 = tracker.update(1024);
 
       expect(progress2.throughputBytesPerSec).toBeGreaterThanOrEqual(0);
@@ -101,7 +101,7 @@ describe('ProgressTracker', () => {
 
     it('should track elapsed time', async () => {
       const tracker = new ProgressTracker();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       const progress = tracker.update(1024);
 
       expect(progress.elapsedTime).toBeGreaterThanOrEqual(10);
@@ -129,9 +129,9 @@ describe('ProgressTracker', () => {
       const tracker = new ProgressTracker();
 
       tracker.update(1024);
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       tracker.update(1024);
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       const progress = tracker.update(1024);
 
       expect(progress.throughputBytesPerSec).toBeGreaterThan(0);
@@ -143,7 +143,7 @@ describe('ProgressTracker', () => {
 
       for (let i = 0; i < 10; i++) {
         tracker.update(1024);
-        await new Promise(resolve => setTimeout(resolve, 1));
+        await new Promise((resolve) => setTimeout(resolve, 1));
       }
 
       const progress = tracker.update(1024);
@@ -171,16 +171,19 @@ describe('ProgressTracker', () => {
       const tracker = new ProgressTracker(10 * 1024);
 
       tracker.update(1024);
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       const progress1 = tracker.update(1024);
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       const progress2 = tracker.update(1024);
 
       // ETA should be defined and positive
       expect(progress1.estimatedTimeRemaining).toBeDefined();
       expect(progress2.estimatedTimeRemaining).toBeDefined();
-      if (progress1.estimatedTimeRemaining && progress2.estimatedTimeRemaining) {
+      if (
+        progress1.estimatedTimeRemaining &&
+        progress2.estimatedTimeRemaining
+      ) {
         expect(progress1.estimatedTimeRemaining).toBeGreaterThan(0);
         expect(progress2.estimatedTimeRemaining).toBeGreaterThan(0);
       }
@@ -198,16 +201,20 @@ describe('ProgressTracker', () => {
   describe('validation', () => {
     it('should reject negative chunk bytes', () => {
       const tracker = new ProgressTracker();
-      expect(() => tracker.update(-1024)).toThrow('Chunk bytes cannot be negative');
+      expect(() => tracker.update(-1024)).toThrow(
+        'Chunk bytes cannot be negative',
+      );
     });
 
     it('should guard against unrealistic throughput', () => {
       const tracker = new ProgressTracker();
       // Simulate extremely fast update (would create >10GB/s throughput)
       const progress = tracker.update(1024 * 1024 * 1024);
-      
+
       expect(progress.throughputBytesPerSec).toBeGreaterThanOrEqual(0);
-      expect(progress.throughputBytesPerSec).toBeLessThan(10 * 1024 * 1024 * 1024);
+      expect(progress.throughputBytesPerSec).toBeLessThan(
+        10 * 1024 * 1024 * 1024,
+      );
     });
 
     it('should handle clock skew (time going backwards)', () => {
@@ -231,8 +238,8 @@ describe('ProgressTracker', () => {
     it('should maintain consistency', () => {
       const tracker = new ProgressTracker(10 * 1024);
 
-      const progress1 = tracker.update(1024);
-      const progress2 = tracker.update(2048);
+      const _progress1 = tracker.update(1024);
+      const _progress2 = tracker.update(2048);
       const progress3 = tracker.update(512);
 
       expect(progress3.bytesProcessed).toBe(1024 + 2048 + 512);

@@ -1,14 +1,14 @@
 import { sha256 } from '@noble/hashes/sha2.js';
-import { IECIESConstants } from '../interfaces/ecies-consts';
 import { Constants } from '../constants';
+import { EciesStringKey } from '../enumerations/ecies-string-key';
+import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { IECIESConstants } from '../interfaces/ecies-consts';
 import {
+  CHUNK_CONSTANTS,
   IChunkHeader,
   IEncryptedChunk,
-  CHUNK_CONSTANTS,
 } from '../interfaces/encrypted-chunk';
 import { ECIESService } from './ecies/service';
-import { getEciesI18nEngine, EciesComponentId } from '../i18n-setup';
-import { EciesStringKey } from '../enumerations/ecies-string-key';
 
 /**
  * Processes chunks for streaming encryption/decryption
@@ -16,7 +16,7 @@ import { EciesStringKey } from '../enumerations/ecies-string-key';
 export class ChunkProcessor {
   constructor(
     private readonly ecies: ECIESService,
-    private readonly eciesConsts: IECIESConstants = Constants.ECIES
+    private readonly eciesConsts: IECIESConstants = Constants.ECIES,
   ) {}
 
   /**
@@ -43,19 +43,34 @@ export class ChunkProcessor {
   parseChunkHeader(data: Uint8Array): IChunkHeader {
     const engine = getEciesI18nEngine();
     if (data.length < CHUNK_CONSTANTS.HEADER_SIZE) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Chunk_DataTooShortForHeader));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Chunk_DataTooShortForHeader,
+        ),
+      );
     }
 
     const view = new DataView(data.buffer, data.byteOffset);
 
     const magic = view.getUint32(0, false);
     if (magic !== CHUNK_CONSTANTS.MAGIC) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Chunk_InvalidMagicBytes));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Chunk_InvalidMagicBytes,
+        ),
+      );
     }
 
     const version = view.getUint16(4, false);
     if (version !== CHUNK_CONSTANTS.VERSION) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Chunk_UnsupportedVersion));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Chunk_UnsupportedVersion,
+        ),
+      );
     }
 
     return {
@@ -76,13 +91,13 @@ export class ChunkProcessor {
     publicKey: Uint8Array,
     index: number,
     isLast: boolean,
-    includeChecksum: boolean
+    includeChecksum: boolean,
   ): Promise<IEncryptedChunk> {
     // Encrypt data
     const encrypted = await this.ecies.encryptSimpleOrSingle(
       false,
       publicKey,
-      data
+      data,
     );
 
     // Calculate checksum if requested
@@ -134,13 +149,14 @@ export class ChunkProcessor {
    */
   async decryptChunk(
     chunkData: Uint8Array,
-    privateKey: Uint8Array
+    privateKey: Uint8Array,
   ): Promise<{ data: Uint8Array; header: IChunkHeader }> {
     // Parse header
     const header = this.parseChunkHeader(chunkData);
 
     // Extract encrypted data
-    const hasChecksum = (header.flags & CHUNK_CONSTANTS.FLAG_HAS_CHECKSUM) !== 0;
+    const hasChecksum =
+      (header.flags & CHUNK_CONSTANTS.FLAG_HAS_CHECKSUM) !== 0;
     const encryptedStart = CHUNK_CONSTANTS.HEADER_SIZE;
     const encryptedEnd = hasChecksum
       ? chunkData.length - CHUNK_CONSTANTS.CHECKSUM_SIZE
@@ -151,14 +167,20 @@ export class ChunkProcessor {
     // Validate encrypted size matches header
     if (encrypted.length !== header.encryptedSize) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Chunk_EncryptedSizeMismatchTemplate, { expectedSize: header.encryptedSize, actualSize: encrypted.length }));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Chunk_EncryptedSizeMismatchTemplate,
+          { expectedSize: header.encryptedSize, actualSize: encrypted.length },
+        ),
+      );
     }
 
     // Decrypt
     const decrypted = await this.ecies.decryptSimpleOrSingleWithHeader(
       false,
       privateKey,
-      encrypted
+      encrypted,
     );
 
     // Verify checksum if present
@@ -173,14 +195,24 @@ export class ChunkProcessor {
       }
       if (diff !== 0) {
         const engine = getEciesI18nEngine();
-        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Chunk_ChecksumMismatch));
+        throw new Error(
+          engine.translate(
+            EciesComponentId,
+            EciesStringKey.Error_Chunk_ChecksumMismatch,
+          ),
+        );
       }
     }
 
     // Verify size
     if (decrypted.length !== header.originalSize) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Chunk_DecryptedSizeMismatch));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Chunk_DecryptedSizeMismatch,
+        ),
+      );
     }
 
     return { data: decrypted, header };

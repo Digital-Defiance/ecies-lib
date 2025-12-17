@@ -1,12 +1,9 @@
 import { ECIES } from '../../../src/constants';
+import { getEciesI18nEngine } from '../../../src/i18n-setup';
 import { IECIESConfig } from '../../../src/interfaces/ecies-config';
 import { EciesCryptoCore } from '../../../src/services/ecies/crypto-core';
-import {
-  IMultiEncryptedMessage,
-  IMultiRecipient,
-} from '../../../src/services/ecies/interfaces';
+import { IMultiRecipient } from '../../../src/services/ecies/interfaces';
 import { EciesMultiRecipient } from '../../../src/services/ecies/multi-recipient';
-import { getEciesI18nEngine } from '../../../src/i18n-setup';
 
 describe('EciesMultiRecipient Header MSB Logic', () => {
   let multiRecipientService: EciesMultiRecipient;
@@ -33,7 +30,9 @@ describe('EciesMultiRecipient Header MSB Logic', () => {
     const r1Keys = await cryptoCore.generateEphemeralKeyPair();
 
     recipient1 = {
-      id: crypto.getRandomValues(new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE)),
+      id: crypto.getRandomValues(
+        new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE),
+      ),
       privateKey: r1Keys.privateKey,
       publicKey: r1Keys.publicKey,
     };
@@ -54,9 +53,9 @@ describe('EciesMultiRecipient Header MSB Logic', () => {
     const view = new DataView(header.buffer);
     // Offset 36 because of Version (1) + Suite (1) + Type (1) + Ephemeral Public Key (33)
     const combinedLength = view.getBigUint64(36, false);
-    
+
     const storedRecipientIdSize = Number(combinedLength >> 56n);
-    const dataLength = Number(combinedLength & 0x00FFFFFFFFFFFFFFn);
+    const dataLength = Number(combinedLength & 0x00ffffffffffffffn);
 
     expect(storedRecipientIdSize).toBe(ECIES.MULTIPLE.RECIPIENT_ID_SIZE);
     expect(dataLength).toBe(message.length);
@@ -95,10 +94,10 @@ describe('EciesMultiRecipient Header MSB Logic', () => {
     // Manually construct a legacy header (MSB 0)
     const header = multiRecipientService.buildHeader(encryptedData);
     const view = new DataView(header.buffer);
-    
+
     // Clear the MSB (offset 36)
     const combinedLength = view.getBigUint64(36, false);
-    const legacyLength = combinedLength & 0x00FFFFFFFFFFFFFFn;
+    const legacyLength = combinedLength & 0x00ffffffffffffffn;
     view.setBigUint64(36, legacyLength, false);
 
     const parsedHeader = multiRecipientService.parseHeader(header);

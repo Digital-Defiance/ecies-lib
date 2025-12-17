@@ -1,4 +1,6 @@
+import { withConsoleMocks } from '@digitaldefiance/express-suite-test-utils';
 import { ECIES } from '../../../src/constants';
+import { getEciesI18nEngine } from '../../../src/i18n-setup';
 import { IECIESConfig } from '../../../src/interfaces/ecies-config';
 import { EciesCryptoCore } from '../../../src/services/ecies/crypto-core';
 import {
@@ -7,8 +9,6 @@ import {
 } from '../../../src/services/ecies/interfaces';
 import { EciesMultiRecipient } from '../../../src/services/ecies/multi-recipient';
 import { concatUint8Arrays } from '../../../src/utils';
-import { withConsoleMocks } from '@digitaldefiance/express-suite-test-utils';
-import { getEciesI18nEngine } from '../../../src/i18n-setup';
 
 describe('EciesMultiRecipient', () => {
   let multiRecipientService: EciesMultiRecipient;
@@ -41,13 +41,17 @@ describe('EciesMultiRecipient', () => {
     const r2Keys = await cryptoCore.generateEphemeralKeyPair();
 
     recipient1 = {
-      id: crypto.getRandomValues(new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE)),
+      id: crypto.getRandomValues(
+        new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE),
+      ),
       privateKey: r1Keys.privateKey,
       publicKey: r1Keys.publicKey,
     };
 
     recipient2 = {
-      id: crypto.getRandomValues(new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE)),
+      id: crypto.getRandomValues(
+        new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE),
+      ),
       privateKey: r2Keys.privateKey,
       publicKey: r2Keys.publicKey,
     };
@@ -101,7 +105,7 @@ describe('EciesMultiRecipient', () => {
     it('should reject keys with incorrect serialized length', async () => {
       const symmetricKey = cryptoCore.generatePrivateKey();
       const ephemeralKeyPair = await cryptoCore.generateEphemeralKeyPair();
-      
+
       const encryptedKey = await multiRecipientService.encryptKey(
         recipient1.publicKey,
         symmetricKey,
@@ -167,7 +171,9 @@ describe('EciesMultiRecipient', () => {
         message,
       );
 
-      const nonExistentRecipientId = crypto.getRandomValues(new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE));
+      const nonExistentRecipientId = crypto.getRandomValues(
+        new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE),
+      );
 
       await expect(
         multiRecipientService.decryptMultipleForRecipient(
@@ -279,7 +285,7 @@ describe('EciesMultiRecipient', () => {
       header[1] = 1; // CipherSuite
       header[2] = 99; // Type (Multiple)
       // Bytes 3-35 are Ephemeral Public Key (leave as 0s for this test, or set valid if needed)
-      
+
       const view = new DataView(header.buffer);
       view.setBigUint64(36, 0n, false); // invalid length (offset 36)
       view.setUint16(44, 1, false); // count (offset 44)
@@ -294,7 +300,7 @@ describe('EciesMultiRecipient', () => {
       header[0] = 1; // Version
       header[1] = 1; // CipherSuite
       header[2] = 99; // Type (Multiple)
-      
+
       const view = new DataView(header.buffer);
       view.setBigUint64(36, 1n, false); // valid length (offset 36)
       view.setUint16(44, 0, false); // invalid count (offset 44)

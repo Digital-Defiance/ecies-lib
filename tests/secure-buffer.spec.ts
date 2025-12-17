@@ -1,5 +1,7 @@
+/* eslint-disable import/order */
 import { faker } from '@faker-js/faker';
 import { randomBytes } from 'crypto';
+/* eslint-enable import/order */
 import { SecureStorageErrorType } from '../src/enumerations/secure-storage-error-type';
 import { SecureStorageError } from '../src/errors/secure-storage';
 import { SecureBuffer } from '../src/secure-buffer';
@@ -92,7 +94,7 @@ describe('SecureBuffer', () => {
 
       expect(() => secureBuffer.value).toThrow(SecureStorageError);
       try {
-        secureBuffer.value;
+        void secureBuffer.value;
       } catch (e) {
         const error = e as SecureStorageError;
         expect(error.type).toBe(
@@ -123,7 +125,7 @@ describe('SecureBuffer', () => {
 
       expect(() => secureBuffer.value).toThrow(SecureStorageError);
       try {
-        secureBuffer.value;
+        void secureBuffer.value;
       } catch (e) {
         const error = e as SecureStorageError;
         expect(error.type).toBe(
@@ -154,7 +156,7 @@ describe('SecureBuffer', () => {
 
       expect(() => secureBuffer.value).toThrow(SecureStorageError);
       try {
-        secureBuffer.value;
+        void secureBuffer.value;
       } catch (e) {
         const error = e as SecureStorageError;
         expect(error.type).toBe(

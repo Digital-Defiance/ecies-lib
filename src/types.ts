@@ -9,7 +9,6 @@ export type SignatureString = string & Brand<string, 'SignatureString'>;
 export type HexString = Brand<string, 'HexString'>;
 export type ChecksumString = Brand<HexString, 'Sha3Checksum', 'ChecksumString'>;
 
-
 /**
  * GUID stored as a BigInt
  */

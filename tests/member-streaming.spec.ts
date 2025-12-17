@@ -1,14 +1,15 @@
-import { Member } from '../src/member';
-import { ECIESService } from '../src/services/ecies/service';
 import { EmailString } from '../src/email-string';
 import { MemberType } from '../src/enumerations/member-type';
-import { StreamTestUtils } from './support/stream-test-utils';
 import { getEciesI18nEngine } from '../src/i18n-setup';
+import type { IStreamProgress } from '../src/interfaces/stream-progress';
+import { Member } from '../src/member';
+import { ECIESService } from '../src/services/ecies/service';
+import { StreamTestUtils } from './support/stream-test-utils';
 
 describe('Member - Streaming Methods', () => {
   let ecies: ECIESService;
   let member: Member;
-  let mnemonic: any;
+  let _mnemonic: string;
 
   beforeAll(() => {
     getEciesI18nEngine();
@@ -20,7 +21,7 @@ describe('Member - Streaming Methods', () => {
       ecies,
       MemberType.User,
       'Test User',
-      new EmailString('test@example.com')
+      new EmailString('test@example.com'),
     );
     member = result.member;
     mnemonic = result.mnemonic;
@@ -44,7 +45,7 @@ describe('Member - Streaming Methods', () => {
       const data = StreamTestUtils.generateRandomData(3 * 1024 * 1024);
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
-      const progressUpdates: any[] = [];
+      const progressUpdates: IStreamProgress[] = [];
       const encrypted = [];
 
       for await (const chunk of member.encryptDataStream(source, {
@@ -65,7 +66,7 @@ describe('Member - Streaming Methods', () => {
 
       let chunkCount = 0;
       try {
-        for await (const chunk of member.encryptDataStream(source, {
+        for await (const _chunk of member.encryptDataStream(source, {
           signal: controller.signal,
         })) {
           chunkCount++;
@@ -74,7 +75,7 @@ describe('Member - Streaming Methods', () => {
           }
         }
         fail('Should have thrown AbortError');
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.name).toBe('AbortError');
         expect(chunkCount).toBe(2);
       }
@@ -85,7 +86,7 @@ describe('Member - Streaming Methods', () => {
         ecies,
         MemberType.User,
         'Recipient',
-        new EmailString('recipient@example.com')
+        new EmailString('recipient@example.com'),
       );
 
       const data = StreamTestUtils.generateRandomData(1024);
@@ -104,9 +105,9 @@ describe('Member - Streaming Methods', () => {
       const decrypted = [];
       for await (const chunk of recipient.member.decryptDataStream(
         StreamTestUtils.createAsyncIterable(
-          StreamTestUtils.concatenateChunks(encrypted.map(c => c.data)),
-          encrypted[0].data.length
-        )
+          StreamTestUtils.concatenateChunks(encrypted.map((c) => c.data)),
+          encrypted[0].data.length,
+        ),
       )) {
         decrypted.push(chunk);
       }
@@ -122,7 +123,7 @@ describe('Member - Streaming Methods', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024);
 
       await expect(async () => {
-        for await (const chunk of member.encryptDataStream(source)) {
+        for await (const _chunk of member.encryptDataStream(source)) {
           // Should throw
         }
       }).rejects.toThrow();
@@ -144,9 +145,9 @@ describe('Member - Streaming Methods', () => {
       const decrypted = [];
       for await (const chunk of member.decryptDataStream(
         StreamTestUtils.createAsyncIterable(
-          StreamTestUtils.concatenateChunks(encrypted.map(c => c.data)),
-          encrypted[0].data.length
-        )
+          StreamTestUtils.concatenateChunks(encrypted.map((c) => c.data)),
+          encrypted[0].data.length,
+        ),
       )) {
         decrypted.push(chunk);
       }
@@ -166,17 +167,17 @@ describe('Member - Streaming Methods', () => {
       }
 
       // Decrypt with progress
-      const progressUpdates: any[] = [];
+      const progressUpdates: IStreamProgress[] = [];
       const decrypted = [];
 
       for await (const chunk of member.decryptDataStream(
         StreamTestUtils.createAsyncIterable(
-          StreamTestUtils.concatenateChunks(encrypted.map(c => c.data)),
-          encrypted[0].data.length
+          StreamTestUtils.concatenateChunks(encrypted.map((c) => c.data)),
+          encrypted[0].data.length,
         ),
         {
           onProgress: (progress) => progressUpdates.push({ ...progress }),
-        }
+        },
       )) {
         decrypted.push(chunk);
       }
@@ -201,13 +202,13 @@ describe('Member - Streaming Methods', () => {
       let chunkCount = 0;
 
       try {
-        for await (const chunk of member.decryptDataStream(
+        for await (const _chunk of member.decryptDataStream(
           (async function* () {
             for (const enc of encrypted) {
               yield enc.data;
             }
           })(),
-          { signal: controller.signal }
+          { signal: controller.signal },
         )) {
           chunkCount++;
           if (chunkCount === 2) {
@@ -215,7 +216,7 @@ describe('Member - Streaming Methods', () => {
           }
         }
         fail('Should have thrown AbortError');
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.name).toBe('AbortError');
         expect(chunkCount).toBe(2);
       }
@@ -228,7 +229,7 @@ describe('Member - Streaming Methods', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024);
 
       await expect(async () => {
-        for await (const chunk of member.decryptDataStream(source)) {
+        for await (const _chunk of member.decryptDataStream(source)) {
           // Should throw
         }
       }).rejects.toThrow();
@@ -238,7 +239,7 @@ describe('Member - Streaming Methods', () => {
   describe('ReadableStream support', () => {
     it('should handle ReadableStream input for encryption', async () => {
       const data = StreamTestUtils.generateRandomData(1024);
-      
+
       // Create ReadableStream
       const readableStream = new ReadableStream({
         start(controller) {
@@ -266,7 +267,9 @@ describe('Member - Streaming Methods', () => {
       }
 
       // Create ReadableStream for decryption
-      const encryptedData = StreamTestUtils.concatenateChunks(encrypted.map(c => c.data));
+      const encryptedData = StreamTestUtils.concatenateChunks(
+        encrypted.map((c) => c.data),
+      );
       const readableStream = new ReadableStream({
         start(controller) {
           controller.enqueue(encryptedData);

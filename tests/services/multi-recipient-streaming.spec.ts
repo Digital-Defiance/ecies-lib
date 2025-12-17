@@ -1,8 +1,8 @@
+import { Constants } from '../../src/constants';
+import { getEciesI18nEngine } from '../../src/i18n-setup';
 import { ECIESService } from '../../src/services/ecies/service';
 import { EncryptionStream } from '../../src/services/encryption-stream';
 import { StreamTestUtils } from '../support/stream-test-utils';
-import { getEciesI18nEngine } from '../../src/i18n-setup';
-import { Constants } from '../../src/constants';
 
 describe('Multi-Recipient Streaming', () => {
   let ecies: ECIESService;
@@ -20,19 +20,32 @@ describe('Multi-Recipient Streaming', () => {
   describe('basic multi-recipient encryption', () => {
     it('should encrypt for 2 recipients', async () => {
       // Generate keys for 2 recipients
-      const recipient1 = ecies.mnemonicToSimpleKeyPair(ecies.generateNewMnemonic());
-      const recipient2 = ecies.mnemonicToSimpleKeyPair(ecies.generateNewMnemonic());
+      const recipient1 = ecies.mnemonicToSimpleKeyPair(
+        ecies.generateNewMnemonic(),
+      );
+      const recipient2 = ecies.mnemonicToSimpleKeyPair(
+        ecies.generateNewMnemonic(),
+      );
 
       const recipients = [
-        { id: Constants.idProvider.generate(), publicKey: recipient1.publicKey },
-        { id: Constants.idProvider.generate(), publicKey: recipient2.publicKey },
+        {
+          id: Constants.idProvider.generate(),
+          publicKey: recipient1.publicKey,
+        },
+        {
+          id: Constants.idProvider.generate(),
+          publicKey: recipient2.publicKey,
+        },
       ];
 
       const data = StreamTestUtils.generateRandomData(1024);
       const source = StreamTestUtils.createAsyncIterable(data, 1024);
 
       const encryptedChunks = [];
-      for await (const chunk of stream.encryptStreamMultiple(source, recipients)) {
+      for await (const chunk of stream.encryptStreamMultiple(
+        source,
+        recipients,
+      )) {
         encryptedChunks.push(chunk);
         expect(chunk.recipientCount).toBe(2);
       }
@@ -41,8 +54,12 @@ describe('Multi-Recipient Streaming', () => {
     });
 
     it('should allow both recipients to decrypt', async () => {
-      const recipient1 = ecies.mnemonicToSimpleKeyPair(ecies.generateNewMnemonic());
-      const recipient2 = ecies.mnemonicToSimpleKeyPair(ecies.generateNewMnemonic());
+      const recipient1 = ecies.mnemonicToSimpleKeyPair(
+        ecies.generateNewMnemonic(),
+      );
+      const recipient2 = ecies.mnemonicToSimpleKeyPair(
+        ecies.generateNewMnemonic(),
+      );
 
       const recipient1Id = Constants.idProvider.generate();
       const recipient2Id = Constants.idProvider.generate();
@@ -57,7 +74,10 @@ describe('Multi-Recipient Streaming', () => {
 
       // Encrypt
       const encryptedChunks = [];
-      for await (const chunk of stream.encryptStreamMultiple(source, recipients)) {
+      for await (const chunk of stream.encryptStreamMultiple(
+        source,
+        recipients,
+      )) {
         encryptedChunks.push(chunk.data);
       }
 
@@ -70,7 +90,7 @@ describe('Multi-Recipient Streaming', () => {
           }
         })(),
         recipient1Id,
-        recipient1.privateKey
+        recipient1.privateKey,
       )) {
         decrypted1Chunks.push(chunk);
       }
@@ -87,7 +107,7 @@ describe('Multi-Recipient Streaming', () => {
           }
         })(),
         recipient2Id,
-        recipient2.privateKey
+        recipient2.privateKey,
       )) {
         decrypted2Chunks.push(chunk);
       }
@@ -101,7 +121,9 @@ describe('Multi-Recipient Streaming', () => {
       const recipientKeys = [];
 
       for (let i = 0; i < 10; i++) {
-        const keyPair = ecies.mnemonicToSimpleKeyPair(ecies.generateNewMnemonic());
+        const keyPair = ecies.mnemonicToSimpleKeyPair(
+          ecies.generateNewMnemonic(),
+        );
         const id = Constants.idProvider.generate();
         recipients.push({ id, publicKey: keyPair.publicKey });
         recipientKeys.push({ id, privateKey: keyPair.privateKey });
@@ -112,7 +134,10 @@ describe('Multi-Recipient Streaming', () => {
 
       // Encrypt
       const encryptedChunks = [];
-      for await (const chunk of stream.encryptStreamMultiple(source, recipients)) {
+      for await (const chunk of stream.encryptStreamMultiple(
+        source,
+        recipients,
+      )) {
         encryptedChunks.push(chunk.data);
         expect(chunk.recipientCount).toBe(10);
       }
@@ -127,7 +152,7 @@ describe('Multi-Recipient Streaming', () => {
             }
           })(),
           recipient.id,
-          recipient.privateKey
+          recipient.privateKey,
         )) {
           decryptedChunks.push(chunk);
         }
@@ -144,7 +169,7 @@ describe('Multi-Recipient Streaming', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024);
 
       await expect(async () => {
-        for await (const chunk of stream.encryptStreamMultiple(source, [])) {
+        for await (const _chunk of stream.encryptStreamMultiple(source, [])) {
           // Should throw
         }
       }).rejects.toThrow('At least one recipient required');
@@ -159,14 +184,19 @@ describe('Multi-Recipient Streaming', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024);
 
       await expect(async () => {
-        for await (const chunk of stream.encryptStreamMultiple(source, recipients)) {
+        for await (const _chunk of stream.encryptStreamMultiple(
+          source,
+          recipients,
+        )) {
           // Should throw
         }
       }).rejects.toThrow('Invalid recipient public key');
     });
 
     it('should reject invalid recipient ID', async () => {
-      const keyPair = ecies.mnemonicToSimpleKeyPair(ecies.generateNewMnemonic());
+      const keyPair = ecies.mnemonicToSimpleKeyPair(
+        ecies.generateNewMnemonic(),
+      );
       const recipients = [
         { id: new Uint8Array(16), publicKey: keyPair.publicKey }, // Wrong ID size
       ];
@@ -175,14 +205,19 @@ describe('Multi-Recipient Streaming', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024);
 
       await expect(async () => {
-        for await (const chunk of stream.encryptStreamMultiple(source, recipients)) {
+        for await (const _chunk of stream.encryptStreamMultiple(
+          source,
+          recipients,
+        )) {
           // Should throw
         }
       }).rejects.toThrow('Invalid recipient ID');
     });
 
     it('should reject wrong recipient ID on decrypt', async () => {
-      const recipient = ecies.mnemonicToSimpleKeyPair(ecies.generateNewMnemonic());
+      const recipient = ecies.mnemonicToSimpleKeyPair(
+        ecies.generateNewMnemonic(),
+      );
       const recipientId = Constants.idProvider.generate();
       const wrongId = Constants.idProvider.generate();
 
@@ -193,20 +228,23 @@ describe('Multi-Recipient Streaming', () => {
 
       // Encrypt
       const encryptedChunks = [];
-      for await (const chunk of stream.encryptStreamMultiple(source, recipients)) {
+      for await (const chunk of stream.encryptStreamMultiple(
+        source,
+        recipients,
+      )) {
         encryptedChunks.push(chunk.data);
       }
 
       // Try to decrypt with wrong ID
       await expect(async () => {
-        for await (const chunk of stream.decryptStreamMultiple(
+        for await (const _chunk of stream.decryptStreamMultiple(
           (async function* () {
             for (const encrypted of encryptedChunks) {
               yield encrypted;
             }
           })(),
           wrongId,
-          recipient.privateKey
+          recipient.privateKey,
         )) {
           // Should throw
         }
@@ -216,7 +254,9 @@ describe('Multi-Recipient Streaming', () => {
 
   describe('progress tracking', () => {
     it('should report progress during multi-recipient encryption', async () => {
-      const recipient = ecies.mnemonicToSimpleKeyPair(ecies.generateNewMnemonic());
+      const recipient = ecies.mnemonicToSimpleKeyPair(
+        ecies.generateNewMnemonic(),
+      );
       const recipients = [
         { id: Constants.idProvider.generate(), publicKey: recipient.publicKey },
       ];
@@ -225,12 +265,16 @@ describe('Multi-Recipient Streaming', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
       let progressCallCount = 0;
-      for await (const chunk of stream.encryptStreamMultiple(source, recipients, {
-        onProgress: (progress) => {
-          progressCallCount++;
-          expect(progress.bytesProcessed).toBeGreaterThan(0);
+      for await (const _chunk of stream.encryptStreamMultiple(
+        source,
+        recipients,
+        {
+          onProgress: (progress) => {
+            progressCallCount++;
+            expect(progress.bytesProcessed).toBeGreaterThan(0);
+          },
         },
-      })) {
+      )) {
         // Process
       }
 
@@ -240,7 +284,9 @@ describe('Multi-Recipient Streaming', () => {
 
   describe('cancellation', () => {
     it('should support cancellation during multi-recipient encryption', async () => {
-      const recipient = ecies.mnemonicToSimpleKeyPair(ecies.generateNewMnemonic());
+      const recipient = ecies.mnemonicToSimpleKeyPair(
+        ecies.generateNewMnemonic(),
+      );
       const recipients = [
         { id: Constants.idProvider.generate(), publicKey: recipient.publicKey },
       ];
@@ -252,16 +298,20 @@ describe('Multi-Recipient Streaming', () => {
       let chunkCount = 0;
 
       try {
-        for await (const chunk of stream.encryptStreamMultiple(source, recipients, {
-          signal: controller.signal,
-        })) {
+        for await (const _chunk of stream.encryptStreamMultiple(
+          source,
+          recipients,
+          {
+            signal: controller.signal,
+          },
+        )) {
           chunkCount++;
           if (chunkCount === 3) {
             controller.abort();
           }
         }
         fail('Should have thrown AbortError');
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.name).toBe('AbortError');
         expect(chunkCount).toBe(3);
       }

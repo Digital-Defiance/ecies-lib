@@ -6,8 +6,10 @@ describe('Final Test', () => {
   it('should create error with correct message', () => {
     getEciesI18nEngine(); // Ensure engine is initialized
     const error = new ECIESError(ECIESErrorTypeEnum.DecryptionFailed);
-    
+
     expect(typeof error.message).toBe('string');
-    expect(['Decryption operation failed', 'DecryptionFailed']).toContain(error.message);
+    expect(['Decryption operation failed', 'DecryptionFailed']).toContain(
+      error.message,
+    );
   });
 });

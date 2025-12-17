@@ -26,8 +26,8 @@ describe('Interface Type-Only Imports', () => {
         // Pattern to match value imports from project modules (relative paths)
         // Matches: import { X } from './...' or import { X } from '../...'
         // But NOT: import type { X } from './...'
-        const valueImportPattern =
-          /^import\s+(?!type\s)(?!.*from\s+['"][^.\/])/gm;
+        const _valueImportPattern =
+          /^import\s+(?!type\s)(?!.*from\s+['"][^./])/gm;
 
         // Find all import statements
         const allImports =
@@ -127,9 +127,9 @@ describe('Interface Type-Only Imports', () => {
       const Module = require('module');
       const originalRequire = Module.prototype.require;
 
-      Module.prototype.require = function (id: string) {
+      Module.prototype.require = function (id: string, ...args: unknown[]) {
         loadedModules.add(id);
-        return originalRequire.apply(this, arguments);
+        return originalRequire.apply(this, [id, ...args]);
       };
 
       try {
@@ -225,7 +225,7 @@ describe('Interface Type-Only Imports', () => {
       const exportedKeys = Object.keys(memberInterface);
 
       // Filter out any runtime exports (like helper functions)
-      const typeOnlyExports = exportedKeys.filter((key) => {
+      const _typeOnlyExports = exportedKeys.filter((key) => {
         const value = memberInterface[key];
         // If it's undefined, it's likely a type-only export
         return value === undefined;

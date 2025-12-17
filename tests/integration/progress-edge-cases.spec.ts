@@ -1,7 +1,7 @@
+import { IStreamProgress } from '../../src/interfaces/stream-progress';
 import { ECIESService } from '../../src/services/ecies/service';
 import { EncryptionStream } from '../../src/services/encryption-stream';
 import { StreamTestUtils } from '../support/stream-test-utils';
-import { IStreamProgress } from '../../src/interfaces/stream-progress';
 
 describe('Progress Edge Cases', () => {
   let ecies: ECIESService;
@@ -25,7 +25,7 @@ describe('Progress Edge Cases', () => {
 
       let callCount = 0;
       await expect(async () => {
-        for await (const chunk of stream.encryptStream(source, publicKey, {
+        for await (const _chunk of stream.encryptStream(source, publicKey, {
           onProgress: () => {
             callCount++;
             if (callCount === 2) {
@@ -43,9 +43,9 @@ describe('Progress Edge Cases', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
       const progressUpdates: IStreamProgress[] = [];
-      for await (const chunk of stream.encryptStream(source, publicKey, {
+      for await (const _chunk of stream.encryptStream(source, publicKey, {
         onProgress: async (progress) => {
-          await new Promise(resolve => setTimeout(resolve, 1));
+          await new Promise((resolve) => setTimeout(resolve, 1));
           progressUpdates.push({ ...progress });
         },
       })) {
@@ -66,7 +66,7 @@ describe('Progress Edge Cases', () => {
       let chunkCount = 0;
 
       try {
-        for await (const chunk of stream.encryptStream(source, publicKey, {
+        for await (const _chunk of stream.encryptStream(source, publicKey, {
           signal: controller.signal,
           onProgress: (progress) => {
             progressUpdates.push({ ...progress });
@@ -77,7 +77,7 @@ describe('Progress Edge Cases', () => {
             controller.abort();
           }
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.name).toBe('AbortError');
       }
 
@@ -93,7 +93,7 @@ describe('Progress Edge Cases', () => {
 
       let progressCalled = false;
       const chunks: Uint8Array[] = [];
-      for await (const chunk of stream.encryptStream(source, publicKey, {
+      for await (const _chunk of stream.encryptStream(source, publicKey, {
         onProgress: () => {
           progressCalled = true;
         },
@@ -110,7 +110,7 @@ describe('Progress Edge Cases', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
       let progressCalled = false;
-      for await (const chunk of stream.encryptStream(source, publicKey, {
+      for await (const _chunk of stream.encryptStream(source, publicKey, {
         onProgress: () => {
           progressCalled = true;
         },
@@ -128,7 +128,7 @@ describe('Progress Edge Cases', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
       const throughputs: number[] = [];
-      for await (const chunk of stream.encryptStream(source, publicKey, {
+      for await (const _chunk of stream.encryptStream(source, publicKey, {
         onProgress: (progress) => {
           if (progress.throughputBytesPerSec > 0) {
             throughputs.push(progress.throughputBytesPerSec);
@@ -139,7 +139,7 @@ describe('Progress Edge Cases', () => {
       }
 
       expect(throughputs.length).toBeGreaterThan(0);
-      throughputs.forEach(t => {
+      throughputs.forEach((t) => {
         expect(t).toBeGreaterThan(0);
         expect(t).toBeLessThan(10 * 1024 * 1024 * 1024); // <10GB/s
         expect(isFinite(t)).toBe(true);
@@ -153,7 +153,7 @@ describe('Progress Edge Cases', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
       const bytesProcessed: number[] = [];
-      for await (const chunk of stream.encryptStream(source, publicKey, {
+      for await (const _chunk of stream.encryptStream(source, publicKey, {
         onProgress: (progress) => {
           bytesProcessed.push(progress.bytesProcessed);
         },
@@ -171,7 +171,7 @@ describe('Progress Edge Cases', () => {
       const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
       const chunksProcessed: number[] = [];
-      for await (const chunk of stream.encryptStream(source, publicKey, {
+      for await (const _chunk of stream.encryptStream(source, publicKey, {
         onProgress: (progress) => {
           chunksProcessed.push(progress.chunksProcessed);
         },
@@ -196,7 +196,7 @@ describe('Progress Edge Cases', () => {
       }
 
       const progressUpdates: IStreamProgress[] = [];
-      const decryptedChunks = await StreamTestUtils.collectChunks(
+      const _decryptedChunks = await StreamTestUtils.collectChunks(
         stream.decryptStream(
           (async function* () {
             for (const chunk of encryptedChunks) yield chunk;
@@ -206,8 +206,8 @@ describe('Progress Edge Cases', () => {
             onProgress: (progress) => {
               progressUpdates.push({ ...progress });
             },
-          }
-        )
+          },
+        ),
       );
 
       expect(progressUpdates.length).toBe(3);

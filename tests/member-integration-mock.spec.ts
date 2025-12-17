@@ -45,7 +45,7 @@ describe('MockFrontendMember integration scenarios', () => {
         MockFrontendMember.create(),
       ];
 
-      const names = members.map((m) => m.name);
+      const names = members.map((_m) => _m.name);
       expect(names).toHaveLength(3);
     });
 
@@ -146,11 +146,14 @@ describe('MockFrontendMember integration scenarios', () => {
     });
 
     it('should work with Record type', () => {
-      const membersByRole: Record<string, IFrontendMemberOperational<ObjectId>[]> = {
-        admins: MockFrontendMember.createMultiple(2).map((m) => {
+      const membersByRole: Record<
+        string,
+        IFrontendMemberOperational<ObjectId>[]
+      > = {
+        admins: MockFrontendMember.createMultiple(2).map((_m) => {
           return MockFrontendMember.create({ type: MemberType.Admin });
         }),
-        users: MockFrontendMember.createMultiple(5).map((m) => {
+        users: MockFrontendMember.createMultiple(5).map((_m) => {
           return MockFrontendMember.create({ type: MemberType.User });
         }),
       };
@@ -212,9 +215,7 @@ describe('MockFrontendMember integration scenarios', () => {
 
     it('should simulate member lookup and operations', async () => {
       const members = MockFrontendMember.createMultiple(20);
-      const memberMap = new Map(
-        members.map((m) => [m.id.toString(), m]),
-      );
+      const memberMap = new Map(members.map((m) => [m.id.toString(), m]));
 
       const randomId = members[5].id.toString();
       const foundMember = memberMap.get(randomId);

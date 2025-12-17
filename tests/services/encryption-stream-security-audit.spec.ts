@@ -216,7 +216,7 @@ describe('EncryptionStream - Security Audit', () => {
 
       // Should fail gracefully, not allocate huge buffer
       await expect(async () => {
-        for await (const chunk of stream.decryptStream(
+        for await (const _chunk of stream.decryptStream(
           (async function* () {
             yield tampered;
           })(),
@@ -235,14 +235,14 @@ describe('EncryptionStream - Security Audit', () => {
         const controller = new AbortController();
 
         try {
-          for await (const chunk of stream.encryptStream(
+          for await (const _chunk of stream.encryptStream(
             StreamTestUtils.createAsyncIterable(data, 1024 * 1024),
             publicKey,
             { signal: controller.signal },
           )) {
             controller.abort(); // Cancel immediately
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           expect(error.name).toBe('AbortError');
         }
       }
@@ -263,7 +263,7 @@ describe('EncryptionStream - Security Audit', () => {
       };
 
       try {
-        for await (const chunk of stream.encryptStream(
+        for await (const _chunk of stream.encryptStream(
           infiniteStream(),
           publicKey,
           { signal: controller.signal },
@@ -274,7 +274,7 @@ describe('EncryptionStream - Security Audit', () => {
           }
         }
         fail('Should have thrown AbortError');
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.name).toBe('AbortError');
         expect(chunkCount).toBe(5);
       }
@@ -287,14 +287,14 @@ describe('EncryptionStream - Security Audit', () => {
       };
 
       try {
-        for await (const chunk of stream.encryptStream(
+        for await (const _chunk of stream.encryptStream(
           errorStream(),
           publicKey,
         )) {
           // Should throw
         }
         fail('Should have thrown error');
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.message).toBe('Stream error');
       }
 
@@ -333,7 +333,7 @@ describe('EncryptionStream - Security Audit', () => {
       for (let i = 0; i < 10; i++) {
         const start = performance.now();
         try {
-          for await (const chunk of stream.decryptStream(
+          for await (const _chunk of stream.decryptStream(
             (async function* () {
               yield tampered;
             })(),
@@ -341,7 +341,7 @@ describe('EncryptionStream - Security Audit', () => {
           )) {
             // Should fail
           }
-        } catch (error) {
+        } catch (_error) {
           // Expected
         }
         timings.push(performance.now() - start);
@@ -375,7 +375,7 @@ describe('EncryptionStream - Security Audit', () => {
       for (let i = 0; i < 10; i++) {
         const start = performance.now();
         try {
-          for await (const chunk of stream.decryptStream(
+          for await (const _chunk of stream.decryptStream(
             (async function* () {
               for (const enc of encrypted) {
                 yield enc;
@@ -385,7 +385,7 @@ describe('EncryptionStream - Security Audit', () => {
           )) {
             // Should fail
           }
-        } catch (error) {
+        } catch (_error) {
           // Expected
         }
         timings.push(performance.now() - start);
@@ -417,7 +417,7 @@ describe('EncryptionStream - Security Audit', () => {
         const wrongMnemonic = ecies.generateNewMnemonic();
         const wrongKeyPair = ecies.mnemonicToSimpleKeyPair(wrongMnemonic);
 
-        for await (const chunk of stream.decryptStream(
+        for await (const _chunk of stream.decryptStream(
           (async function* () {
             for (const enc of encrypted) {
               yield enc;
@@ -428,7 +428,7 @@ describe('EncryptionStream - Security Audit', () => {
           // Should fail
         }
         fail('Should have thrown error');
-      } catch (error: any) {
+      } catch (error: unknown) {
         const errorStr = error.toString();
 
         // Error should not contain key material (hex strings of keys)
@@ -444,7 +444,7 @@ describe('EncryptionStream - Security Audit', () => {
       const invalidData = StreamTestUtils.generateRandomData(100);
 
       try {
-        for await (const chunk of stream.decryptStream(
+        for await (const _chunk of stream.decryptStream(
           (async function* () {
             yield invalidData;
           })(),
@@ -453,7 +453,7 @@ describe('EncryptionStream - Security Audit', () => {
           // Should fail
         }
         fail('Should have thrown error');
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Error should be descriptive but not leak internal state
         expect(error.message).toBeTruthy();
         expect(error.message.length).toBeLessThan(200); // Reasonable length
@@ -464,7 +464,7 @@ describe('EncryptionStream - Security Audit', () => {
       const invalidData = StreamTestUtils.generateRandomData(100);
 
       try {
-        for await (const chunk of stream.decryptStream(
+        for await (const _chunk of stream.decryptStream(
           (async function* () {
             yield invalidData;
           })(),
@@ -473,7 +473,7 @@ describe('EncryptionStream - Security Audit', () => {
           // Should fail
         }
         fail('Should have thrown error');
-      } catch (error: any) {
+      } catch (error: unknown) {
         const stack = error.stack || '';
 
         // Stack trace should not contain key material

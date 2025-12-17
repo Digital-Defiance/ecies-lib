@@ -1,3 +1,4 @@
+import * as fc from 'fast-check';
 import {
   Constants,
   ECIES,
@@ -83,7 +84,6 @@ describe('constants module', () => {
  * Feature: type-safety-audit, Property: Deep clone preserves type and value
  * Validates: Requirements 1.1
  */
-import * as fc from 'fast-check';
 
 describe('deepClone property tests', () => {
   // We need to access the internal deepClone function for testing
@@ -100,7 +100,7 @@ describe('deepClone property tests', () => {
           fc.constant(null),
           fc.constant(undefined),
         ),
-        (value) => {
+        (_value) => {
           // Test through createRuntimeConfiguration which uses deepClone internally
           const config1 = createRuntimeConfiguration({});
           const config2 = createRuntimeConfiguration({});

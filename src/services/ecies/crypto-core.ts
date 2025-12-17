@@ -1,4 +1,7 @@
 import { Wallet } from '@ethereumjs/wallet';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { hkdf } from '@noble/hashes/hkdf.js';
+import { sha256 } from '@noble/hashes/sha2.js';
 import { HDKey } from '@scure/bip32';
 import {
   generateMnemonic,
@@ -7,16 +10,12 @@ import {
 } from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
 import { Constants } from '../../constants';
-import { IECIESConfig } from '../../interfaces/ecies-config';
-import { SecureString } from '../../secure-string';
-import { ISimpleKeyPair, IWalletSeed } from './interfaces';
-
-import { secp256k1 } from '@noble/curves/secp256k1.js';
-import { hkdf } from '@noble/hashes/hkdf.js';
-import { sha256 } from '@noble/hashes/sha2.js';
 import { EciesStringKey } from '../../enumerations';
 import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
+import { SecureString } from '../../secure-string';
+import { ISimpleKeyPair, IWalletSeed } from './interfaces';
 
 /**
  * Browser-compatible crypto core for ECIES operations
@@ -285,7 +284,7 @@ export class EciesCryptoCore {
     const hash = sha256(message);
     try {
       return secp256k1.verify(signature, hash, publicKey);
-    } catch (e) {
+    } catch (_e) {
       return false;
     }
   }
