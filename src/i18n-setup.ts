@@ -3,21 +3,21 @@
  * Uses i18n-lib 2.0 patterns with runtime validation
  */
 
+import type { ComponentConfig, EngineConfig } from '@digitaldefiance/i18n-lib';
 import {
   I18nEngine,
   LanguageCodes,
-  createDefaultLanguages,
   createCoreComponentRegistration,
+  createDefaultLanguages,
 } from '@digitaldefiance/i18n-lib';
-import type { ComponentConfig, EngineConfig } from '@digitaldefiance/i18n-lib';
 import { EciesStringKey } from './enumerations/ecies-string-key';
-import { englishTranslations } from './translations/en-US';
-import { frenchTranslations } from './translations/fr';
-import { spanishTranslations } from './translations/es';
 import { germanTranslations } from './translations/de';
-import { mandarinChineseTranslations } from './translations/zh-cn';
+import { englishTranslations } from './translations/en-US';
+import { spanishTranslations } from './translations/es';
+import { frenchTranslations } from './translations/fr';
 import { japaneseTranslations } from './translations/ja';
 import { ukrainianTranslations } from './translations/uk';
+import { mandarinChineseTranslations } from './translations/zh-cn';
 
 export const EciesI18nEngineKey = 'DigitalDefiance.Ecies.I18nEngine' as const;
 export const EciesComponentId = 'ecies' as const;
@@ -48,7 +48,11 @@ export function createEciesComponentConfig(): ComponentConfig {
  * IMPORTANT: Uses 'default' as instance key so TypedHandleableError can find it
  */
 function createInstance(config?: EngineConfig): I18nEngine {
-  const engine = I18nEngine.registerIfNotExists('default', createDefaultLanguages(), config);
+  const engine = I18nEngine.registerIfNotExists(
+    'default',
+    createDefaultLanguages(),
+    config,
+  );
 
   // Register core component first (required for error messages)
   const coreReg = createCoreComponentRegistration();
@@ -56,22 +60,22 @@ function createInstance(config?: EngineConfig): I18nEngine {
     id: coreReg.component.id,
     strings: coreReg.strings as Record<string, Record<string, string>>,
   });
-  
+
   // Register ECIES component with aliases
   const eciesConfig = createEciesComponentConfig();
   const result = engine.registerIfNotExists({
     ...eciesConfig,
-    aliases: ['EciesStringKey']
+    aliases: ['EciesStringKey'],
   });
-  
+
   // Warn about missing translations (non-blocking)
   if (!result.isValid && result.errors.length > 0) {
     console.warn(
       `ECIES component has ${result.errors.length} errors`,
-      result.errors.slice(0, 5) // Show first 5
+      result.errors.slice(0, 5), // Show first 5
     );
   }
-  
+
   return engine;
 }
 
@@ -93,7 +97,7 @@ export function getEciesI18nEngine(config?: EngineConfig): I18nEngine {
 export const eciesI18nEngine = new Proxy({} as I18nEngine, {
   get(target, prop) {
     return getEciesI18nEngine()[prop as keyof I18nEngine];
-  }
+  },
 });
 
 /**
@@ -111,7 +115,12 @@ export function getEciesTranslation(
   variables?: Record<string, string | number>,
   language?: string,
 ): string {
-  return getEciesI18nEngine().translate(EciesComponentId, stringKey, variables, language);
+  return getEciesI18nEngine().translate(
+    EciesComponentId,
+    stringKey,
+    variables,
+    language,
+  );
 }
 
 /**

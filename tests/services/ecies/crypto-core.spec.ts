@@ -1,8 +1,8 @@
 import { ECIES } from '../../../src/constants';
+import { getEciesI18nEngine } from '../../../src/i18n-setup';
 import { IECIESConfig } from '../../../src/interfaces';
 import { SecureString } from '../../../src/secure-string';
 import { EciesCryptoCore } from '../../../src/services/ecies/crypto-core';
-import { getEciesI18nEngine } from '../../../src/i18n-setup';
 
 // Mock config for tests
 const mockConfig: IECIESConfig = {

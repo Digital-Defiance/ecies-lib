@@ -1,8 +1,8 @@
 import { Wallet } from '@ethereumjs/wallet';
-import { Constants, ECIES } from './constants';
+import { Constants } from './constants';
 import { EmailString } from './email-string';
-import MemberErrorType from './enumerations/member-error-type';
-import MemberType from './enumerations/member-type';
+import { MemberErrorType } from './enumerations/member-error-type';
+import { MemberType } from './enumerations/member-type';
 import { MemberError } from './errors/member';
 import { IECIESConstants } from './interfaces/ecies-consts';
 import { IEncryptedChunk } from './interfaces/encrypted-chunk';
@@ -143,12 +143,11 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
 
   public loadWallet(
     mnemonic: SecureString,
-    eciesParams?: IECIESConstants,
+    _eciesParams?: IECIESConstants,
   ): void {
     if (this._wallet) {
       throw new MemberError(MemberErrorType.WalletAlreadyLoaded);
     }
-    const eciesConsts = eciesParams ?? ECIES;
     const { wallet } = this._eciesService.walletAndSeedFromMnemonic(mnemonic);
     const privateKey = wallet.getPrivateKey();
     // Use service to get compressed public key
@@ -390,8 +389,8 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
   ): Member {
     let storage: IMemberStorageData;
     try {
-      storage = JSON.parse(json);
-    } catch (error) {
+      storage = JSON.parse(json) as IMemberStorageData;
+    } catch (_error) {
       throw new MemberError(MemberErrorType.InvalidMemberData);
     }
     const email = new EmailString(storage.email);
@@ -420,7 +419,6 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
     name = 'Test User',
     email = new EmailString('test@example.com'),
   ): Member {
-    const eciesConsts = eciesParams ?? ECIES;
     const { wallet } = eciesService.walletAndSeedFromMnemonic(mnemonic);
     const privateKey = wallet.getPrivateKey();
     // Use service to get compressed public key
@@ -446,7 +444,7 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
     email: EmailString,
     forceMnemonic?: SecureString,
     createdBy?: Uint8Array,
-    eciesParams?: IECIESConstants,
+    _eciesParams?: IECIESConstants,
   ): IMemberWithMnemonic {
     // Validate inputs first
     if (!name || name.length == 0) {
@@ -462,7 +460,6 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
       throw new MemberError(MemberErrorType.InvalidEmailWhitespace);
     }
 
-    const eciesConsts = eciesParams ?? ECIES;
     // Use injected services
     const mnemonic = forceMnemonic ?? eciesService.generateNewMnemonic();
     const { wallet } = eciesService.walletAndSeedFromMnemonic(mnemonic);

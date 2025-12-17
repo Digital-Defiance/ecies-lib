@@ -1,12 +1,11 @@
-import { CoreLanguageCode } from '@digitaldefiance/i18n-lib';
 import { Constants } from '../constants';
 import { Pbkdf2ErrorType } from '../enumerations/pbkdf2-error-type';
 import { Pbkdf2ProfileEnum } from '../enumerations/pbkdf2-profile';
 import { Pbkdf2Error } from '../errors/pbkdf2';
-import { IPbkdf2Config } from '../interfaces/pbkdf2-config';
-import { IPbkdf2Result } from '../interfaces/pbkdf2-result';
 import { IECIESConstants } from '../interfaces/ecies-consts';
+import { IPbkdf2Config } from '../interfaces/pbkdf2-config';
 import { IPBkdf2Consts } from '../interfaces/pbkdf2-consts';
+import { IPbkdf2Result } from '../interfaces/pbkdf2-result';
 
 /**
  * Service for handling PBKDF2 (Password-Based Key Derivation Function 2) operations.
@@ -20,7 +19,7 @@ export class Pbkdf2Service {
   protected readonly profiles: Record<string, IPbkdf2Config>;
   protected readonly eciesConsts: IECIESConstants;
   protected readonly pbkdf2Consts: IPBkdf2Consts;
-  
+
   constructor(
     profiles: Record<string, IPbkdf2Config> = Constants.PBKDF2_PROFILES,
     eciesParams: IECIESConstants = Constants.ECIES,
@@ -35,9 +34,7 @@ export class Pbkdf2Service {
    * @param profile The name of the profile to use
    * @returns Configuration object for the specified profile
    */
-  public getProfileConfig(
-    profile: string,
-  ): IPbkdf2Config {
+  public getProfileConfig(profile: string): IPbkdf2Config {
     const profileConfig = this.profiles[profile];
     if (!profileConfig) {
       throw new Pbkdf2Error(Pbkdf2ErrorType.InvalidProfile);
@@ -99,12 +96,7 @@ export class Pbkdf2Service {
     keySize?: number,
     algorithm?: string,
   ): Promise<IPbkdf2Result> {
-    const config = this.getConfig(
-      iterations,
-      saltBytes,
-      keySize,
-      algorithm,
-    );
+    const config = this.getConfig(iterations, saltBytes, keySize, algorithm);
     const saltBytes_ =
       salt ?? crypto.getRandomValues(new Uint8Array(config.saltBytes));
 

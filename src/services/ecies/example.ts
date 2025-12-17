@@ -27,7 +27,10 @@ export async function basicEncryptionExample(): Promise<void> {
   console.log('Generated mnemonic:', mnemonic);
 
   const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
-  console.log('Private key hash:', uint8ArrayToHex(privateKey).slice(0, 16) + '...');
+  console.log(
+    'Private key hash:',
+    uint8ArrayToHex(privateKey).slice(0, 16) + '...',
+  );
   console.log('Public key:', uint8ArrayToHex(publicKey));
 
   // Message to encrypt
@@ -152,7 +155,10 @@ export async function walletDerivationExample(): Promise<void> {
   // Derive wallet
   const { wallet, seed } = ecies.walletAndSeedFromMnemonic(mnemonic);
   console.log('Seed:', uint8ArrayToHex(seed));
-  console.log('Private key hash:', uint8ArrayToHex(wallet.getPrivateKey()).slice(0, 16) + '...');
+  console.log(
+    'Private key hash:',
+    uint8ArrayToHex(wallet.getPrivateKey()).slice(0, 16) + '...',
+  );
   console.log('Public key:', uint8ArrayToHex(wallet.getPublicKey()));
 
   // Derive the same keys using the simple method

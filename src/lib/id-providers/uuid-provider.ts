@@ -1,14 +1,18 @@
-import { BaseIdProvider } from '../../interfaces/id-provider';
-import { v4 as uuidv4, validate as uuidValidate, parse as uuidParse } from 'uuid';
-import { IdProviderError } from '../../errors/id-provider';
+import {
+  parse as uuidParse,
+  v4 as uuidv4,
+  validate as uuidValidate,
+} from 'uuid';
 import { IdProviderErrorType } from '../../enumerations/id-provider-error-type';
+import { IdProviderError } from '../../errors/id-provider';
+import { BaseIdProvider } from '../base-id-provider';
 
 /**
  * ID provider for standard RFC 4122 UUIDs (16 bytes).
- * 
+ *
  * Uses the 'uuid' npm package for UUID generation and validation.
  * Serialization uses the standard UUID format with dashes (36 characters).
- * 
+ *
  * This is functionally similar to GuidV4Provider but uses standard UUID
  * string formatting (with dashes) instead of base64.
  */
@@ -49,13 +53,16 @@ export class UuidProvider extends BaseIdProvider {
    */
   serialize(id: Uint8Array): string {
     this.validateLength(id, 'UuidProvider.serialize');
-    
+
     const hex = Array.from(id)
-      .map(b => b.toString(16).padStart(2, '0'))
+      .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
-    
+
     // Insert dashes at proper positions
-    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(
+      12,
+      16,
+    )}-${hex.slice(16, 20)}-${hex.slice(20)}`;
   }
 
   /**
@@ -72,7 +79,7 @@ export class UuidProvider extends BaseIdProvider {
         IdProviderErrorType.InvalidUuidFormat,
         undefined,
         undefined,
-        { input: str }
+        { input: str },
       );
     }
 
@@ -84,7 +91,10 @@ export class UuidProvider extends BaseIdProvider {
         IdProviderErrorType.ParseFailed,
         { cause: error instanceof Error ? error : undefined },
         undefined,
-        { input: str, message: error instanceof Error ? error.message : String(error) }
+        {
+          input: str,
+          message: error instanceof Error ? error.message : String(error),
+        },
       );
     }
   }
@@ -95,10 +105,10 @@ export class UuidProvider extends BaseIdProvider {
    */
   getVersion(id: Uint8Array): number | undefined {
     this.validateLength(id, 'UuidProvider.getVersion');
-    
+
     // Version is in the most significant 4 bits of byte 6
     const versionByte = id[6];
-    return (versionByte >> 4) & 0x0F;
+    return (versionByte >> 4) & 0x0f;
   }
 
   /**
@@ -106,7 +116,7 @@ export class UuidProvider extends BaseIdProvider {
    */
   isNil(id: Uint8Array): boolean {
     this.validateLength(id, 'UuidProvider.isNil');
-    
+
     for (let i = 0; i < id.length; i++) {
       if (id[i] !== 0) {
         return false;

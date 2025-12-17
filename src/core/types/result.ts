@@ -4,7 +4,7 @@
 
 import { CryptoError } from '../errors/crypto-error';
 
-export type CryptoResult<T> = 
+export type CryptoResult<T> =
   | { success: true; data: T }
   | { success: false; error: CryptoError };
 

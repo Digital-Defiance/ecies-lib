@@ -23,9 +23,14 @@ export interface IStreamProgress {
 /**
  * Callback function for progress updates
  */
-export type ProgressCallback = (progress: IStreamProgress) => void | Promise<void>;
+export type ProgressCallback = (
+  progress: IStreamProgress,
+) => void | Promise<void>;
 
 /**
  * Callback function for chunk completion
  */
-export type ChunkCallback = (chunk: { index: number; size: number }) => void | Promise<void>;
+export type ChunkCallback = (chunk: {
+  index: number;
+  size: number;
+}) => void | Promise<void>;

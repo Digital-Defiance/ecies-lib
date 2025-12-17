@@ -31,9 +31,9 @@ describe('Property-Based Test: Secure Storage Independence', () => {
           const Module = require('module');
           const originalRequire = Module.prototype.require;
 
-          Module.prototype.require = function (id: string) {
+          Module.prototype.require = function (id: string, ...args: unknown[]) {
             loadedModules.add(id);
-            return originalRequire.apply(this, arguments);
+            return originalRequire.apply(this, [id, ...args]);
           };
 
           try {
@@ -110,9 +110,9 @@ describe('Property-Based Test: Secure Storage Independence', () => {
           const Module = require('module');
           const originalRequire = Module.prototype.require;
 
-          Module.prototype.require = function (id: string) {
+          Module.prototype.require = function (id: string, ...args: unknown[]) {
             loadedModules.add(id);
-            return originalRequire.apply(this, arguments);
+            return originalRequire.apply(this, [id, ...args]);
           };
 
           try {
@@ -172,9 +172,9 @@ describe('Property-Based Test: Secure Storage Independence', () => {
           const Module = require('module');
           const originalRequire = Module.prototype.require;
 
-          Module.prototype.require = function (id: string) {
+          Module.prototype.require = function (id: string, ...args: unknown[]) {
             loadedModules.add(id);
-            return originalRequire.apply(this, arguments);
+            return originalRequire.apply(this, [id, ...args]);
           };
 
           try {
@@ -227,7 +227,7 @@ describe('Property-Based Test: Secure Storage Independence', () => {
    */
   it('should use ID provider without loading constants', () => {
     fc.assert(
-      fc.property(fc.integer({ min: 1, max: 100 }), (iteration) => {
+      fc.property(fc.integer({ min: 1, max: 100 }), (_iteration) => {
         // Clear module cache
         jest.resetModules();
 
@@ -236,9 +236,9 @@ describe('Property-Based Test: Secure Storage Independence', () => {
         const Module = require('module');
         const originalRequire = Module.prototype.require;
 
-        Module.prototype.require = function (id: string) {
+        Module.prototype.require = function (id: string, ...args: unknown[]) {
           loadedModules.add(id);
-          return originalRequire.apply(this, arguments);
+          return originalRequire.apply(this, [id, ...args]);
         };
 
         try {

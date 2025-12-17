@@ -2,7 +2,6 @@ import validator from 'validator';
 import { EmailString } from '../src/email-string';
 import { InvalidEmailErrorType } from '../src/enumerations/invalid-email-type';
 import { InvalidEmailError } from '../src/errors/invalid-email';
-import { spyContains, withConsoleMocks } from '@digitaldefiance/express-suite-test-utils';
 
 jest.mock('validator');
 

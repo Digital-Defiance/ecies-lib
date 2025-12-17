@@ -1,6 +1,4 @@
 import {
-  Constants,
-  ConstantsRegistry,
   createRuntimeConfiguration,
   getRuntimeConfiguration,
   registerRuntimeConfiguration,
@@ -16,7 +14,9 @@ describe('ECIES Runtime Configuration Registry', () => {
   });
 
   it('should allow registering and retrieving a custom configuration', () => {
-    registerRuntimeConfiguration('custom-ecies-config', { PBKDF2: { ALGORITHM: 'SHA-512' } });
+    registerRuntimeConfiguration('custom-ecies-config', {
+      PBKDF2: { ALGORITHM: 'SHA-512' },
+    });
     const customConfig = getRuntimeConfiguration('custom-ecies-config');
     expect(customConfig.PBKDF2.ALGORITHM).toBe('SHA-512');
   });

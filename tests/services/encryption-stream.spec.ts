@@ -1,9 +1,9 @@
-import { EncryptionStream } from '../../src/services/encryption-stream';
-import { ECIESService } from '../../src/services/ecies/service';
-import { STREAM_HEADER_CONSTANTS } from '../../src/interfaces/stream-header';
 import { EciesEncryptionTypeEnum } from '../../src/enumerations/ecies-encryption-type';
-import { StreamTestUtils } from '../support/stream-test-utils';
 import { getEciesI18nEngine } from '../../src/i18n-setup';
+import { STREAM_HEADER_CONSTANTS } from '../../src/interfaces/stream-header';
+import { ECIESService } from '../../src/services/ecies/service';
+import { EncryptionStream } from '../../src/services/encryption-stream';
+import { StreamTestUtils } from '../support/stream-test-utils';
 
 describe('EncryptionStream', () => {
   let ecies: ECIESService;
@@ -66,9 +66,11 @@ describe('EncryptionStream', () => {
     it('should throw on invalid magic bytes', () => {
       const headerData = new Uint8Array(STREAM_HEADER_CONSTANTS.HEADER_SIZE);
       const view = new DataView(headerData.buffer);
-      view.setUint32(0, 0xDEADBEEF, false); // Invalid magic
+      view.setUint32(0, 0xdeadbeef, false); // Invalid magic
 
-      expect(() => stream.parseStreamHeader(headerData)).toThrow('Invalid stream magic bytes');
+      expect(() => stream.parseStreamHeader(headerData)).toThrow(
+        'Invalid stream magic bytes',
+      );
     });
 
     it('should throw on unsupported version', () => {
@@ -77,13 +79,17 @@ describe('EncryptionStream', () => {
       view.setUint32(0, STREAM_HEADER_CONSTANTS.MAGIC, false);
       view.setUint16(4, 0x9999, false); // Unsupported version
 
-      expect(() => stream.parseStreamHeader(headerData)).toThrow('Unsupported stream version');
+      expect(() => stream.parseStreamHeader(headerData)).toThrow(
+        'Unsupported stream version',
+      );
     });
 
     it('should throw on data too short', () => {
       const shortData = new Uint8Array(10);
 
-      expect(() => stream.parseStreamHeader(shortData)).toThrow('Data too short for stream header');
+      expect(() => stream.parseStreamHeader(shortData)).toThrow(
+        'Data too short for stream header',
+      );
     });
   });
 
@@ -97,7 +103,7 @@ describe('EncryptionStream', () => {
           for await (const chunk of stream.encryptStream(source, publicKey)) {
             yield chunk.data;
           }
-        })()
+        })(),
       );
 
       expect(chunks.length).toBe(1);
@@ -145,7 +151,7 @@ describe('EncryptionStream', () => {
 
       let chunkCount = 0;
       try {
-        for await (const chunk of stream.encryptStream(source, publicKey, {
+        for await (const _chunk of stream.encryptStream(source, publicKey, {
           signal: controller.signal,
         })) {
           chunkCount++;
@@ -154,7 +160,7 @@ describe('EncryptionStream', () => {
           }
         }
         fail('Should have thrown AbortError');
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.name).toBe('AbortError');
         expect(chunkCount).toBe(2);
       }
@@ -177,10 +183,10 @@ describe('EncryptionStream', () => {
         stream.decryptStream(
           StreamTestUtils.createAsyncIterable(
             StreamTestUtils.concatenateChunks(encryptedChunks),
-            encryptedChunks[0].length
+            encryptedChunks[0].length,
           ),
-          privateKey
-        )
+          privateKey,
+        ),
       );
 
       const decrypted = StreamTestUtils.concatenateChunks(decryptedChunks);
@@ -207,7 +213,7 @@ describe('EncryptionStream', () => {
             yield encrypted;
           }
         })(),
-        privateKey
+        privateKey,
       )) {
         decryptedChunks.push(chunk);
       }
@@ -235,7 +241,7 @@ describe('EncryptionStream', () => {
             yield encryptedChunks[0];
             yield encryptedChunks[2];
           })(),
-          privateKey
+          privateKey,
         )) {
           decrypted.push(chunk);
         }
@@ -257,14 +263,14 @@ describe('EncryptionStream', () => {
       let chunkCount = 0;
 
       try {
-        for await (const chunk of stream.decryptStream(
+        for await (const _chunk of stream.decryptStream(
           (async function* () {
             for (const encrypted of encryptedChunks) {
               yield encrypted;
             }
           })(),
           privateKey,
-          { signal: controller.signal }
+          { signal: controller.signal },
         )) {
           chunkCount++;
           if (chunkCount === 2) {
@@ -272,7 +278,7 @@ describe('EncryptionStream', () => {
           }
         }
         fail('Should have thrown AbortError');
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.name).toBe('AbortError');
         expect(chunkCount).toBe(2);
       }

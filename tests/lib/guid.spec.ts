@@ -1,8 +1,8 @@
 import * as uuid from 'uuid';
-import { GuidV4 } from '../../src/lib/guid';
 import { GuidBrandType } from '../../src/enumerations/guid-brand-type';
 import { GuidErrorType } from '../../src/enumerations/guid-error-type';
 import { GuidError } from '../../src/errors/guid';
+import { GuidV4 } from '../../src/lib/guid';
 import {
   Base64Guid,
   BigIntGuid,
@@ -141,34 +141,38 @@ describe('GuidV4', () => {
       });
 
       it('should throw GuidError for 35-character string', () => {
-        expect(() =>
-          new GuidV4('550e8400-e29b-41d4-a716-44665544000' as any),
+        expect(
+          () => new GuidV4('550e8400-e29b-41d4-a716-44665544000' as any),
         ).toThrow(GuidError);
       });
 
       it('should throw GuidError for 37-character string', () => {
-        expect(() =>
-          new GuidV4('550e8400-e29b-41d4-a716-4466554400000' as any),
+        expect(
+          () => new GuidV4('550e8400-e29b-41d4-a716-4466554400000' as any),
         ).toThrow(GuidError);
       });
     });
 
     describe('Invalid Input - Invalid Format', () => {
       it('should throw GuidError for invalid full hex format', () => {
-        expect(() =>
-          new GuidV4('ZZZZZZZZ-ZZZZ-ZZZZ-ZZZZ-ZZZZZZZZZZZZ' as FullHexGuid),
+        expect(
+          () =>
+            new GuidV4('ZZZZZZZZ-ZZZZ-ZZZZ-ZZZZ-ZZZZZZZZZZZZ' as FullHexGuid),
         ).toThrow(GuidError);
-        expect(() =>
-          new GuidV4('ZZZZZZZZ-ZZZZ-ZZZZ-ZZZZ-ZZZZZZZZZZZZ' as FullHexGuid),
+        expect(
+          () =>
+            new GuidV4('ZZZZZZZZ-ZZZZ-ZZZZ-ZZZZ-ZZZZZZZZZZZZ' as FullHexGuid),
         ).toThrow(
-          expect.objectContaining({ type: GuidErrorType.InvalidGuidWithDetails }),
+          expect.objectContaining({
+            type: GuidErrorType.InvalidGuidWithDetails,
+          }),
         );
       });
 
       it('should throw GuidError for invalid short hex format', () => {
-        expect(() => new GuidV4('ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ' as any)).toThrow(
-          GuidError,
-        );
+        expect(
+          () => new GuidV4('ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ' as any),
+        ).toThrow(GuidError);
       });
 
       it('should throw GuidError for invalid base64 format', () => {
@@ -195,8 +199,8 @@ describe('GuidV4', () => {
       });
 
       it('should throw GuidError for dashes in wrong positions', () => {
-        expect(() =>
-          new GuidV4('550e-8400e29b-41d4a716-446655440000' as any),
+        expect(
+          () => new GuidV4('550e-8400e29b-41d4a716-446655440000' as any),
         ).toThrow(GuidError);
       });
     });
@@ -453,9 +457,9 @@ describe('GuidV4', () => {
     });
 
     it('should verify BigIntGuid', () => {
-      expect(
-        GuidV4.verifyGuid(GuidBrandType.BigIntGuid, testBigIntGuid),
-      ).toBe(true);
+      expect(GuidV4.verifyGuid(GuidBrandType.BigIntGuid, testBigIntGuid)).toBe(
+        true,
+      );
       expect(GuidV4.verifyGuid(GuidBrandType.BigIntGuid, -1n)).toBe(false);
     });
 
@@ -820,9 +824,9 @@ describe('GuidV4', () => {
 
     it('should handle default case in toRawGuidBuffer', () => {
       // Force an unknown brand type to hit the default case
-      expect(() =>
-        GuidV4.toRawGuidBuffer({ length: 99 } as any),
-      ).toThrow(GuidError);
+      expect(() => GuidV4.toRawGuidBuffer({ length: 99 } as any)).toThrow(
+        GuidError,
+      );
     });
   });
 
@@ -853,11 +857,11 @@ describe('GuidV4', () => {
 
     it('should handle rapid creation and conversion', () => {
       const guids = Array.from({ length: 100 }, () => GuidV4.new());
-      
+
       guids.forEach((guid) => {
         expect(guid).toBeInstanceOf(GuidV4);
         expect(uuid.validate(guid.asFullHexGuid)).toBe(true);
-        
+
         // Test all conversions
         const serialized = guid.serialize();
         const hydrated = GuidV4.hydrate(serialized);
@@ -909,9 +913,9 @@ describe('GuidV4', () => {
       });
 
       it('should throw for Unknown brand', () => {
-        expect(() =>
-          GuidV4.guidBrandToLength(GuidBrandType.Unknown),
-        ).toThrow(GuidError);
+        expect(() => GuidV4.guidBrandToLength(GuidBrandType.Unknown)).toThrow(
+          GuidError,
+        );
       });
 
       it('should throw for BigIntGuid', () => {
@@ -1272,9 +1276,9 @@ describe('GuidV4', () => {
 
       it('should handle base64 edge cases', () => {
         // Valid base64 but wrong length after decoding
-        expect(() =>
-          GuidV4.toRawGuidBuffer('SGVsbG8=' as any),
-        ).toThrow(GuidError);
+        expect(() => GuidV4.toRawGuidBuffer('SGVsbG8=' as any)).toThrow(
+          GuidError,
+        );
       });
     });
   });
@@ -1399,9 +1403,7 @@ describe('GuidV4', () => {
 
   describe('Error Scenarios and Recovery', () => {
     it('should handle cascading validation failures', () => {
-      expect(() => new GuidV4('invalid-format-here' as any)).toThrow(
-        GuidError,
-      );
+      expect(() => new GuidV4('invalid-format-here' as any)).toThrow(GuidError);
     });
 
     it('should provide meaningful error types', () => {
@@ -1444,7 +1446,7 @@ describe('GuidV4', () => {
 
       expect(guids).toHaveLength(count);
       expect(duration).toBeLessThan(5000); // Should complete in reasonable time
-      
+
       // Verify all are unique
       const uniqueSet = new Set(guids.map((g) => g.asFullHexGuid));
       expect(uniqueSet.size).toBe(count);
@@ -1456,11 +1458,11 @@ describe('GuidV4', () => {
 
       const start = Date.now();
       for (let i = 0; i < iterations; i++) {
-        guid.asFullHexGuid;
-        guid.asShortHexGuid;
-        guid.asBase64Guid;
-        guid.asBigIntGuid;
-        guid.asRawGuidBuffer;
+        void guid.asFullHexGuid;
+        void guid.asShortHexGuid;
+        void guid.asBase64Guid;
+        void guid.asBigIntGuid;
+        void guid.asRawGuidBuffer;
       }
       const duration = Date.now() - start;
 
@@ -1471,15 +1473,13 @@ describe('GuidV4', () => {
   describe('Constructor Internal Validation', () => {
     it('should validate after brand detection', () => {
       // Force validation path by providing wrong format
-      expect(() => new GuidV4('00000000-0000-0000-0000-00000000000X' as any)).toThrow(
-        GuidError,
-      );
+      expect(
+        () => new GuidV4('00000000-0000-0000-0000-00000000000X' as any),
+      ).toThrow(GuidError);
     });
 
     it('should handle error in toRawGuidBuffer during construction', () => {
-      expect(() => new GuidV4({ invalid: 'object' } as any)).toThrow(
-        GuidError,
-      );
+      expect(() => new GuidV4({ invalid: 'object' } as any)).toThrow(GuidError);
     });
 
     it('should skip UUID validation for boundary values', () => {
@@ -1547,7 +1547,9 @@ describe('GuidV4', () => {
       });
 
       it('should throw on bigint exceeding 128 bits', () => {
-        const tooBig = BigInt('0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF') as BigIntGuid;
+        const tooBig = BigInt(
+          '0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
+        ) as BigIntGuid;
         expect(() => GuidV4.fromBigInt(tooBig)).toThrow(GuidError);
       });
     });
@@ -1561,7 +1563,9 @@ describe('GuidV4', () => {
 
       it('should throw on wrong buffer length', () => {
         const wrongBuffer = Buffer.from('too short');
-        expect(() => GuidV4.fromBuffer(wrongBuffer as RawGuidBuffer)).toThrow(GuidError);
+        expect(() => GuidV4.fromBuffer(wrongBuffer as RawGuidBuffer)).toThrow(
+          GuidError,
+        );
       });
     });
   });
@@ -1571,7 +1575,7 @@ describe('GuidV4', () => {
       it('should create an independent copy', () => {
         const guid1 = new GuidV4(testFullHexGuid);
         const guid2 = guid1.clone();
-        
+
         expect(guid2).toBeInstanceOf(GuidV4);
         expect(guid2).not.toBe(guid1); // Different instances
         expect(guid2.equals(guid1)).toBe(true); // Same value
@@ -1581,17 +1585,19 @@ describe('GuidV4', () => {
       it('should create independent buffer copies', () => {
         const guid1 = new GuidV4(testFullHexGuid);
         const guid2 = guid1.clone();
-        
+
         // Buffers should not be the same object
         expect(guid2.asRawGuidBuffer).not.toBe(guid1.asRawGuidBuffer);
         // But should have same content
-        expect(Buffer.compare(guid2.asRawGuidBuffer, guid1.asRawGuidBuffer)).toBe(0);
+        expect(
+          Buffer.compare(guid2.asRawGuidBuffer, guid1.asRawGuidBuffer),
+        ).toBe(0);
       });
 
       it('should clone boundary values correctly', () => {
         const guid1 = new GuidV4(allZerosFullHex);
         const guid2 = guid1.clone();
-        
+
         expect(guid2.asFullHexGuid).toBe(allZerosFullHex);
         expect(guid2.equals(guid1)).toBe(true);
       });
@@ -1601,14 +1607,14 @@ describe('GuidV4', () => {
       it('should return consistent hash for same GUID', () => {
         const guid1 = new GuidV4(testFullHexGuid);
         const guid2 = new GuidV4(testFullHexGuid);
-        
+
         expect(guid1.hashCode()).toBe(guid2.hashCode());
       });
 
       it('should return different hash for different GUIDs', () => {
         const guid1 = new GuidV4(testFullHexGuid);
         const guid2 = GuidV4.new();
-        
+
         // Extremely unlikely to collide
         expect(guid1.hashCode()).not.toBe(guid2.hashCode());
       });
@@ -1617,14 +1623,14 @@ describe('GuidV4', () => {
         const guid = new GuidV4(testFullHexGuid);
         const hash1 = guid.hashCode();
         const hash2 = guid.hashCode();
-        
+
         expect(hash1).toBe(hash2);
       });
 
       it('should return numeric hash', () => {
         const guid = new GuidV4(testFullHexGuid);
         const hash = guid.hashCode();
-        
+
         expect(typeof hash).toBe('number');
         expect(Number.isFinite(hash)).toBe(true);
         expect(Number.isInteger(hash)).toBe(true);
@@ -1633,7 +1639,7 @@ describe('GuidV4', () => {
       it('should handle boundary values', () => {
         const guid1 = new GuidV4(allZerosFullHex);
         const guid2 = new GuidV4(allFsFullHex);
-        
+
         expect(typeof guid1.hashCode()).toBe('number');
         expect(typeof guid2.hashCode()).toBe('number');
         expect(guid1.hashCode()).not.toBe(guid2.hashCode());
@@ -1643,10 +1649,10 @@ describe('GuidV4', () => {
         const map = new Map<number, GuidV4>();
         const guid1 = new GuidV4(testFullHexGuid);
         const guid2 = GuidV4.new();
-        
+
         map.set(guid1.hashCode(), guid1);
         map.set(guid2.hashCode(), guid2);
-        
+
         expect(map.get(guid1.hashCode())).toBe(guid1);
         expect(map.get(guid2.hashCode())).toBe(guid2);
       });
@@ -1683,7 +1689,7 @@ describe('GuidV4', () => {
         const guid = new GuidV4(testShortHexGuid);
         const result1 = guid.asFullHexGuid;
         const result2 = guid.asFullHexGuid;
-        
+
         // Should return same string instance (cached)
         expect(result1).toBe(result2);
         expect(result1).toBe(testFullHexGuid);
@@ -1693,7 +1699,7 @@ describe('GuidV4', () => {
         const guid = new GuidV4(testFullHexGuid);
         const result1 = guid.asShortHexGuid;
         const result2 = guid.asShortHexGuid;
-        
+
         // Should return same string instance (cached)
         expect(result1).toBe(result2);
         expect(result1).toBe(testShortHexGuid);
@@ -1701,15 +1707,15 @@ describe('GuidV4', () => {
 
       it('should not recompute cached values', () => {
         const guid = new GuidV4(testBase64Guid);
-        
+
         // First access computes
         const full1 = guid.asFullHexGuid;
         const short1 = guid.asShortHexGuid;
-        
+
         // Second access uses cache
         const full2 = guid.asFullHexGuid;
         const short2 = guid.asShortHexGuid;
-        
+
         expect(full1).toBe(full2);
         expect(short1).toBe(short2);
       });
@@ -1719,11 +1725,11 @@ describe('GuidV4', () => {
       it('should create GUIDs efficiently via factory methods', () => {
         const iterations = 1000;
         const start = Date.now();
-        
+
         for (let i = 0; i < iterations; i++) {
           GuidV4.fromFullHex(testFullHexGuid);
         }
-        
+
         const duration = Date.now() - start;
         expect(duration).toBeLessThan(1000); // Should complete in < 1 second
       });
@@ -1733,10 +1739,18 @@ describe('GuidV4', () => {
   describe('lengthToGuidBrand optimization', () => {
     it('should use O(1) lookup via ReverseLengthMap', () => {
       // Valid lengths
-      expect(GuidV4.lengthToGuidBrand(36, false)).toBe(GuidBrandType.FullHexGuid);
-      expect(GuidV4.lengthToGuidBrand(32, false)).toBe(GuidBrandType.ShortHexGuid);
-      expect(GuidV4.lengthToGuidBrand(24, false)).toBe(GuidBrandType.Base64Guid);
-      expect(GuidV4.lengthToGuidBrand(16, true)).toBe(GuidBrandType.RawGuidBuffer);
+      expect(GuidV4.lengthToGuidBrand(36, false)).toBe(
+        GuidBrandType.FullHexGuid,
+      );
+      expect(GuidV4.lengthToGuidBrand(32, false)).toBe(
+        GuidBrandType.ShortHexGuid,
+      );
+      expect(GuidV4.lengthToGuidBrand(24, false)).toBe(
+        GuidBrandType.Base64Guid,
+      );
+      expect(GuidV4.lengthToGuidBrand(16, true)).toBe(
+        GuidBrandType.RawGuidBuffer,
+      );
     });
 
     it('should validate type consistency (buffer vs string)', () => {
@@ -1759,7 +1773,7 @@ describe('GuidV4', () => {
     it('should provide consistent error messages', () => {
       // All invalid inputs should go through same validation path
       expect(() => new GuidV4(null as any)).toThrow(GuidError);
-      
+
       try {
         new GuidV4(null as any);
         throw new Error('Should have thrown GuidError');
@@ -1778,7 +1792,7 @@ describe('GuidV4', () => {
       const guid3 = new GuidV4(testBase64Guid);
       const guid4 = new GuidV4(testBigIntGuid);
       const guid5 = new GuidV4(testRawGuidBuffer);
-      
+
       // All should represent the same GUID
       expect(guid1.equals(guid2)).toBe(true);
       expect(guid1.equals(guid3)).toBe(true);
@@ -1799,8 +1813,12 @@ describe('GuidV4', () => {
 
     it('should validate hex string format', () => {
       // Invalid hex characters should be rejected
-      expect(() => new GuidV4('ZZZZZZZZ-ZZZZ-ZZZZ-ZZZZ-ZZZZZZZZZZZZ' as FullHexGuid)).toThrow(GuidError);
-      expect(() => new GuidV4('GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG' as ShortHexGuid)).toThrow(GuidError);
+      expect(
+        () => new GuidV4('ZZZZZZZZ-ZZZZ-ZZZZ-ZZZZ-ZZZZZZZZZZZZ' as FullHexGuid),
+      ).toThrow(GuidError);
+      expect(
+        () => new GuidV4('GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG' as ShortHexGuid),
+      ).toThrow(GuidError);
     });
   });
 
@@ -1809,10 +1827,10 @@ describe('GuidV4', () => {
       const guid = new GuidV4(testFullHexGuid);
       const buffer1 = guid.asRawGuidBuffer;
       const buffer2 = guid.asRawGuidBuffer;
-      
+
       // Should be different buffer instances
       expect(buffer1).not.toBe(buffer2);
-      
+
       // But same content
       expect(Buffer.compare(buffer1, buffer2)).toBe(0);
     });
@@ -1820,12 +1838,12 @@ describe('GuidV4', () => {
     it('should prevent external mutation via asRawGuidBuffer', () => {
       const guid = new GuidV4(testFullHexGuid);
       const originalHex = guid.asFullHexGuid;
-      
+
       // Get buffer and try to mutate it
       const buffer = guid.asRawGuidBuffer;
-      buffer[0] = 0xFF;
-      buffer[1] = 0xFF;
-      
+      buffer[0] = 0xff;
+      buffer[1] = 0xff;
+
       // GUID should be unchanged
       expect(guid.asFullHexGuid).toBe(originalHex);
     });
@@ -1834,7 +1852,7 @@ describe('GuidV4', () => {
       const guid = new GuidV4(testFullHexGuid);
       const buffer1 = guid.asRawGuidBufferUnsafe;
       const buffer2 = guid.asRawGuidBufferUnsafe;
-      
+
       // Should be same buffer instance
       expect(buffer1).toBe(buffer2);
     });
@@ -1883,7 +1901,7 @@ describe('GuidV4', () => {
     it('should return undefined for boundary values', () => {
       const emptyGuid = new GuidV4(allZerosFullHex);
       expect(emptyGuid.getVersion()).toBeUndefined();
-      
+
       const ffGuid = new GuidV4(allFsFullHex);
       expect(ffGuid.getVersion()).toBeUndefined();
     });
@@ -1896,7 +1914,7 @@ describe('GuidV4', () => {
     it('should accept boundary values as valid', () => {
       const emptyGuid = new GuidV4(allZerosFullHex);
       expect(emptyGuid.isValidV4()).toBe(true);
-      
+
       const ffGuid = new GuidV4(allFsFullHex);
       expect(ffGuid.isValidV4()).toBe(true);
     });
@@ -1912,7 +1930,7 @@ describe('GuidV4', () => {
     it('should return consistent ordering', () => {
       const guid1 = new GuidV4(allZerosFullHex);
       const guid2 = new GuidV4(testFullHexGuid);
-      
+
       expect(guid1.compareTo(guid2)).toBeLessThan(0);
       expect(guid2.compareTo(guid1)).toBeGreaterThan(0);
     });
@@ -1924,9 +1942,9 @@ describe('GuidV4', () => {
         GuidV4.new(),
         new GuidV4(allFsFullHex),
       ];
-      
+
       const sorted = guids.sort((a, b) => a.compareTo(b));
-      
+
       // Should be sorted
       for (let i = 0; i < sorted.length - 1; i++) {
         expect(sorted[i].compareTo(sorted[i + 1])).toBeLessThanOrEqual(0);
@@ -1939,7 +1957,7 @@ describe('GuidV4', () => {
       const guid = new GuidV4(testFullHexGuid);
       const base64_1 = guid.asBase64Guid;
       const base64_2 = guid.asBase64Guid;
-      
+
       // Should return same instance (cached)
       expect(base64_1).toBe(base64_2);
     });
@@ -1948,7 +1966,7 @@ describe('GuidV4', () => {
       const guid = new GuidV4(testFullHexGuid);
       const str1 = guid.toString();
       const str2 = guid.toString();
-      
+
       expect(str1).toBe(str2);
     });
   });
@@ -2170,4 +2188,3 @@ describe('GuidV4', () => {
     });
   });
 });
-

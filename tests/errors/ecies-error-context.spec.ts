@@ -1,5 +1,5 @@
-import { ECIESError, IErrorContext } from '../../src/errors/ecies';
 import { ECIESErrorTypeEnum } from '../../src/enumerations/ecies-error-type';
+import { ECIESError, IErrorContext } from '../../src/errors/ecies';
 import { getEciesI18nEngine } from '../../src/i18n-setup';
 
 describe('ECIESError with Context', () => {
@@ -9,8 +9,10 @@ describe('ECIESError with Context', () => {
 
   describe('Basic Error Creation', () => {
     it('should create error without context', () => {
-      const error = new ECIESError(ECIESErrorTypeEnum.InvalidECIESMultipleRecipientIdSize);
-      
+      const error = new ECIESError(
+        ECIESErrorTypeEnum.InvalidECIESMultipleRecipientIdSize,
+      );
+
       expect(error).toBeInstanceOf(Error);
       expect(error).toBeInstanceOf(ECIESError);
       expect(error.name).toBe('ECIESError');
@@ -38,7 +40,7 @@ describe('ECIESError with Context', () => {
         undefined,
         undefined,
         undefined,
-        context
+        context,
       );
 
       expect(error.context).toBeDefined();
@@ -53,7 +55,7 @@ describe('ECIESError with Context', () => {
         undefined,
         undefined,
         undefined,
-        { operation: 'test' } // Partial context
+        { operation: 'test' }, // Partial context
       );
 
       expect(error.context).toBeDefined();
@@ -81,7 +83,7 @@ describe('ECIESError with Context', () => {
         undefined,
         undefined,
         undefined,
-        context
+        context,
       );
 
       expect(error.context?.config).toEqual({
@@ -108,7 +110,7 @@ describe('ECIESError with Context', () => {
         undefined,
         undefined,
         undefined,
-        context
+        context,
       );
 
       // Verify config doesn't have keys, mnemonics, etc.
@@ -138,7 +140,7 @@ describe('ECIESError with Context', () => {
         undefined,
         undefined,
         undefined,
-        context
+        context,
       );
 
       expect(error.context?.metadata?.chunkIndex).toBe(5);
@@ -155,7 +157,7 @@ describe('ECIESError with Context', () => {
         undefined,
         undefined,
         undefined,
-        { operation: 'test' }
+        { operation: 'test' },
       );
 
       expect(error.context?.stackTrace).toBeTruthy();
@@ -169,7 +171,7 @@ describe('ECIESError with Context', () => {
         undefined,
         undefined,
         undefined,
-        { operation: 'test', stackTrace: customStack }
+        { operation: 'test', stackTrace: customStack },
       );
 
       expect(error.context?.stackTrace).toBe(customStack);
@@ -184,13 +186,17 @@ describe('ECIESError with Context', () => {
         undefined,
         undefined,
         undefined,
-        { operation: 'test' }
+        { operation: 'test' },
       );
       const after = new Date();
 
       expect(error.context?.timestamp).toBeInstanceOf(Date);
-      expect(error.context?.timestamp!.getTime()).toBeGreaterThanOrEqual(before.getTime());
-      expect(error.context?.timestamp!.getTime()).toBeLessThanOrEqual(after.getTime());
+      expect(error.context?.timestamp!.getTime()).toBeGreaterThanOrEqual(
+        before.getTime(),
+      );
+      expect(error.context?.timestamp!.getTime()).toBeLessThanOrEqual(
+        after.getTime(),
+      );
     });
   });
 
@@ -204,13 +210,15 @@ describe('ECIESError with Context', () => {
         {
           operation: 'encryptChunk',
           metadata: { recipientCount: 3 },
-        }
+        },
       );
 
       const json = error.toJSON();
 
       expect(json.name).toBe('ECIESError');
-      expect(json.type).toBe(ECIESErrorTypeEnum.InvalidECIESMultipleRecipientIdSize);
+      expect(json.type).toBe(
+        ECIESErrorTypeEnum.InvalidECIESMultipleRecipientIdSize,
+      );
       expect(json.context).toBeDefined();
       expect((json.context as any).operation).toBe('encryptChunk');
       expect((json.context as any).metadata.recipientCount).toBe(3);
@@ -222,12 +230,12 @@ describe('ECIESError with Context', () => {
         undefined,
         undefined,
         undefined,
-        { operation: 'test' }
+        { operation: 'test' },
       );
 
       const jsonString = JSON.stringify(error);
       expect(jsonString).toBeTruthy();
-      
+
       const parsed = JSON.parse(jsonString);
       expect(parsed.name).toBe('ECIESError');
       expect(parsed.context.operation).toBe('test');
@@ -251,7 +259,7 @@ describe('ECIESError with Context', () => {
             expectedSize: 12,
             actualSize: 32,
           },
-        }
+        },
       );
 
       const report = error.getDetailedReport();
@@ -266,7 +274,9 @@ describe('ECIESError with Context', () => {
     });
 
     it('should handle error without context', () => {
-      const error = new ECIESError(ECIESErrorTypeEnum.InvalidECIESMultipleRecipientIdSize);
+      const error = new ECIESError(
+        ECIESErrorTypeEnum.InvalidECIESMultipleRecipientIdSize,
+      );
       const report = error.getDetailedReport();
 
       expect(report).toContain('ECIESError');
@@ -295,11 +305,11 @@ describe('ECIESError with Context', () => {
             actualSize: 32,
             recipientIndex: 0,
           },
-        }
+        },
       );
 
       const report = error.getDetailedReport();
-      
+
       // Should clearly show the mismatch
       expect(report).toContain('idProviderByteLength: 12');
       expect(report).toContain('recipientIdSize: 32');
@@ -324,11 +334,11 @@ describe('ECIESError with Context', () => {
             recipientIdProvided: true,
             recipientIdLength: 12, // Wrong provider!
           },
-        }
+        },
       );
 
       const json = error.toJSON();
-      
+
       expect(json.context).toBeDefined();
       expect((json.context as any).config.idProviderByteLength).toBe(16);
       expect((json.context as any).metadata.recipientIdLength).toBe(12);

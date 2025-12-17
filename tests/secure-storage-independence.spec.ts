@@ -13,9 +13,9 @@ describe('Secure Storage Independence from Constants', () => {
     const Module = require('module');
     const originalRequire = Module.prototype.require;
 
-    Module.prototype.require = function (id: string) {
+    Module.prototype.require = function (id: string, ...args: unknown[]) {
       loadedModules.add(id);
-      return originalRequire.apply(this, arguments);
+      return originalRequire.apply(this, [id, ...args]);
     };
 
     // Import SecureBuffer
@@ -53,9 +53,9 @@ describe('Secure Storage Independence from Constants', () => {
     const Module = require('module');
     const originalRequire = Module.prototype.require;
 
-    Module.prototype.require = function (id: string) {
+    Module.prototype.require = function (id: string, ...args: unknown[]) {
       loadedModules.add(id);
-      return originalRequire.apply(this, arguments);
+      return originalRequire.apply(this, [id, ...args]);
     };
 
     // Import SecureString

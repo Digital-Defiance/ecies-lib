@@ -1,18 +1,24 @@
-import { IECIESConstants } from '../interfaces/ecies-consts';
 import { Constants } from '../constants';
-import { IConstants } from '../interfaces/constants';
-import { IStreamConfig, DEFAULT_STREAM_CONFIG } from '../interfaces/stream-config';
-import { IEncryptedChunk } from '../interfaces/encrypted-chunk';
-import { IStreamHeader, STREAM_HEADER_CONSTANTS } from '../interfaces/stream-header';
-import { IStreamProgress } from '../interfaces/stream-progress';
 import { EciesEncryptionTypeEnum } from '../enumerations/ecies-encryption-type';
-import { ECIESService } from './ecies/service';
-import { ChunkProcessor } from './chunk-processor';
-import { ProgressTracker } from './progress-tracker';
-import { MultiRecipientProcessor } from './multi-recipient-processor';
-import { IMultiRecipientChunk } from '../interfaces/multi-recipient-chunk';
+import { EciesStringKey } from '../enumerations/ecies-string-key';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
-import { EciesStringKey } from '../enumerations';
+import { IConstants } from '../interfaces/constants';
+import { IECIESConstants } from '../interfaces/ecies-consts';
+import { IEncryptedChunk } from '../interfaces/encrypted-chunk';
+import { IMultiRecipientChunk } from '../interfaces/multi-recipient-chunk';
+import {
+  DEFAULT_STREAM_CONFIG,
+  IStreamConfig,
+} from '../interfaces/stream-config';
+import {
+  IStreamHeader,
+  STREAM_HEADER_CONSTANTS,
+} from '../interfaces/stream-header';
+import { IStreamProgress } from '../interfaces/stream-progress';
+import { ChunkProcessor } from './chunk-processor';
+import { ECIESService } from './ecies/service';
+import { MultiRecipientProcessor } from './multi-recipient-processor';
+import { ProgressTracker } from './progress-tracker';
 
 /**
  * Options for stream encryption
@@ -47,10 +53,13 @@ export class EncryptionStream {
     private readonly ecies: ECIESService,
     private readonly config: IStreamConfig = DEFAULT_STREAM_CONFIG,
     private readonly eciesConsts: IECIESConstants = Constants.ECIES,
-    private readonly constants: IConstants = Constants
+    private readonly constants: IConstants = Constants,
   ) {
     this.processor = new ChunkProcessor(ecies, eciesConsts);
-    this.multiRecipientProcessor = new MultiRecipientProcessor(ecies, constants);
+    this.multiRecipientProcessor = new MultiRecipientProcessor(
+      ecies,
+      constants,
+    );
   }
 
   /**
@@ -78,19 +87,34 @@ export class EncryptionStream {
   parseStreamHeader(data: Uint8Array): IStreamHeader {
     const engine = getEciesI18nEngine();
     if (data.length < STREAM_HEADER_CONSTANTS.HEADER_SIZE) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_DataTooShortForHeader));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Stream_DataTooShortForHeader,
+        ),
+      );
     }
 
     const view = new DataView(data.buffer, data.byteOffset);
 
     const magic = view.getUint32(0, false);
     if (magic !== STREAM_HEADER_CONSTANTS.MAGIC) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidMagicBytes));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Stream_InvalidMagicBytes,
+        ),
+      );
     }
 
     const version = view.getUint16(4, false);
     if (version !== STREAM_HEADER_CONSTANTS.VERSION) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_UnsupportedVersion));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Stream_UnsupportedVersion,
+        ),
+      );
     }
 
     return {
@@ -110,16 +134,22 @@ export class EncryptionStream {
   async *encryptStream(
     source: AsyncIterable<Uint8Array>,
     publicKey: Uint8Array,
-    options: IEncryptStreamOptions = {}
+    options: IEncryptStreamOptions = {},
   ): AsyncGenerator<IEncryptedChunk, void, unknown> {
     const engine = getEciesI18nEngine();
     // Validate public key (65 bytes uncompressed with 0x04 prefix)
     if (!publicKey || (publicKey.length !== 65 && publicKey.length !== 33)) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidPublicKeyLength));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Stream_InvalidPublicKeyLength,
+        ),
+      );
     }
 
     const chunkSize = options.chunkSize ?? this.config.chunkSize;
-    const includeChecksums = options.includeChecksums ?? this.config.includeChecksums;
+    const includeChecksums =
+      options.includeChecksums ?? this.config.includeChecksums;
     const signal = options.signal;
     const onProgress = options.onProgress;
 
@@ -127,18 +157,30 @@ export class EncryptionStream {
     let chunkIndex = 0;
     let lastYieldedChunk: IEncryptedChunk | null = null;
     let tracker: ProgressTracker | undefined;
-    let totalBytesRead = 0;
+    let _totalBytesRead = 0;
     const maxSingleChunk = 100 * 1024 * 1024; // 100MB max per source chunk
 
     for await (const data of source) {
       // Check for cancellation
       if (signal?.aborted) {
-        throw new DOMException(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_EncryptionCancelled), 'AbortError');
+        throw new DOMException(
+          engine.translate(
+            EciesComponentId,
+            EciesStringKey.Error_Stream_EncryptionCancelled,
+          ),
+          'AbortError',
+        );
       }
 
       // Prevent buffer exhaustion from single large source chunk
       if (data.length > maxSingleChunk) {
-        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_BufferOverflowTemplate, { max: maxSingleChunk }));
+        throw new Error(
+          engine.translate(
+            EciesComponentId,
+            EciesStringKey.Error_Stream_BufferOverflowTemplate,
+            { max: maxSingleChunk },
+          ),
+        );
       }
 
       // Append to buffer
@@ -146,7 +188,7 @@ export class EncryptionStream {
       newBuffer.set(buffer);
       newBuffer.set(data, buffer.length);
       buffer = newBuffer;
-      totalBytesRead += data.length;
+      _totalBytesRead += data.length;
 
       // Initialize tracker on first data
       if (!tracker && onProgress) {
@@ -167,7 +209,7 @@ export class EncryptionStream {
           publicKey,
           chunkIndex++,
           false,
-          includeChecksums
+          includeChecksums,
         );
 
         lastYieldedChunk = encryptedChunk;
@@ -191,7 +233,7 @@ export class EncryptionStream {
         publicKey,
         chunkIndex,
         true,
-        includeChecksums
+        includeChecksums,
       );
 
       yield encryptedChunk;
@@ -216,27 +258,50 @@ export class EncryptionStream {
   async *encryptStreamMultiple(
     source: AsyncIterable<Uint8Array>,
     recipients: Array<{ id: Uint8Array; publicKey: Uint8Array }>,
-    options: IEncryptStreamOptions = {}
+    options: IEncryptStreamOptions = {},
   ): AsyncGenerator<IMultiRecipientChunk, void, unknown> {
     const engine = getEciesI18nEngine();
     if (recipients.length === 0) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_AtLeastOneRecipientRequired));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Stream_AtLeastOneRecipientRequired,
+        ),
+      );
     }
     if (recipients.length > 65535) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_MaxRecipientsExceeded));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Stream_MaxRecipientsExceeded,
+        ),
+      );
     }
 
     // Validate all recipient public keys
     for (const recipient of recipients) {
-      if (!recipient.publicKey || (recipient.publicKey.length !== 65 && recipient.publicKey.length !== 33)) {
-        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidRecipientPublicKeyLength));
+      if (
+        !recipient.publicKey ||
+        (recipient.publicKey.length !== 65 && recipient.publicKey.length !== 33)
+      ) {
+        throw new Error(
+          engine.translate(
+            EciesComponentId,
+            EciesStringKey.Error_Stream_InvalidRecipientPublicKeyLength,
+          ),
+        );
       }
-      if (!recipient.id || recipient.id.length !== this.constants.MEMBER_ID_LENGTH) {
-        throw new Error(engine.translate(
-          EciesComponentId,
-          EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate,
-          { expected: this.constants.MEMBER_ID_LENGTH }
-        ));
+      if (
+        !recipient.id ||
+        recipient.id.length !== this.constants.MEMBER_ID_LENGTH
+      ) {
+        throw new Error(
+          engine.translate(
+            EciesComponentId,
+            EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate,
+            { expected: this.constants.MEMBER_ID_LENGTH },
+          ),
+        );
       }
     }
 
@@ -258,7 +323,9 @@ export class EncryptionStream {
       }
 
       if (data.length > maxSingleChunk) {
-        throw new Error(`Buffer overflow: source chunk exceeds ${maxSingleChunk} bytes`);
+        throw new Error(
+          `Buffer overflow: source chunk exceeds ${maxSingleChunk} bytes`,
+        );
       }
 
       const newBuffer = new Uint8Array(buffer.length + data.length);
@@ -283,7 +350,7 @@ export class EncryptionStream {
           recipients,
           chunkIndex++,
           false,
-          symmetricKey
+          symmetricKey,
         );
 
         yield encryptedChunk;
@@ -305,7 +372,7 @@ export class EncryptionStream {
         recipients,
         chunkIndex,
         true,
-        symmetricKey
+        symmetricKey,
       );
 
       yield encryptedChunk;
@@ -326,14 +393,28 @@ export class EncryptionStream {
     source: AsyncIterable<Uint8Array>,
     recipientId: Uint8Array,
     privateKey: Uint8Array,
-    options: IDecryptStreamOptions = {}
+    options: IDecryptStreamOptions = {},
   ): AsyncGenerator<Uint8Array, void, unknown> {
     const engine = getEciesI18nEngine();
-    if (!recipientId || recipientId.length !== this.constants.MEMBER_ID_LENGTH) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate, { expected: this.constants.MEMBER_ID_LENGTH }));
+    if (
+      !recipientId ||
+      recipientId.length !== this.constants.MEMBER_ID_LENGTH
+    ) {
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate,
+          { expected: this.constants.MEMBER_ID_LENGTH },
+        ),
+      );
     }
     if (!privateKey || privateKey.length !== 32) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes,
+        ),
+      );
     }
 
     const signal = options.signal;
@@ -347,18 +428,28 @@ export class EncryptionStream {
 
     for await (const chunkData of source) {
       if (signal?.aborted) {
-        throw new DOMException(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_DecryptionCancelled), 'AbortError');
+        throw new DOMException(
+          engine.translate(
+            EciesComponentId,
+            EciesStringKey.Error_Stream_DecryptionCancelled,
+          ),
+          'AbortError',
+        );
       }
 
       const { data, header } = await this.multiRecipientProcessor.decryptChunk(
         chunkData,
         recipientId,
-        privateKey
+        privateKey,
       );
 
       if (header.chunkIndex !== expectedIndex) {
         throw new Error(
-          engine.translate(EciesComponentId, EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate, { expected: expectedIndex, actual: header.chunkIndex })
+          engine.translate(
+            EciesComponentId,
+            EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate,
+            { expected: expectedIndex, actual: header.chunkIndex },
+          ),
         );
       }
 
@@ -382,12 +473,17 @@ export class EncryptionStream {
   async *decryptStream(
     source: AsyncIterable<Uint8Array>,
     privateKey: Uint8Array,
-    options: IDecryptStreamOptions = {}
+    options: IDecryptStreamOptions = {},
   ): AsyncGenerator<Uint8Array, void, unknown> {
     const engine = getEciesI18nEngine();
     // Validate private key
     if (!privateKey || privateKey.length !== 32) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes,
+        ),
+      );
     }
 
     const signal = options.signal;
@@ -402,18 +498,28 @@ export class EncryptionStream {
     for await (const chunkData of source) {
       // Check for cancellation
       if (signal?.aborted) {
-        throw new DOMException(engine.translate(EciesComponentId, EciesStringKey.Error_Stream_DecryptionCancelled), 'AbortError');
+        throw new DOMException(
+          engine.translate(
+            EciesComponentId,
+            EciesStringKey.Error_Stream_DecryptionCancelled,
+          ),
+          'AbortError',
+        );
       }
 
       const { data, header } = await this.processor.decryptChunk(
         chunkData,
-        privateKey
+        privateKey,
       );
 
       // Validate sequence
       if (header.index !== expectedIndex) {
         throw new Error(
-          engine.translate(EciesComponentId, EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate, { expected: expectedIndex, actual: header.index })
+          engine.translate(
+            EciesComponentId,
+            EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate,
+            { expected: expectedIndex, actual: header.index },
+          ),
         );
       }
 

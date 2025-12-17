@@ -1,10 +1,10 @@
+import { Pbkdf2ProfileEnum } from '../../enumerations/pbkdf2-profile';
 import { IConstants } from '../../interfaces/constants';
 import { BaseInvariant } from '../../interfaces/invariant';
-import { Pbkdf2ProfileEnum } from '../../enumerations/pbkdf2-profile';
 
 /**
  * Validates that PBKDF2 profiles have sensible parameters.
- * 
+ *
  * Checks:
  * - iterations > 0 and not too low (security risk)
  * - saltBytes > 0 and reasonable
@@ -14,7 +14,7 @@ export class Pbkdf2ProfilesValidityInvariant extends BaseInvariant {
   constructor() {
     super(
       'Pbkdf2ProfilesValidity',
-      'PBKDF2 profiles must have valid cryptographic parameters'
+      'PBKDF2 profiles must have valid cryptographic parameters',
     );
   }
 
@@ -48,27 +48,36 @@ export class Pbkdf2ProfilesValidityInvariant extends BaseInvariant {
   errorMessage(config: IConstants): string {
     const issues: string[] = [];
     const profileTests = [
-      { name: 'BROWSER_PASSWORD', profile: config.PBKDF2_PROFILES[Pbkdf2ProfileEnum.BROWSER_PASSWORD] },
-      { name: 'HIGH_SECURITY', profile: config.PBKDF2_PROFILES[Pbkdf2ProfileEnum.HIGH_SECURITY] },
-      { name: 'TEST_FAST', profile: config.PBKDF2_PROFILES[Pbkdf2ProfileEnum.TEST_FAST] },
+      {
+        name: 'BROWSER_PASSWORD',
+        profile: config.PBKDF2_PROFILES[Pbkdf2ProfileEnum.BROWSER_PASSWORD],
+      },
+      {
+        name: 'HIGH_SECURITY',
+        profile: config.PBKDF2_PROFILES[Pbkdf2ProfileEnum.HIGH_SECURITY],
+      },
+      {
+        name: 'TEST_FAST',
+        profile: config.PBKDF2_PROFILES[Pbkdf2ProfileEnum.TEST_FAST],
+      },
     ];
 
     for (const { name, profile } of profileTests) {
       if (profile.iterations < 1000 || profile.iterations > 10_000_000) {
         issues.push(
-          `${name}.iterations (${profile.iterations}) must be between 1000 and 10,000,000`
+          `${name}.iterations (${profile.iterations}) must be between 1000 and 10,000,000`,
         );
       }
 
       if (profile.saltBytes < 16 || profile.saltBytes > 256) {
         issues.push(
-          `${name}.saltBytes (${profile.saltBytes}) must be between 16 and 256`
+          `${name}.saltBytes (${profile.saltBytes}) must be between 16 and 256`,
         );
       }
 
       if (profile.hashBytes < 16 || profile.hashBytes > 64) {
         issues.push(
-          `${name}.hashBytes (${profile.hashBytes}) must be between 16 and 64`
+          `${name}.hashBytes (${profile.hashBytes}) must be between 16 and 64`,
         );
       }
     }

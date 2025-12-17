@@ -74,6 +74,7 @@ export class StreamTestUtils {
    * Create mock progress callback
    */
   static createProgressMock(): jest.Mock<void, [IStreamProgress]> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     return jest.fn();
   }
 

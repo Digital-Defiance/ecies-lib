@@ -55,7 +55,9 @@ describe('ID Providers - Comprehensive Tests', () => {
         const id1 = provider.generate();
         // Sleep briefly to ensure timestamp changes
         const start = Date.now();
-        while (Date.now() - start < 2) {} // 2ms delay
+        while (Date.now() - start < 2) {
+          // 2ms delay
+        }
         const id2 = provider.generate();
 
         // Extract timestamps (first 4 bytes, big-endian)
@@ -611,7 +613,7 @@ describe('ID Providers - Comprehensive Tests', () => {
 
     describe('Interface Compliance', () => {
       it('should all implement generate()', () => {
-        for (const { name, provider } of providers) {
+        for (const { name: _name, provider } of providers) {
           expect(() => provider.generate()).not.toThrow();
           const id = provider.generate();
           expect(id).toBeInstanceOf(Uint8Array);
@@ -658,7 +660,7 @@ describe('ID Providers - Comprehensive Tests', () => {
 
     describe('Length Verification', () => {
       it('should respect declared byte lengths', () => {
-        for (const { name, provider } of providers) {
+        for (const { name: _name, provider } of providers) {
           const id = provider.generate();
           expect(id.length).toBe(provider.byteLength);
         }
@@ -747,7 +749,7 @@ describe('ID Providers - Comprehensive Tests', () => {
     it('should not leak information through validation timing', () => {
       const provider = new ObjectIdProvider();
       const validId = provider.generate();
-      const invalidLength = new Uint8Array(11);
+      const _invalidLength = new Uint8Array(11);
       const invalidContent = new Uint8Array(12); // All zeros
 
       const iterations = 5000;

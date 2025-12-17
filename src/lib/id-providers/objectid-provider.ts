@@ -1,14 +1,14 @@
-import { BaseIdProvider } from '../../interfaces/id-provider';
 import { ObjectId } from 'bson';
-import { IdProviderError } from '../../errors/id-provider';
 import { IdProviderErrorType } from '../../enumerations/id-provider-error-type';
+import { IdProviderError } from '../../errors/id-provider';
+import { BaseIdProvider } from '../base-id-provider';
 
 /**
  * ID provider for MongoDB/BSON ObjectIDs (12 bytes).
- * 
+ *
  * Format: 4-byte timestamp + 5-byte random + 3-byte counter
  * This matches the MongoDB ObjectID specification.
- * 
+ *
  * @see https://docs.mongodb.com/manual/reference/method/ObjectId/
  */
 export class ObjectIdProvider extends BaseIdProvider {
@@ -26,16 +26,16 @@ export class ObjectIdProvider extends BaseIdProvider {
   generate(): Uint8Array {
     const buffer = new Uint8Array(12);
     const objectId = new ObjectId();
-    
+
     if (typeof objectId.id === 'string') {
       const hex = objectId.id as string;
       for (let i = 0; i < 12; i++) {
-        buffer[i] = parseInt(hex.substring(i * 2, (i * 2) + 2), 16);
+        buffer[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
       }
     } else {
       buffer.set(objectId.id, 0);
     }
-    
+
     return buffer;
   }
 
@@ -65,9 +65,9 @@ export class ObjectIdProvider extends BaseIdProvider {
    */
   serialize(id: Uint8Array): string {
     this.validateLength(id, 'ObjectIdProvider.serialize');
-    
+
     return Array.from(id)
-      .map(b => b.toString(16).padStart(2, '0'))
+      .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
   }
 
@@ -84,7 +84,7 @@ export class ObjectIdProvider extends BaseIdProvider {
         IdProviderErrorType.InvalidStringLength,
         undefined,
         undefined,
-        { expected: 24, actual: str.length }
+        { expected: 24, actual: str.length },
       );
     }
 

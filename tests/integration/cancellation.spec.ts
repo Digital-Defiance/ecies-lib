@@ -25,7 +25,7 @@ describe('Cancellation', () => {
     let chunksProcessed = 0;
 
     try {
-      for await (const chunk of stream.encryptStream(source, publicKey, {
+      for await (const _chunk of stream.encryptStream(source, publicKey, {
         signal: controller.signal,
       })) {
         chunksProcessed++;
@@ -34,7 +34,7 @@ describe('Cancellation', () => {
         }
       }
       fail('Should have thrown AbortError');
-    } catch (error: any) {
+    } catch (error: unknown) {
       expect(error.name).toBe('AbortError');
       expect(chunksProcessed).toBe(3);
     }
@@ -53,14 +53,14 @@ describe('Cancellation', () => {
     let chunksProcessed = 0;
 
     try {
-      for await (const chunk of stream.decryptStream(
+      for await (const _chunk of stream.decryptStream(
         (async function* () {
           for (const encrypted of encryptedChunks) {
             yield encrypted;
           }
         })(),
         privateKey,
-        { signal: controller.signal }
+        { signal: controller.signal },
       )) {
         chunksProcessed++;
         if (chunksProcessed === 3) {
@@ -68,7 +68,7 @@ describe('Cancellation', () => {
         }
       }
       fail('Should have thrown AbortError');
-    } catch (error: any) {
+    } catch (error: unknown) {
       expect(error.name).toBe('AbortError');
       expect(chunksProcessed).toBe(3);
     }
@@ -82,13 +82,13 @@ describe('Cancellation', () => {
     controller.abort();
 
     try {
-      for await (const chunk of stream.encryptStream(source, publicKey, {
+      for await (const _chunk of stream.encryptStream(source, publicKey, {
         signal: controller.signal,
       })) {
         fail('Should not process any chunks');
       }
       fail('Should have thrown AbortError');
-    } catch (error: any) {
+    } catch (error: unknown) {
       expect(error.name).toBe('AbortError');
       expect(error.message).toContain('cancel');
     }
@@ -104,13 +104,13 @@ describe('Cancellation', () => {
     let chunksProcessed = 0;
 
     try {
-      for await (const chunk of stream.encryptStream(source, publicKey, {
+      for await (const _chunk of stream.encryptStream(source, publicKey, {
         signal: controller.signal,
       })) {
         chunksProcessed++;
       }
       fail('Should have thrown AbortError');
-    } catch (error: any) {
+    } catch (error: unknown) {
       expect(error.name).toBe('AbortError');
       expect(chunksProcessed).toBe(0);
     }

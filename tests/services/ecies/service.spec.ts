@@ -1,5 +1,8 @@
 import { ECIES } from '../../../src/constants';
-import { EciesEncryptionTypeEnum, EciesStringKey } from '../../../src/enumerations';
+import {
+  EciesEncryptionTypeEnum,
+  EciesStringKey,
+} from '../../../src/enumerations';
 import { ECIESService } from '../../../src/services/ecies/service';
 import { englishTranslations } from '../../../src/translations/en-US';
 
@@ -124,7 +127,12 @@ describe('ECIESService', () => {
           recipient1.publicKey,
           message,
         ),
-      ).rejects.toThrow(englishTranslations[EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode]);
+      ).rejects.toThrow(
+        englishTranslations[
+          EciesStringKey
+            .Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode
+        ],
+      );
     });
   });
 });

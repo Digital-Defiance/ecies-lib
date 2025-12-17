@@ -1,10 +1,10 @@
 import { LanguageCodes } from '@digitaldefiance/i18n-lib';
 import { ECIESErrorTypeEnum } from '../src/enumerations/ecies-error-type';
-import MemberErrorType from '../src/enumerations/member-error-type';
 import { EciesStringKey } from '../src/enumerations/ecies-string-key';
+import { MemberErrorType } from '../src/enumerations/member-error-type';
 import { ECIESError } from '../src/errors/ecies';
 import { MemberError } from '../src/errors/member';
-import { getEciesI18nEngine, EciesComponentId } from '../src/i18n-setup';
+import { EciesComponentId, getEciesI18nEngine } from '../src/i18n-setup';
 
 describe('ECIES i18n Comprehensive Tests', () => {
   const allLanguages = [
@@ -20,7 +20,7 @@ describe('ECIES i18n Comprehensive Tests', () => {
 
   describe('Translation Completeness', () => {
     it('should have translations for all ECIES error types in all languages', () => {
-      const engine = getEciesI18nEngine();
+      const _engine = getEciesI18nEngine();
       const errorTypes = Object.values(ECIESErrorTypeEnum);
 
       allLanguages.forEach((lang) => {
@@ -52,7 +52,12 @@ describe('ECIES i18n Comprehensive Tests', () => {
 
       allLanguages.forEach((lang) => {
         stringKeys.forEach((key) => {
-          const translation = engine.translate(EciesComponentId, key, undefined, lang);
+          const translation = engine.translate(
+            EciesComponentId,
+            key,
+            undefined,
+            lang,
+          );
           expect(translation).toBeDefined();
           expect(translation).not.toBe(key);
         });
@@ -67,7 +72,7 @@ describe('ECIES i18n Comprehensive Tests', () => {
           EciesComponentId,
           EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLengthTemplate,
           { keySize: '32', encryptedKeyLength: '16' },
-          lang
+          lang,
         );
         expect(translation).toContain('32');
         expect(translation).toContain('16');
@@ -82,7 +87,7 @@ describe('ECIES i18n Comprehensive Tests', () => {
           EciesComponentId,
           EciesStringKey.Error_ECIESError_TooManyRecipientsTemplate,
           { recipientsCount: '100' },
-          lang
+          lang,
         );
         expect(translation).toContain('100');
         expect(translation).not.toContain('{recipientsCount}');
@@ -95,7 +100,7 @@ describe('ECIES i18n Comprehensive Tests', () => {
           EciesComponentId,
           EciesStringKey.Error_ECIESError_MessageTooLargeTemplate,
           { length: '1048576' },
-          lang
+          lang,
         );
         expect(translation).toContain('1048576');
         expect(translation).not.toContain('{length}');
@@ -108,7 +113,7 @@ describe('ECIES i18n Comprehensive Tests', () => {
           EciesComponentId,
           EciesStringKey.Error_PhoneNumber_InvalidTemplate,
           { phoneNumber: '+1-555-0123' },
-          lang
+          lang,
         );
         expect(translation).toContain('+1-555-0123');
         expect(translation).not.toContain('{phoneNumber}');
@@ -121,8 +126,16 @@ describe('ECIES i18n Comprehensive Tests', () => {
       const errorTypes = Object.values(ECIESErrorTypeEnum);
 
       errorTypes.forEach((errorType) => {
-        const errorUS = new ECIESError(errorType, undefined, LanguageCodes.EN_US);
-        const errorGB = new ECIESError(errorType, undefined, LanguageCodes.EN_GB);
+        const errorUS = new ECIESError(
+          errorType,
+          undefined,
+          LanguageCodes.EN_US,
+        );
+        const errorGB = new ECIESError(
+          errorType,
+          undefined,
+          LanguageCodes.EN_GB,
+        );
         expect(errorUS.message).toBe(errorGB.message);
       });
     });
@@ -131,9 +144,24 @@ describe('ECIES i18n Comprehensive Tests', () => {
       const testKey = EciesStringKey.Error_ECIESError_DecryptionFailed;
       const engine = getEciesI18nEngine();
 
-      const english = engine.translate(EciesComponentId, testKey, undefined, LanguageCodes.EN_US);
-      const french = engine.translate(EciesComponentId, testKey, undefined, LanguageCodes.FR);
-      const spanish = engine.translate(EciesComponentId, testKey, undefined, LanguageCodes.ES);
+      const english = engine.translate(
+        EciesComponentId,
+        testKey,
+        undefined,
+        LanguageCodes.EN_US,
+      );
+      const french = engine.translate(
+        EciesComponentId,
+        testKey,
+        undefined,
+        LanguageCodes.FR,
+      );
+      const spanish = engine.translate(
+        EciesComponentId,
+        testKey,
+        undefined,
+        LanguageCodes.ES,
+      );
 
       expect(french).not.toBe(english);
       expect(spanish).not.toBe(english);
@@ -146,7 +174,12 @@ describe('ECIES i18n Comprehensive Tests', () => {
 
       allLanguages.forEach((lang) => {
         stringKeys.forEach((key) => {
-          const translation = getEciesI18nEngine().translate(EciesComponentId, key, undefined, lang);
+          const translation = getEciesI18nEngine().translate(
+            EciesComponentId,
+            key,
+            undefined,
+            lang,
+          );
           placeholders.forEach((placeholder) => {
             expect(translation.toUpperCase()).not.toContain(placeholder);
           });
@@ -197,7 +230,12 @@ describe('ECIES i18n Comprehensive Tests', () => {
       const engine = getEciesI18nEngine();
 
       allLanguages.forEach((lang) => {
-        const translation = engine.translate(EciesComponentId, testKey, undefined, lang);
+        const translation = engine.translate(
+          EciesComponentId,
+          testKey,
+          undefined,
+          lang,
+        );
         expect(translation.trim()).toBe(translation);
         expect(translation.length).toBeGreaterThan(0);
       });
@@ -208,7 +246,7 @@ describe('ECIES i18n Comprehensive Tests', () => {
         EciesComponentId,
         EciesStringKey.Error_ECIESError_DecryptionFailed,
         undefined,
-        LanguageCodes.ZH_CN
+        LanguageCodes.ZH_CN,
       );
       expect(translation).toBeDefined();
       expect(translation.length).toBeGreaterThan(0);
@@ -219,7 +257,7 @@ describe('ECIES i18n Comprehensive Tests', () => {
         EciesComponentId,
         EciesStringKey.Error_ECIESError_DecryptionFailed,
         undefined,
-        LanguageCodes.JA
+        LanguageCodes.JA,
       );
       expect(translation).toBeDefined();
       expect(translation.length).toBeGreaterThan(0);
@@ -230,7 +268,7 @@ describe('ECIES i18n Comprehensive Tests', () => {
         EciesComponentId,
         EciesStringKey.Error_ECIESError_DecryptionFailed,
         undefined,
-        LanguageCodes.UK
+        LanguageCodes.UK,
       );
       expect(translation).toBeDefined();
       expect(translation.length).toBeGreaterThan(0);
@@ -240,7 +278,11 @@ describe('ECIES i18n Comprehensive Tests', () => {
   describe('Real-World Error Scenarios', () => {
     it('should produce localized error messages in encryption failures', () => {
       allLanguages.forEach((lang) => {
-        const error = new ECIESError(ECIESErrorTypeEnum.DecryptionFailed, undefined, lang);
+        const error = new ECIESError(
+          ECIESErrorTypeEnum.DecryptionFailed,
+          undefined,
+          lang,
+        );
         expect(error.message).toBeDefined();
         expect(error.message.length).toBeGreaterThan(10);
       });
@@ -248,7 +290,11 @@ describe('ECIES i18n Comprehensive Tests', () => {
 
     it('should produce localized error messages for invalid keys', () => {
       allLanguages.forEach((lang) => {
-        const error = new ECIESError(ECIESErrorTypeEnum.InvalidRecipientPublicKey, undefined, lang);
+        const error = new ECIESError(
+          ECIESErrorTypeEnum.InvalidRecipientPublicKey,
+          undefined,
+          lang,
+        );
         expect(error.message).toBeDefined();
         expect(error.message.length).toBeGreaterThan(10);
       });
@@ -256,7 +302,11 @@ describe('ECIES i18n Comprehensive Tests', () => {
 
     it('should produce localized error messages for member operations', () => {
       allLanguages.forEach((lang) => {
-        const error = new MemberError(MemberErrorType.NoWallet, undefined, lang);
+        const error = new MemberError(
+          MemberErrorType.NoWallet,
+          undefined,
+          lang,
+        );
         expect(error.message).toBeDefined();
         expect(error.message.length).toBeGreaterThan(5);
       });
@@ -268,7 +318,7 @@ describe('ECIES i18n Comprehensive Tests', () => {
           EciesComponentId,
           EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate,
           { expectedDataLength: '256', receivedDataLength: '128' },
-          lang
+          lang,
         );
         expect(translation).toContain('256');
         expect(translation).toContain('128');
@@ -282,7 +332,12 @@ describe('ECIES i18n Comprehensive Tests', () => {
 
       allLanguages.forEach((lang) => {
         stringKeys.forEach((key) => {
-          const translation = getEciesI18nEngine().translate(EciesComponentId, key, undefined, lang);
+          const translation = getEciesI18nEngine().translate(
+            EciesComponentId,
+            key,
+            undefined,
+            lang,
+          );
           expect(translation.length).toBeGreaterThanOrEqual(3);
           expect(translation.length).toBeLessThan(500);
         });
@@ -292,7 +347,7 @@ describe('ECIES i18n Comprehensive Tests', () => {
     it('should not have untranslated English in non-English languages', () => {
       const commonEnglishWords = ['error', 'invalid', 'failed', 'missing'];
       const nonEnglishLanguages = allLanguages.filter(
-        (lang) => lang !== LanguageCodes.EN_US && lang !== LanguageCodes.EN_GB
+        (lang) => lang !== LanguageCodes.EN_US && lang !== LanguageCodes.EN_GB,
       );
 
       nonEnglishLanguages.forEach((lang) => {
@@ -300,11 +355,13 @@ describe('ECIES i18n Comprehensive Tests', () => {
           EciesComponentId,
           EciesStringKey.Error_ECIESError_DecryptionFailed,
           undefined,
-          lang
+          lang,
         );
 
         const lowerTranslation = translation.toLowerCase();
-        const hasEnglishWords = commonEnglishWords.some((word) => lowerTranslation.includes(word));
+        const hasEnglishWords = commonEnglishWords.some((word) =>
+          lowerTranslation.includes(word),
+        );
         expect(hasEnglishWords).toBe(false);
       });
     });

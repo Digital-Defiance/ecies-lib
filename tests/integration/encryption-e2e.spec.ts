@@ -33,8 +33,8 @@ describe('EncryptionStream E2E', () => {
             yield chunk;
           }
         })(),
-        privateKey
-      )
+        privateKey,
+      ),
     );
 
     const decrypted = StreamTestUtils.concatenateChunks(decryptedChunks);
@@ -57,8 +57,8 @@ describe('EncryptionStream E2E', () => {
             yield chunk;
           }
         })(),
-        privateKey
-      )
+        privateKey,
+      ),
     );
 
     const decrypted = StreamTestUtils.concatenateChunks(decryptedChunks);
@@ -81,8 +81,8 @@ describe('EncryptionStream E2E', () => {
             yield chunk;
           }
         })(),
-        privateKey
-      )
+        privateKey,
+      ),
     );
 
     expect(decryptedChunks.length).toBe(0);
@@ -104,8 +104,8 @@ describe('EncryptionStream E2E', () => {
             yield chunk;
           }
         })(),
-        privateKey
-      )
+        privateKey,
+      ),
     );
 
     const decrypted = StreamTestUtils.concatenateChunks(decryptedChunks);
@@ -131,8 +131,8 @@ describe('EncryptionStream E2E', () => {
             yield chunk;
           }
         })(),
-        privateKey
-      )
+        privateKey,
+      ),
     );
 
     const decrypted = StreamTestUtils.concatenateChunks(decryptedChunks);
@@ -156,8 +156,8 @@ describe('EncryptionStream E2E', () => {
             yield chunk;
           }
         })(),
-        privateKey
-      )
+        privateKey,
+      ),
     );
 
     const decrypted = StreamTestUtils.concatenateChunks(decryptedChunks);
@@ -181,8 +181,8 @@ describe('EncryptionStream E2E', () => {
             yield chunk;
           }
         })(),
-        privateKey
-      )
+        privateKey,
+      ),
     );
 
     const decrypted = StreamTestUtils.concatenateChunks(decryptedChunks);
@@ -209,8 +209,8 @@ describe('EncryptionStream E2E', () => {
             yield chunk;
           }
         })(),
-        privateKey
-      )
+        privateKey,
+      ),
     );
 
     const decrypted = StreamTestUtils.concatenateChunks(decryptedChunks);

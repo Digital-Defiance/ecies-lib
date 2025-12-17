@@ -1,6 +1,6 @@
 import type { Wallet } from '@ethereumjs/wallet';
 import type { EmailString } from '../email-string';
-import type MemberType from '../enumerations/member-type';
+import type { MemberType } from '../enumerations/member-type';
 import type { SecureBuffer } from '../secure-buffer';
 import type { SecureString } from '../secure-string';
 import type { SignatureUint8Array } from '../types';

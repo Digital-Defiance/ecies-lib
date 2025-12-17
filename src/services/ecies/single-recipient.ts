@@ -1,18 +1,17 @@
-import { IECIESConstants } from '../../interfaces/ecies-consts';
 import { Constants } from '../../constants';
+import { EciesCipherSuiteEnum } from '../../enumerations/ecies-cipher-suite';
 import {
   EciesEncryptionType,
   EciesEncryptionTypeEnum,
 } from '../../enumerations/ecies-encryption-type';
+import { EciesStringKey } from '../../enumerations/ecies-string-key';
 import { EciesVersionEnum } from '../../enumerations/ecies-version';
-import { EciesCipherSuiteEnum } from '../../enumerations/ecies-cipher-suite';
+import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
 import { IECIESConfig } from '../../interfaces/ecies-config';
+import { IECIESConstants } from '../../interfaces/ecies-consts';
 import { AESGCMService } from '../aes-gcm';
-
 import { EciesCryptoCore } from './crypto-core';
 import { IDecryptionResult, ISingleEncryptedParsedHeader } from './interfaces';
-import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
-import { EciesStringKey } from '../../enumerations';
 
 /**
  * Browser-compatible single recipient ECIES encryption/decryption
@@ -22,7 +21,10 @@ export class EciesSingleRecipient {
   protected readonly config: IECIESConfig;
   protected readonly eciesConsts: IECIESConstants;
 
-  constructor(config: IECIESConfig, eciesParams: IECIESConstants = Constants.ECIES) {
+  constructor(
+    config: IECIESConfig,
+    eciesParams: IECIESConstants = Constants.ECIES,
+  ) {
     this.config = config;
     this.eciesConsts = eciesParams;
     this.cryptoCore = new EciesCryptoCore(config, this.eciesConsts);
@@ -47,11 +49,19 @@ export class EciesSingleRecipient {
     ]);
 
     const versionArray = new Uint8Array([EciesVersionEnum.V1]);
-    const cipherSuiteArray = new Uint8Array([EciesCipherSuiteEnum.Secp256k1_Aes256Gcm_Sha256]);
+    const cipherSuiteArray = new Uint8Array([
+      EciesCipherSuiteEnum.Secp256k1_Aes256Gcm_Sha256,
+    ]);
 
     if (message.length > this.eciesConsts.MAX_RAW_DATA_SIZE) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate, {messageLength: message.length }));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate,
+          { messageLength: message.length },
+        ),
+      );
     }
 
     // Generate ephemeral key pair
@@ -72,40 +82,60 @@ export class EciesSingleRecipient {
       sharedSecret,
       new Uint8Array(0), // No salt
       new TextEncoder().encode('ecies-v2-key-derivation'), // Info
-      this.eciesConsts.SYMMETRIC.KEY_SIZE
+      this.eciesConsts.SYMMETRIC.KEY_SIZE,
     );
 
     // Construct AAD
     const aad = new Uint8Array(
       preamble.length +
-      versionArray.length +
-      cipherSuiteArray.length +
-      encryptionTypeArray.length +
-      ephemeralPublicKey.length
+        versionArray.length +
+        cipherSuiteArray.length +
+        encryptionTypeArray.length +
+        ephemeralPublicKey.length,
     );
-    
+
     let aadOffset = 0;
-    aad.set(preamble, aadOffset); aadOffset += preamble.length;
-    aad.set(versionArray, aadOffset); aadOffset += versionArray.length;
-    aad.set(cipherSuiteArray, aadOffset); aadOffset += cipherSuiteArray.length;
-    aad.set(encryptionTypeArray, aadOffset); aadOffset += encryptionTypeArray.length;
+    aad.set(preamble, aadOffset);
+    aadOffset += preamble.length;
+    aad.set(versionArray, aadOffset);
+    aadOffset += versionArray.length;
+    aad.set(cipherSuiteArray, aadOffset);
+    aadOffset += cipherSuiteArray.length;
+    aad.set(encryptionTypeArray, aadOffset);
+    aadOffset += encryptionTypeArray.length;
     aad.set(ephemeralPublicKey, aadOffset);
 
     // Encrypt using AES-GCM
-    const encryptResult = await AESGCMService.encrypt(message, symKey, true, this.eciesConsts, aad);
+    const encryptResult = await AESGCMService.encrypt(
+      message,
+      symKey,
+      true,
+      this.eciesConsts,
+      aad,
+    );
     const { encrypted, iv } = encryptResult;
     const authTag = encryptResult.tag;
 
     if (!authTag) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption,
+        ),
+      );
     }
 
     // Validate encrypted size is reasonable
     const maxEncryptedSize = message.length + 1024; // Allow overhead for encryption
     if (encrypted.length > maxEncryptedSize) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_EncryptedSizeExceedsExpected));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_EncryptedSizeExceedsExpected,
+        ),
+      );
     }
 
     // Add length prefix for single mode
@@ -173,14 +203,26 @@ export class EciesSingleRecipient {
     const version = data[offset];
     offset += this.eciesConsts.VERSION_SIZE;
     if (version !== EciesVersionEnum.V1) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidVersionTemplate, { version }));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_InvalidVersionTemplate,
+          { version },
+        ),
+      );
     }
 
     // Read CipherSuite
     const cipherSuite = data[offset];
     offset += this.eciesConsts.CIPHER_SUITE_SIZE;
     if (cipherSuite !== EciesCipherSuiteEnum.Secp256k1_Aes256Gcm_Sha256) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate, { cipherSuite }));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate,
+          { cipherSuite },
+        ),
+      );
     }
 
     // Read encryption type from first byte after preamble and version/suite
@@ -195,11 +237,25 @@ export class EciesSingleRecipient {
         actualEncryptionType = EciesEncryptionTypeEnum.Single;
         break;
       case this.eciesConsts.ENCRYPTION_TYPE.MULTIPLE:
-        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode));
-      default:
+        throw new Error(
+          engine.translate(
+            EciesComponentId,
+            EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode,
+          ),
+        );
+      default: {
         // convert the encryption type byte to hex
-        const encryptionTypeHex = actualEncryptionTypeByte.toString(16).padStart(2, '0');
-        throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate, { encryptionType: encryptionTypeHex }));
+        const encryptionTypeHex = actualEncryptionTypeByte
+          .toString(16)
+          .padStart(2, '0');
+        throw new Error(
+          engine.translate(
+            EciesComponentId,
+            EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate,
+            { encryptionType: encryptionTypeHex },
+          ),
+        );
+      }
     }
 
     if (
@@ -207,7 +263,11 @@ export class EciesSingleRecipient {
       actualEncryptionType !== encryptionType
     ) {
       throw new Error(
-        engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_EncryptionTypeMismatchTemplate, { encryptionType, actualEncryptionType }),
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_EncryptionTypeMismatchTemplate,
+          { encryptionType, actualEncryptionType },
+        ),
       );
     }
 
@@ -219,7 +279,11 @@ export class EciesSingleRecipient {
 
     if (data.length < requiredSize) {
       throw new Error(
-        engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_DataTooShortTemplate, { requiredSize, dataLength: data.length }),
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_DataTooShortTemplate,
+          { requiredSize, dataLength: data.length },
+        ),
       );
     }
 
@@ -261,8 +325,16 @@ export class EciesSingleRecipient {
       : options?.dataLength ?? -1;
 
     // Validate data length is reasonable
-    if (includeLengthAndCrc && (dataLength < 0 || dataLength > this.eciesConsts.MAX_RAW_DATA_SIZE)) {
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidDataLength));
+    if (
+      includeLengthAndCrc &&
+      (dataLength < 0 || dataLength > this.eciesConsts.MAX_RAW_DATA_SIZE)
+    ) {
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_InvalidDataLength,
+        ),
+      );
     }
 
     if (
@@ -271,7 +343,14 @@ export class EciesSingleRecipient {
       dataLength !== options.dataLength
     ) {
       throw new Error(
-        engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate, { expectedDataLength: dataLength, receivedDataLength: options.dataLength }),
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate,
+          {
+            expectedDataLength: dataLength,
+            receivedDataLength: options.dataLength,
+          },
+        ),
       );
     }
 
@@ -341,7 +420,9 @@ export class EciesSingleRecipient {
 
     // Construct AAD
     const versionArray = new Uint8Array([EciesVersionEnum.V1]);
-    const cipherSuiteArray = new Uint8Array([EciesCipherSuiteEnum.Secp256k1_Aes256Gcm_Sha256]);
+    const cipherSuiteArray = new Uint8Array([
+      EciesCipherSuiteEnum.Secp256k1_Aes256Gcm_Sha256,
+    ]);
     const encryptionTypeArray = new Uint8Array([
       header.encryptionType === EciesEncryptionTypeEnum.Simple
         ? this.eciesConsts.ENCRYPTION_TYPE.SIMPLE
@@ -352,17 +433,21 @@ export class EciesSingleRecipient {
 
     const aad = new Uint8Array(
       preamble.length +
-      versionArray.length +
-      cipherSuiteArray.length +
-      encryptionTypeArray.length +
-      header.ephemeralPublicKey.length
+        versionArray.length +
+        cipherSuiteArray.length +
+        encryptionTypeArray.length +
+        header.ephemeralPublicKey.length,
     );
-    
+
     let offset = 0;
-    aad.set(preamble, offset); offset += preamble.length;
-    aad.set(versionArray, offset); offset += versionArray.length;
-    aad.set(cipherSuiteArray, offset); offset += cipherSuiteArray.length;
-    aad.set(encryptionTypeArray, offset); offset += encryptionTypeArray.length;
+    aad.set(preamble, offset);
+    offset += preamble.length;
+    aad.set(versionArray, offset);
+    offset += versionArray.length;
+    aad.set(cipherSuiteArray, offset);
+    offset += cipherSuiteArray.length;
+    aad.set(encryptionTypeArray, offset);
+    offset += encryptionTypeArray.length;
     aad.set(header.ephemeralPublicKey, offset);
 
     const decrypted = await this.decryptWithComponents(
@@ -371,7 +456,7 @@ export class EciesSingleRecipient {
       header.iv,
       header.authTag,
       data,
-      aad
+      aad,
     );
 
     return {
@@ -394,9 +479,14 @@ export class EciesSingleRecipient {
     // Validate private key
     if (!privateKey || privateKey.length !== 32) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidPrivateKey));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_InvalidPrivateKey,
+        ),
+      );
     }
-    
+
     // Check for all-zero private key
     let allZeros = true;
     for (let i = 0; i < privateKey.length; i++) {
@@ -407,19 +497,34 @@ export class EciesSingleRecipient {
     }
     if (allZeros) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidPrivateKey));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_InvalidPrivateKey,
+        ),
+      );
     }
 
     // Validate IV
     if (!iv || iv.length !== this.eciesConsts.IV_SIZE) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidIV));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_InvalidIV,
+        ),
+      );
     }
 
     // Validate auth tag
     if (!authTag || authTag.length !== this.eciesConsts.AUTH_TAG_SIZE) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidAuthTag));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_InvalidAuthTag,
+        ),
+      );
     }
 
     // Normalize ephemeral public key (this validates it's a valid key)
@@ -442,7 +547,12 @@ export class EciesSingleRecipient {
     }
     if (sharedSecretAllZeros) {
       const engine = getEciesI18nEngine();
-      throw new Error(engine.translate(EciesComponentId, EciesStringKey.Error_ECIESError_InvalidSharedSecret));
+      throw new Error(
+        engine.translate(
+          EciesComponentId,
+          EciesStringKey.Error_ECIESError_InvalidSharedSecret,
+        ),
+      );
     }
 
     // Use HKDF to derive the key
@@ -450,7 +560,7 @@ export class EciesSingleRecipient {
       sharedSecret,
       new Uint8Array(0), // No salt
       new TextEncoder().encode('ecies-v2-key-derivation'), // Info
-      this.eciesConsts.SYMMETRIC.KEY_SIZE
+      this.eciesConsts.SYMMETRIC.KEY_SIZE,
     );
 
     // Combine encrypted data with auth tag for AES-GCM
@@ -460,12 +570,19 @@ export class EciesSingleRecipient {
     );
 
     // Decrypt
-    return await AESGCMService.decrypt(iv, encryptedWithTag, symKey, true, this.eciesConsts, aad);
+    return await AESGCMService.decrypt(
+      iv,
+      encryptedWithTag,
+      symKey,
+      true,
+      this.eciesConsts,
+      aad,
+    );
   }
 
   private arraysEqual(a: Uint8Array, b: Uint8Array): boolean {
     if (a.length !== b.length) return false;
-    
+
     // Constant-time comparison to prevent timing attacks
     let diff = 0;
     for (let i = 0; i < a.length; i++) {

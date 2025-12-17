@@ -1,14 +1,14 @@
+import { IEncryptionState } from '../../src/interfaces/encryption-state';
 import { ECIESService } from '../../src/services/ecies/service';
 import { EncryptionStream } from '../../src/services/encryption-stream';
 import { ResumableEncryption } from '../../src/services/resumable-encryption';
-import { IEncryptionState } from '../../src/interfaces/encryption-state';
 import { StreamTestUtils } from '../support/stream-test-utils';
 
 describe('ResumableEncryption', () => {
   let ecies: ECIESService;
   let stream: EncryptionStream;
   let publicKey: Uint8Array;
-  let privateKey: Uint8Array;
+  let _privateKey: Uint8Array;
 
   beforeEach(() => {
     ecies = new ECIESService();
@@ -37,7 +37,7 @@ describe('ResumableEncryption', () => {
     const data = StreamTestUtils.generateRandomData(2 * 1024 * 1024);
     const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
-    for await (const chunk of resumable.encrypt(source, publicKey)) {
+    for await (const _chunk of resumable.encrypt(source, publicKey)) {
       // Process
     }
 
@@ -52,7 +52,7 @@ describe('ResumableEncryption', () => {
     const source = StreamTestUtils.createAsyncIterable(data, 1024 * 1024);
 
     const savedStates: IEncryptionState[] = [];
-    for await (const chunk of resumable.encrypt(source, publicKey, {
+    for await (const _chunk of resumable.encrypt(source, publicKey, {
       autoSaveInterval: 2,
       onStateSaved: (state) => {
         savedStates.push({ ...state });
@@ -83,7 +83,9 @@ describe('ResumableEncryption', () => {
       timestamp: Date.now(),
     };
 
-    expect(() => new ResumableEncryption(stream, invalidState)).toThrow('Unsupported state version');
+    expect(() => new ResumableEncryption(stream, invalidState)).toThrow(
+      'Unsupported state version',
+    );
   });
 
   it('should validate chunk index', () => {
@@ -98,6 +100,8 @@ describe('ResumableEncryption', () => {
       timestamp: Date.now(),
     };
 
-    expect(() => new ResumableEncryption(stream, invalidState)).toThrow('Invalid chunk index');
+    expect(() => new ResumableEncryption(stream, invalidState)).toThrow(
+      'Invalid chunk index',
+    );
   });
 });

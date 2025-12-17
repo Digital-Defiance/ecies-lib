@@ -1,17 +1,20 @@
+import {
+  buildReasonMap,
+  TranslatableGenericError,
+  TypedHandleableError,
+} from '@digitaldefiance/i18n-lib';
 import { Wallet } from '@ethereumjs/wallet';
+import { Constants } from '../constants';
+import { EciesStringKey, PasswordLoginErrorTypeEnum } from '../enumerations';
 import { EciesEncryptionTypeEnum } from '../enumerations/ecies-encryption-type';
 import { Pbkdf2ProfileEnum } from '../enumerations/pbkdf2-profile';
+import { EciesComponentId } from '../i18n-setup';
+import { IECIESConstants } from '../interfaces/ecies-consts';
 import { SecureString } from '../secure-string';
 import { hexToUint8Array, uint8ArrayToHex } from '../utils';
 import { AESGCMService } from './aes-gcm';
 import { ECIESService } from './ecies/service';
 import { Pbkdf2Service } from './pbkdf2';
-import { EciesStringKey, PasswordLoginErrorTypeEnum } from '../enumerations';
-import { buildReasonMap, TranslatableGenericError, TypedHandleableError } from '@digitaldefiance/i18n-lib';
-import { IECIESConstants } from '../interfaces/ecies-consts';
-import { Constants } from '../constants';
-import { EciesComponentId } from '../i18n-setup';
-
 
 export class PasswordLoginService {
   protected readonly eciesService: ECIESService;
@@ -22,7 +25,11 @@ export class PasswordLoginService {
   public static readonly encryptedMnemonicStorageKey = 'encryptedMnemonic';
   public static readonly profileStorageKey = 'pbkdf2Profile';
 
-  constructor(eciesService: ECIESService, pbkdf2Service: Pbkdf2Service, eciesParams: IECIESConstants = Constants.ECIES) {
+  constructor(
+    eciesService: ECIESService,
+    pbkdf2Service: Pbkdf2Service,
+    eciesParams: IECIESConstants = Constants.ECIES,
+  ) {
     this.eciesService = eciesService;
     this.pbkdf2Service = pbkdf2Service;
     this.eciesConsts = eciesParams;
@@ -54,7 +61,10 @@ export class PasswordLoginService {
       true,
     );
     if (!tag) {
-      throw new TranslatableGenericError(EciesComponentId, EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag);
+      throw new TranslatableGenericError(
+        EciesComponentId,
+        EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag,
+      );
     }
     const encryptedPrivateKey = AESGCMService.combineIvTagAndEncryptedData(
       iv,
@@ -104,12 +114,21 @@ export class PasswordLoginService {
         PasswordLoginService.encryptedMnemonicStorageKey,
         uint8ArrayToHex(encryptedMnemonic),
       );
-      localStorage.setItem(
-        PasswordLoginService.profileStorageKey,
-        profile,
-      );
+      localStorage.setItem(PasswordLoginService.profileStorageKey, profile);
     } catch (error) {
-      throw new TypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(EciesComponentId, PasswordLoginErrorTypeEnum.FailedToStoreLoginData, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), new Error(), { cause: error instanceof Error ? error : undefined });
+      throw new TypedHandleableError<
+        typeof PasswordLoginErrorTypeEnum,
+        EciesStringKey
+      >(
+        EciesComponentId,
+        PasswordLoginErrorTypeEnum.FailedToStoreLoginData,
+        buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(
+          PasswordLoginErrorTypeEnum,
+          ['Error', 'PasswordLoginError'],
+        ),
+        new Error(),
+        { cause: error instanceof Error ? error : undefined },
+      );
     }
     return wallet;
   }
@@ -122,7 +141,18 @@ export class PasswordLoginService {
     profile: Pbkdf2ProfileEnum = Pbkdf2ProfileEnum.BROWSER_PASSWORD,
   ): Promise<{ wallet: Wallet; mnemonic: SecureString }> {
     if (!salt || !encryptedPrivateKey || !encryptedMnemonic) {
-     throw new TypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(EciesComponentId, PasswordLoginErrorTypeEnum.PasswordLoginNotSetUp, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), new Error());
+      throw new TypedHandleableError<
+        typeof PasswordLoginErrorTypeEnum,
+        EciesStringKey
+      >(
+        EciesComponentId,
+        PasswordLoginErrorTypeEnum.PasswordLoginNotSetUp,
+        buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(
+          PasswordLoginErrorTypeEnum,
+          ['Error', 'PasswordLoginError'],
+        ),
+        new Error(),
+      );
     }
 
     const derivedKey =
@@ -174,7 +204,9 @@ export class PasswordLoginService {
     const encryptedMnemonicHex = localStorage.getItem(
       PasswordLoginService.encryptedMnemonicStorageKey,
     );
-    const profileStr = localStorage.getItem(PasswordLoginService.profileStorageKey);
+    const profileStr = localStorage.getItem(
+      PasswordLoginService.profileStorageKey,
+    );
 
     if (
       !saltHex ||
@@ -184,13 +216,25 @@ export class PasswordLoginService {
       encryptedPrivateKeyHex === '' ||
       encryptedMnemonicHex === ''
     ) {
-      throw new TypedHandleableError<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(EciesComponentId, PasswordLoginErrorTypeEnum.PasswordLoginNotSetUp, buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(PasswordLoginErrorTypeEnum, ['Error', 'PasswordLoginError']), new Error());
+      throw new TypedHandleableError<
+        typeof PasswordLoginErrorTypeEnum,
+        EciesStringKey
+      >(
+        EciesComponentId,
+        PasswordLoginErrorTypeEnum.PasswordLoginNotSetUp,
+        buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(
+          PasswordLoginErrorTypeEnum,
+          ['Error', 'PasswordLoginError'],
+        ),
+        new Error(),
+      );
     }
 
     const salt = hexToUint8Array(saltHex);
     const encryptedPrivateKey = hexToUint8Array(encryptedPrivateKeyHex);
     const encryptedMnemonic = hexToUint8Array(encryptedMnemonicHex);
-    const profile = (profileStr as Pbkdf2ProfileEnum) || Pbkdf2ProfileEnum.BROWSER_PASSWORD;
+    const profile =
+      (profileStr as Pbkdf2ProfileEnum) || Pbkdf2ProfileEnum.BROWSER_PASSWORD;
 
     return await this.getWalletAndMnemonicFromEncryptedPasswordBundle(
       salt,

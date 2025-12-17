@@ -267,7 +267,7 @@ function deepClone<T>(input: T): T {
   }
 
   if (Array.isArray(input)) {
-    return input.map((item) => deepClone(item)) as T;
+    return input.map((item: unknown) => deepClone(item)) as T;
   }
 
   if (input instanceof RegExp) {

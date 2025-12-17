@@ -3,7 +3,6 @@ import { GuidBrandType } from '../../src/enumerations/guid-brand-type';
 import { GuidErrorType } from '../../src/enumerations/guid-error-type';
 import { GuidError } from '../../src/errors/guid';
 import { getEciesI18nEngine } from '../../src/i18n-setup';
-import { EciesStringKey } from '../../src/enumerations';
 
 describe('GuidError', () => {
   beforeEach(() => {

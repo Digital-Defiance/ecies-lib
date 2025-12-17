@@ -1,234 +1,319 @@
-import { EciesStringKey } from '../enumerations';
 import { createPluralString, PluralString } from '@digitaldefiance/i18n-lib';
+import { EciesStringKey } from '../enumerations';
 
-export const mandarinChineseTranslations: Record<EciesStringKey, string | PluralString> = {
-    // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
-    [EciesStringKey.Error_ECIESError_InvalidECIESMultipleEncryptedKeySize]:
-      'ECIES 多重加密密钥大小无效',
-    [EciesStringKey.Error_ECIESError_InvalidECIESPublicKeyLength]:
-      'ECIES 公钥长度无效',
-    [EciesStringKey.Error_ECIESError_InvalidECIESMultipleRecipientCountSize]:
-      'ECIES 多重收件人计数字段长度无效',
-    [EciesStringKey.Error_ECIESError_InvalidECIESMultipleDataLengthSize]:
-      'ECIES 多重数据长度字段无效',
-    [EciesStringKey.Error_ECIESError_InvalidECIESMultipleRecipientIdSize]:
-      'ECIES 多重收件人 ID 大小无效',
-    [EciesStringKey.Error_ECIESError_CRCError]: 'CRC 错误',
-    [EciesStringKey.Error_ECIESError_InvalidEncryptionType]: '加密类型无效',
-    [EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate]: '无效的加密类型：{encryptionType}',
-    [EciesStringKey.Error_ECIESError_InvalidIVLength]: 'IV 长度无效',
-    [EciesStringKey.Error_ECIESError_InvalidAuthTagLength]: '认证标签长度无效',
-    [EciesStringKey.Error_ECIESError_InvalidHeaderLength]: '头部长度无效',
-    [EciesStringKey.Error_ECIESError_InvalidDataLength]: '数据长度无效',
-    [EciesStringKey.Error_ECIESError_InvalidPrivateKey]: '私钥无效',
-    [EciesStringKey.Error_ECIESError_InvalidIV]: '初始化向量 (IV) 无效',
-    [EciesStringKey.Error_ECIESError_InvalidAuthTag]: '认证标签无效',
-    [EciesStringKey.Error_ECIESError_InvalidSharedSecret]: '共享密钥无效',
-    [EciesStringKey.Error_ECIESError_InvalidPublicKeyNotOnCurve]: '公钥无效：不在曲线上',
-    [EciesStringKey.Error_ECIESError_InvalidAESKeyLength]: 'AES 密钥长度无效：必须为 16、24 或 32 字节',
-    [EciesStringKey.Error_ECIESError_CannotEncryptEmptyData]: '无法加密空数据',
-    [EciesStringKey.Error_ECIESError_CannotDecryptEmptyData]: '无法解密空数据',
-    [EciesStringKey.Error_ECIESError_EncryptedSizeExceedsExpected]: '加密大小超过预期最大值',
+export const mandarinChineseTranslations: Record<
+  EciesStringKey,
+  string | PluralString
+> = {
+  // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')
+  [EciesStringKey.Error_ECIESError_InvalidECIESMultipleEncryptedKeySize]:
+    'ECIES 多重加密密钥大小无效',
+  [EciesStringKey.Error_ECIESError_InvalidECIESPublicKeyLength]:
+    'ECIES 公钥长度无效',
+  [EciesStringKey.Error_ECIESError_InvalidECIESMultipleRecipientCountSize]:
+    'ECIES 多重收件人计数字段长度无效',
+  [EciesStringKey.Error_ECIESError_InvalidECIESMultipleDataLengthSize]:
+    'ECIES 多重数据长度字段无效',
+  [EciesStringKey.Error_ECIESError_InvalidECIESMultipleRecipientIdSize]:
+    'ECIES 多重收件人 ID 大小无效',
+  [EciesStringKey.Error_ECIESError_CRCError]: 'CRC 错误',
+  [EciesStringKey.Error_ECIESError_InvalidEncryptionType]: '加密类型无效',
+  [EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate]:
+    '无效的加密类型：{encryptionType}',
+  [EciesStringKey.Error_ECIESError_InvalidIVLength]: 'IV 长度无效',
+  [EciesStringKey.Error_ECIESError_InvalidAuthTagLength]: '认证标签长度无效',
+  [EciesStringKey.Error_ECIESError_InvalidHeaderLength]: '头部长度无效',
+  [EciesStringKey.Error_ECIESError_InvalidDataLength]: '数据长度无效',
+  [EciesStringKey.Error_ECIESError_InvalidPrivateKey]: '私钥无效',
+  [EciesStringKey.Error_ECIESError_InvalidIV]: '初始化向量 (IV) 无效',
+  [EciesStringKey.Error_ECIESError_InvalidAuthTag]: '认证标签无效',
+  [EciesStringKey.Error_ECIESError_InvalidSharedSecret]: '共享密钥无效',
+  [EciesStringKey.Error_ECIESError_InvalidPublicKeyNotOnCurve]:
+    '公钥无效：不在曲线上',
+  [EciesStringKey.Error_ECIESError_InvalidAESKeyLength]:
+    'AES 密钥长度无效：必须为 16、24 或 32 字节',
+  [EciesStringKey.Error_ECIESError_CannotEncryptEmptyData]: '无法加密空数据',
+  [EciesStringKey.Error_ECIESError_CannotDecryptEmptyData]: '无法解密空数据',
+  [EciesStringKey.Error_ECIESError_EncryptedSizeExceedsExpected]:
+    '加密大小超过预期最大值',
 
-    [EciesStringKey.Error_ECIESError_InvalidEncryptedDataLength]:
-      '加密数据长度无效',
-    [EciesStringKey.Error_ECIESError_InvalidMessageCrc]: '消息 CRC 无效',
-    [EciesStringKey.Error_ECIESError_InvalidMnemonic]: '助记词无效',
-    [EciesStringKey.Error_ECIESError_InvalidOperation]: '操作无效',
-    [EciesStringKey.Error_ECIESError_MessageLengthMismatch]: '消息长度不匹配',
-    [EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLength]:
-      '加密密钥长度无效',
-    [EciesStringKey.Error_ECIESError_InvalidEphemeralPublicKey]: '临时公钥无效',
-    [EciesStringKey.Error_ECIESError_MissingEphemeralPublicKey]: '缺少临时公钥',
-    [EciesStringKey.Error_ECIESError_RecipientNotFound]:
-      '在收件人 ID 中未找到收件人',
-    [EciesStringKey.Error_ECIESError_InvalidSignature]: '签名无效',
-    [EciesStringKey.Error_ECIESError_InvalidSenderPublicKey]: '发送者公钥无效',
-    [EciesStringKey.Error_ECIESError_TooManyRecipients]:
-      '收件人过多：超出最大允许数量',
-    [EciesStringKey.Error_ECIESError_PrivateKeyNotLoaded]: '未加载私钥',
-    [EciesStringKey.Error_ECIESError_RecipientKeyCountMismatch]:
-      '收件人数与密钥数不匹配',
-    [EciesStringKey.Error_ECIESError_InvalidRecipientCount]: '收件人数无效',
-    [EciesStringKey.Error_ECIESError_FileSizeTooLarge]: '文件大小过大',
-    [EciesStringKey.Error_ECIESError_DecryptionFailed]:
-      'ECIES 解密失败（MAC 校验或填充错误）',
-    [EciesStringKey.Error_ECIESError_InvalidRecipientPublicKey]:
-      '用于加密的收件人公钥无效',
-    [EciesStringKey.Error_ECIESError_SecretComputationFailed]:
-      '在 ECIES 操作期间计算共享密钥失败',
-    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption]:
-      '密钥加密需要身份验证标签',
-    [EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLengthTemplate]:
-      '无效的加密密钥长度：预期 {keySize}，实际 {encryptedKeyLength}。',
-    [EciesStringKey.Error_ECIESError_FailedToDecryptKey]: '解密密钥失败',
-    [EciesStringKey.Error_ECIESError_TooManyRecipientsTemplate]: '收件人过多：{recipientsCount}',
-    [EciesStringKey.Error_ECIESError_MessageTooLarge]: '消息过大',
-    [EciesStringKey.Error_ECIESError_MessageTooLargeTemplate]: '消息过大：{length}',
-    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption]: 'ECIES 加密需要身份验证标签',
-    [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption]: '多重收件人 ECIES 加密需要身份验证标签',
-    [EciesStringKey.Error_ECIESError_DecryptedDataLengthMismatch]: '解密数据长度不匹配',
-    [EciesStringKey.Error_ECIESError_RecipientCountMismatch]: '收件人数不匹配',
-    [EciesStringKey.Error_ECIESError_DataTooShortForMultiRecipientHeader]: '多重收件人头部数据过短',
-    [EciesStringKey.Error_ECIESError_FailedToDecryptChallengeTemplate]: '解密挑战失败：{error}',
-    [EciesStringKey.Error_ECIESError_InvalidChallengeSignature]: '无效的挑战签名',
-    [EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey]: '派生私钥失败',
-    [EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate]: '无效的公钥格式或长度：{keyLength}',
-    [EciesStringKey.Error_ECIESError_ReceivedNullOrUndefinedPublicKey]: '接收到的公钥为 null 或未定义',
-    [EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate]: '消息长度超过最大允许大小：{messageLength}',
-    [EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode]: '不支持在单一收件人模式下使用多重加密类型',
-    [EciesStringKey.Error_ECIESError_EncryptionTypeMismatchTemplate]: '加密类型不匹配：预期 {encryptionType}，实际 {actualEncryptionType}。',
-    [EciesStringKey.Error_ECIESError_DataTooShortTemplate]: '数据过短：需要 {requiredSize}，实际 {dataLength}。',
-    [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]: '数据长度不匹配：预期 {expectedDataLength}，实际 {receivedDataLength}。',
-    [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]: '组合数据过短，无法包含所需组件',
-    [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]: '无效的校验和常量',
-    [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]: '无法覆盖默认配置',
-    [EciesStringKey.Error_ECIESError_RecipientIdSizeTooLargeTemplate]: 'Recipient ID size {size} exceeds maximum of 255 bytes',
-    [EciesStringKey.Error_ECIESError_InvalidVersion]: '无效的 ECIES 版本',
-    [EciesStringKey.Error_ECIESError_InvalidVersionTemplate]: '无效的 ECIES 版本：{version}',
-    [EciesStringKey.Error_ECIESError_InvalidCipherSuite]: '无效的 ECIES 密码套件',
-    [EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate]: '无效的 ECIES 密码套件：{cipherSuite}',
+  [EciesStringKey.Error_ECIESError_InvalidEncryptedDataLength]:
+    '加密数据长度无效',
+  [EciesStringKey.Error_ECIESError_InvalidMessageCrc]: '消息 CRC 无效',
+  [EciesStringKey.Error_ECIESError_InvalidMnemonic]: '助记词无效',
+  [EciesStringKey.Error_ECIESError_InvalidOperation]: '操作无效',
+  [EciesStringKey.Error_ECIESError_MessageLengthMismatch]: '消息长度不匹配',
+  [EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLength]:
+    '加密密钥长度无效',
+  [EciesStringKey.Error_ECIESError_InvalidEphemeralPublicKey]: '临时公钥无效',
+  [EciesStringKey.Error_ECIESError_MissingEphemeralPublicKey]: '缺少临时公钥',
+  [EciesStringKey.Error_ECIESError_RecipientNotFound]:
+    '在收件人 ID 中未找到收件人',
+  [EciesStringKey.Error_ECIESError_InvalidSignature]: '签名无效',
+  [EciesStringKey.Error_ECIESError_InvalidSenderPublicKey]: '发送者公钥无效',
+  [EciesStringKey.Error_ECIESError_TooManyRecipients]:
+    '收件人过多：超出最大允许数量',
+  [EciesStringKey.Error_ECIESError_PrivateKeyNotLoaded]: '未加载私钥',
+  [EciesStringKey.Error_ECIESError_RecipientKeyCountMismatch]:
+    '收件人数与密钥数不匹配',
+  [EciesStringKey.Error_ECIESError_InvalidRecipientCount]: '收件人数无效',
+  [EciesStringKey.Error_ECIESError_FileSizeTooLarge]: '文件大小过大',
+  [EciesStringKey.Error_ECIESError_DecryptionFailed]:
+    'ECIES 解密失败（MAC 校验或填充错误）',
+  [EciesStringKey.Error_ECIESError_InvalidRecipientPublicKey]:
+    '用于加密的收件人公钥无效',
+  [EciesStringKey.Error_ECIESError_SecretComputationFailed]:
+    '在 ECIES 操作期间计算共享密钥失败',
+  [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption]:
+    '密钥加密需要身份验证标签',
+  [EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLengthTemplate]:
+    '无效的加密密钥长度：预期 {keySize}，实际 {encryptedKeyLength}。',
+  [EciesStringKey.Error_ECIESError_FailedToDecryptKey]: '解密密钥失败',
+  [EciesStringKey.Error_ECIESError_TooManyRecipientsTemplate]:
+    '收件人过多：{recipientsCount}',
+  [EciesStringKey.Error_ECIESError_MessageTooLarge]: '消息过大',
+  [EciesStringKey.Error_ECIESError_MessageTooLargeTemplate]:
+    '消息过大：{length}',
+  [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption]:
+    'ECIES 加密需要身份验证标签',
+  [EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption]:
+    '多重收件人 ECIES 加密需要身份验证标签',
+  [EciesStringKey.Error_ECIESError_DecryptedDataLengthMismatch]:
+    '解密数据长度不匹配',
+  [EciesStringKey.Error_ECIESError_RecipientCountMismatch]: '收件人数不匹配',
+  [EciesStringKey.Error_ECIESError_DataTooShortForMultiRecipientHeader]:
+    '多重收件人头部数据过短',
+  [EciesStringKey.Error_ECIESError_FailedToDecryptChallengeTemplate]:
+    '解密挑战失败：{error}',
+  [EciesStringKey.Error_ECIESError_InvalidChallengeSignature]: '无效的挑战签名',
+  [EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey]: '派生私钥失败',
+  [EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate]:
+    '无效的公钥格式或长度：{keyLength}',
+  [EciesStringKey.Error_ECIESError_ReceivedNullOrUndefinedPublicKey]:
+    '接收到的公钥为 null 或未定义',
+  [EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate]:
+    '消息长度超过最大允许大小：{messageLength}',
+  [EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode]:
+    '不支持在单一收件人模式下使用多重加密类型',
+  [EciesStringKey.Error_ECIESError_EncryptionTypeMismatchTemplate]:
+    '加密类型不匹配：预期 {encryptionType}，实际 {actualEncryptionType}。',
+  [EciesStringKey.Error_ECIESError_DataTooShortTemplate]:
+    '数据过短：需要 {requiredSize}，实际 {dataLength}。',
+  [EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate]:
+    '数据长度不匹配：预期 {expectedDataLength}，实际 {receivedDataLength}。',
+  [EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents]:
+    '组合数据过短，无法包含所需组件',
+  [EciesStringKey.Error_ECIESError_InvalidChecksumConstants]:
+    '无效的校验和常量',
+  [EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration]:
+    '无法覆盖默认配置',
+  [EciesStringKey.Error_ECIESError_RecipientIdSizeTooLargeTemplate]:
+    'Recipient ID size {size} exceeds maximum of 255 bytes',
+  [EciesStringKey.Error_ECIESError_InvalidVersion]: '无效的 ECIES 版本',
+  [EciesStringKey.Error_ECIESError_InvalidVersionTemplate]:
+    '无效的 ECIES 版本：{version}',
+  [EciesStringKey.Error_ECIESError_InvalidCipherSuite]: '无效的 ECIES 密码套件',
+  [EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate]:
+    '无效的 ECIES 密码套件：{cipherSuite}',
 
-    // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
-    [EciesStringKey.Error_MemberError_MissingMemberName]: '缺少成员名称。',
-    [EciesStringKey.Error_MemberError_InvalidMemberNameWhitespace]:
-      '成员名称包含首尾空白字符。',
-    [EciesStringKey.Error_MemberError_InvalidEmail]: '电子邮件无效。',
-    [EciesStringKey.Error_MemberError_InvalidMemberName]: '成员名称无效。',
-    [EciesStringKey.Error_MemberError_InvalidMemberStatus]: '成员状态无效。',
-    [EciesStringKey.Error_MemberError_MissingEmail]: '缺少电子邮件。',
-    [EciesStringKey.Error_MemberError_InvalidEmailWhitespace]:
-      '电子邮件包含首尾空白字符。',
-    [EciesStringKey.Error_MemberError_MissingPrivateKey]: '缺少私钥。',
-    [EciesStringKey.Error_MemberError_NoWallet]: '未加载钱包。',
-    [EciesStringKey.Error_MemberError_WalletAlreadyLoaded]: '钱包已加载。',
-    [EciesStringKey.Error_MemberError_InvalidMnemonic]: '钱包助记词无效。',
-    [EciesStringKey.Error_MemberError_IncorrectOrInvalidPrivateKey]:
-      '用于该公钥的私钥不正确或无效',
-    [EciesStringKey.Error_MemberError_MemberNotFound]: '未找到成员。',
-    [EciesStringKey.Error_MemberError_MemberAlreadyExists]: '成员已存在。',
-    [EciesStringKey.Error_MemberError_FailedToHydrateMember]: '成员加载失败。',
-    [EciesStringKey.Error_MemberError_InvalidMemberData]: '成员数据无效。',
-    [EciesStringKey.Error_MemberError_FailedToConvertMemberData]:
-      '成员数据转换失败。',
-    [EciesStringKey.Error_MemberError_MissingEncryptionData]: '缺少加密数据。',
-    [EciesStringKey.Error_MemberError_EncryptionDataTooLarge]: '加密数据过大。',
-    [EciesStringKey.Error_MemberError_InvalidEncryptionData]: '加密数据无效。',
+  // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
+  [EciesStringKey.Error_MemberError_MissingMemberName]: '缺少成员名称。',
+  [EciesStringKey.Error_MemberError_InvalidMemberNameWhitespace]:
+    '成员名称包含首尾空白字符。',
+  [EciesStringKey.Error_MemberError_InvalidEmail]: '电子邮件无效。',
+  [EciesStringKey.Error_MemberError_InvalidMemberName]: '成员名称无效。',
+  [EciesStringKey.Error_MemberError_InvalidMemberStatus]: '成员状态无效。',
+  [EciesStringKey.Error_MemberError_MissingEmail]: '缺少电子邮件。',
+  [EciesStringKey.Error_MemberError_InvalidEmailWhitespace]:
+    '电子邮件包含首尾空白字符。',
+  [EciesStringKey.Error_MemberError_MissingPrivateKey]: '缺少私钥。',
+  [EciesStringKey.Error_MemberError_NoWallet]: '未加载钱包。',
+  [EciesStringKey.Error_MemberError_WalletAlreadyLoaded]: '钱包已加载。',
+  [EciesStringKey.Error_MemberError_InvalidMnemonic]: '钱包助记词无效。',
+  [EciesStringKey.Error_MemberError_IncorrectOrInvalidPrivateKey]:
+    '用于该公钥的私钥不正确或无效',
+  [EciesStringKey.Error_MemberError_MemberNotFound]: '未找到成员。',
+  [EciesStringKey.Error_MemberError_MemberAlreadyExists]: '成员已存在。',
+  [EciesStringKey.Error_MemberError_FailedToHydrateMember]: '成员加载失败。',
+  [EciesStringKey.Error_MemberError_InvalidMemberData]: '成员数据无效。',
+  [EciesStringKey.Error_MemberError_FailedToConvertMemberData]:
+    '成员数据转换失败。',
+  [EciesStringKey.Error_MemberError_MissingEncryptionData]: '缺少加密数据。',
+  [EciesStringKey.Error_MemberError_EncryptionDataTooLarge]: '加密数据过大。',
+  [EciesStringKey.Error_MemberError_InvalidEncryptionData]: '加密数据无效。',
 
-    // Length Error Types - buildReasonMap(LengthErrorType, 'Error', 'LengthError')
-    [EciesStringKey.Error_LengthError_LengthIsTooShort]: '长度过短。',
-    [EciesStringKey.Error_LengthError_LengthIsTooLong]: '长度过长。',
-    [EciesStringKey.Error_LengthError_LengthIsInvalidType]: '长度类型无效。',
+  // Length Error Types - buildReasonMap(LengthErrorType, 'Error', 'LengthError')
+  [EciesStringKey.Error_LengthError_LengthIsTooShort]: '长度过短。',
+  [EciesStringKey.Error_LengthError_LengthIsTooLong]: '长度过长。',
+  [EciesStringKey.Error_LengthError_LengthIsInvalidType]: '长度类型无效。',
 
-    // PBKDF2 Error Types - buildReasonMap(Pbkdf2ErrorType, 'Error', 'Pbkdf2Error')
-    [EciesStringKey.Error_Pbkdf2Error_InvalidProfile]: '指定的PBKDF2配置文件无效',
-    [EciesStringKey.Error_Pbkdf2Error_InvalidSaltLength]: '盐值长度与预期不符',
-    [EciesStringKey.Error_Pbkdf2Error_InvalidHashLength]: '哈希长度与预期不符',
+  // PBKDF2 Error Types - buildReasonMap(Pbkdf2ErrorType, 'Error', 'Pbkdf2Error')
+  [EciesStringKey.Error_Pbkdf2Error_InvalidProfile]: '指定的PBKDF2配置文件无效',
+  [EciesStringKey.Error_Pbkdf2Error_InvalidSaltLength]: '盐值长度与预期不符',
+  [EciesStringKey.Error_Pbkdf2Error_InvalidHashLength]: '哈希长度与预期不符',
 
-    // Secure Storage Error Types - buildReasonMap(SecureStorageErrorType, 'Error', 'SecureStorageError')
-    [EciesStringKey.Error_SecureStorageError_DecryptedValueLengthMismatch]:
-      '解密后的值长度与预期不符',
-    [EciesStringKey.Error_SecureStorageError_DecryptedValueChecksumMismatch]:
-      '解密后的值校验和不匹配',
-    [EciesStringKey.Error_SecureStorageError_ValueIsNull]: '安全存储的值为空',
-    [EciesStringKey.Error_InvalidEmailError_Invalid]: '电子邮件地址无效。',
-    [EciesStringKey.Error_InvalidEmailError_Missing]: '需要电子邮件地址。',
-    [EciesStringKey.Error_InvalidEmailError_Whitespace]: '电子邮件地址包含首尾空白字符。',
-    [EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag]:
-      '加密失败：未生成认证标签',
-    [EciesStringKey.Error_PasswordLoginError_FailedToStoreLoginData]:
-      '存储密码登录数据失败',
-    [EciesStringKey.Error_PasswordLoginError_PasswordLoginNotSetUp]:
-      '密码登录未设置',
-    [EciesStringKey.Error_PhoneNumber_InvalidTemplate]: '无效的电话号码：{phoneNumber}',
+  // Secure Storage Error Types - buildReasonMap(SecureStorageErrorType, 'Error', 'SecureStorageError')
+  [EciesStringKey.Error_SecureStorageError_DecryptedValueLengthMismatch]:
+    '解密后的值长度与预期不符',
+  [EciesStringKey.Error_SecureStorageError_DecryptedValueChecksumMismatch]:
+    '解密后的值校验和不匹配',
+  [EciesStringKey.Error_SecureStorageError_ValueIsNull]: '安全存储的值为空',
+  [EciesStringKey.Error_InvalidEmailError_Invalid]: '电子邮件地址无效。',
+  [EciesStringKey.Error_InvalidEmailError_Missing]: '需要电子邮件地址。',
+  [EciesStringKey.Error_InvalidEmailError_Whitespace]:
+    '电子邮件地址包含首尾空白字符。',
+  [EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag]:
+    '加密失败：未生成认证标签',
+  [EciesStringKey.Error_PasswordLoginError_FailedToStoreLoginData]:
+    '存储密码登录数据失败',
+  [EciesStringKey.Error_PasswordLoginError_PasswordLoginNotSetUp]:
+    '密码登录未设置',
+  [EciesStringKey.Error_PhoneNumber_InvalidTemplate]:
+    '无效的电话号码：{phoneNumber}',
 
-    // Multi-recipient and Streaming Error Types
-    [EciesStringKey.Error_MultiRecipient_InvalidRecipientCountTemplate]: '无效的收件人数：{count}',
-    [EciesStringKey.Error_MultiRecipient_SymmetricKeyMust32Bytes]: '对称密钥必须为32字节',
-    [EciesStringKey.Error_MultiRecipient_InvalidChunkIndexTemplate]: '无效的块索引：{index}',
-    [EciesStringKey.Error_MultiRecipient_DataSizeExceedsMaximumTemplate]: '数据大小超过最大值：{size}',
-    [EciesStringKey.Error_MultiRecipient_DuplicateRecipientId]: '检测到重复的收件人ID',
-    [EciesStringKey.Error_MultiRecipient_RecipientIdMust32Bytes]: '收件人ID必须为32字节',
-    [EciesStringKey.Error_MultiRecipient_RecipientHeadersSizeOverflow]: '收件人头部大小溢出',
-    [EciesStringKey.Error_MultiRecipient_ChunkSizeOverflow]: '块大小溢出：收件人过多或数据过大',
-    [EciesStringKey.Error_MultiRecipient_ChunkTooSmall]: '块太小',
-    [EciesStringKey.Error_MultiRecipient_InvalidChunkMagic]: '无效的多收件人块魔数',
-    [EciesStringKey.Error_MultiRecipient_UnsupportedVersionTemplate]: '不支持的版本：{version}',
-    [EciesStringKey.Error_MultiRecipient_ChunkTooSmallForEncryptedSize]: '块对于声明的加密大小来说太小',
-    [EciesStringKey.Error_MultiRecipient_ChunkTruncatedRecipientId]: '块被截断：收件人ID数据不足',
-    [EciesStringKey.Error_MultiRecipient_ChunkTruncatedKeySize]: '块被截断：密钥大小数据不足',
-    [EciesStringKey.Error_MultiRecipient_InvalidKeySizeTemplate]: '无效的密钥大小：{size}',
-    [EciesStringKey.Error_MultiRecipient_ChunkTruncatedEncryptedKey]: '块被截断：加密密钥数据不足',
-    [EciesStringKey.Error_MultiRecipient_RecipientNotFoundInChunk]: '在块中未找到收件人',
-    [EciesStringKey.Error_Stream_DataTooShortForHeader]: '流头部数据过短',
-    [EciesStringKey.Error_Stream_InvalidMagicBytes]: '无效的流魔数字节',
-    [EciesStringKey.Error_Stream_UnsupportedVersion]: '不支持的流版本',
-    [EciesStringKey.Error_Stream_InvalidPublicKeyLength]: '无效的公钥：必须为33（压缩）或65（未压缩）字节',
-    [EciesStringKey.Error_Stream_BufferOverflowTemplate]: '缓冲区溢出：源块超过{max}字节',
-    [EciesStringKey.Error_Stream_EncryptionCancelled]: '加密已取消',
-    [EciesStringKey.Error_Stream_AtLeastOneRecipientRequired]: '至少需要一个收件人',
-    [EciesStringKey.Error_Stream_MaxRecipientsExceeded]: '最多支持65535个收件人',
-    [EciesStringKey.Error_Stream_InvalidRecipientPublicKeyLength]: '无效的收件人公钥：必须为33（压缩）或65（未压缩）字节',
-    [EciesStringKey.Error_Stream_InvalidRecipientIdLength]: '无效的接收者ID：必须为32字节',
-    [EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate]: '无效的接收者ID：必须为{expected}字节',
-    [EciesStringKey.Error_Stream_InvalidRecipientIdMust32Bytes]: '无效的接收者ID：必须为32字节',
-    [EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes]: '无效的私钥：必须为32字节',
-    [EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate]: '块序列错误：预期{expected}，实际{actual}',
-    [EciesStringKey.Error_Stream_DecryptionCancelled]: '解密已取消',
-    [EciesStringKey.Error_Chunk_DataTooShortForHeader]: '数据太短，无法包含块头',
-    [EciesStringKey.Error_Chunk_InvalidMagicBytes]: '无效的块魔术字节',
-    [EciesStringKey.Error_Chunk_UnsupportedVersion]: '不支持的块版本',
-    [EciesStringKey.Error_Chunk_EncryptedSizeMismatchTemplate]: '加密大小不匹配：预期 {expectedSize}，实际 {actualSize}',
-    [EciesStringKey.Error_Chunk_ChecksumMismatch]: '块校验和不匹配',
-    [EciesStringKey.Error_Chunk_DecryptedSizeMismatch]: '解密大小不匹配',
-    [EciesStringKey.Error_Progress_ChunkBytesCannotBeNegative]: '块字节不能为负数',
-    [EciesStringKey.Error_Resumable_AutoSaveIntervalMustBePositive]: '自动保存间隔必须为正数',
-    [EciesStringKey.Error_Resumable_PublicKeyMismatch]: '公钥与保存的状态不匹配',
-    [EciesStringKey.Error_Resumable_ChunkSizeMismatch]: '块大小与保存的状态不匹配',
-    [EciesStringKey.Error_Resumable_IncludeChecksumsMismatch]: '校验和包含选项与保存的状态不匹配',
-    [EciesStringKey.Error_Resumable_NoStateToSave]: '没有状态可保存',
-    [EciesStringKey.Error_Resumable_UnsupportedStateVersionTemplate]: '不支持的状态版本：{version}',
-    [EciesStringKey.Error_Resumable_InvalidChunkIndex]: '无效的块索引',
-    [EciesStringKey.Error_Resumable_StateTooOld]: '状态太旧（>24小时）',
-    [EciesStringKey.Error_Resumable_InvalidPublicKeyInState]: '状态中的公钥无效',
-    [EciesStringKey.Error_Resumable_StateIntegrityCheckFailed]: '状态完整性检查失败：HMAC不匹配',
-    [EciesStringKey.Error_Builder_MnemonicGenerationNotImplemented]: '助记词生成尚未在v2中实现',
-    [EciesStringKey.Error_Builder_MemberNotMigrated]: '成员尚未迁移到v2',
-    [EciesStringKey.Error_Builder_ECIESServiceNotMigrated]: 'ECIESService尚未迁移到v2',
-    [EciesStringKey.Error_Service_InvalidDataLength]: '数据长度无效',
-    [EciesStringKey.Error_Service_InvalidEncryptionType]: '加密类型无效',
-    [EciesStringKey.Error_Service_InvalidEncryptedDataLength]: '加密数据长度无效',
-    [EciesStringKey.Error_Service_ComputedDecryptedLengthNegative]: '计算的解密长度为负数',
-    [EciesStringKey.Error_Service_MultiRecipientNotImplemented]: '多接收者加密尚未实现',
-    [EciesStringKey.Error_Service_InvalidEncryptionTypeOrRecipientCountTemplate]: '加密类型或接收者数量无效：{encryptionType}, {recipientCount}',
-    [EciesStringKey.Error_Container_ServiceNotFoundTemplate]: '在容器中找不到服务 {service}',
-    [EciesStringKey.Error_Utils_InvalidHexString]: '无效的十六进制字符串',
-    [EciesStringKey.Error_Utils_HexStringMustHaveEvenLength]: '十六进制字符串必须具有偶数长度',
-    [EciesStringKey.Error_Utils_HexStringContainsInvalidCharacters]: '十六进制字符串包含无效字符',
-    [EciesStringKey.Error_Utils_ValueExceedsSafeIntegerRange]: '值超出安全整数范围',
-    [EciesStringKey.Error_Utils_ValueBelowSafeIntegerRange]: '值低于安全整数范围',
-    [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]: '在生成助记词之前必须设置ECIESService',
-    [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: '需要ECIESService',
-    [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]: '需要类型、名称和电子邮件',
-    [EciesStringKey.Error_DisposedError_ObjectDisposed]: '对象已被释放',
-    [EciesStringKey.Error_GuidError_InvalidGuid]: '无效的GUID。',
-    [EciesStringKey.Error_GuidError_InvalidGuidWithDetailsTemplate]: '无效的GUID：{GUID}',
-    [EciesStringKey.Error_GuidError_InvalidGuidUnknownBrandTemplate]: '未知的GUID品牌：{BRAND}。',
-    [EciesStringKey.Error_GuidError_InvalidGuidUnknownLengthTemplate]: '无效的GUID长度：{LENGTH}。',
-    [EciesStringKey.Error_IdProviderError_InvalidLength]: 'ID长度不匹配：在{context}中期望{expected}字节，实际收到{actual}字节',
-    [EciesStringKey.Error_IdProviderError_InputMustBeString]: '输入必须是字符串',
-    [EciesStringKey.Error_IdProviderError_InvalidStringLength]: '字符串长度无效：期望{expected}个字符，实际收到{actual}个',
-    [EciesStringKey.Error_IdProviderError_InvalidCharacters]: '字符串包含无效字符',
-    [EciesStringKey.Error_IdProviderError_InvalidDeserializedId]: '反序列化的ID验证失败',
-    [EciesStringKey.Error_IdProviderError_InvalidByteLengthParameter]: '字节长度必须是1到255之间的整数，收到{value}',
-    [EciesStringKey.Error_IdProviderError_ParseFailed]: '解析ID失败：{message}',
-    [EciesStringKey.Error_IdProviderError_InvalidGuidBuffer]: '无效的GUID缓冲区: {message}',
-    [EciesStringKey.Error_IdProviderError_InvalidUuidFormat]: '无效的UUID格式: {input}',
+  // Multi-recipient and Streaming Error Types
+  [EciesStringKey.Error_MultiRecipient_InvalidRecipientCountTemplate]:
+    '无效的收件人数：{count}',
+  [EciesStringKey.Error_MultiRecipient_SymmetricKeyMust32Bytes]:
+    '对称密钥必须为32字节',
+  [EciesStringKey.Error_MultiRecipient_InvalidChunkIndexTemplate]:
+    '无效的块索引：{index}',
+  [EciesStringKey.Error_MultiRecipient_DataSizeExceedsMaximumTemplate]:
+    '数据大小超过最大值：{size}',
+  [EciesStringKey.Error_MultiRecipient_DuplicateRecipientId]:
+    '检测到重复的收件人ID',
+  [EciesStringKey.Error_MultiRecipient_RecipientIdMust32Bytes]:
+    '收件人ID必须为32字节',
+  [EciesStringKey.Error_MultiRecipient_RecipientHeadersSizeOverflow]:
+    '收件人头部大小溢出',
+  [EciesStringKey.Error_MultiRecipient_ChunkSizeOverflow]:
+    '块大小溢出：收件人过多或数据过大',
+  [EciesStringKey.Error_MultiRecipient_ChunkTooSmall]: '块太小',
+  [EciesStringKey.Error_MultiRecipient_InvalidChunkMagic]:
+    '无效的多收件人块魔数',
+  [EciesStringKey.Error_MultiRecipient_UnsupportedVersionTemplate]:
+    '不支持的版本：{version}',
+  [EciesStringKey.Error_MultiRecipient_ChunkTooSmallForEncryptedSize]:
+    '块对于声明的加密大小来说太小',
+  [EciesStringKey.Error_MultiRecipient_ChunkTruncatedRecipientId]:
+    '块被截断：收件人ID数据不足',
+  [EciesStringKey.Error_MultiRecipient_ChunkTruncatedKeySize]:
+    '块被截断：密钥大小数据不足',
+  [EciesStringKey.Error_MultiRecipient_InvalidKeySizeTemplate]:
+    '无效的密钥大小：{size}',
+  [EciesStringKey.Error_MultiRecipient_ChunkTruncatedEncryptedKey]:
+    '块被截断：加密密钥数据不足',
+  [EciesStringKey.Error_MultiRecipient_RecipientNotFoundInChunk]:
+    '在块中未找到收件人',
+  [EciesStringKey.Error_Stream_DataTooShortForHeader]: '流头部数据过短',
+  [EciesStringKey.Error_Stream_InvalidMagicBytes]: '无效的流魔数字节',
+  [EciesStringKey.Error_Stream_UnsupportedVersion]: '不支持的流版本',
+  [EciesStringKey.Error_Stream_InvalidPublicKeyLength]:
+    '无效的公钥：必须为33（压缩）或65（未压缩）字节',
+  [EciesStringKey.Error_Stream_BufferOverflowTemplate]:
+    '缓冲区溢出：源块超过{max}字节',
+  [EciesStringKey.Error_Stream_EncryptionCancelled]: '加密已取消',
+  [EciesStringKey.Error_Stream_AtLeastOneRecipientRequired]:
+    '至少需要一个收件人',
+  [EciesStringKey.Error_Stream_MaxRecipientsExceeded]: '最多支持65535个收件人',
+  [EciesStringKey.Error_Stream_InvalidRecipientPublicKeyLength]:
+    '无效的收件人公钥：必须为33（压缩）或65（未压缩）字节',
+  [EciesStringKey.Error_Stream_InvalidRecipientIdLength]:
+    '无效的接收者ID：必须为32字节',
+  [EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate]:
+    '无效的接收者ID：必须为{expected}字节',
+  [EciesStringKey.Error_Stream_InvalidRecipientIdMust32Bytes]:
+    '无效的接收者ID：必须为32字节',
+  [EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes]:
+    '无效的私钥：必须为32字节',
+  [EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate]:
+    '块序列错误：预期{expected}，实际{actual}',
+  [EciesStringKey.Error_Stream_DecryptionCancelled]: '解密已取消',
+  [EciesStringKey.Error_Chunk_DataTooShortForHeader]: '数据太短，无法包含块头',
+  [EciesStringKey.Error_Chunk_InvalidMagicBytes]: '无效的块魔术字节',
+  [EciesStringKey.Error_Chunk_UnsupportedVersion]: '不支持的块版本',
+  [EciesStringKey.Error_Chunk_EncryptedSizeMismatchTemplate]:
+    '加密大小不匹配：预期 {expectedSize}，实际 {actualSize}',
+  [EciesStringKey.Error_Chunk_ChecksumMismatch]: '块校验和不匹配',
+  [EciesStringKey.Error_Chunk_DecryptedSizeMismatch]: '解密大小不匹配',
+  [EciesStringKey.Error_Progress_ChunkBytesCannotBeNegative]:
+    '块字节不能为负数',
+  [EciesStringKey.Error_Resumable_AutoSaveIntervalMustBePositive]:
+    '自动保存间隔必须为正数',
+  [EciesStringKey.Error_Resumable_PublicKeyMismatch]: '公钥与保存的状态不匹配',
+  [EciesStringKey.Error_Resumable_ChunkSizeMismatch]:
+    '块大小与保存的状态不匹配',
+  [EciesStringKey.Error_Resumable_IncludeChecksumsMismatch]:
+    '校验和包含选项与保存的状态不匹配',
+  [EciesStringKey.Error_Resumable_NoStateToSave]: '没有状态可保存',
+  [EciesStringKey.Error_Resumable_UnsupportedStateVersionTemplate]:
+    '不支持的状态版本：{version}',
+  [EciesStringKey.Error_Resumable_InvalidChunkIndex]: '无效的块索引',
+  [EciesStringKey.Error_Resumable_StateTooOld]: '状态太旧（>24小时）',
+  [EciesStringKey.Error_Resumable_InvalidPublicKeyInState]: '状态中的公钥无效',
+  [EciesStringKey.Error_Resumable_StateIntegrityCheckFailed]:
+    '状态完整性检查失败：HMAC不匹配',
+  [EciesStringKey.Error_Builder_MnemonicGenerationNotImplemented]:
+    '助记词生成尚未在v2中实现',
+  [EciesStringKey.Error_Builder_MemberNotMigrated]: '成员尚未迁移到v2',
+  [EciesStringKey.Error_Builder_ECIESServiceNotMigrated]:
+    'ECIESService尚未迁移到v2',
+  [EciesStringKey.Error_Service_InvalidDataLength]: '数据长度无效',
+  [EciesStringKey.Error_Service_InvalidEncryptionType]: '加密类型无效',
+  [EciesStringKey.Error_Service_InvalidEncryptedDataLength]: '加密数据长度无效',
+  [EciesStringKey.Error_Service_ComputedDecryptedLengthNegative]:
+    '计算的解密长度为负数',
+  [EciesStringKey.Error_Service_MultiRecipientNotImplemented]:
+    '多接收者加密尚未实现',
+  [EciesStringKey.Error_Service_InvalidEncryptionTypeOrRecipientCountTemplate]:
+    '加密类型或接收者数量无效：{encryptionType}, {recipientCount}',
+  [EciesStringKey.Error_Container_ServiceNotFoundTemplate]:
+    '在容器中找不到服务 {service}',
+  [EciesStringKey.Error_Utils_InvalidHexString]: '无效的十六进制字符串',
+  [EciesStringKey.Error_Utils_HexStringMustHaveEvenLength]:
+    '十六进制字符串必须具有偶数长度',
+  [EciesStringKey.Error_Utils_HexStringContainsInvalidCharacters]:
+    '十六进制字符串包含无效字符',
+  [EciesStringKey.Error_Utils_ValueExceedsSafeIntegerRange]:
+    '值超出安全整数范围',
+  [EciesStringKey.Error_Utils_ValueBelowSafeIntegerRange]: '值低于安全整数范围',
+  [EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic]:
+    '在生成助记词之前必须设置ECIESService',
+  [EciesStringKey.Error_Builder_ECIESServiceIsRequired]: '需要ECIESService',
+  [EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired]:
+    '需要类型、名称和电子邮件',
+  [EciesStringKey.Error_DisposedError_ObjectDisposed]: '对象已被释放',
+  [EciesStringKey.Error_GuidError_InvalidGuid]: '无效的GUID。',
+  [EciesStringKey.Error_GuidError_InvalidGuidWithDetailsTemplate]:
+    '无效的GUID：{GUID}',
+  [EciesStringKey.Error_GuidError_InvalidGuidUnknownBrandTemplate]:
+    '未知的GUID品牌：{BRAND}。',
+  [EciesStringKey.Error_GuidError_InvalidGuidUnknownLengthTemplate]:
+    '无效的GUID长度：{LENGTH}。',
+  [EciesStringKey.Error_IdProviderError_InvalidLength]:
+    'ID长度不匹配：在{context}中期望{expected}字节，实际收到{actual}字节',
+  [EciesStringKey.Error_IdProviderError_InputMustBeString]: '输入必须是字符串',
+  [EciesStringKey.Error_IdProviderError_InvalidStringLength]:
+    '字符串长度无效：期望{expected}个字符，实际收到{actual}个',
+  [EciesStringKey.Error_IdProviderError_InvalidCharacters]:
+    '字符串包含无效字符',
+  [EciesStringKey.Error_IdProviderError_InvalidDeserializedId]:
+    '反序列化的ID验证失败',
+  [EciesStringKey.Error_IdProviderError_InvalidByteLengthParameter]:
+    '字节长度必须是1到255之间的整数，收到{value}',
+  [EciesStringKey.Error_IdProviderError_ParseFailed]: '解析ID失败：{message}',
+  [EciesStringKey.Error_IdProviderError_InvalidGuidBuffer]:
+    '无效的GUID缓冲区: {message}',
+  [EciesStringKey.Error_IdProviderError_InvalidUuidFormat]:
+    '无效的UUID格式: {input}',
 
-    // Invariant Validation Errors
-    [EciesStringKey.Error_Invariant_ValidationFailedTemplate]: '不变量验证失败: {message}',
-    [EciesStringKey.Error_Invariant_UnknownInvariantTemplate]: '未知不变量: {name}',
-    [EciesStringKey.Error_Invariant_ConfigurationValidationFailedMultipleTemplate]: createPluralString({
-      other: '配置验证失败（{count}个不变量）:\n\n{failures}'
+  // Invariant Validation Errors
+  [EciesStringKey.Error_Invariant_ValidationFailedTemplate]:
+    '不变量验证失败: {message}',
+  [EciesStringKey.Error_Invariant_UnknownInvariantTemplate]:
+    '未知不变量: {name}',
+  [EciesStringKey.Error_Invariant_ConfigurationValidationFailedMultipleTemplate]:
+    createPluralString({
+      other: '配置验证失败（{count}个不变量）:\n\n{failures}',
     }),
-  };
+};

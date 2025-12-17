@@ -1,8 +1,8 @@
 import {
-  ObjectIdProvider,
-  GuidV4Provider,
-  UuidProvider,
   CustomIdProvider,
+  GuidV4Provider,
+  ObjectIdProvider,
+  UuidProvider,
 } from '../../../src/lib/id-providers';
 
 describe('ID Providers', () => {
@@ -156,7 +156,7 @@ describe('ID Providers', () => {
       const serialized = provider.serialize(id);
 
       expect(serialized).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
       );
       expect(serialized.length).toBe(36);
     });

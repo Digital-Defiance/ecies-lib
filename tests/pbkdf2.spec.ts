@@ -1,13 +1,10 @@
+import { PluginI18nEngine } from '@digitaldefiance/i18n-lib';
 import { ECIES, PBKDF2, PBKDF2_PROFILES } from '../src/constants';
-import { Pbkdf2ErrorType } from '../src//enumerations/pbkdf2-error-type';
 import { Pbkdf2ProfileEnum } from '../src/enumerations/pbkdf2-profile';
-import { Pbkdf2Error } from '../src/errors/pbkdf2';
+import { getEciesI18nEngine } from '../src/i18n-setup';
 import { IPbkdf2Config } from '../src/interfaces/pbkdf2-config';
 import { IPbkdf2Result } from '../src/interfaces/pbkdf2-result';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
-import { EciesStringKey } from '../src/enumerations/ecies-string-key';
-import { PluginI18nEngine } from '@digitaldefiance/i18n-lib';
-import { getEciesI18nEngine } from '../src/i18n-setup';
 
 // Mock crypto.subtle for testing
 const mockCrypto = {
@@ -27,15 +24,15 @@ Object.defineProperty(global, 'crypto', {
 
 describe('Pbkdf2Service', () => {
   let pbkdf2Service: Pbkdf2Service<string>;
-  let i18nEngine: PluginI18nEngine<string>;
+  let _i18nEngine: PluginI18nEngine<string>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Initialize I18n engine with ECIES component
     PluginI18nEngine.resetAll();
-    i18nEngine = getEciesI18nEngine();
-    
+    _i18nEngine = getEciesI18nEngine();
+
     pbkdf2Service = new Pbkdf2Service();
 
     // Default mock implementations
@@ -295,7 +292,9 @@ describe('Pbkdf2Service', () => {
     });
 
     it('should handle crypto.subtle.deriveBits failure', async () => {
-      mockCrypto.subtle.deriveBits.mockRejectedValue(new Error('Derive failed'));
+      mockCrypto.subtle.deriveBits.mockRejectedValue(
+        new Error('Derive failed'),
+      );
 
       await expect(
         pbkdf2Service.deriveKeyFromPasswordAsync(mockPassword),

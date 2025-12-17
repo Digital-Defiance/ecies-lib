@@ -1,4 +1,4 @@
-/// <reference path="../../../types/global.d.ts" />
+import { Constants } from './constants';
 import { SecureStorageErrorType } from './enumerations/secure-storage-error-type';
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
@@ -80,7 +80,6 @@ export class SecureBuffer implements Disposable {
    * @returns A new SecureBuffer instance using the global ID provider
    */
   static create(data?: Uint8Array): SecureBuffer {
-    const { Constants } = require('./constants');
     return new SecureBuffer(data, Constants.idProvider);
   }
 

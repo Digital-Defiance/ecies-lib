@@ -39,7 +39,7 @@ export class CryptoError extends Error {
   constructor(
     public readonly code: CryptoErrorCode,
     public readonly stringKey: EciesStringKey,
-    public override readonly metadata?: Record<string, string | number>,
+    public readonly metadata?: Record<string, string | number>,
   ) {
     const engine = getEciesI18nEngine();
     const message = engine.translate(EciesComponentId, stringKey, metadata);

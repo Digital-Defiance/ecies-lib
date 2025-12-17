@@ -6,7 +6,7 @@
  */
 
 import { EmailString } from '../../src/email-string';
-import MemberType from '../../src/enumerations/member-type';
+import { MemberType } from '../../src/enumerations/member-type';
 import { Member } from '../../src/member';
 import { SecureBuffer } from '../../src/secure-buffer';
 import { ECIESService } from '../../src/services/ecies/service';
@@ -124,7 +124,7 @@ describe('Member Dependency Injection', () => {
 
     it('should verify Member uses injected service for signing', () => {
       // Create member with injected service
-      const { member, mnemonic } = Member.newMember(
+      const { member, mnemonic: _mnemonic } = Member.newMember(
         eciesService,
         MemberType.User,
         'Signer',
@@ -132,25 +132,25 @@ describe('Member Dependency Injection', () => {
       );
 
       // Sign some data
-      const data = new Uint8Array([1, 2, 3, 4, 5]);
-      const signature = member.sign(data);
+      const _data = new Uint8Array([1, 2, 3, 4, 5]);
+      const _signature = member.sign(_data);
 
       // Verify signature was created
-      expect(signature).toBeDefined();
-      expect(signature.length).toBeGreaterThan(0);
+      expect(_signature).toBeDefined();
+      expect(_signature.length).toBeGreaterThan(0);
 
       // Verify signature using the member's verify method
-      const isValid = member.verify(signature, data);
+      const isValid = member.verify(_signature, _data);
       expect(isValid).toBe(true);
 
       // Clean up
       member.dispose();
-      mnemonic.dispose();
+      _mnemonic.dispose();
     });
 
     it('should verify Member uses injected service for encryption', async () => {
       // Create member with injected service
-      const { member, mnemonic } = Member.newMember(
+      const { member, mnemonic: _mnemonic } = Member.newMember(
         eciesService,
         MemberType.User,
         'Encryptor',
@@ -159,26 +159,26 @@ describe('Member Dependency Injection', () => {
 
       // Encrypt some data
       const plaintext = 'secret message';
-      const encrypted = await member.encryptData(plaintext);
+      const _encrypted = await member.encryptData(plaintext);
 
       // Verify encryption worked
-      expect(encrypted).toBeDefined();
-      expect(encrypted.length).toBeGreaterThan(plaintext.length);
+      expect(_encrypted).toBeDefined();
+      expect(_encrypted.length).toBeGreaterThan(plaintext.length);
 
       // Decrypt the data
-      const decrypted = await member.decryptData(encrypted);
+      const decrypted = await member.decryptData(_encrypted);
       const decryptedText = new TextDecoder().decode(decrypted);
 
       expect(decryptedText).toBe(plaintext);
 
       // Clean up
       member.dispose();
-      mnemonic.dispose();
+      _mnemonic.dispose();
     });
 
     it('should verify Member uses injected service for wallet operations', () => {
       // Create member with injected service
-      const { member, mnemonic } = Member.newMember(
+      const { member, mnemonic: _mnemonic } = Member.newMember(
         eciesService,
         MemberType.User,
         'Wallet User',
@@ -192,14 +192,14 @@ describe('Member Dependency Injection', () => {
       member.unloadWallet();
 
       // Reload wallet using mnemonic
-      member.loadWallet(mnemonic);
+      member.loadWallet(_mnemonic);
 
       // Verify wallet is available again
       expect(member.wallet).toBeDefined();
 
       // Clean up
       member.dispose();
-      mnemonic.dispose();
+      _mnemonic.dispose();
     });
 
     it('should verify multiple Members can use the same service instance', () => {
