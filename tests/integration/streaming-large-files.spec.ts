@@ -54,9 +54,8 @@ describe('Streaming Encryption: Large Files', () => {
       });
 
       // Collect encrypted chunks (keeping them separate for decryption)
-      const encryptedChunks = await StreamTestUtils.collectEncryptedChunks(
-        encrypted,
-      );
+      const encryptedChunks =
+        await StreamTestUtils.collectEncryptedChunks(encrypted);
 
       // Create source from encrypted chunks
       const decryptSource =
@@ -79,9 +78,8 @@ describe('Streaming Encryption: Large Files', () => {
         chunkSize: 512 * 1024,
       });
 
-      const encryptedChunks = await StreamTestUtils.collectEncryptedChunks(
-        encrypted,
-      );
+      const encryptedChunks =
+        await StreamTestUtils.collectEncryptedChunks(encrypted);
       const decryptSource =
         StreamTestUtils.createAsyncIterableFromChunks(encryptedChunks);
 
@@ -100,9 +98,8 @@ describe('Streaming Encryption: Large Files', () => {
         chunkSize: 256 * 1024,
       });
 
-      const encryptedChunks = await StreamTestUtils.collectEncryptedChunks(
-        encrypted,
-      );
+      const encryptedChunks =
+        await StreamTestUtils.collectEncryptedChunks(encrypted);
       const decryptSource =
         StreamTestUtils.createAsyncIterableFromChunks(encryptedChunks);
 
@@ -124,9 +121,8 @@ describe('Streaming Encryption: Large Files', () => {
         chunkSize: 512 * 1024,
       });
 
-      const encryptedChunks = await StreamTestUtils.collectEncryptedChunks(
-        encrypted,
-      );
+      const encryptedChunks =
+        await StreamTestUtils.collectEncryptedChunks(encrypted);
       const decryptSource =
         StreamTestUtils.createAsyncIterableFromChunks(encryptedChunks);
 
@@ -146,9 +142,8 @@ describe('Streaming Encryption: Large Files', () => {
         chunkSize: 1024 * 1024,
       });
 
-      const encryptedChunks = await StreamTestUtils.collectEncryptedChunks(
-        encrypted,
-      );
+      const encryptedChunks =
+        await StreamTestUtils.collectEncryptedChunks(encrypted);
       const decryptSource =
         StreamTestUtils.createAsyncIterableFromChunks(encryptedChunks);
 
@@ -232,9 +227,8 @@ describe('Streaming Encryption: Large Files', () => {
         chunkSize: 512 * 1024,
       });
 
-      const encryptedChunks = await StreamTestUtils.collectEncryptedChunks(
-        encrypted,
-      );
+      const encryptedChunks =
+        await StreamTestUtils.collectEncryptedChunks(encrypted);
 
       // Corrupt a byte in the middle of the first chunk
       if (encryptedChunks.length > 0) {
@@ -259,9 +253,8 @@ describe('Streaming Encryption: Large Files', () => {
         chunkSize: 1024 * 1024,
       });
 
-      const encryptedChunks = await StreamTestUtils.collectEncryptedChunks(
-        encrypted,
-      );
+      const encryptedChunks =
+        await StreamTestUtils.collectEncryptedChunks(encrypted);
 
       // Truncate to half the chunks - this will decrypt successfully but with partial data
       const truncated = encryptedChunks.slice(

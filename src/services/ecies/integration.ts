@@ -197,9 +197,8 @@ export class MigrationHelper {
       if (mnemonicValid) {
         try {
           const { wallet: wallet1 } = ecies.walletAndSeedFromMnemonic(mnemonic);
-          const { wallet: wallet2 } = await enhanced.walletFromMnemonic(
-            mnemonic,
-          );
+          const { wallet: wallet2 } =
+            await enhanced.walletFromMnemonic(mnemonic);
           keysMatch =
             uint8ArrayToHex(wallet1.getPrivateKey()) ===
             uint8ArrayToHex(wallet2.getPrivateKey());

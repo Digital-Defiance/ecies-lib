@@ -116,9 +116,8 @@ describe('Pbkdf2Service', () => {
     });
 
     it('should derive key successfully with default parameters', async () => {
-      const result = await pbkdf2Service.deriveKeyFromPasswordAsync(
-        mockPassword,
-      );
+      const result =
+        await pbkdf2Service.deriveKeyFromPasswordAsync(mockPassword);
 
       expect(mockCrypto.subtle.importKey).toHaveBeenCalledWith(
         'raw',
@@ -210,9 +209,8 @@ describe('Pbkdf2Service', () => {
       const mockRandomSalt = new Uint8Array(32).fill(2);
       mockCrypto.getRandomValues.mockReturnValue(mockRandomSalt);
 
-      const result = await pbkdf2Service.deriveKeyFromPasswordAsync(
-        mockPassword,
-      );
+      const result =
+        await pbkdf2Service.deriveKeyFromPasswordAsync(mockPassword);
 
       expect(mockCrypto.getRandomValues).toHaveBeenCalledWith(
         expect.any(Uint8Array),

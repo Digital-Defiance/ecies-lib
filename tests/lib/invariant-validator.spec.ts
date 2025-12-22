@@ -105,9 +105,8 @@ describe('InvariantValidator', () => {
 
     it('should catch iterations too high', () => {
       const badConfig = createMutableConfig(createRuntimeConfiguration());
-      (
-        badConfig as any
-      ).PBKDF2_PROFILES.BROWSER_PASSWORD.iterations = 20_000_000; // Too high
+      (badConfig as any).PBKDF2_PROFILES.BROWSER_PASSWORD.iterations =
+        20_000_000; // Too high
 
       expect(() => InvariantValidator.validateAll(badConfig)).toThrow(
         /Pbkdf2ProfilesValidity/,
