@@ -552,7 +552,7 @@ export class ConstantsRegistry {
     // Track provenance
     const provenance: IConfigurationProvenance = {
       baseConfigKey: typeof baseKey === 'symbol' ? baseKey.toString() : baseKey,
-      overrides: isFullConfig ? {} : configOrOverrides ?? {},
+      overrides: isFullConfig ? {} : (configOrOverrides ?? {}),
       timestamp: new Date(),
       source: isFullConfig ? 'custom' : 'runtime',
       checksum: calculateConfigChecksum(configuration),

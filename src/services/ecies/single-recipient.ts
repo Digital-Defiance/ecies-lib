@@ -322,7 +322,7 @@ export class EciesSingleRecipient {
             dataLengthArray.byteLength,
           ).getBigUint64(0, false),
         )
-      : options?.dataLength ?? -1;
+      : (options?.dataLength ?? -1);
 
     // Validate data length is reasonable
     if (

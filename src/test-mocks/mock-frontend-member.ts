@@ -27,11 +27,9 @@ const createMockWallet = (): Wallet =>
       hexToUint8Array(faker.string.hexadecimal({ length: 128 })),
     getAddress: () => hexToUint8Array(faker.string.hexadecimal({ length: 40 })),
     sign: () => hexToUint8Array(faker.string.hexadecimal({ length: 128 })),
-  } as unknown as Wallet);
+  }) as unknown as Wallet;
 
-export class MockFrontendMember
-  implements IFrontendMemberOperational<ObjectId>
-{
+export class MockFrontendMember implements IFrontendMemberOperational<ObjectId> {
   private _id: ObjectId;
   private _type: MemberType;
   private _name: string;
