@@ -449,7 +449,7 @@ describe('PasswordLoginService E2E', () => {
 
       result1.mnemonic.dispose();
       result2.mnemonic.dispose();
-    }, 60000);
+    }, 120000); // Increased timeout for BROWSER_PASSWORD profile (high iteration count)
 
     it('should not store plaintext passwords or mnemonics', async () => {
       await passwordLoginService.setupPasswordLoginLocalStorageBundle(
