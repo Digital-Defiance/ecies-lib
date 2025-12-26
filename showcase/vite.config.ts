@@ -34,6 +34,13 @@ export default defineConfig({
   define: {
     global: 'globalThis',
     'process.env.NODE_ENV': '"production"',
+    'process.env': '{}',
+    'process': JSON.stringify({
+      env: {},
+      nextTick: (fn) => setTimeout(fn, 0),
+      version: '16.0.0',
+      platform: 'browser'
+    }),
     'constants': JSON.stringify({
       DNS: {
         NODATA: 'ENODATA',
