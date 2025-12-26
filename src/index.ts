@@ -59,3 +59,7 @@ export * from './secure-string';
 export * from './services';
 export * from './types';
 export * from './utils';
+export * from './voting-utils'; // Keep this - contains shared math utilities
+
+// Re-export Paillier types for voting functionality (optional peer dependency)
+export type { PrivateKey, PublicKey, KeyPair as PaillierKeyPair } from 'paillier-bigint';

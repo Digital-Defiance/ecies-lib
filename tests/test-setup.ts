@@ -16,6 +16,12 @@ import { getEciesI18nEngine, resetEciesI18nEngine } from '../src/i18n-setup';
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 expect.extend({ toThrowType });
 
+// Add BigInt serialization support for Jest
+// @ts-ignore
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+};
+
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 jest.setTimeout(30000);
 

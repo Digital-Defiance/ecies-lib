@@ -1,6 +1,6 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "4.4.25",
+  "version": "4.5.0",
   "description": "Digital Defiance ECIES Library",
   "homepage": "https://github.com/Digital-Defiance/ecies-lib",
   "repository": {
@@ -53,6 +53,14 @@
   "author": "Digital Defiance",
   "license": "MIT",
   "packageManager": "yarn@4.11.0",
+  "peerDependencies": {
+    "paillier-bigint": "^3.4.1"
+  },
+  "peerDependenciesMeta": {
+    "paillier-bigint": {
+      "optional": true
+    }
+  },
   "dependencies": {
     "@digitaldefiance/i18n-lib": "3.8.16",
     "@ethereumjs/wallet": "^10.0.0",
