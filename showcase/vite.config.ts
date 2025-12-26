@@ -34,9 +34,6 @@ export default defineConfig({
   define: {
     global: 'globalThis',
     'process.env.NODE_ENV': '"production"',
-    'process.env': '{}',
-    'process.nextTick': '(fn) => setTimeout(fn, 0)',
-    'process.version': '"16.0.0"',
-    'process.platform': '"browser"'
+    'process.env': '{}'
   }
 });
