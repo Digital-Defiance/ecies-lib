@@ -1,4 +1,5 @@
 import { Wallet } from '@ethereumjs/wallet';
+import type { PrivateKey, PublicKey } from 'paillier-bigint';
 import { Constants } from './constants';
 import { EmailString } from './email-string';
 import { MemberErrorType } from './enumerations/member-error-type';
@@ -14,6 +15,10 @@ import { SecureBuffer } from './secure-buffer';
 import { SecureString } from './secure-string';
 import { ECIESService } from './services/ecies/service';
 import { EncryptionStream } from './services/encryption-stream';
+import {
+  deriveVotingKeysFromECDH,
+  DeriveVotingKeysOptions,
+} from './services/voting.service';
 import { SignatureUint8Array } from './types';
 import {
   base64ToUint8Array,
@@ -38,6 +43,10 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
   private readonly _dateUpdated: Date;
   private _privateKey?: SecureBuffer;
   private _wallet?: Wallet;
+  
+  // Optional voting keys for homomorphic encryption voting systems
+  private _votingPublicKey?: PublicKey;
+  private _votingPrivateKey?: PrivateKey;
 
   constructor(
     // Add injected services as parameters
@@ -124,6 +133,44 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
   // State getters
   public get hasPrivateKey(): boolean {
     return this._privateKey !== undefined;
+  }
+
+  public get hasVotingPrivateKey(): boolean {
+    return this._votingPrivateKey !== undefined;
+  }
+
+  public get votingPublicKey(): PublicKey | undefined {
+    return this._votingPublicKey;
+  }
+
+  public get votingPrivateKey(): PrivateKey | undefined {
+    return this._votingPrivateKey;
+  }
+
+  public async deriveVotingKeys(
+    options?: DeriveVotingKeysOptions,
+  ): Promise<void> {
+    if (!this._privateKey) {
+      throw new MemberError(MemberErrorType.MissingPrivateKey);
+    }
+
+    const keyPair = await deriveVotingKeysFromECDH(
+      new Uint8Array(this._privateKey.value),
+      this._publicKey,
+      options,
+    );
+
+    this._votingPublicKey = keyPair.publicKey;
+    this._votingPrivateKey = keyPair.privateKey;
+  }
+
+  public loadVotingKeys(publicKey: PublicKey, privateKey?: PrivateKey): void {
+    this._votingPublicKey = publicKey;
+    this._votingPrivateKey = privateKey;
+  }
+
+  public unloadVotingPrivateKey(): void {
+    this._votingPrivateKey = undefined;
   }
 
   public unloadPrivateKey(): void {
@@ -214,6 +261,7 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
     source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
     options?: {
       recipientPublicKey?: Uint8Array;
+      chunkSize?: number;
       onProgress?: (progress: {
         bytesProcessed: number;
         chunksProcessed: number;
@@ -244,6 +292,7 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
       targetPublicKey,
       {
         signal: options?.signal,
+        chunkSize: options?.chunkSize,
       },
     )) {
       bytesProcessed += chunk.metadata?.originalSize || 0;

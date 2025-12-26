@@ -7,4 +7,5 @@ export * from './password-login';
 export * from './pbkdf2';
 export * from './progress-tracker';
 export * from './resumable-encryption';
+export { VotingService } from './voting.service';
 export * from './xor';

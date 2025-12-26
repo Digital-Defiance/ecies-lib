@@ -1,4 +1,5 @@
 import type { Wallet } from '@ethereumjs/wallet';
+import type { PrivateKey, PublicKey } from 'paillier-bigint';
 import type { EmailString } from '../email-string';
 import type { MemberType } from '../enumerations/member-type';
 import type { SecureBuffer } from '../secure-buffer';
@@ -27,8 +28,13 @@ export interface IMember {
   readonly privateKey: SecureBuffer | undefined;
   readonly wallet: Wallet;
 
+  // Optional voting keys (for homomorphic encryption voting systems)
+  readonly votingPublicKey?: PublicKey;
+  readonly votingPrivateKey?: PrivateKey;
+
   // State properties
   readonly hasPrivateKey: boolean;
+  readonly hasVotingPrivateKey: boolean;
 
   // Key management methods
   unloadPrivateKey(): void;
@@ -36,6 +42,11 @@ export interface IMember {
   unloadWalletAndPrivateKey(): void;
   loadWallet(mnemonic: SecureString, eciesParams?: IECIESConstants): void;
   loadPrivateKey(privateKey: SecureBuffer): void;
+  
+  // Voting key management methods (optional, for systems that need voting)
+  loadVotingKeys?(votingPublicKey: PublicKey, votingPrivateKey?: PrivateKey): void;
+  deriveVotingKeys?(): void;
+  unloadVotingPrivateKey?(): void;
 
   // Cryptographic methods
   sign(data: Uint8Array): SignatureUint8Array;
