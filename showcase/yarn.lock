@@ -209,9 +209,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digitaldefiance/ecies-lib@npm:^4.5.6":
-  version: 4.5.6
-  resolution: "@digitaldefiance/ecies-lib@npm:4.5.6"
+"@digitaldefiance/ecies-lib@npm:^4.5.7":
+  version: 4.5.7
+  resolution: "@digitaldefiance/ecies-lib@npm:4.5.7"
   dependencies:
     "@digitaldefiance/i18n-lib": "npm:3.8.16"
     "@ethereumjs/wallet": "npm:^10.0.0"
@@ -226,7 +226,7 @@ __metadata:
   peerDependenciesMeta:
     paillier-bigint:
       optional: true
-  checksum: 10c0/d7ab729de289cd3d9e29b811ece598e6bd8b97a2846d33bf0219692506938da08452e9afc57dbf61fcf11639c6238437e1606f6f48932d0e3becdf2ff1dd4987
+  checksum: 10c0/6a60f63ad5d6b2a5f656aa76874e9363a48e6af7f7147b82e805e6f01a8dfa1e90e4e0952587d064abc8d7c961a359157f1c824d5c194c01c95542f0d7df6264
   languageName: node
   linkType: hard
 
@@ -1193,7 +1193,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "akira-showcase@workspace:."
   dependencies:
-    "@digitaldefiance/ecies-lib": "npm:^4.5.6"
+    "@digitaldefiance/ecies-lib": "npm:^4.5.7"
     "@eslint/js": "npm:^9.39.1"
     "@types/react": "npm:^19.2.5"
     "@types/react-dom": "npm:^19.2.3"
