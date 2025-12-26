@@ -9,6 +9,16 @@
  * - i18n 2.0 integration
  */
 
+// CRITICAL: Polyfill process BEFORE any other imports
+if (typeof process === 'undefined' && typeof window !== 'undefined') {
+  (globalThis as any).process = {
+    env: {},
+    nextTick: (fn: Function) => setTimeout(fn, 0),
+    version: '16.0.0',
+    platform: 'browser'
+  };
+}
+
 // Browser polyfills for Node.js compatibility
 import './browser-polyfills';
 

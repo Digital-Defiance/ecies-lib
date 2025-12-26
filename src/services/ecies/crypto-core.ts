@@ -106,16 +106,6 @@ export class EciesCryptoCore {
    * Generate a new mnemonic
    */
   public generateNewMnemonic(): SecureString {
-    // Ensure process is available for @scure/bip39
-    if (typeof process === 'undefined' && typeof window !== 'undefined') {
-      (globalThis as any).process = {
-        env: {},
-        nextTick: (fn: Function) => setTimeout(fn, 0),
-        version: '16.0.0',
-        platform: 'browser'
-      };
-    }
-    
     return new SecureString(
       generateMnemonic(wordlist, this._config.mnemonicStrength),
     );
