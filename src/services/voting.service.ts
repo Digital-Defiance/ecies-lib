@@ -297,8 +297,8 @@ export async function generateDeterministicKeyPair(
   if (!seed || seed.length < 32) {
     throw new Error(`Seed must be at least 32 bytes, got ${seed?.length || 0}`);
   }
-  if (bits < 2048) {
-    throw new Error(`Key size must be at least 2048 bits, got ${bits}`);
+  if (bits < 1024) {
+    throw new Error(`Key size must be at least 1024 bits, got ${bits}`);
   }
   if (bits % 2 !== 0) {
     throw new Error(`Key size must be even, got ${bits}`);

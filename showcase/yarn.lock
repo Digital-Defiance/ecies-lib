@@ -1202,6 +1202,7 @@ __metadata:
     eslint-plugin-react-refresh: "npm:^0.4.24"
     framer-motion: "npm:^12.23.26"
     globals: "npm:^16.5.0"
+    paillier-bigint: "npm:^3.4.3"
     react: "npm:^19.2.0"
     react-dom: "npm:^19.2.0"
     react-icons: "npm:^5.5.0"
@@ -1241,6 +1242,13 @@ __metadata:
   bin:
     baseline-browser-mapping: dist/cli.js
   checksum: 10c0/eba49fcc1b33ab994aeeb73a4848f2670e06a0886dd5b903689ae6f60d47e7f1bea9262dbb2548c48179e858f7eda2b82ddf941ae783b862f4dcc51085a246f2
+  languageName: node
+  linkType: hard
+
+"bigint-crypto-utils@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "bigint-crypto-utils@npm:3.3.0"
+  checksum: 10c0/7d06fa01d63e8e9513eee629fe8a426993276b1bdca5aefd0eb3188cee7026334d29e801ef6187a5bc6105ebf26e6e79e6fab544a7da769ccf55b913e66d2a14
   languageName: node
   linkType: hard
 
@@ -2386,6 +2394,15 @@ __metadata:
   version: 7.0.4
   resolution: "p-map@npm:7.0.4"
   checksum: 10c0/a5030935d3cb2919d7e89454d1ce82141e6f9955413658b8c9403cfe379283770ed3048146b44cde168aa9e8c716505f196d5689db0ae3ce9a71521a2fef3abd
+  languageName: node
+  linkType: hard
+
+"paillier-bigint@npm:^3.4.3":
+  version: 3.4.3
+  resolution: "paillier-bigint@npm:3.4.3"
+  dependencies:
+    bigint-crypto-utils: "npm:^3.3.0"
+  checksum: 10c0/5e049a4e8d651fd2f62dc2e51987ccc1122872eb11369f3c94aab3c2e9453bb4d5fbf8d96baa49d0bc3eb6ddd1d06b9527c6942c33a7f32f2223f2ed0d0e8679
   languageName: node
   linkType: hard
 

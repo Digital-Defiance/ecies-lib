@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
@@ -13,6 +12,49 @@
       content="ECIES, Encryption, TypeScript, Web Crypto API, HKDF, AAD, Streaming, Security, Cryptography, Digital Defiance"
     />
     <title>@digitaldefiance/ecies-lib - Enterprise-Grade Encryption</title>
+    <script>
+      // Must be defined before any modules load
+      window.constants = {
+        DNS: {
+          NODATA: 'ENODATA',
+          FORMERR: 'EFORMERR',
+          SERVFAIL: 'ESERVFAIL',
+          NOTFOUND: 'ENOTFOUND',
+          NOTIMP: 'ENOTIMP',
+          REFUSED: 'EREFUSED',
+          BADQUERY: 'EBADQUERY',
+          BADNAME: 'EBADNAME',
+          BADFAMILY: 'EBADFAMILY',
+          BADRESP: 'EBADRESP',
+          CONNREFUSED: 'ECONNREFUSED',
+          TIMEOUT: 'ETIMEOUT',
+          EOF: 'EOF',
+          FILE: 'EFILE',
+          NOMEM: 'ENOMEM',
+          DESTRUCTION: 'EDESTRUCTION',
+          BADSTR: 'EBADSTR',
+          BADFLAGS: 'EBADFLAGS',
+          NONAME: 'ENONAME',
+          BADHINTS: 'EBADHINTS',
+          NOTINITIALIZED: 'ENOTINITIALIZED',
+          LOADIPHLPAPI: 'ELOADIPHLPAPI',
+          ADDRGETNETWORKPARAMS: 'EADDRGETNETWORKPARAMS',
+          CANCELLED: 'ECANCELLED'
+        }
+      };
+      globalThis.constants = window.constants;
+    </script>
+    <script type="importmap">
+      {
+        "imports": {
+          "tslib": "https://cdn.skypack.dev/tslib",
+          "validator": "https://cdn.skypack.dev/validator",
+          "uuid": "https://cdn.skypack.dev/uuid@8",
+          "@scure/bip39": "https://cdn.skypack.dev/@scure/bip39",
+          "@scure/bip39/wordlists/english": "https://cdn.skypack.dev/@scure/bip39/wordlists/english"
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
