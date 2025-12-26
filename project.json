@@ -18,6 +18,11 @@
             "input": "packages/digitaldefiance-ecies-lib",
             "glob": "README.md",
             "output": "."
+          },
+          {
+            "input": "packages/digitaldefiance-ecies-lib",
+            "glob": "package.json",
+            "output": "."
           }
         ]
       }

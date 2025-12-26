@@ -32,12 +32,16 @@ export {
  */
 function decompressSecp256k1PublicKey(compressedKey: Uint8Array): Uint8Array {
   if (compressedKey.length !== 33) {
-    throw new Error(`Invalid compressed key length: expected 33 bytes, got ${compressedKey.length}`);
+    throw new Error(
+      `Invalid compressed key length: expected 33 bytes, got ${compressedKey.length}`,
+    );
   }
 
   const prefix = compressedKey[0];
   if (prefix !== 0x02 && prefix !== 0x03) {
-    throw new Error(`Invalid compressed key prefix: expected 0x02 or 0x03, got 0x${prefix.toString(16)}`);
+    throw new Error(
+      `Invalid compressed key prefix: expected 0x02 or 0x03, got 0x${prefix.toString(16)}`,
+    );
   }
 
   // secp256k1 parameters
@@ -82,13 +86,13 @@ function decompressSecp256k1PublicKey(compressedKey: Uint8Array): Uint8Array {
 
 /**
  * HKDF implementation using Web Crypto API
- * 
+ *
  * SECURITY: This is a cryptographically secure key derivation function.
  * - Uses Web Crypto API for browser compatibility
  * - Provides pseudorandomness indistinguishable from random
  * - One-way: computationally infeasible to recover IKM from OKM
  * - Domain separation via 'info' parameter
- * 
+ *
  * @param secret - The input key material (IKM)
  * @param salt - Optional salt value (non-secret random value)
  * @param info - Context string for domain separation
@@ -130,7 +134,7 @@ export async function hkdf(
 /**
  * Secure Deterministic Random Bit Generator using HMAC-DRBG (SP 800-90A)
  * Web Crypto API version with proper async initialization
- * 
+ *
  * SECURITY: NIST-approved deterministic random bit generator
  * - Provides backtracking resistance
  * - Provides prediction resistance
@@ -156,13 +160,19 @@ export class SecureDeterministicDRBG {
   /**
    * Create and initialize a new DRBG instance
    */
-  public static async create(seed: Uint8Array, hmacAlgorithm: string = 'SHA-512'): Promise<SecureDeterministicDRBG> {
+  public static async create(
+    seed: Uint8Array,
+    hmacAlgorithm: string = 'SHA-512',
+  ): Promise<SecureDeterministicDRBG> {
     const drbg = new SecureDeterministicDRBG(seed, hmacAlgorithm);
     await drbg.update(seed);
     return drbg;
   }
 
-  private async hmacAsync(key: Uint8Array, data: Uint8Array): Promise<Uint8Array> {
+  private async hmacAsync(
+    key: Uint8Array,
+    data: Uint8Array,
+  ): Promise<Uint8Array> {
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
       key,
@@ -173,8 +183,6 @@ export class SecureDeterministicDRBG {
     const signature = await crypto.subtle.sign('HMAC', cryptoKey, data);
     return new Uint8Array(signature);
   }
-
-
 
   private async update(providedData?: Uint8Array): Promise<void> {
     // K = HMAC(K, V || 0x00 || provided_data)
@@ -222,9 +230,10 @@ export class SecureDeterministicDRBG {
  * Small prime sieve for quick composite elimination
  */
 const SMALL_PRIMES = [
-  2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97,
-  101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193,
-  197, 199, 211, 223, 227, 229, 233, 239, 241, 251,
+  2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
+  73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151,
+  157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233,
+  239, 241, 251,
 ];
 
 /**
@@ -241,7 +250,7 @@ export async function generateDeterministicPrime(
 
   // Always perform exactly maxAttempts iterations for timing attack mitigation
   let foundPrime: bigint | null = null;
-  
+
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     // Continue checking even after finding prime to maintain constant timing
     if (foundPrime !== null) {
@@ -249,7 +258,7 @@ export async function generateDeterministicPrime(
       await drbg.generate(numBytes);
       continue;
     }
-    
+
     // Generate random bytes
     const bytes = await drbg.generate(numBytes);
 
@@ -259,12 +268,20 @@ export async function generateDeterministicPrime(
     // Set bottom bit to ensure odd number
     bytes[bytes.length - 1] |= 1;
 
-    const candidate = BigInt('0x' + Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join(''));
+    const candidate = BigInt(
+      '0x' +
+        Array.from(bytes)
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join(''),
+    );
 
     // Quick check against small primes
     let isComposite = false;
     for (const smallPrime of SMALL_PRIMES) {
-      if (candidate % BigInt(smallPrime) === 0n && candidate !== BigInt(smallPrime)) {
+      if (
+        candidate % BigInt(smallPrime) === 0n &&
+        candidate !== BigInt(smallPrime)
+      ) {
         isComposite = true;
         break;
       }
@@ -281,7 +298,7 @@ export async function generateDeterministicPrime(
   if (foundPrime === null) {
     throw new Error(`Failed to generate prime after ${maxAttempts} attempts`);
   }
-  
+
   return foundPrime;
 }
 
@@ -304,13 +321,15 @@ export async function generateDeterministicKeyPair(
     throw new Error(`Key size must be even, got ${bits}`);
   }
   if (primeTestIterations < 64) {
-    throw new Error(`Must perform at least 64 Miller-Rabin iterations, got ${primeTestIterations}`);
+    throw new Error(
+      `Must perform at least 64 Miller-Rabin iterations, got ${primeTestIterations}`,
+    );
   }
-  
+
   // Load paillier-bigint dynamically (optional peer dependency)
   let PublicKey: typeof import('paillier-bigint').PublicKey;
   let PrivateKey: typeof import('paillier-bigint').PrivateKey;
-  
+
   try {
     const paillier = await import('paillier-bigint');
     PublicKey = paillier.PublicKey;
@@ -325,8 +344,16 @@ export async function generateDeterministicKeyPair(
 
   // Generate two primes of half the key size
   const primeBits = Math.floor(bits / 2);
-  const p = await generateDeterministicPrime(drbg, primeBits, primeTestIterations);
-  const q = await generateDeterministicPrime(drbg, primeBits, primeTestIterations);
+  const p = await generateDeterministicPrime(
+    drbg,
+    primeBits,
+    primeTestIterations,
+  );
+  const q = await generateDeterministicPrime(
+    drbg,
+    primeBits,
+    primeTestIterations,
+  );
 
   // Calculate n = p * q
   const n = p * q;
@@ -354,7 +381,9 @@ export async function generateDeterministicKeyPair(
   const decrypted = privateKey.decrypt(encrypted);
 
   if (decrypted !== testPlaintext) {
-    throw new Error('Key pair validation failed: test encryption/decryption mismatch');
+    throw new Error(
+      'Key pair validation failed: test encryption/decryption mismatch',
+    );
   }
 
   return { publicKey, privateKey };
@@ -362,18 +391,18 @@ export async function generateDeterministicKeyPair(
 
 /**
  * Derive Paillier voting keys from ECDH key pair (async web version)
- * 
+ *
  * SECURITY PROPERTIES:
  * - One-way: Computationally infeasible to recover ECDH keys from Paillier keys
  * - Deterministic: Same ECDH keys always produce same Paillier keys
  * - Collision-resistant: Different ECDH keys produce different Paillier keys
  * - Domain-separated: Cryptographically bound to voting purpose via HKDF info
- * 
+ *
  * SECURITY LEVEL: ~128 bits (equivalent to 3072-bit RSA)
  * - ECDH: secp256k1 curve (~128-bit security, matches Node.js)
  * - HKDF: SHA-512 (512-bit security against preimage)
  * - Paillier: 3072-bit modulus (NIST recommended for 128-bit security)
- * 
+ *
  * @param ecdhPrivKey - ECDH private key (32 bytes for secp256k1)
  * @param ecdhPubKey - ECDH public key (33/64/65 bytes, compressed or uncompressed)
  * @param options - Configuration options
@@ -400,10 +429,12 @@ export async function deriveVotingKeysFromECDH(
   if (!ecdhPrivKey || ecdhPrivKey.length === 0) {
     throw new Error('ECDH private key is required');
   }
-  
+
   // Validate private key length (32 bytes for secp256k1)
   if (ecdhPrivKey.length !== 32) {
-    throw new Error(`Invalid ECDH private key length: expected 32 bytes, got ${ecdhPrivKey.length}`);
+    throw new Error(
+      `Invalid ECDH private key length: expected 32 bytes, got ${ecdhPrivKey.length}`,
+    );
   }
 
   if (!ecdhPubKey || ecdhPubKey.length === 0) {
@@ -413,21 +444,21 @@ export async function deriveVotingKeysFromECDH(
   // Handle both compressed (33 bytes) and uncompressed (65 bytes) public keys
   // @noble/secp256k1 accepts both formats
   let publicKeyForECDH: Uint8Array;
-  
+
   if (ecdhPubKey.length === 33) {
     // Compressed key - @noble/secp256k1 handles this natively
     publicKeyForECDH = ecdhPubKey;
-    
-  } else if (ecdhPubKey.length === publicKeyLength && ecdhPubKey[0] === publicKeyMagic) {
+  } else if (
+    ecdhPubKey.length === publicKeyLength &&
+    ecdhPubKey[0] === publicKeyMagic
+  ) {
     // Already uncompressed with 0x04 prefix - @noble/secp256k1 handles this
     publicKeyForECDH = ecdhPubKey;
-    
   } else if (ecdhPubKey.length === rawPublicKeyLength) {
     // Uncompressed without prefix - add it
     publicKeyForECDH = new Uint8Array(publicKeyLength);
     publicKeyForECDH[0] = publicKeyMagic;
     publicKeyForECDH.set(ecdhPubKey, 1);
-    
   } else {
     throw new Error(
       `Invalid public key length: expected 33 (compressed), 64 (uncompressed raw), or 65 (uncompressed with prefix) bytes, got ${ecdhPubKey.length}`,
@@ -435,8 +466,12 @@ export async function deriveVotingKeysFromECDH(
   }
 
   // Compute shared secret using @noble/secp256k1 (same as Node.js implementation)
-  const sharedSecret = secp256k1.getSharedSecret(ecdhPrivKey, publicKeyForECDH, false);
-  
+  const sharedSecret = secp256k1.getSharedSecret(
+    ecdhPrivKey,
+    publicKeyForECDH,
+    false,
+  );
+
   // Remove the 0x04 prefix from shared secret (getSharedSecret returns uncompressed point)
   const sharedSecretBytes = sharedSecret.slice(1);
 
@@ -450,43 +485,47 @@ export async function deriveVotingKeysFromECDH(
   );
 
   // Generate deterministic key pair
-  return await generateDeterministicKeyPair(seed, keypairBitLength, primeTestIterations);
+  return await generateDeterministicKeyPair(
+    seed,
+    keypairBitLength,
+    primeTestIterations,
+  );
 }
 
 /**
  * Voting service for deriving and managing Paillier voting keys from ECDH keys.
  * Web/Browser version using @noble/secp256k1.
- * 
+ *
  * SECURITY ARCHITECTURE:
  * This service implements a novel but cryptographically sound bridge between
  * ECDSA/ECDH keys and Paillier homomorphic encryption keys. The construction
  * uses only proven cryptographic primitives:
- * 
+ *
  * - ECDH (secp256k1): Shared secret computation via @noble/secp256k1
  * - HKDF (RFC 5869): Cryptographically secure key derivation
  * - HMAC-DRBG (NIST SP 800-90A): Deterministic random generation
  * - Miller-Rabin (256 rounds): Primality testing (error < 2^-512)
  * - Paillier (3072-bit): Homomorphic encryption
- * 
+ *
  * SECURITY GUARANTEES:
  * - 128-bit security level (equivalent to 3072-bit RSA)
  * - One-way: Cannot recover ECDH keys from Paillier keys
  * - Deterministic: Enables key recovery from same ECDH source
  * - Collision-resistant: Birthday bound ~2^128 operations
  * - Domain-separated: Cryptographic binding via HKDF info string
- * 
+ *
  * THREAT MODEL:
  * Protected against: factorization attacks, weak primes, small prime attacks
  * Timing attacks: Mitigated via constant-time operations where possible
  * Side-channels: Dependent on @noble/secp256k1 implementation
  * Quantum: Vulnerable to Shor's algorithm (like all RSA-type systems)
- * 
+ *
  * WEB-SPECIFIC CONSIDERATIONS:
  * - All cryptographic operations are async
  * - Uses secp256k1 curve (same as Node.js for cross-platform compatibility)
  * - Uses @noble/secp256k1 library (already used for ECIES operations)
  * - DRBG uses proper async factory pattern for HMAC initialization
- * 
+ *
  * For detailed security analysis, see:
  * docs/SECURITY_ANALYSIS_ECIES_PAILLIER_BRIDGE.md
  */
@@ -505,7 +544,7 @@ export class VotingService {
 
   /**
    * Derive Paillier voting keys from ECDH key pair.
-   * 
+   *
    * @param ecdhPrivKey - ECDH private key (32 bytes for secp256k1)
    * @param ecdhPubKey - ECDH public key (33/64/65 bytes, compressed or uncompressed)
    * @param options - Configuration options
@@ -576,7 +615,12 @@ export class VotingService {
     primeTestIterations?: number,
     maxAttempts?: number,
   ): Promise<bigint> {
-    return await generateDeterministicPrime(drbg, numBits, primeTestIterations, maxAttempts);
+    return await generateDeterministicPrime(
+      drbg,
+      numBits,
+      primeTestIterations,
+      maxAttempts,
+    );
   }
 
   /**
@@ -593,13 +637,16 @@ export class VotingService {
   /**
    * Create a secure deterministic random bit generator
    */
-  public async createDRBG(seed: Uint8Array, hmacAlgorithm?: string): Promise<SecureDeterministicDRBG> {
+  public async createDRBG(
+    seed: Uint8Array,
+    hmacAlgorithm?: string,
+  ): Promise<SecureDeterministicDRBG> {
     return await SecureDeterministicDRBG.create(seed, hmacAlgorithm);
   }
 
   /**
    * Serialize a Paillier public key to Uint8Array
-   * 
+   *
    * SECURITY: Public keys are safe to share. This serialization
    * format is deterministic and preserves all key information.
    */
@@ -622,22 +669,26 @@ export class VotingService {
   public async bufferToVotingPublicKey(buffer: Uint8Array): Promise<PublicKey> {
     // Load PublicKey class
     const { PublicKey } = await import('paillier-bigint');
-    
+
     // Read length prefix
-    const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+    const view = new DataView(
+      buffer.buffer,
+      buffer.byteOffset,
+      buffer.byteLength,
+    );
     const length = view.getUint32(0);
     // Read hex string
     const decoder = new TextDecoder();
     const nHex = decoder.decode(buffer.slice(4, 4 + length));
     const n = BigInt('0x' + nHex);
-    
+
     // g = n + 1 for simplified Paillier
     return new PublicKey(n, n + 1n);
   }
 
   /**
    * Serialize a Paillier private key to Uint8Array
-   * 
+   *
    * SECURITY WARNING: Private keys must be kept secret!
    * - Only serialize for secure storage or transmission
    * - Encrypt serialized keys before storing or transmitting
@@ -648,42 +699,51 @@ export class VotingService {
     // Serialize lambda and mu values
     const lambdaHex = privateKey.lambda.toString(16);
     const muHex = privateKey.mu.toString(16);
-    
+
     const encoder = new TextEncoder();
     const lambdaBytes = encoder.encode(lambdaHex);
     const muBytes = encoder.encode(muHex);
-    
+
     const result = new Uint8Array(8 + lambdaBytes.length + muBytes.length);
     const view = new DataView(result.buffer);
-    
+
     view.setUint32(0, lambdaBytes.length);
     result.set(lambdaBytes, 4);
     view.setUint32(4 + lambdaBytes.length, muBytes.length);
     result.set(muBytes, 8 + lambdaBytes.length);
-    
+
     return result;
   }
 
   /**
    * Deserialize a Paillier private key from Uint8Array
    */
-  public async bufferToVotingPrivateKey(buffer: Uint8Array, publicKey: PublicKey): Promise<PrivateKey> {
+  public async bufferToVotingPrivateKey(
+    buffer: Uint8Array,
+    publicKey: PublicKey,
+  ): Promise<PrivateKey> {
     // Load PrivateKey class
     const { PrivateKey } = await import('paillier-bigint');
-    
-    const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+
+    const view = new DataView(
+      buffer.buffer,
+      buffer.byteOffset,
+      buffer.byteLength,
+    );
     const decoder = new TextDecoder();
-    
+
     // Read lambda
     const lambdaLength = view.getUint32(0);
     const lambdaHex = decoder.decode(buffer.slice(4, 4 + lambdaLength));
     const lambda = BigInt('0x' + lambdaHex);
-    
+
     // Read mu
     const muLength = view.getUint32(4 + lambdaLength);
-    const muHex = decoder.decode(buffer.slice(8 + lambdaLength, 8 + lambdaLength + muLength));
+    const muHex = decoder.decode(
+      buffer.slice(8 + lambdaLength, 8 + lambdaLength + muLength),
+    );
     const mu = BigInt('0x' + muHex);
-    
+
     return new PrivateKey(lambda, mu, publicKey);
   }
 
@@ -696,11 +756,16 @@ export class VotingService {
     return this.bufferToVotingPublicKey(buffer);
   }
 
-  public async serializePrivateKey(privateKey: PrivateKey): Promise<Uint8Array> {
+  public async serializePrivateKey(
+    privateKey: PrivateKey,
+  ): Promise<Uint8Array> {
     return this.votingPrivateKeyToBuffer(privateKey);
   }
 
-  public async deserializePrivateKey(buffer: Uint8Array, publicKey: PublicKey): Promise<PrivateKey> {
+  public async deserializePrivateKey(
+    buffer: Uint8Array,
+    publicKey: PublicKey,
+  ): Promise<PrivateKey> {
     return this.bufferToVotingPrivateKey(buffer, publicKey);
   }
 }

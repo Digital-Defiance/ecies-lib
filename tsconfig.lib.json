@@ -1,5 +1,4 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
     "baseUrl": "./",
     "outDir": "../../dist/packages/digitaldefiance-ecies-lib/src",
@@ -20,7 +19,10 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "strict": true,
+    "isolatedModules": true,
+    "useDefineForClassFields": true
   },
   "include": [
     "src/**/*.ts"
