@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import {
   ECIESService,
-  VotingService,
   ISimpleKeyPair,
   uint8ArrayToHex,
 } from '@digitaldefiance/ecies-lib';
@@ -36,7 +35,7 @@ const Demo = () => {
   // Voting Demo State - disabled for now
   // const [votingService, setVotingService] = useState<VotingService | null>(null);
   const [votingService] = useState<null>(null);
-  const [aliceVotingKeys, setAliceVotingKeys] = useState<KeyPair | null>(null);
+  const [aliceVotingKeys] = useState<KeyPair | null>(null);
   const [voteA, setVoteA] = useState<number>(1);
   const [voteB, setVoteB] = useState<number>(5);
   const [encryptedTally, setEncryptedTally] = useState<bigint | null>(null);
@@ -85,16 +84,14 @@ const Demo = () => {
     const deriveKeys = async () => {
       if (aliceKeys && votingService) {
         setIsDerivingVotingKeys(true);
-        setVotingError(null);
         try {
-          // Use a smaller key size for demo performance (1024 bits)
-          // In production, use default (3072 bits)
-          const keys = await votingService.deriveVotingKeysFromECDH(
-            aliceKeys.privateKey,
-            aliceKeys.publicKey,
-            { keypairBitLength: 1024, primeTestIterations: 10 },
-          );
-          setAliceVotingKeys(keys);
+          // This code is unreachable since votingService is always null
+          // const keys = await votingService.deriveVotingKeysFromECDH(
+          //   aliceKeys.privateKey,
+          //   aliceKeys.publicKey,
+          //   { keypairBitLength: 1024, primeTestIterations: 10 },
+          // );
+          // setAliceVotingKeys(keys);
         } catch (e) {
           console.error('Failed to derive voting keys', e);
           setVotingError(

@@ -34,40 +34,6 @@ export default defineConfig({
   define: {
     global: 'globalThis',
     'process.env.NODE_ENV': '"production"',
-    'process.env': '{}',
-    'process': JSON.stringify({
-      env: {},
-      nextTick: (fn) => setTimeout(fn, 0),
-      version: '16.0.0',
-      platform: 'browser'
-    }),
-    'constants': JSON.stringify({
-      DNS: {
-        NODATA: 'ENODATA',
-        FORMERR: 'EFORMERR',
-        SERVFAIL: 'ESERVFAIL',
-        NOTFOUND: 'ENOTFOUND',
-        NOTIMP: 'ENOTIMP',
-        REFUSED: 'EREFUSED',
-        BADQUERY: 'EBADQUERY',
-        BADNAME: 'EBADNAME',
-        BADFAMILY: 'EBADFAMILY',
-        BADRESP: 'EBADRESP',
-        CONNREFUSED: 'ECONNREFUSED',
-        TIMEOUT: 'ETIMEOUT',
-        EOF: 'EOF',
-        FILE: 'EFILE',
-        NOMEM: 'ENOMEM',
-        DESTRUCTION: 'EDESTRUCTION',
-        BADSTR: 'EBADSTR',
-        BADFLAGS: 'EBADFLAGS',
-        NONAME: 'ENONAME',
-        BADHINTS: 'EBADHINTS',
-        NOTINITIALIZED: 'ENOTINITIALIZED',
-        LOADIPHLPAPI: 'ELOADIPHLPAPI',
-        ADDRGETNETWORKPARAMS: 'EADDRGETNETWORKPARAMS',
-        CANCELLED: 'ECANCELLED'
-      }
-    })
-  },
+    'process.env': '{}'
+  }
 });
