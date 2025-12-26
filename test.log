@@ -1,0 +1,105 @@
+
+> nx run digitaldefiance-ecies-lib:test
+
+digitaldefiance-ecies-lib: ● Validation Warning:
+digitaldefiance-ecies-lib: 
+digitaldefiance-ecies-lib:   Unknown option "forceExit" with value true was found.
+digitaldefiance-ecies-lib:   This is probably a typing mistake. Fixing it will remove this message.
+digitaldefiance-ecies-lib: 
+digitaldefiance-ecies-lib:   Configuration Documentation:
+digitaldefiance-ecies-lib:   https://jestjs.io/docs/configuration
+digitaldefiance-ecies-lib: 
+digitaldefiance-ecies-lib:  PASS  tests/services/encryption-stream-security-audit.spec.ts (24.634 s)
+digitaldefiance-ecies-lib: (node:330274) DeprecationWarning: The 'argument' property is deprecated on TSImportType nodes. Use source instead. See https://typescript-eslint.io/troubleshooting/faqs/general#the-key-property-is-deprecated-on-type-nodes-use-key-instead-warnings.
+digitaldefiance-ecies-lib: (Use `node --trace-deprecation ...` to show where the warning was created)
+digitaldefiance-ecies-lib: (node:330274) DeprecationWarning: The 'argument' property is deprecated on TSImportType nodes. Use source instead. See https://typescript-eslint.io/troubleshooting/faqs/general#the-key-property-is-deprecated-on-type-nodes-use-key-instead-warnings.
+digitaldefiance-ecies-lib:  PASS  tests/property-based/module-dependency-graph.pbt.spec.ts (26.424 s)
+digitaldefiance-ecies-lib:  PASS  tests/services/encryption-stream-edge-cases.spec.ts (32.398 s)
+digitaldefiance-ecies-lib:  PASS  tests/integration/encrypted-message-structure.spec.ts (13.77 s)
+digitaldefiance-ecies-lib:  PASS  tests/services/aes-gcm.e2e.spec.ts (13.327 s)
+digitaldefiance-ecies-lib:  PASS  tests/services/multi-recipient-streaming.spec.ts (12.313 s)
+digitaldefiance-ecies-lib:  PASS  tests/member-streaming.spec.ts (9.446 s)
+digitaldefiance-ecies-lib:  PASS  tests/services/aes-gcm.spec.ts (8.597 s)
+digitaldefiance-ecies-lib:  PASS  tests/i18n-comprehensive.spec.ts (8.942 s)
+digitaldefiance-ecies-lib:  PASS  tests/services/encryption-stream.spec.ts (7.187 s)
+digitaldefiance-ecies-lib:  PASS  tests/dependency-injection/member-dependency-injection.spec.ts (7.861 s)
+digitaldefiance-ecies-lib:  PASS  tests/password-login.e2e.spec.ts (58.899 s)
+digitaldefiance-ecies-lib:  PASS  tests/integration/encryption-e2e.spec.ts (9.999 s)
+digitaldefiance-ecies-lib:  PASS  tests/integration/backward-compatibility.integration.spec.ts (8.039 s)
+digitaldefiance-ecies-lib:  PASS  tests/member.spec.ts (9.714 s)
+digitaldefiance-ecies-lib:  PASS  tests/integration/ecies-test-matrix.spec.ts (9.444 s)
+digitaldefiance-ecies-lib:  PASS  tests/services/ecies/service.spec.ts (5.55 s)
+digitaldefiance-ecies-lib:  PASS  tests/services/chunk-processor.spec.ts (6.676 s)
+digitaldefiance-ecies-lib:  PASS  tests/integration/progress-edge-cases.spec.ts (8.807 s)
+digitaldefiance-ecies-lib:  PASS  tests/services/multi-recipient-stream.spec.ts (6.966 s)
+digitaldefiance-ecies-lib:  PASS  tests/member-lifecycle-mock.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/services/resumable-encryption-audit.spec.ts (6.325 s)
+digitaldefiance-ecies-lib:  PASS  tests/services/resumable-encryption.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/member-encryption-mock.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/property-based/constants-independence.pbt.spec.ts (79.493 s)
+digitaldefiance-ecies-lib:  PASS  tests/services/multi-recipient-security.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/integration/dependency-injection.integration.spec.ts (5.953 s)
+digitaldefiance-ecies-lib:  PASS  tests/mock-frontend-member.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/services/security-fixes.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/lib/id-providers/id-providers-comprehensive.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/module-independence.spec.ts
+digitaldefiance-ecies-lib:  FAIL  tests/lib/guid.spec.ts (5.703 s)
+digitaldefiance-ecies-lib:   ● GuidV4 › UUID Validation › should accept boundary UUIDs
+digitaldefiance-ecies-lib:     expect(received).toBe(expected) // Object.is equality
+digitaldefiance-ecies-lib:     Expected: true
+digitaldefiance-ecies-lib:     Received: false
+digitaldefiance-ecies-lib: 
+digitaldefiance-ecies-lib:       749 |     it('should accept boundary UUIDs', () => {
+digitaldefiance-ecies-lib:       750 |       expect(GuidV4.validateUuid(allZerosFullHex)).toBe(true);
+digitaldefiance-ecies-lib:     > 751 |       expect(GuidV4.validateUuid(allFsFullHex)).toBe(true);
+digitaldefiance-ecies-lib:           |                                                 ^
+digitaldefiance-ecies-lib:       752 |     });
+digitaldefiance-ecies-lib:       753 |   });
+digitaldefiance-ecies-lib:       754 |
+digitaldefiance-ecies-lib: 
+digitaldefiance-ecies-lib:       at Object.toBe (tests/lib/guid.spec.ts:751:49)
+digitaldefiance-ecies-lib:   ● GuidV4 › Static Method Edge Cases › validateUuid › should handle boundary values
+digitaldefiance-ecies-lib:     expect(received).toBe(expected) // Object.is equality
+digitaldefiance-ecies-lib:     Expected: true
+digitaldefiance-ecies-lib:     Received: false
+digitaldefiance-ecies-lib: 
+digitaldefiance-ecies-lib:       889 |         // uuid.validate actually accepts all zeros and all Fs
+digitaldefiance-ecies-lib:       890 |         expect(GuidV4.validateUuid(allZerosFullHex)).toBe(true);
+digitaldefiance-ecies-lib:     > 891 |         expect(GuidV4.validateUuid(allFsFullHex)).toBe(true);
+digitaldefiance-ecies-lib:           |                                                   ^
+digitaldefiance-ecies-lib:       892 |         // And GuidV4.isFullHexGuid also accepts them
+digitaldefiance-ecies-lib:       893 |         expect(GuidV4.isFullHexGuid(allZerosFullHex)).toBe(true);
+digitaldefiance-ecies-lib:       894 |         expect(GuidV4.isFullHexGuid(allFsFullHex)).toBe(true);
+digitaldefiance-ecies-lib: 
+digitaldefiance-ecies-lib:       at Object.toBe (tests/lib/guid.spec.ts:891:51)
+digitaldefiance-ecies-lib:  PASS  tests/dependency-injection/secure-storage-independence.spec.ts (5.341 s)
+digitaldefiance-ecies-lib:  PASS  tests/integration/cancellation.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/services/ecies/multi-recipient.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/integration/module-load.integration.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/pbkdf2-lib.e2e.spec.ts (88.436 s)
+digitaldefiance-ecies-lib:  PASS  tests/dependency-injection/constants-independence.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/integration/progress-callbacks.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/frontend-member-operational.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/services/ecies/security-architecture-review.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/services/ecies/crypto-core.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/secure-buffer.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/secure-storage-independence.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/constants.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/password-login.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/services/ecies/single-recipient.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/services/progress-tracker.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/property-based/interface-type-imports.pbt.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/errors/ecies-error-context.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/i18n-error-translation.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/integration/recipient-id-consistency.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/utils.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/services/ecies/signature.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/lib/configuration-provenance.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/test-simple-class.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/member-integration-mock.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/final-test.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/errors/guid-error.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/lib/id-providers/id-providers.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/errors/errors.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/services/ecies/multi-recipient-header.spec.ts
+digitaldefiance-ecies-lib:  PASS  tests/simple-ecies-test.spec.ts

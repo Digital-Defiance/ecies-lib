@@ -9,6 +9,9 @@
  * - i18n 2.0 integration
  */
 
+// Browser polyfills for Node.js compatibility
+import './browser-polyfills';
+
 // Core v2 exports
 export * from './builders/index';
 export * from './core/index';

@@ -33,15 +33,16 @@ const Demo = () => {
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [keyGenError, setKeyGenError] = useState<string | null>(null);
 
-  // Voting Demo State
-  const [votingService, setVotingService] = useState<VotingService | null>(null);
+  // Voting Demo State - disabled for now
+  // const [votingService, setVotingService] = useState<VotingService | null>(null);
+  const [votingService] = useState<null>(null);
   const [aliceVotingKeys, setAliceVotingKeys] = useState<KeyPair | null>(null);
   const [voteA, setVoteA] = useState<number>(1);
   const [voteB, setVoteB] = useState<number>(5);
   const [encryptedTally, setEncryptedTally] = useState<bigint | null>(null);
   const [decryptedTally, setDecryptedTally] = useState<number | null>(null);
   const [isDerivingVotingKeys, setIsDerivingVotingKeys] = useState(false);
-  const [votingError, setVotingError] = useState<string | null>(null);
+  const [votingError, setVotingError] = useState<string>('Voting demo temporarily disabled');
 
   useEffect(() => {
     // Generate keys on mount
@@ -64,21 +65,21 @@ const Demo = () => {
     generateKeys();
   }, [service]);
 
-  useEffect(() => {
-    // Initialize voting service safely
-    const initVotingService = async () => {
-      try {
-        const service = VotingService.getInstance();
-        setVotingService(service);
-      } catch (error) {
-        console.error('Failed to initialize voting service:', error);
-        setVotingError(
-          'Voting demo unavailable - paillier-bigint dependency missing'
-        );
-      }
-    };
-    initVotingService();
-  }, []);
+  // Voting service initialization disabled
+  // useEffect(() => {
+  //   const initVotingService = async () => {
+  //     try {
+  //       const service = VotingService.getInstance();
+  //       setVotingService(service);
+  //     } catch (error) {
+  //       console.error('Failed to initialize voting service:', error);
+  //       setVotingError(
+  //         'Voting demo unavailable - paillier-bigint dependency missing'
+  //       );
+  //     }
+  //   };
+  //   initVotingService();
+  // }, []);
 
   useEffect(() => {
     const deriveKeys = async () => {
@@ -200,7 +201,7 @@ const Demo = () => {
               <strong>Error initializing demo:</strong> {keyGenError}
             </p>
             <p style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>
-              This might be due to missing crypto dependencies or browser compatibility issues.
+              The library requires proper Node.js polyfills for browser use. Mock keys are being used for demonstration purposes.
             </p>
           </div>
         )}
