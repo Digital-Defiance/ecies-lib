@@ -64,7 +64,7 @@ export abstract class AESGCMService {
       {
         name: AESGCMService.ALGORITHM_NAME,
         iv,
-        additionalData: aad,
+        ...(aad ? { additionalData: aad } : {}),
         ...(authTag && { tagLength: eciesConsts.AUTH_TAG_SIZE * 8 }),
       },
       cryptoKey,
@@ -228,7 +228,7 @@ export abstract class AESGCMService {
         {
           name: AESGCMService.ALGORITHM_NAME,
           iv: new Uint8Array(iv),
-          additionalData: aad,
+          ...(aad ? { additionalData: aad } : {}),
         },
         cryptoKey,
         new Uint8Array(encryptedData),
@@ -243,7 +243,7 @@ export abstract class AESGCMService {
         name: AESGCMService.ALGORITHM_NAME,
         iv: new Uint8Array(iv),
         tagLength: eciesConsts.AUTH_TAG_SIZE * 8,
-        additionalData: aad,
+        ...(aad ? { additionalData: aad } : {}),
       },
       cryptoKey,
       new Uint8Array(encryptedData),
