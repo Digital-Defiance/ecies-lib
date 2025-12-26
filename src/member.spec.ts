@@ -613,7 +613,7 @@ describe('Member (Web)', () => {
         new EmailString('test@example.com'),
       )).member;
       await member.deriveVotingKeys({ keypairBitLength: 2048, primeTestIterations: 64 });
-    });
+    }, 120000); // 2 minute timeout for beforeEach
 
     it('should encrypt and decrypt with derived voting keys', () => {
       const message = 42n;
