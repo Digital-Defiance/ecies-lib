@@ -1,7 +1,7 @@
-import { motion } from "framer-motion";
-import { useInView } from "react-intersection-observer";
-import { FaGithub } from "react-icons/fa";
-import "./Features.css";
+import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
+import { FaGithub } from 'react-icons/fa';
+import './Features.css';
 
 interface Feature {
   title: string;
@@ -16,97 +16,103 @@ interface Feature {
   };
   highlights: string[];
   category:
-    | "Cryptography"
-    | "Identity"
-    | "Performance"
-    | "Integration"
-    | "Management";
+    | 'Cryptography'
+    | 'Identity'
+    | 'Performance'
+    | 'Integration'
+    | 'Management'
+    | 'Voting';
 }
 
 const features: Feature[] = [
   {
-    title: "Core Cryptography",
-    icon: "🛡️",
+    title: 'Core Cryptography',
+    icon: '🛡️',
     description:
-      "Enterprise-grade ECIES protocol (v4.0) featuring robust security primitives. Built on Web Crypto API and @noble/curves for maximum security and performance.",
-    tech: [
-      "HKDF-SHA256",
-      "AAD Binding",
-      "AES-256-GCM",
-      "secp256k1",
-    ],
-    category: "Cryptography",
+      'Enterprise-grade ECIES protocol (v4.0) featuring robust security primitives. Built on Web Crypto API and @noble/curves for maximum security and performance.',
+    tech: ['HKDF-SHA256', 'AAD Binding', 'AES-256-GCM', 'secp256k1'],
+    category: 'Cryptography',
     highlights: [
-      "HKDF-SHA256: Cryptographically robust key derivation (RFC 5869)",
-      "AAD Binding: Strict binding of metadata to prevent tampering",
-      "Shared Ephemeral Key: Optimized multi-recipient encryption",
-      "Compressed Keys: 33-byte public keys for efficiency",
-      "Support for Simple, Single, and Multiple recipient modes",
+      'HKDF-SHA256: Cryptographically robust key derivation (RFC 5869)',
+      'AAD Binding: Strict binding of metadata to prevent tampering',
+      'Shared Ephemeral Key: Optimized multi-recipient encryption',
+      'Compressed Keys: 33-byte public keys for efficiency',
+      'Support for Simple, Single, and Multiple recipient modes',
     ],
   },
   {
-    title: "Identity System",
-    icon: "🆔",
+    title: 'Identity System',
+    icon: '🆔',
     description:
-      "Flexible, pluggable identity provider system that adapts to your architecture. Support for standard and custom ID formats with automatic configuration syncing.",
-    tech: [
-      "Pluggable Providers",
-      "ObjectId / UUID",
-      "Custom IDs",
-      "Auto-Sync",
-    ],
-    category: "Identity",
+      'Flexible, pluggable identity provider system that adapts to your architecture. Support for standard and custom ID formats with automatic configuration syncing.',
+    tech: ['Pluggable Providers', 'ObjectId / UUID', 'Custom IDs', 'Auto-Sync'],
+    category: 'Identity',
     highlights: [
-      "Built-in support for MongoDB ObjectId (12 bytes)",
-      "Built-in support for GUID/UUID (16 bytes)",
-      "Support for custom ID formats (1-255 bytes)",
-      "Member abstraction with integrated cryptographic operations",
-      "Automatic constant adaptation based on selected provider",
+      'Built-in support for MongoDB ObjectId (12 bytes)',
+      'Built-in support for GUID/UUID (16 bytes)',
+      'Support for custom ID formats (1-255 bytes)',
+      'Member abstraction with integrated cryptographic operations',
+      'Automatic constant adaptation based on selected provider',
     ],
   },
   {
-    title: "Key Management",
-    icon: "🔑",
+    title: 'Key Management',
+    icon: '🔑',
     description:
-      "Comprehensive key management capabilities including HD wallets and secure memory handling. Protects sensitive data in memory using obfuscation.",
-    tech: ["BIP39", "BIP32/BIP44", "SecureString", "SecureBuffer"],
-    category: "Management",
+      'Comprehensive key management capabilities including HD wallets and secure memory handling. Protects sensitive data in memory using obfuscation.',
+    tech: ['BIP39', 'BIP32/BIP44', 'SecureString', 'SecureBuffer'],
+    category: 'Management',
     highlights: [
-      "BIP39 Mnemonic phrase generation (12-24 words)",
-      "BIP32/BIP44 Hierarchical Deterministic wallet derivation",
-      "SecureString/SecureBuffer with XOR obfuscation",
-      "Automatic memory zeroing for sensitive data",
-      "Cross-platform compatibility",
+      'BIP39 Mnemonic phrase generation (12-24 words)',
+      'BIP32/BIP44 Hierarchical Deterministic wallet derivation',
+      'SecureString/SecureBuffer with XOR obfuscation',
+      'Automatic memory zeroing for sensitive data',
+      'Cross-platform compatibility',
     ],
   },
   {
-    title: "Streaming Encryption",
-    icon: "🚀",
+    title: 'Streaming Encryption',
+    icon: '🚀',
     description:
-      "Memory-efficient streaming encryption for processing large files. Designed to handle any file size with constant low memory usage.",
-    tech: ["Streams API", "Chunking", "Low Memory", "High Performance"],
-    category: "Performance",
+      'Memory-efficient streaming encryption for processing large files. Designed to handle any file size with constant low memory usage.',
+    tech: ['Streams API', 'Chunking', 'Low Memory', 'High Performance'],
+    category: 'Performance',
     highlights: [
-      "Process gigabytes of data with <10MB RAM usage",
-      "Ideal for browser-based file encryption",
-      "Node.js stream compatibility",
-      "Efficient chunk processing",
-      "Maintains cryptographic integrity across streams",
+      'Process gigabytes of data with <10MB RAM usage',
+      'Ideal for browser-based file encryption',
+      'Node.js stream compatibility',
+      'Efficient chunk processing',
+      'Maintains cryptographic integrity across streams',
     ],
   },
   {
-    title: "Internationalization",
-    icon: "🌍",
+    title: 'Internationalization',
+    icon: '🌍',
     description:
-      "Built-in internationalization support for error messages and status updates. Ready for global deployment out of the box.",
-    tech: ["i18n", "8 Languages", "Error Translation", "Zero Deps"],
-    category: "Integration",
+      'Built-in internationalization support for error messages and status updates. Ready for global deployment out of the box.',
+    tech: ['i18n', '8 Languages', 'Error Translation', 'Zero Deps'],
+    category: 'Integration',
     highlights: [
-      "Supported languages: en-US, en-GB, fr, es, de, zh-CN, ja, uk",
-      "Automatic error message translation",
-      "Runtime configuration injection",
-      "No external i18n dependencies required",
-      "Easy to extend with new languages",
+      'Supported languages: en-US, en-GB, fr, es, de, zh-CN, ja, uk',
+      'Automatic error message translation',
+      'Runtime configuration injection',
+      'No external i18n dependencies required',
+      'Easy to extend with new languages',
+    ],
+  },
+  {
+    title: 'Voting System',
+    icon: '🗳️',
+    description:
+      'Secure homomorphic encryption support for voting systems. Derive Paillier keys from your identity for privacy-preserving vote aggregation.',
+    tech: ['Paillier', 'Homomorphic', 'Zero-Knowledge', 'Privacy'],
+    category: 'Voting',
+    highlights: [
+      'Derive Paillier keys from ECDH identity',
+      'Homomorphic addition of encrypted votes',
+      'Privacy-preserving vote aggregation',
+      'Cryptographically verifiable results',
+      'Seamless integration with identity system',
     ],
   },
 ];
@@ -139,14 +145,14 @@ const Features = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           <h3>
-            Secure your data with <em>Elliptic Curve Cryptography</em>,{" "}
+            Secure your data with <em>Elliptic Curve Cryptography</em>,{' '}
             <em>Authenticated Encryption</em>, and <em>Identity Management</em>
           </h3>
           <p>
             <strong>
               @digitaldefiance/ecies-lib brings enterprise-grade encryption to
               TypeScript.
-            </strong>{" "}
+            </strong>{' '}
             This isn't just a wrapper—it's a complete security suite that
             handles key management, identity binding, and large file encryption
             with <strong>Web Crypto API</strong> performance.
@@ -169,16 +175,16 @@ const Features = () => {
             <div className="solution">
               <h4>✅ The Solution: Standardized & Robust ECIES</h4>
               <p>
-                <strong>@digitaldefiance/ecies-lib</strong> provides a{" "}
+                <strong>@digitaldefiance/ecies-lib</strong> provides a{' '}
                 <strong>Protocol v4.0 implementation</strong> that ensures
                 security by default: HKDF key derivation, AAD binding, and
                 authenticated encryption (AES-GCM).
               </p>
               <p>
-                Built for <strong>TypeScript</strong> with{" "}
-                <strong>Web Crypto API</strong>, it offers{" "}
-                <strong>streaming support</strong> for gigabyte-sized files,{" "}
-                <strong>pluggable identity providers</strong>, and full{" "}
+                Built for <strong>TypeScript</strong> with{' '}
+                <strong>Web Crypto API</strong>, it offers{' '}
+                <strong>streaming support</strong> for gigabyte-sized files,{' '}
+                <strong>pluggable identity providers</strong>, and full{' '}
                 <strong>cross-platform compatibility</strong>.
               </p>
             </div>

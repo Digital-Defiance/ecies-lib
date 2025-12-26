@@ -28,6 +28,9 @@ jobs:
           cache: "yarn"
           cache-dependency-path: showcase/yarn.lock
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Install dependencies
         working-directory: ./showcase
         run: yarn install --frozen-lockfile
