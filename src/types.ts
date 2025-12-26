@@ -1,3 +1,4 @@
+import { Buffer } from './lib/buffer-compat';
 import { Brand } from 'ts-brand';
 import { GuidBrandType } from './enumerations';
 
@@ -28,14 +29,14 @@ export type Base64Guid = Brand<string, 'GuidV4', GuidBrandType.Base64Guid>;
 /**
  * GUID stored as a raw buffer
  */
-export type RawGuidBuffer = Buffer &
-  Brand<Buffer, 'GuidV4', GuidBrandType.RawGuidBuffer>;
+export type RawGuidBuffer = Uint8Array &
+  Brand<Uint8Array, 'GuidV4', GuidBrandType.RawGuidBuffer>;
 
 /**
  * Extended Buffer type for data
  */
-export type DataBuffer = Buffer & {
-  toBuffer(): Buffer;
+export type DataBuffer = Uint8Array & {
+  toBuffer(): Uint8Array;
   toHex(): string;
 };
 

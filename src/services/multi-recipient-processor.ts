@@ -1,3 +1,4 @@
+import { Buffer } from '../lib/buffer-compat';
 import { Constants } from '../constants';
 import { EciesStringKey } from '../enumerations';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';

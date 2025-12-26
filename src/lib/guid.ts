@@ -1,3 +1,4 @@
+import { Buffer } from './buffer-compat';
 import * as uuid from 'uuid';
 import { GuidBrandType } from '../enumerations/guid-brand-type';
 import { GuidErrorType } from '../enumerations/guid-error-type';
@@ -20,7 +21,7 @@ export type GuidInput =
   | BigIntGuid
   | RawGuidBuffer
   | bigint
-  | Buffer;
+  | Uint8Array;
 
 /**
  * GuidV4 represents a GUID (Globally Unique Identifier) that is compliant with the RFC 4122 standard.
@@ -207,8 +208,9 @@ export class GuidV4 implements IGuidV4 {
         throw new GuidError(GuidErrorType.InvalidGuid);
       }
 
-      const length =
-        value instanceof Buffer ? value.length : String(value).length;
+      const length = Buffer.isBuffer(value)
+        ? value.length
+        : String(value).length;
       throw new GuidError(
         GuidErrorType.InvalidGuidUnknownLength,
         undefined,
@@ -389,7 +391,7 @@ export class GuidV4 implements IGuidV4 {
    * @param buffer The raw 16-byte buffer
    * @returns A new GuidV4 instance
    */
-  public static fromBuffer(buffer: Buffer): GuidV4 {
+  public static fromBuffer(buffer: Uint8Array): GuidV4 {
     return new GuidV4(buffer as RawGuidBuffer);
   }
 
@@ -444,11 +446,14 @@ export class GuidV4 implements IGuidV4 {
 
   /**
    * Common namespace constants for use with v3/v5 GUIDs.
-   * Re-exported from uuid library for convenience.
+   * These are the standard RFC 4122 namespace UUIDs, defined inline for browser compatibility.
+   * (Avoids issues with uuid library's namespace exports in some bundler configurations)
    */
   public static readonly Namespaces = {
-    DNS: uuid.v5.DNS,
-    URL: uuid.v5.URL,
+    /** DNS namespace UUID per RFC 4122 */
+    DNS: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+    /** URL namespace UUID per RFC 4122 */
+    URL: '6ba7b811-9dad-11d1-80b4-00c04fd430c8',
   } as const;
   /**
    * Returns the GUID as a full hex string.
@@ -669,7 +674,7 @@ export class GuidV4 implements IGuidV4 {
       let valueLength: number;
       if (typeof value === 'bigint') {
         valueLength = value.toString(16).length;
-      } else if (value instanceof Buffer) {
+      } else if (Buffer.isBuffer(value)) {
         valueLength = value.length;
       } else {
         valueLength = String(value).length;
@@ -680,7 +685,7 @@ export class GuidV4 implements IGuidV4 {
 
       if (result) {
         try {
-          const fromBase64: Buffer = GuidV4.toRawGuidBuffer(value);
+          const fromBase64: Uint8Array = GuidV4.toRawGuidBuffer(value);
           const fullHexGuid = GuidV4.toFullHexGuid(fromBase64.toString('hex'));
           // Boundary values are always valid
           if (GuidV4.isBoundaryValue(fullHexGuid)) {
@@ -713,7 +718,7 @@ export class GuidV4 implements IGuidV4 {
       let valueLength: number;
       if (typeof value === 'bigint') {
         valueLength = value.toString(16).length;
-      } else if (value instanceof Buffer) {
+      } else if (Buffer.isBuffer(value)) {
         valueLength = value.length;
       } else {
         valueLength = String(value).length;
@@ -724,7 +729,7 @@ export class GuidV4 implements IGuidV4 {
       }
 
       try {
-        if (!(value instanceof Buffer)) {
+        if (!Buffer.isBuffer(value)) {
           return false;
         }
         const fullHexGuid = GuidV4.toFullHexGuid(value.toString('hex'));
@@ -787,7 +792,7 @@ export class GuidV4 implements IGuidV4 {
       return GuidBrandType.BigIntGuid;
     }
 
-    const isBuffer = value instanceof Buffer;
+    const isBuffer = Buffer.isBuffer(value);
     const expectedLength = isBuffer ? value.length : String(value).length;
 
     return GuidV4.lengthToGuidBrand(expectedLength, isBuffer);
@@ -956,7 +961,7 @@ export class GuidV4 implements IGuidV4 {
         break;
       case GuidBrandType.Base64Guid:
         // Ensure value is a string before using it with Buffer.from
-        if (typeof value === 'string' || value instanceof Buffer) {
+        if (typeof value === 'string' || Buffer.isBuffer(value)) {
           rawGuidBufferResult = Buffer.from(
             value.toString(),
             'base64',

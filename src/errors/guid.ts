@@ -55,7 +55,7 @@ export class GuidError extends TypedHandleableError<
     type: GuidErrorType,
     public readonly brand?: GuidBrandType,
     public readonly length?: number,
-    public readonly guid?: RawGuidBuffer | Buffer,
+    public readonly guid?: RawGuidBuffer | Uint8Array,
     language?: string,
   ) {
     // Build template parameters only for the values that are provided
