@@ -31,9 +31,10 @@ const Demo = () => {
   const [decryptedMessage, setDecryptedMessage] = useState<string>('');
   const [isEncrypting, setIsEncrypting] = useState(false);
   const [isDecrypting, setIsDecrypting] = useState(false);
+  const [keyGenError, setKeyGenError] = useState<string | null>(null);
 
   // Voting Demo State
-  const [votingService] = useState(() => VotingService.getInstance());
+  const [votingService, setVotingService] = useState<VotingService | null>(null);
   const [aliceVotingKeys, setAliceVotingKeys] = useState<KeyPair | null>(null);
   const [voteA, setVoteA] = useState<number>(1);
   const [voteB, setVoteB] = useState<number>(5);
@@ -45,20 +46,43 @@ const Demo = () => {
   useEffect(() => {
     // Generate keys on mount
     const generateKeys = async () => {
-      const aliceMnemonic = service.generateNewMnemonic();
-      const alice = service.mnemonicToSimpleKeyPair(aliceMnemonic);
-      setAliceKeys(alice);
+      try {
+        const aliceMnemonic = service.generateNewMnemonic();
+        const alice = service.mnemonicToSimpleKeyPair(aliceMnemonic);
+        setAliceKeys(alice);
 
-      const bobMnemonic = service.generateNewMnemonic();
-      const bob = service.mnemonicToSimpleKeyPair(bobMnemonic);
-      setBobKeys(bob);
+        const bobMnemonic = service.generateNewMnemonic();
+        const bob = service.mnemonicToSimpleKeyPair(bobMnemonic);
+        setBobKeys(bob);
+      } catch (error) {
+        console.error('Key generation failed:', error);
+        setKeyGenError(
+          error instanceof Error ? error.message : 'Unknown error generating keys'
+        );
+      }
     };
     generateKeys();
   }, [service]);
 
   useEffect(() => {
+    // Initialize voting service safely
+    const initVotingService = async () => {
+      try {
+        const service = VotingService.getInstance();
+        setVotingService(service);
+      } catch (error) {
+        console.error('Failed to initialize voting service:', error);
+        setVotingError(
+          'Voting demo unavailable - paillier-bigint dependency missing'
+        );
+      }
+    };
+    initVotingService();
+  }, []);
+
+  useEffect(() => {
     const deriveKeys = async () => {
-      if (aliceKeys) {
+      if (aliceKeys && votingService) {
         setIsDerivingVotingKeys(true);
         setVotingError(null);
         try {
@@ -160,6 +184,26 @@ const Demo = () => {
         <p className="features-subtitle">
           Experience ECIES encryption in real-time directly in your browser
         </p>
+
+        {keyGenError && (
+          <div
+            style={{
+              padding: '1rem',
+              background: 'rgba(255,0,0,0.1)',
+              border: '1px solid red',
+              borderRadius: '8px',
+              color: '#ff6b6b',
+              marginBottom: '2rem',
+            }}
+          >
+            <p>
+              <strong>Error initializing demo:</strong> {keyGenError}
+            </p>
+            <p style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              This might be due to missing crypto dependencies or browser compatibility issues.
+            </p>
+          </div>
+        )}
 
         <div className="demo-grid">
           {/* Alice's Side */}
@@ -278,6 +322,18 @@ const Demo = () => {
             without decrypting them. The voting keys are derived
             deterministically from Alice's ECDH identity.
           </p>
+
+          {!votingService && !votingError && (
+            <div
+              style={{
+                padding: '1rem',
+                background: 'rgba(255,255,255,0.05)',
+                borderRadius: '8px',
+              }}
+            >
+              Initializing voting service...
+            </div>
+          )}
 
           {votingError && (
             <div
