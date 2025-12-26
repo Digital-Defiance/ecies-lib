@@ -12,14 +12,17 @@ if (typeof window !== 'undefined') {
   window.global = window.global || window;
 }
 
-// Polyfill process
+// Polyfill process - make it available both on window and globally
 if (typeof window !== 'undefined' && !window.process) {
-  window.process = {
+  const processPolyfill = {
     env: {},
     nextTick: (fn: Function) => setTimeout(fn, 0),
     version: '16.0.0',
     platform: 'browser'
   };
+  
+  window.process = processPolyfill;
+  (globalThis as any).process = processPolyfill;
 }
 
 // Polyfill constants
