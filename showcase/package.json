@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@digitaldefiance/ecies-lib": "^4.5.7",
+    "@digitaldefiance/ecies-lib": "^4.5.8",
     "framer-motion": "^12.23.26",
     "paillier-bigint": "^3.4.3",
     "react": "^19.2.0",
