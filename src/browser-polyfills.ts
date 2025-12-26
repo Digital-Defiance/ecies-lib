@@ -5,6 +5,8 @@ declare global {
     process: any;
     Buffer: any;
   }
+  
+  var process: any;
 }
 
 // Polyfill global
@@ -12,8 +14,8 @@ if (typeof window !== 'undefined') {
   window.global = window.global || window;
 }
 
-// Polyfill process - make it available both on window and globally
-if (typeof window !== 'undefined' && !window.process) {
+// Polyfill process - make it available everywhere
+if (typeof window !== 'undefined' && typeof process === 'undefined') {
   const processPolyfill = {
     env: {},
     nextTick: (fn: Function) => setTimeout(fn, 0),
@@ -23,6 +25,19 @@ if (typeof window !== 'undefined' && !window.process) {
   
   window.process = processPolyfill;
   (globalThis as any).process = processPolyfill;
+  (global as any).process = processPolyfill;
+  
+  // Also set it as a global variable
+  try {
+    (window as any).process = processPolyfill;
+    Object.defineProperty(window, 'process', {
+      value: processPolyfill,
+      writable: false,
+      configurable: false
+    });
+  } catch (e) {
+    // Ignore if already defined
+  }
 }
 
 // Polyfill constants
