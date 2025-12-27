@@ -9,9 +9,6 @@ import type { EciesEncryptionType } from '../enumerations/ecies-encryption-type'
 import type { PlatformBuffer } from './platform-buffer';
 import type { IVotingService } from './voting-service';
 
-// Re-export IVotingService to make it available through this module
-export type { IVotingService };
-
 /**
  * ECIES encryption options
  */

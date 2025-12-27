@@ -15,3 +15,5 @@ export * from './pbkdf2-consts';
 export * from './pbkdf2-result';
 export * from './platform-buffer';
 export * from './voting-consts';
+export * from './voting-service';
+export * from './isolated-keys';

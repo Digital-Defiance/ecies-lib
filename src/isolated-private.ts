@@ -2,6 +2,7 @@ import { PrivateKey, PublicKey } from 'paillier-bigint';
 import { VOTING } from './constants';
 import { VotingErrorType } from './enumerations/voting-error-type';
 import { VotingError } from './errors/voting';
+import { IIsolatedPrivateKey } from './interfaces/isolated-keys';
 import { IsolatedPublicKey } from './isolated-public';
 
 /**
@@ -15,7 +16,10 @@ import { IsolatedPublicKey } from './isolated-public';
  * The private key stores the original keyId and instanceId from construction time,
  * and validates them before any decryption operation.
  */
-export class IsolatedPrivateKey extends PrivateKey {
+export class IsolatedPrivateKey
+  extends PrivateKey
+  implements IIsolatedPrivateKey<Uint8Array, 'async'>
+{
   /**
    * Original keyId from the IsolatedPublicKey at construction time
    */
@@ -174,5 +178,13 @@ export class IsolatedPrivateKey extends PrivateKey {
    */
   public getOriginalPublicKey(): IsolatedPublicKey {
     return this._originalPublicKey;
+  }
+
+  /**
+   * Decrypts a tagged ciphertext after validating instance ID and HMAC
+   * Implements both sync and async interfaces
+   */
+  public decryptIsolated(taggedCiphertext: bigint): Promise<bigint> {
+    return this.decryptAsync(taggedCiphertext);
   }
 }

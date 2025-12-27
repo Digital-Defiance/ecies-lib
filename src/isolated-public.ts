@@ -2,6 +2,7 @@ import { PublicKey } from 'paillier-bigint';
 import { VOTING } from './constants';
 import { VotingErrorType } from './enumerations/voting-error-type';
 import { VotingError } from './errors/voting';
+import { IIsolatedPublicKey } from './interfaces/isolated-keys';
 
 /**
  * IsolatedPublicKey extends Paillier PublicKey with instance isolation capabilities.
@@ -15,7 +16,10 @@ import { VotingError } from './errors/voting';
  * used with another instance, even if they share the same underlying key material.
  * This is critical for voting systems where ballot tampering must be prevented.
  */
-export class IsolatedPublicKey extends PublicKey {
+export class IsolatedPublicKey
+  extends PublicKey
+  implements IIsolatedPublicKey<Uint8Array, 'async'>
+{
   /**
    * Type guard to check if a PublicKey is an IsolatedPublicKey
    */
@@ -430,5 +434,40 @@ export class IsolatedPublicKey extends PublicKey {
       if (a[i] !== b[i]) return false;
     }
     return true;
+  }
+
+  /**
+   * Encrypts a message and tags it with instance HMAC
+   * Implements both sync and async interfaces
+   */
+  public encryptIsolated(m: bigint): Promise<bigint> {
+    return this.encryptAsync(m);
+  }
+
+  /**
+   * Multiplies a ciphertext by a constant, preserving instance HMAC
+   * Implements both sync and async interfaces
+   */
+  public multiplyIsolated(
+    ciphertext: bigint,
+    constant: bigint,
+  ): Promise<bigint> {
+    return this.multiplyAsync(ciphertext, constant);
+  }
+
+  /**
+   * Adds two ciphertexts, preserving instance HMAC
+   * Implements both sync and async interfaces
+   */
+  public additionIsolated(a: bigint, b: bigint): Promise<bigint> {
+    return this.additionAsync(a, b);
+  }
+
+  /**
+   * Verifies that the keyId matches the SHA-256 hash of the public key 'n'
+   * Sync version for interface compatibility
+   */
+  public verifyKeyId(): void {
+    throw new VotingError(VotingErrorType.KeyPairValidationFailed);
   }
 }

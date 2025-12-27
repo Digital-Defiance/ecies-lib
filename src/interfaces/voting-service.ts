@@ -132,80 +132,28 @@ export interface IVotingService {
 }
 
 /**
- * Common interface for IsolatedPublicKey implementations
- * Both Web Crypto and Node.js crypto versions must implement this
+ * Extended interface for IsolatedPublicKey with async methods
+ * These are the actual methods used by the voting service implementations
  */
-export interface IIsolatedPublicKey extends PublicKey {
-  /**
-   * Deterministic identifier derived from the public key (SHA-256 of 'n')
-   */
+export interface IIsolatedPublicKeyAsync {
   readonly keyId: PlatformBuffer;
-
-  /**
-   * Returns a copy of the keyId
-   */
   getKeyId(): PlatformBuffer;
-
-  /**
-   * Returns a copy of the current instance ID
-   */
   getInstanceId(): PlatformBuffer;
-
-  /**
-   * Updates the current instance ID to a new random value
-   * This invalidates all previously encrypted ciphertexts
-   */
   updateInstanceId(): Promise<void>;
-
-  /**
-   * Verifies that the keyId matches the SHA-256 hash of the public key 'n'
-   */
   verifyKeyIdAsync(): Promise<void>;
-
-  /**
-   * Encrypts a message and tags it with instance HMAC
-   */
   encryptAsync(m: bigint): Promise<bigint>;
-
-  /**
-   * Multiplies a ciphertext by a constant, preserving instance HMAC
-   */
   multiplyAsync(ciphertext: bigint, constant: bigint): Promise<bigint>;
-
-  /**
-   * Adds two ciphertexts, preserving instance HMAC
-   */
   additionAsync(a: bigint, b: bigint): Promise<bigint>;
-
-  /**
-   * Extracts and validates the instance ID from a tagged ciphertext
-   * Returns the instance ID if valid, or zero-filled array if invalid
-   */
   extractInstanceId(ciphertext: bigint): Promise<PlatformBuffer>;
 }
 
 /**
- * Common interface for IsolatedPrivateKey implementations
- * Both Web Crypto and Node.js crypto versions must implement this
+ * Extended interface for IsolatedPrivateKey with async methods
+ * These are the actual methods used by the voting service implementations
  */
-export interface IIsolatedPrivateKey extends PrivateKey {
-  /**
-   * Decrypts a tagged ciphertext after validating instance ID and HMAC
-   */
+export interface IIsolatedPrivateKeyAsync {
   decryptAsync(taggedCiphertext: bigint): Promise<bigint>;
-
-  /**
-   * Gets a copy of the original keyId
-   */
   getOriginalKeyId(): PlatformBuffer;
-
-  /**
-   * Gets a copy of the original instanceId
-   */
   getOriginalInstanceId(): PlatformBuffer;
-
-  /**
-   * Gets the original public key reference
-   */
-  getOriginalPublicKey(): IIsolatedPublicKey;
+  getOriginalPublicKey(): IIsolatedPublicKeyAsync;
 }
