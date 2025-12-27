@@ -8,7 +8,7 @@
  * - Stream encryption/decryption
  * - Error handling and validation
  * - State management and lifecycle
- * 
+ *
  * Note: All cryptographic operations in this version are async due to Web Crypto API
  */
 
@@ -16,7 +16,6 @@ import { EmailString } from './email-string';
 import { MemberType } from './enumerations/member-type';
 import { MemberError } from './errors/member';
 import { Member } from './member';
-import { SecureBuffer } from './secure-buffer';
 import { SecureString } from './secure-string';
 import { ECIESService } from './services/ecies/service';
 import { VotingService } from './services/voting.service';
@@ -166,7 +165,7 @@ describe('Member (Web)', () => {
     it('should unload wallet', () => {
       const walletBefore = member.wallet;
       expect(walletBefore).toBeDefined();
-      
+
       member.unloadWallet();
       expect(() => member.wallet).toThrow(MemberError);
     });
@@ -205,18 +204,22 @@ describe('Member (Web)', () => {
     let bob: Member;
 
     beforeEach(async () => {
-      alice = (await Member.newMember(
-        eciesService,
-        MemberType.User,
-        'Alice',
-        new EmailString('alice@example.com'),
-      )).member;
-      bob = (await Member.newMember(
-        eciesService,
-        MemberType.User,
-        'Bob',
-        new EmailString('bob@example.com'),
-      )).member;
+      alice = (
+        await Member.newMember(
+          eciesService,
+          MemberType.User,
+          'Alice',
+          new EmailString('alice@example.com'),
+        )
+      ).member;
+      bob = (
+        await Member.newMember(
+          eciesService,
+          MemberType.User,
+          'Bob',
+          new EmailString('bob@example.com'),
+        )
+      ).member;
     });
 
     it('should sign and verify data', async () => {
@@ -267,18 +270,22 @@ describe('Member (Web)', () => {
     let bob: Member;
 
     beforeEach(async () => {
-      alice = (await Member.newMember(
-        eciesService,
-        MemberType.User,
-        'Alice',
-        new EmailString('alice@example.com'),
-      )).member;
-      bob = (await Member.newMember(
-        eciesService,
-        MemberType.User,
-        'Bob',
-        new EmailString('bob@example.com'),
-      )).member;
+      alice = (
+        await Member.newMember(
+          eciesService,
+          MemberType.User,
+          'Alice',
+          new EmailString('alice@example.com'),
+        )
+      ).member;
+      bob = (
+        await Member.newMember(
+          eciesService,
+          MemberType.User,
+          'Bob',
+          new EmailString('bob@example.com'),
+        )
+      ).member;
     });
 
     it('should encrypt and decrypt data', async () => {
@@ -335,12 +342,14 @@ describe('Member (Web)', () => {
     let alice: Member;
 
     beforeEach(async () => {
-      alice = (await Member.newMember(
-        eciesService,
-        MemberType.User,
-        'Alice',
-        new EmailString('alice@example.com'),
-      )).member;
+      alice = (
+        await Member.newMember(
+          eciesService,
+          MemberType.User,
+          'Alice',
+          new EmailString('alice@example.com'),
+        )
+      ).member;
     });
 
     it('should encrypt and decrypt data stream', async () => {
@@ -358,9 +367,12 @@ describe('Member (Web)', () => {
 
       // Collect encrypted chunks
       const encryptedChunks: Uint8Array[] = [];
-      for await (const encryptedChunk of alice.encryptDataStream(sourceGenerator(), {
-        recipientPublicKey: alice.publicKey,
-      })) {
+      for await (const encryptedChunk of alice.encryptDataStream(
+        sourceGenerator(),
+        {
+          recipientPublicKey: alice.publicKey,
+        },
+      )) {
         encryptedChunks.push(encryptedChunk.data);
       }
 
@@ -374,12 +386,14 @@ describe('Member (Web)', () => {
       }
 
       const decryptedChunks: Uint8Array[] = [];
-      for await (const decryptedChunk of alice.decryptDataStream(encryptedGenerator())) {
+      for await (const decryptedChunk of alice.decryptDataStream(
+        encryptedGenerator(),
+      )) {
         decryptedChunks.push(decryptedChunk);
       }
 
       const originalData = new Uint8Array(
-        chunks.reduce((acc, chunk) => acc + chunk.length, 0)
+        chunks.reduce((acc, chunk) => acc + chunk.length, 0),
       );
       let offset = 0;
       for (const chunk of chunks) {
@@ -388,7 +402,7 @@ describe('Member (Web)', () => {
       }
 
       const decryptedData = new Uint8Array(
-        decryptedChunks.reduce((acc, chunk) => acc + chunk.length, 0)
+        decryptedChunks.reduce((acc, chunk) => acc + chunk.length, 0),
       );
       offset = 0;
       for (const chunk of decryptedChunks) {
@@ -402,7 +416,7 @@ describe('Member (Web)', () => {
     it('should support progress callback for encryption', async () => {
       const chunks = [
         new Uint8Array(1000).fill(65), // 'A' repeated
-        new Uint8Array(1000).fill(66)  // 'B' repeated
+        new Uint8Array(1000).fill(66), // 'B' repeated
       ];
       let progressCallCount = 0;
 
@@ -459,12 +473,14 @@ describe('Member (Web)', () => {
     let member: Member;
 
     beforeEach(async () => {
-      member = (await Member.newMember(
-        eciesService,
-        MemberType.User,
-        'Test User',
-        new EmailString('test@example.com'),
-      )).member;
+      member = (
+        await Member.newMember(
+          eciesService,
+          MemberType.User,
+          'Test User',
+          new EmailString('test@example.com'),
+        )
+      ).member;
     });
 
     it('should not have voting keys initially', () => {
@@ -474,7 +490,10 @@ describe('Member (Web)', () => {
     });
 
     it('should derive voting keys from ECDH', async () => {
-      await member.deriveVotingKeys({ keypairBitLength: 2048, primeTestIterations: 64 });
+      await member.deriveVotingKeys({
+        keypairBitLength: 2048,
+        primeTestIterations: 64,
+      });
 
       expect(member.votingPublicKey).toBeDefined();
       expect(member.votingPrivateKey).toBeDefined();
@@ -494,10 +513,12 @@ describe('Member (Web)', () => {
       const privateKey2 = member.votingPrivateKey;
 
       // Compare using serialization since direct comparison may fail
-      expect(await votingService.serializePublicKey(publicKey1!))
-        .toEqual(await votingService.serializePublicKey(publicKey2!));
-      expect(await votingService.serializePrivateKey(privateKey1!))
-        .toEqual(await votingService.serializePrivateKey(privateKey2!));
+      expect(await votingService.serializePublicKey(publicKey1!)).toEqual(
+        await votingService.serializePublicKey(publicKey2!),
+      );
+      expect(await votingService.serializePrivateKey(privateKey1!)).toEqual(
+        await votingService.serializePrivateKey(privateKey2!),
+      );
     }, 120000);
 
     it('should throw error when deriving voting keys without private key', async () => {
@@ -511,7 +532,11 @@ describe('Member (Web)', () => {
     it('should load voting keys manually', async () => {
       // Generate a voting key pair
       const seed = new Uint8Array(64).fill(0x42);
-      const votingKeyPair = await votingService.generateDeterministicKeyPair(seed, 2048, 64);
+      const votingKeyPair = await votingService.generateDeterministicKeyPair(
+        seed,
+        2048,
+        64,
+      );
 
       member.loadVotingKeys(votingKeyPair.publicKey, votingKeyPair.privateKey);
 
@@ -522,7 +547,11 @@ describe('Member (Web)', () => {
 
     it('should load only voting public key', async () => {
       const seed = new Uint8Array(64).fill(0x42);
-      const votingKeyPair = await votingService.generateDeterministicKeyPair(seed, 2048, 64);
+      const votingKeyPair = await votingService.generateDeterministicKeyPair(
+        seed,
+        2048,
+        64,
+      );
 
       member.loadVotingKeys(votingKeyPair.publicKey);
 
@@ -532,7 +561,10 @@ describe('Member (Web)', () => {
     }, 120000);
 
     it('should unload voting private key', async () => {
-      await member.deriveVotingKeys({ keypairBitLength: 2048, primeTestIterations: 64 });
+      await member.deriveVotingKeys({
+        keypairBitLength: 2048,
+        primeTestIterations: 64,
+      });
       const publicKey = member.votingPublicKey;
 
       expect(member.hasVotingPrivateKey).toBe(true);
@@ -545,7 +577,10 @@ describe('Member (Web)', () => {
     }, 120000);
 
     it('should support custom key size for voting keys', async () => {
-      await member.deriveVotingKeys({ keypairBitLength: 2048, primeTestIterations: 64 });
+      await member.deriveVotingKeys({
+        keypairBitLength: 2048,
+        primeTestIterations: 64,
+      });
 
       expect(member.votingPublicKey).toBeDefined();
       expect(member.votingPrivateKey).toBeDefined();
@@ -569,36 +604,49 @@ describe('Member (Web)', () => {
 
     it('should throw error for invalid key size', async () => {
       await expect(
-        member.deriveVotingKeys({ keypairBitLength: 1024 })
+        member.deriveVotingKeys({ keypairBitLength: 1024 }),
       ).rejects.toThrow('Key size must be at least 2048 bits');
     });
 
     it('should throw error for insufficient Miller-Rabin rounds', async () => {
       await expect(
-        member.deriveVotingKeys({ primeTestIterations: 32 })
+        member.deriveVotingKeys({ primeTestIterations: 32 }),
       ).rejects.toThrow('Must perform at least 64 Miller-Rabin iterations');
     });
 
     it('should throw error for odd key size', async () => {
       await expect(
-        member.deriveVotingKeys({ keypairBitLength: 2049 })
+        member.deriveVotingKeys({ keypairBitLength: 2049 }),
       ).rejects.toThrow('Key size must be even');
     });
 
     it('should handle voting key serialization', async () => {
-      await member.deriveVotingKeys({ keypairBitLength: 2048, primeTestIterations: 64 });
-      
-      const publicKeySerialized = await votingService.serializePublicKey(member.votingPublicKey!);
-      const privateKeySerialized = await votingService.serializePrivateKey(member.votingPrivateKey!);
-      
+      await member.deriveVotingKeys({
+        keypairBitLength: 2048,
+        primeTestIterations: 64,
+      });
+
+      const publicKeySerialized = await votingService.serializePublicKey(
+        member.votingPublicKey!,
+      );
+      const privateKeySerialized = await votingService.serializePrivateKey(
+        member.votingPrivateKey!,
+      );
+
       expect(publicKeySerialized).toBeDefined();
       expect(privateKeySerialized).toBeDefined();
-      
-      const publicKeyDeserialized = await votingService.deserializePublicKey(publicKeySerialized);
-      const privateKeyDeserialized = await votingService.deserializePrivateKey(privateKeySerialized, publicKeyDeserialized);
-      
+
+      const publicKeyDeserialized =
+        await votingService.deserializePublicKey(publicKeySerialized);
+      const privateKeyDeserialized = await votingService.deserializePrivateKey(
+        privateKeySerialized,
+        publicKeyDeserialized,
+      );
+
       expect(publicKeyDeserialized.n).toBe(member.votingPublicKey!.n);
-      expect(privateKeyDeserialized.lambda).toBe(member.votingPrivateKey!.lambda);
+      expect(privateKeyDeserialized.lambda).toBe(
+        member.votingPrivateKey!.lambda,
+      );
     }, 120000);
   });
 
@@ -606,13 +654,18 @@ describe('Member (Web)', () => {
     let member: Member;
 
     beforeEach(async () => {
-      member = (await Member.newMember(
-        eciesService,
-        MemberType.User,
-        'Test User',
-        new EmailString('test@example.com'),
-      )).member;
-      await member.deriveVotingKeys({ keypairBitLength: 2048, primeTestIterations: 64 });
+      member = (
+        await Member.newMember(
+          eciesService,
+          MemberType.User,
+          'Test User',
+          new EmailString('test@example.com'),
+        )
+      ).member;
+      await member.deriveVotingKeys({
+        keypairBitLength: 2048,
+        primeTestIterations: 64,
+      });
     });
 
     it('should encrypt and decrypt with derived voting keys', () => {
@@ -660,12 +713,14 @@ describe('Member (Web)', () => {
     let member: Member;
 
     beforeEach(async () => {
-      member = (await Member.newMember(
-        eciesService,
-        MemberType.User,
-        'Test User',
-        new EmailString('test@example.com'),
-      )).member;
+      member = (
+        await Member.newMember(
+          eciesService,
+          MemberType.User,
+          'Test User',
+          new EmailString('test@example.com'),
+        )
+      ).member;
     });
 
     it('should serialize to JSON', () => {
@@ -745,7 +800,10 @@ describe('Member (Web)', () => {
       expect(decrypted).toEqual(plaintext);
 
       // Derive voting keys
-      await member.deriveVotingKeys({ keypairBitLength: 2048, primeTestIterations: 64 });
+      await member.deriveVotingKeys({
+        keypairBitLength: 2048,
+        primeTestIterations: 64,
+      });
       expect(member.votingPublicKey).toBeDefined();
       expect(member.votingPrivateKey).toBeDefined();
 
@@ -793,7 +851,9 @@ describe('Member (Web)', () => {
       const signature = await alice.sign(message);
 
       // Bob verifies Alice's signature
-      expect(await bob.verifySignature(message, signature, alice.publicKey)).toBe(true);
+      expect(
+        await bob.verifySignature(message, signature, alice.publicKey),
+      ).toBe(true);
     });
   });
 
@@ -845,7 +905,10 @@ describe('Member (Web)', () => {
       expect(member.hasVotingPrivateKey).toBe(false);
 
       // Derive voting keys
-      await member.deriveVotingKeys({ keypairBitLength: 2048, primeTestIterations: 64 });
+      await member.deriveVotingKeys({
+        keypairBitLength: 2048,
+        primeTestIterations: 64,
+      });
       expect(member.hasPrivateKey).toBe(true);
       expect(member.hasVotingPrivateKey).toBe(true);
 

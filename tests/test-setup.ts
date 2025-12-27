@@ -17,7 +17,7 @@ import { getEciesI18nEngine, resetEciesI18nEngine } from '../src/i18n-setup';
 expect.extend({ toThrowType });
 
 // Add BigInt serialization support for Jest
-// @ts-ignore
+// @ts-expect-error - Adding toJSON to BigInt prototype for Jest serialization
 BigInt.prototype.toJSON = function () {
   return this.toString();
 };

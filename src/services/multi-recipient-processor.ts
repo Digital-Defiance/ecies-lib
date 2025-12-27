@@ -1,4 +1,3 @@
-import { Buffer } from '../lib/buffer-compat';
 import { Constants } from '../constants';
 import { EciesStringKey } from '../enumerations';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
@@ -10,6 +9,7 @@ import {
   IRecipientHeader,
   getMultiRecipientConstants,
 } from '../interfaces/multi-recipient-chunk';
+import { Buffer } from '../lib/buffer-compat';
 import { concatUint8Arrays } from '../utils';
 import { AESGCMService } from './aes-gcm';
 import { ECIESService } from './ecies/service';

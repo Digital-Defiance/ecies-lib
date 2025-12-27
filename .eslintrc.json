@@ -23,6 +23,8 @@
   "overrides": [
     {
       "files": [
+        "src/**/*.spec.ts",
+        "src/**/*.test.ts",
         "tests/**/*.spec.ts",
         "tests/**/*.test.ts"
       ],
@@ -33,7 +35,8 @@
         "@typescript-eslint/no-unsafe-return": "off",
         "@typescript-eslint/no-unsafe-argument": "off",
         "@typescript-eslint/no-require-imports": "off",
-        "@typescript-eslint/no-explicit-any": "off"
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/ban-ts-comment": "off"
       }
     }
   ],

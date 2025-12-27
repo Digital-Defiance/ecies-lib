@@ -1,4 +1,3 @@
-import { Buffer } from './buffer-compat';
 import * as uuid from 'uuid';
 import { GuidBrandType } from '../enumerations/guid-brand-type';
 import { GuidErrorType } from '../enumerations/guid-error-type';
@@ -11,6 +10,7 @@ import {
   RawGuidBuffer,
   ShortHexGuid,
 } from '../types';
+import { Buffer } from './buffer-compat';
 
 // Define a type that can handle all GUID variants
 export type GuidInput =

@@ -1,6 +1,6 @@
-import { Buffer } from './lib/buffer-compat';
 import { Brand } from 'ts-brand';
 import { GuidBrandType } from './enumerations';
+import { Buffer } from './lib/buffer-compat';
 
 export type SignatureUint8Array = Uint8Array &
   Brand<Uint8Array, 'SignatureArray'>;

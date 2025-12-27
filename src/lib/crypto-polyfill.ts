@@ -23,9 +23,12 @@ if (typeof process === 'undefined' || !process.versions?.node) {
     if (typeof window !== 'undefined' && window.crypto) {
       cryptoTargets.push({ crypto: window.crypto, name: 'window.crypto' });
     }
-    if (typeof globalThis !== 'undefined' && (globalThis as any).crypto) {
+    if (
+      typeof globalThis !== 'undefined' &&
+      (globalThis as { crypto?: Crypto }).crypto
+    ) {
       cryptoTargets.push({
-        crypto: (globalThis as any).crypto,
+        crypto: (globalThis as { crypto: Crypto }).crypto,
         name: 'globalThis.crypto',
       });
     }

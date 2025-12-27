@@ -2,8 +2,8 @@
  * Tests for VotingService (Web Crypto API version) - ECIES to Paillier key bridge
  */
 
-import type { KeyPair, PrivateKey, PublicKey } from 'paillier-bigint';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
+import type { PrivateKey, PublicKey } from 'paillier-bigint';
 import {
   VotingService,
   hkdf,
@@ -19,9 +19,9 @@ import {
 } from './voting.service';
 
 // Add BigInt serialization support for Jest
-// @ts-ignore
+// @ts-expect-error - Adding toJSON to BigInt prototype for Jest serialization
 if (typeof BigInt.prototype.toJSON === 'undefined') {
-  // @ts-ignore
+  // @ts-expect-error - Adding toJSON to BigInt prototype for Jest serialization
   BigInt.prototype.toJSON = function () {
     return this.toString();
   };
@@ -36,11 +36,11 @@ describe('VotingService (Web)', () => {
 
   beforeAll(async () => {
     votingService = VotingService.getInstance();
-    
+
     // Generate ECDH key pair for testing using @noble/secp256k1
     const privateKey = crypto.getRandomValues(new Uint8Array(32));
     const publicKey = secp256k1.getPublicKey(privateKey, false); // Uncompressed for tests
-    
+
     ecdhKeyPair = {
       privateKey,
       publicKey,
@@ -178,7 +178,7 @@ describe('VotingService (Web)', () => {
 
       it('should use async factory pattern', async () => {
         const seed = crypto.getRandomValues(new Uint8Array(32));
-        
+
         // Should be async factory, not constructor
         const drbg = await SecureDeterministicDRBG.create(seed);
         expect(drbg).toBeInstanceOf(SecureDeterministicDRBG);
@@ -193,10 +193,10 @@ describe('VotingService (Web)', () => {
       const numBits = 512;
 
       const prime = await generateDeterministicPrime(drbg, numBits, 256);
-      
+
       // Check it's prime
       expect(millerRabinTest(prime, 256)).toBe(true);
-      
+
       // Check bit length
       const bitLength = prime.toString(2).length;
       expect(bitLength).toBe(numBits);
@@ -249,7 +249,7 @@ describe('VotingService (Web)', () => {
 
     it('should generate same key pair from same seed', async () => {
       const seed = crypto.getRandomValues(new Uint8Array(64));
-      
+
       const keyPair1 = await generateDeterministicKeyPair(seed, 2048, 128);
       const keyPair2 = await generateDeterministicKeyPair(seed, 2048, 128);
 
@@ -363,11 +363,17 @@ describe('VotingService (Web)', () => {
 
     it('should reject empty keys', async () => {
       await expect(async () => {
-        await deriveVotingKeysFromECDH(new Uint8Array(0), ecdhKeyPair.publicKey);
+        await deriveVotingKeysFromECDH(
+          new Uint8Array(0),
+          ecdhKeyPair.publicKey,
+        );
       }).rejects.toThrow('ECDH private key is required');
-      
+
       await expect(async () => {
-        await deriveVotingKeysFromECDH(ecdhKeyPair.privateKey, new Uint8Array(0));
+        await deriveVotingKeysFromECDH(
+          ecdhKeyPair.privateKey,
+          new Uint8Array(0),
+        );
       }).rejects.toThrow('ECDH public key is required');
     });
   });
@@ -379,7 +385,9 @@ describe('VotingService (Web)', () => {
         ecdhKeyPair.publicKey,
       );
 
-      const buffer = votingService.votingPublicKeyToBuffer(votingKeys.publicKey);
+      const buffer = votingService.votingPublicKeyToBuffer(
+        votingKeys.publicKey,
+      );
       expect(buffer.length).toBeGreaterThan(0);
 
       const recovered = await votingService.bufferToVotingPublicKey(buffer);
@@ -392,14 +400,16 @@ describe('VotingService (Web)', () => {
         ecdhKeyPair.publicKey,
       );
 
-      const buffer = votingService.votingPrivateKeyToBuffer(votingKeys.privateKey);
+      const buffer = votingService.votingPrivateKeyToBuffer(
+        votingKeys.privateKey,
+      );
       expect(buffer.length).toBeGreaterThan(0);
 
       const recovered = await votingService.bufferToVotingPrivateKey(
         buffer,
         votingKeys.publicKey,
       );
-      
+
       expect(recovered.lambda).toBe(votingKeys.privateKey.lambda);
       expect(recovered.mu).toBe(votingKeys.privateKey.mu);
 
@@ -449,7 +459,7 @@ describe('VotingService (Web)', () => {
         .map(() => votingKeys.publicKey.encrypt(plaintext));
 
       // All ciphertexts should be different
-      const uniqueCiphertexts = new Set(ciphertexts.map(c => c.toString()));
+      const uniqueCiphertexts = new Set(ciphertexts.map((c) => c.toString()));
       expect(uniqueCiphertexts.size).toBe(10);
 
       // All should decrypt correctly
@@ -488,7 +498,7 @@ describe('VotingService (Web)', () => {
         const decrypted = keyPair.privateKey.decrypt(multiplied);
 
         // Result is modulo n, so negative values wrap around
-        const expected = keyPair.publicKey.n + (k * m);
+        const expected = keyPair.publicKey.n + k * m;
         expect(decrypted).toBe(expected);
       });
 
@@ -562,7 +572,10 @@ describe('VotingService (Web)', () => {
         }
 
         const decrypted = keyPair.privateKey.decrypt(encryptedSum);
-        const expected = messages.reduce((sum, m, i) => sum + m * weights[i], 0n);
+        const expected = messages.reduce(
+          (sum, m, i) => sum + m * weights[i],
+          0n,
+        );
 
         expect(decrypted).toBe(expected);
       });
@@ -652,7 +665,9 @@ describe('VotingService (Web)', () => {
         const decrypted = keyPair.privateKey.decrypt(sum);
 
         // Due to modular arithmetic, should be 0 or n
-        expect(decrypted === 0n || decrypted === keyPair.publicKey.n).toBe(true);
+        expect(decrypted === 0n || decrypted === keyPair.publicKey.n).toBe(
+          true,
+        );
       });
     });
 
@@ -730,11 +745,19 @@ describe('VotingService (Web)', () => {
 
     describe('Key Recovery and Serialization', () => {
       it('should recover keys from serialized form', async () => {
-        const publicKeySerialized = await votingService.serializePublicKey(keyPair.publicKey);
-        const privateKeySerialized = await votingService.serializePrivateKey(keyPair.privateKey);
+        const publicKeySerialized = await votingService.serializePublicKey(
+          keyPair.publicKey,
+        );
+        const privateKeySerialized = await votingService.serializePrivateKey(
+          keyPair.privateKey,
+        );
 
-        const recoveredPublic = await votingService.deserializePublicKey(publicKeySerialized);
-        const recoveredPrivate = await votingService.deserializePrivateKey(privateKeySerialized, recoveredPublic);
+        const recoveredPublic =
+          await votingService.deserializePublicKey(publicKeySerialized);
+        const recoveredPrivate = await votingService.deserializePrivateKey(
+          privateKeySerialized,
+          recoveredPublic,
+        );
 
         // Test functionality
         const message = 123n;
@@ -745,11 +768,19 @@ describe('VotingService (Web)', () => {
       });
 
       it('should maintain homomorphic properties after serialization', async () => {
-        const publicKeySerialized = await votingService.serializePublicKey(keyPair.publicKey);
-        const privateKeySerialized = await votingService.serializePrivateKey(keyPair.privateKey);
+        const publicKeySerialized = await votingService.serializePublicKey(
+          keyPair.publicKey,
+        );
+        const privateKeySerialized = await votingService.serializePrivateKey(
+          keyPair.privateKey,
+        );
 
-        const recoveredPublic = await votingService.deserializePublicKey(publicKeySerialized);
-        const recoveredPrivate = await votingService.deserializePrivateKey(privateKeySerialized, recoveredPublic);
+        const recoveredPublic =
+          await votingService.deserializePublicKey(publicKeySerialized);
+        const recoveredPrivate = await votingService.deserializePrivateKey(
+          privateKeySerialized,
+          recoveredPublic,
+        );
 
         const a = 10n;
         const b = 20n;
@@ -767,11 +798,17 @@ describe('VotingService (Web)', () => {
         let currentPrivate = keyPair.privateKey;
 
         for (let i = 0; i < 3; i++) {
-          const pubSerialized = await votingService.serializePublicKey(currentPublic);
-          const privSerialized = await votingService.serializePrivateKey(currentPrivate);
+          const pubSerialized =
+            await votingService.serializePublicKey(currentPublic);
+          const privSerialized =
+            await votingService.serializePrivateKey(currentPrivate);
 
-          currentPublic = await votingService.deserializePublicKey(pubSerialized);
-          currentPrivate = await votingService.deserializePrivateKey(privSerialized, currentPublic);
+          currentPublic =
+            await votingService.deserializePublicKey(pubSerialized);
+          currentPrivate = await votingService.deserializePrivateKey(
+            privSerialized,
+            currentPublic,
+          );
         }
 
         // Test functionality after multiple cycles
@@ -786,7 +823,7 @@ describe('VotingService (Web)', () => {
     describe('Performance and Stress Tests', () => {
       it('should handle batch encryption efficiently', () => {
         const messages = Array.from({ length: 100 }, (_, i) => BigInt(i + 1));
-        const encrypted = messages.map(m => keyPair.publicKey.encrypt(m));
+        const encrypted = messages.map((m) => keyPair.publicKey.encrypt(m));
 
         for (let i = 0; i < encrypted.length; i++) {
           const decrypted = keyPair.privateKey.decrypt(encrypted[i]);
@@ -796,7 +833,7 @@ describe('VotingService (Web)', () => {
 
       it('should handle batch homomorphic operations', () => {
         const values = Array.from({ length: 50 }, (_, i) => BigInt(i + 1));
-        const encrypted = values.map(v => keyPair.publicKey.encrypt(v));
+        const encrypted = values.map((v) => keyPair.publicKey.encrypt(v));
 
         // Sum all encrypted values
         let sum = encrypted[0];

@@ -64,23 +64,7 @@ export * from './services';
 export * from './types';
 export * from './utils';
 
-// Voting service exports (math utilities, types, and service class)
-export {
-  VotingService,
-  hkdf,
-  millerRabinTest,
-  modPow,
-  modInverse,
-  gcd,
-  lcm,
-  SecureDeterministicDRBG,
-  generateDeterministicPrime,
-  generateDeterministicKeyPair,
-  deriveVotingKeysFromECDH,
-  type DeriveVotingKeysOptions,
-} from './services/voting.service';
-
-// Re-export Paillier types for voting functionality (optional peer dependency)
+// Additional voting service type exports for convenience
 export type {
   PrivateKey,
   PublicKey,

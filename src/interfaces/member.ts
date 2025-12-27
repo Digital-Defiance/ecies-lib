@@ -42,9 +42,12 @@ export interface IMember {
   unloadWalletAndPrivateKey(): void;
   loadWallet(mnemonic: SecureString, eciesParams?: IECIESConstants): void;
   loadPrivateKey(privateKey: SecureBuffer): void;
-  
+
   // Voting key management methods (optional, for systems that need voting)
-  loadVotingKeys?(votingPublicKey: PublicKey, votingPrivateKey?: PrivateKey): void;
+  loadVotingKeys?(
+    votingPublicKey: PublicKey,
+    votingPrivateKey?: PrivateKey,
+  ): void;
   deriveVotingKeys?(): void;
   unloadVotingPrivateKey?(): void;
 

@@ -150,7 +150,7 @@ export function lcm(a: bigint, b: bigint): bigint {
  * @param compressedKey - 33 bytes (1 byte prefix + 32 bytes x-coordinate)
  * @returns 65 bytes uncompressed key (0x04 + x + y)
  */
-function decompressSecp256k1PublicKey(compressedKey: Uint8Array): Uint8Array {
+function _decompressSecp256k1PublicKey(compressedKey: Uint8Array): Uint8Array {
   if (compressedKey.length !== 33) {
     throw new Error(
       `Invalid compressed key length: expected 33 bytes, got ${compressedKey.length}`,
@@ -454,7 +454,7 @@ export async function generateDeterministicKeyPair(
     const paillier = await import('paillier-bigint');
     PublicKey = paillier.PublicKey;
     PrivateKey = paillier.PrivateKey;
-  } catch (error) {
+  } catch (_error) {
     throw new Error(
       'paillier-bigint is required for voting functionality. Install it with: npm install paillier-bigint',
     );
@@ -534,7 +534,7 @@ export async function deriveVotingKeysFromECDH(
   options: DeriveVotingKeysOptions = {},
 ): Promise<KeyPair> {
   const {
-    curveName = 'secp256k1', // Use secp256k1 to match Node.js implementation
+    curveName: _curveName = 'secp256k1', // Use secp256k1 to match Node.js implementation
     publicKeyMagic = 0x04,
     rawPublicKeyLength = 64,
     publicKeyLength = 65,
@@ -593,7 +593,7 @@ export async function deriveVotingKeysFromECDH(
   );
 
   // Remove the 0x04 prefix from shared secret (getSharedSecret returns uncompressed point)
-  const sharedSecretBytes = sharedSecret.slice(1);
+  const _sharedSecretBytes = sharedSecret.slice(1);
 
   // Derive seed using HKDF
   const seed = await hkdf(

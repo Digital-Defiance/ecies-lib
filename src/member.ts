@@ -43,7 +43,7 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
   private readonly _dateUpdated: Date;
   private _privateKey?: SecureBuffer;
   private _wallet?: Wallet;
-  
+
   // Optional voting keys for homomorphic encryption voting systems
   private _votingPublicKey?: PublicKey;
   private _votingPrivateKey?: PrivateKey;

@@ -66,7 +66,10 @@ function bytesToString(bytes: Uint8Array, encoding?: BufferEncoding): string {
 const isNodeEnvironment = ((): boolean => {
   try {
     // Access via globalThis to prevent static analysis during bundling
-    const g = globalThis as any;
+    const g = globalThis as {
+      process?: { versions?: { node?: string } };
+      [key: string]: unknown;
+    };
     return (
       typeof g.process !== 'undefined' && g.process?.versions?.node != null
     );
@@ -77,8 +80,11 @@ const isNodeEnvironment = ((): boolean => {
 
 // Type for the Buffer static interface
 interface BufferConstructor {
-  from(data: any, encoding?: BufferEncoding): Uint8Array;
-  isBuffer(obj: any): obj is Uint8Array;
+  from(
+    data: Uint8Array | string | number[] | ArrayBufferView,
+    encoding?: BufferEncoding,
+  ): Uint8Array;
+  isBuffer(obj: unknown): obj is Uint8Array;
   alloc(size: number, fill?: number): Uint8Array;
   compare(a: Uint8Array, b: Uint8Array): number;
 }
@@ -88,7 +94,10 @@ const BrowserBuffer: BufferConstructor = {
   /**
    * Create a new Uint8Array from various input types
    */
-  from(data: any, encoding?: BufferEncoding): Uint8Array {
+  from(
+    data: Uint8Array | string | number[] | ArrayBufferView,
+    encoding?: BufferEncoding,
+  ): Uint8Array {
     if (data instanceof Uint8Array) {
       return new Uint8Array(data);
     }
@@ -111,7 +120,7 @@ const BrowserBuffer: BufferConstructor = {
   /**
    * Check if an object is a Buffer or Uint8Array
    */
-  isBuffer(obj: any): obj is Uint8Array {
+  isBuffer(obj: unknown): obj is Uint8Array {
     return obj instanceof Uint8Array;
   },
 
@@ -150,7 +159,7 @@ const BrowserBuffer: BufferConstructor = {
 // Export the appropriate Buffer implementation
 // In Node.js, use native Buffer; in browsers, use BrowserBuffer (pure Uint8Array)
 export const Buffer: BufferConstructor = isNodeEnvironment
-  ? (globalThis as any).Buffer
+  ? (globalThis as { Buffer: BufferConstructor }).Buffer
   : BrowserBuffer;
 
 // Export utility functions for direct use when you need encoding conversions
