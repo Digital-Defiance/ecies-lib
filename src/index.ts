@@ -63,7 +63,22 @@ export * from './secure-string';
 export * from './services';
 export * from './types';
 export * from './utils';
-export * from './voting-utils'; // Keep this - contains shared math utilities
+
+// Voting service exports (math utilities, types, and service class)
+export {
+  VotingService,
+  hkdf,
+  millerRabinTest,
+  modPow,
+  modInverse,
+  gcd,
+  lcm,
+  SecureDeterministicDRBG,
+  generateDeterministicPrime,
+  generateDeterministicKeyPair,
+  deriveVotingKeysFromECDH,
+  type DeriveVotingKeysOptions,
+} from './services/voting.service';
 
 // Re-export Paillier types for voting functionality (optional peer dependency)
 export type {
