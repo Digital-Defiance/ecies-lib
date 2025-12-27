@@ -61,11 +61,11 @@ function bytesToString(bytes: Uint8Array, encoding?: BufferEncoding): string {
   return new TextDecoder().decode(bytes);
 }
 
-// Check if we're in Node.js with native Buffer support
-const hasNativeBuffer =
-  typeof globalThis !== 'undefined' &&
-  typeof (globalThis as any).Buffer !== 'undefined' &&
-  typeof (globalThis as any).Buffer.from === 'function';
+// Check if we're in Node.js (has 'process' object with versions)
+const isNodeEnvironment =
+  typeof process !== 'undefined' &&
+  process.versions != null &&
+  process.versions.node != null;
 
 // Type for the Buffer static interface
 interface BufferConstructor {
@@ -136,7 +136,7 @@ const BrowserBuffer: BufferConstructor = {
 };
 
 // Add toString method to Uint8Array prototype in browsers
-if (!hasNativeBuffer) {
+if (!isNodeEnvironment) {
   const originalToString = Uint8Array.prototype.toString;
   (Uint8Array.prototype as any).toString = function (
     encoding?: BufferEncoding,
@@ -149,6 +149,7 @@ if (!hasNativeBuffer) {
 }
 
 // Export the appropriate Buffer implementation
-export const Buffer: BufferConstructor = hasNativeBuffer
+// In Node.js, use native Buffer; in browsers, use BrowserBuffer (pure Uint8Array)
+export const Buffer: BufferConstructor = isNodeEnvironment
   ? (globalThis as any).Buffer
   : BrowserBuffer;
