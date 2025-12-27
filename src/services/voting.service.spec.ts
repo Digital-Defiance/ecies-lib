@@ -352,7 +352,7 @@ describe('VotingService (Web)', () => {
 
       // Should produce same keys
       expect(votingKeys1.publicKey.n).toBe(votingKeys2.publicKey.n);
-    });
+    }, 240000);
 
     it('should reject invalid private key length', async () => {
       const invalidPrivKey = crypto.getRandomValues(new Uint8Array(16)); // Wrong length

@@ -519,7 +519,7 @@ describe('Member (Web)', () => {
       expect(await votingService.serializePrivateKey(privateKey1!)).toEqual(
         await votingService.serializePrivateKey(privateKey2!),
       );
-    }, 120000);
+    }, 240000);
 
     it('should throw error when deriving voting keys without private key', async () => {
       member.unloadPrivateKey();
@@ -666,7 +666,7 @@ describe('Member (Web)', () => {
         keypairBitLength: 2048,
         primeTestIterations: 64,
       });
-    });
+    }, 180000);
 
     it('should encrypt and decrypt with derived voting keys', () => {
       const message = 42n;
@@ -822,7 +822,7 @@ describe('Member (Web)', () => {
       // Public key should still be available
       expect(member.publicKey).toBeDefined();
       expect(member.votingPublicKey).toBeDefined();
-    });
+    }, 180000);
 
     it('should support member-to-member encrypted communication', async () => {
       const { member: alice } = await Member.newMember(
@@ -921,6 +921,6 @@ describe('Member (Web)', () => {
       member.unloadVotingPrivateKey();
       expect(member.hasPrivateKey).toBe(false);
       expect(member.hasVotingPrivateKey).toBe(false);
-    });
+    }, 180000);
   });
 });

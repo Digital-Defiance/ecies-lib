@@ -4,7 +4,6 @@ import type { EmailString } from '../email-string';
 import type { MemberType } from '../enumerations/member-type';
 import type { SecureBuffer } from '../secure-buffer';
 import type { SecureString } from '../secure-string';
-import type { SignatureUint8Array } from '../types';
 import type { IECIESConstants } from './ecies-consts';
 import type { IEncryptedChunk } from './encrypted-chunk';
 import type { PlatformBuffer } from './platform-buffer';
@@ -57,9 +56,7 @@ export interface IMember<
     votingPublicKey: PublicKey,
     votingPrivateKey?: PrivateKey,
   ): void;
-  deriveVotingKeys(
-    options?: Record<string, unknown>,
-  ): Promise<void>;
+  deriveVotingKeys(options?: Record<string, unknown>): Promise<void>;
   unloadVotingPrivateKey(): void;
 
   // Cryptographic methods
