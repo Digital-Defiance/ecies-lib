@@ -62,10 +62,17 @@ function bytesToString(bytes: Uint8Array, encoding?: BufferEncoding): string {
 }
 
 // Check if we're in Node.js (has 'process' object with versions)
-const isNodeEnvironment =
-  typeof process !== 'undefined' &&
-  process.versions != null &&
-  process.versions.node != null;
+// Use a function to prevent Vite from evaluating this at build time
+const isNodeEnvironment = ((): boolean => {
+  try {
+    // Access via globalThis to prevent static analysis during bundling
+    const g = globalThis as any;
+    return typeof g.process !== 'undefined' && 
+           g.process?.versions?.node != null;
+  } catch {
+    return false;
+  }
+})();
 
 // Type for the Buffer static interface
 interface BufferConstructor {
@@ -135,21 +142,15 @@ const BrowserBuffer: BufferConstructor = {
   },
 };
 
-// Add toString method to Uint8Array prototype in browsers
-if (!isNodeEnvironment) {
-  const originalToString = Uint8Array.prototype.toString;
-  (Uint8Array.prototype as any).toString = function (
-    encoding?: BufferEncoding,
-  ): string {
-    if (encoding) {
-      return bytesToString(this, encoding);
-    }
-    return originalToString.call(this);
-  };
-}
+// DO NOT modify Uint8Array.prototype in browsers!
+// Modifying the prototype breaks strict type checks in libraries like @noble/curves
+// which check constructor.name === 'Uint8Array'
 
 // Export the appropriate Buffer implementation
 // In Node.js, use native Buffer; in browsers, use BrowserBuffer (pure Uint8Array)
 export const Buffer: BufferConstructor = isNodeEnvironment
   ? (globalThis as any).Buffer
   : BrowserBuffer;
+
+// Export utility functions for direct use when you need encoding conversions
+export { stringToBytes, bytesToString };

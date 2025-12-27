@@ -9,6 +9,10 @@
  * - i18n 2.0 integration
  */
 
+// CRITICAL: Apply crypto polyfill BEFORE any @noble/curves imports
+// This ensures crypto.getRandomValues returns pure Uint8Array instances
+import './lib/crypto-polyfill';
+
 // Core v2 exports
 export * from './builders/index';
 export * from './core/index';
