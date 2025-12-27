@@ -3,6 +3,7 @@ import type { IChecksumConsts } from './checksum-consts';
 import type { IECIESConstants } from './ecies-consts';
 import type { IIdProvider } from './id-provider';
 import type { IPBkdf2Consts } from './pbkdf2-consts';
+import type { IVotingConsts } from './voting-consts';
 
 export interface IConstants {
   UINT8_SIZE: number;
@@ -50,6 +51,7 @@ export interface IConstants {
   ECIES: IECIESConstants;
   PBKDF2: IPBkdf2Consts;
   PBKDF2_PROFILES: Pbkdf2Profiles;
+  VOTING: IVotingConsts;
 
   /**
    * Number of rounds for bcrypt hashing. Higher values increase security but also consume more CPU resources.

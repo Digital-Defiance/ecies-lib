@@ -3,7 +3,7 @@
  */
 
 import { secp256k1 } from '@noble/curves/secp256k1.js';
-import type { PrivateKey, PublicKey } from 'paillier-bigint';
+import type { KeyPair, PrivateKey, PublicKey } from 'paillier-bigint';
 import {
   VotingService,
   hkdf,
@@ -19,9 +19,9 @@ import {
 } from './voting.service';
 
 // Add BigInt serialization support for Jest
-// @ts-expect-error - Adding toJSON to BigInt prototype for Jest serialization
+// @ts-ignore
 if (typeof BigInt.prototype.toJSON === 'undefined') {
-  // @ts-expect-error - Adding toJSON to BigInt prototype for Jest serialization
+  // @ts-ignore
   BigInt.prototype.toJSON = function () {
     return this.toString();
   };
@@ -385,7 +385,7 @@ describe('VotingService (Web)', () => {
         ecdhKeyPair.publicKey,
       );
 
-      const buffer = votingService.votingPublicKeyToBuffer(
+      const buffer = await votingService.votingPublicKeyToBuffer(
         votingKeys.publicKey,
       );
       expect(buffer.length).toBeGreaterThan(0);
@@ -845,6 +845,347 @@ describe('VotingService (Web)', () => {
         const expected = values.reduce((acc, v) => acc + v, 0n);
 
         expect(decrypted).toBe(expected);
+      });
+    });
+  });
+
+  describe('New Serialization with Magic/Version/KeyId', () => {
+    let votingKeys: KeyPair;
+
+    beforeEach(async () => {
+      votingKeys = await deriveVotingKeysFromECDH(
+        ecdhKeyPair.privateKey,
+        ecdhKeyPair.publicKey,
+      );
+    });
+
+    describe('Public Key Serialization', () => {
+      it('should serialize public key with magic/version/keyId', async () => {
+        const buffer = await votingService.votingPublicKeyToBuffer(
+          votingKeys.publicKey,
+        );
+
+        // Check buffer has correct structure
+        expect(buffer.length).toBeGreaterThan(41); // magic(4) + version(1) + keyId(32) + n_length(4) + n
+
+        // Verify magic
+        const decoder = new TextDecoder();
+        const magic = decoder.decode(buffer.slice(0, 4));
+        expect(magic).toBe('BCVK');
+
+        // Verify version
+        expect(buffer[4]).toBe(1);
+
+        // Verify keyId length
+        const keyId = buffer.slice(5, 37);
+        expect(keyId.length).toBe(32);
+      });
+
+      it('should deserialize public key with magic/version/keyId', async () => {
+        const buffer = await votingService.votingPublicKeyToBuffer(
+          votingKeys.publicKey,
+        );
+        const recovered = await votingService.bufferToVotingPublicKey(buffer);
+
+        expect(recovered.n).toBe(votingKeys.publicKey.n);
+        expect(recovered.g).toBe(votingKeys.publicKey.g);
+      });
+
+      it('should reject buffer with wrong magic', async () => {
+        const buffer = await votingService.votingPublicKeyToBuffer(
+          votingKeys.publicKey,
+        );
+
+        // Corrupt magic
+        buffer[0] = 88; // Change first byte
+
+        await expect(
+          votingService.bufferToVotingPublicKey(buffer),
+        ).rejects.toThrow();
+      });
+
+      it('should reject buffer with wrong version', async () => {
+        const buffer = await votingService.votingPublicKeyToBuffer(
+          votingKeys.publicKey,
+        );
+
+        // Corrupt version
+        buffer[4] = 99;
+
+        await expect(
+          votingService.bufferToVotingPublicKey(buffer),
+        ).rejects.toThrow();
+      });
+
+      it('should reject buffer with corrupted keyId', async () => {
+        const buffer = await votingService.votingPublicKeyToBuffer(
+          votingKeys.publicKey,
+        );
+
+        // Corrupt keyId
+        buffer[10] ^= 0xff;
+
+        await expect(
+          votingService.bufferToVotingPublicKey(buffer),
+        ).rejects.toThrow();
+      });
+
+      it('should reject buffer that is too short', async () => {
+        const shortBuffer = new Uint8Array(30);
+
+        await expect(
+          votingService.bufferToVotingPublicKey(shortBuffer),
+        ).rejects.toThrow();
+      });
+    });
+
+    describe('Private Key Serialization', () => {
+      it('should serialize private key with magic/version', () => {
+        const buffer = votingService.votingPrivateKeyToBuffer(
+          votingKeys.privateKey,
+        );
+
+        // Check buffer has correct structure
+        expect(buffer.length).toBeGreaterThan(13); // magic(4) + version(1) + lambda_length(4) + lambda + mu_length(4) + mu
+
+        // Verify magic
+        const decoder = new TextDecoder();
+        const magic = decoder.decode(buffer.slice(0, 4));
+        expect(magic).toBe('BCVK');
+
+        // Verify version
+        expect(buffer[4]).toBe(1);
+      });
+
+      it('should deserialize private key with magic/version', async () => {
+        const buffer = votingService.votingPrivateKeyToBuffer(
+          votingKeys.privateKey,
+        );
+        const recovered = await votingService.bufferToVotingPrivateKey(
+          buffer,
+          votingKeys.publicKey,
+        );
+
+        expect(recovered.lambda).toBe(votingKeys.privateKey.lambda);
+        expect(recovered.mu).toBe(votingKeys.privateKey.mu);
+      });
+
+      it('should reject buffer with wrong magic', async () => {
+        const buffer = votingService.votingPrivateKeyToBuffer(
+          votingKeys.privateKey,
+        );
+
+        // Corrupt magic
+        buffer[0] = 88;
+
+        await expect(
+          votingService.bufferToVotingPrivateKey(buffer, votingKeys.publicKey),
+        ).rejects.toThrow();
+      });
+
+      it('should reject buffer with wrong version', async () => {
+        const buffer = votingService.votingPrivateKeyToBuffer(
+          votingKeys.privateKey,
+        );
+
+        // Corrupt version
+        buffer[4] = 99;
+
+        await expect(
+          votingService.bufferToVotingPrivateKey(buffer, votingKeys.publicKey),
+        ).rejects.toThrow();
+      });
+
+      it('should reject buffer that is too short', async () => {
+        const shortBuffer = new Uint8Array(10);
+
+        await expect(
+          votingService.bufferToVotingPrivateKey(
+            shortBuffer,
+            votingKeys.publicKey,
+          ),
+        ).rejects.toThrow();
+      });
+
+      it('should maintain decryption capability after serialization', async () => {
+        const buffer = votingService.votingPrivateKeyToBuffer(
+          votingKeys.privateKey,
+        );
+        const recovered = await votingService.bufferToVotingPrivateKey(
+          buffer,
+          votingKeys.publicKey,
+        );
+
+        // Test decryption works
+        const plaintext = 42n;
+        const ciphertext = votingKeys.publicKey.encrypt(plaintext);
+        const decrypted = recovered.decrypt(ciphertext);
+
+        expect(decrypted).toBe(plaintext);
+      });
+    });
+  });
+
+  describe('Isolated Key Serialization', () => {
+    let testN: bigint;
+    let testG: bigint;
+    let testKeyId: Uint8Array;
+    let isolatedPublicKey: any; // IsolatedPublicKey
+    let isolatedPrivateKey: any; // IsolatedPrivateKey
+
+    beforeEach(async () => {
+      // Import isolated key classes
+      const { IsolatedPublicKey } = await import('../isolated-public');
+      const { IsolatedPrivateKey } = await import('../isolated-private');
+
+      // Create test keys
+      const p = 31n;
+      const q = 37n;
+      testN = p * q;
+      testG = testN + 1n;
+
+      // Generate keyId
+      const nHex = testN.toString(16).padStart(768, '0');
+      const encoder = new TextEncoder();
+      const nBytes = encoder.encode(nHex);
+      const keyIdBuffer = await crypto.subtle.digest('SHA-256', nBytes);
+      testKeyId = new Uint8Array(keyIdBuffer);
+
+      // Create keys
+      isolatedPublicKey = await IsolatedPublicKey.create(
+        testN,
+        testG,
+        testKeyId,
+      );
+
+      const lambda = (p - 1n) * (q - 1n);
+      const nSquared = testN * testN;
+      const gLambda = modPow(testG, lambda, nSquared);
+      const lValue = (gLambda - 1n) / testN;
+      const mu = modInverse(lValue, testN);
+
+      isolatedPrivateKey = new IsolatedPrivateKey(
+        lambda,
+        mu,
+        isolatedPublicKey,
+      );
+    });
+
+    describe('IsolatedPublicKey Serialization', () => {
+      it('should serialize IsolatedPublicKey with instanceId', () => {
+        const buffer =
+          votingService.isolatedPublicKeyToBuffer(isolatedPublicKey);
+
+        // Check buffer has correct structure
+        expect(buffer.length).toBeGreaterThan(73); // magic(4) + version(1) + keyId(32) + instanceId(32) + n_length(4) + n
+
+        // Verify magic
+        const decoder = new TextDecoder();
+        const magic = decoder.decode(buffer.slice(0, 4));
+        expect(magic).toBe('BCVK');
+
+        // Verify version
+        expect(buffer[4]).toBe(1);
+
+        // Verify keyId
+        const keyId = buffer.slice(5, 37);
+        expect(keyId.length).toBe(32);
+
+        // Verify instanceId
+        const instanceId = buffer.slice(37, 69);
+        expect(instanceId.length).toBe(32);
+      });
+
+      it('should deserialize IsolatedPublicKey', async () => {
+        const buffer =
+          votingService.isolatedPublicKeyToBuffer(isolatedPublicKey);
+        const recovered = await votingService.bufferToIsolatedPublicKey(buffer);
+
+        expect(recovered.n).toBe(isolatedPublicKey.n);
+        expect(recovered.g).toBe(isolatedPublicKey.g);
+      });
+
+      it('should reject non-IsolatedPublicKey', async () => {
+        const { PublicKey } = await import('paillier-bigint');
+        const regularKey = new PublicKey(testN, testG);
+
+        expect(() =>
+          votingService.isolatedPublicKeyToBuffer(regularKey as any),
+        ).toThrow();
+      });
+
+      it('should reject buffer with wrong magic', async () => {
+        const buffer =
+          votingService.isolatedPublicKeyToBuffer(isolatedPublicKey);
+        buffer[0] = 88;
+
+        await expect(
+          votingService.bufferToIsolatedPublicKey(buffer),
+        ).rejects.toThrow();
+      });
+
+      it('should reject buffer that is too short', async () => {
+        const shortBuffer = new Uint8Array(50);
+
+        await expect(
+          votingService.bufferToIsolatedPublicKey(shortBuffer),
+        ).rejects.toThrow();
+      });
+    });
+
+    describe('IsolatedPrivateKey Serialization', () => {
+      it('should serialize IsolatedPrivateKey', () => {
+        const buffer =
+          votingService.isolatedPrivateKeyToBuffer(isolatedPrivateKey);
+
+        // Should use same format as regular private key
+        expect(buffer.length).toBeGreaterThan(13);
+
+        // Verify magic
+        const decoder = new TextDecoder();
+        const magic = decoder.decode(buffer.slice(0, 4));
+        expect(magic).toBe('BCVK');
+      });
+
+      it('should deserialize IsolatedPrivateKey', async () => {
+        const buffer =
+          votingService.isolatedPrivateKeyToBuffer(isolatedPrivateKey);
+        const recovered = await votingService.bufferToIsolatedPrivateKey(
+          buffer,
+          isolatedPublicKey,
+        );
+
+        expect(recovered.lambda).toBe(isolatedPrivateKey.lambda);
+        expect(recovered.mu).toBe(isolatedPrivateKey.mu);
+      });
+
+      it('should reject non-IsolatedPublicKey for deserialization', async () => {
+        const { PublicKey } = await import('paillier-bigint');
+        const regularKey = new PublicKey(testN, testG);
+
+        const buffer =
+          votingService.isolatedPrivateKeyToBuffer(isolatedPrivateKey);
+
+        await expect(
+          votingService.bufferToIsolatedPrivateKey(buffer, regularKey as any),
+        ).rejects.toThrow();
+      });
+
+      it('should maintain decryption capability after serialization', async () => {
+        const buffer =
+          votingService.isolatedPrivateKeyToBuffer(isolatedPrivateKey);
+        const recovered = await votingService.bufferToIsolatedPrivateKey(
+          buffer,
+          isolatedPublicKey,
+        );
+
+        // Test decryption works
+        const plaintext = 10n;
+        const ciphertext = await isolatedPublicKey.encryptAsync(plaintext);
+        const decrypted = await recovered.decryptAsync(ciphertext);
+
+        // Due to small modulus, check mod n
+        expect(decrypted).toBe(plaintext % testN);
       });
     });
   });

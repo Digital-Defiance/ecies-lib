@@ -55,6 +55,8 @@ export type { IEncryptionState } from './interfaces/encryption-state';
 export * from './interfaces/stream-config';
 export * from './interfaces/stream-header';
 export * from './interfaces/stream-progress';
+export * from './isolated-private';
+export * from './isolated-public';
 export * from './member';
 export * from './pbkdf2-profiles';
 export * from './phone-number';

@@ -11,6 +11,7 @@ import {
 import type { IConstants } from './interfaces/constants';
 import type { IECIESConstants } from './interfaces/ecies-consts';
 import type { IPBkdf2Consts } from './interfaces/pbkdf2-consts';
+import type { IVotingConsts } from './interfaces/voting-consts';
 import { ObjectIdProvider } from './lib/id-providers/objectid-provider';
 import { InvariantValidator } from './lib/invariant-validator';
 import type { Pbkdf2Profiles } from './pbkdf2-profiles';
@@ -191,6 +192,30 @@ export const ECIES: IECIESConstants = Object.freeze({
 });
 
 /**
+ * Constants for voting operations using Paillier homomorphic encryption.
+ * These values are critical for cryptographic operations and MUST match
+ * across all implementations (ecies-lib, node-ecies-lib, BrightChain).
+ */
+export const VOTING: IVotingConsts = Object.freeze({
+  PRIME_GEN_INFO: 'PaillierPrimeGen' as const,
+  PRIME_TEST_ITERATIONS: 256 as const,
+  KEYPAIR_BIT_LENGTH: 3072 as const,
+  PUB_KEY_OFFSET: 768 as const,
+  HKDF_LENGTH: 64 as const,
+  HMAC_ALGORITHM: 'sha512' as const,
+  HASH_ALGORITHM: 'sha256' as const,
+  BITS_RADIX: 2 as const,
+  KEY_RADIX: 16 as const,
+  KEY_FORMAT: 'hex' as const,
+  DIGEST_FORMAT: 'hex' as const,
+  KEY_VERSION: 1 as const,
+  KEY_MAGIC: 'BCVK' as const,
+  DRBG_PRIME_ATTEMPTS: 20000 as const,
+  KEY_ID_LENGTH: 32 as const,
+  INSTANCE_ID_LENGTH: 32 as const,
+});
+
+/**
  * Default ID provider instance (singleton).
  * Uses MongoDB ObjectID format (12 bytes).
  */
@@ -212,6 +237,7 @@ export const Constants: IConstants = Object.freeze({
   ECIES: ECIES,
   PBKDF2: PBKDF2,
   PBKDF2_PROFILES: PBKDF2_PROFILES,
+  VOTING: VOTING,
   /**
    * Number of rounds for bcrypt hashing. Higher values increase security but also consume more CPU resources.
    */

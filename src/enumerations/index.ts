@@ -15,3 +15,4 @@ export * from './password-login-error-type';
 export * from './pbkdf2-error-type';
 export * from './pbkdf2-profile';
 export * from './secure-storage-error-type';
+export * from './voting-error-type';
