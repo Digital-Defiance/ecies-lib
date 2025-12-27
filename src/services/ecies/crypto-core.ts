@@ -185,9 +185,58 @@ export class EciesCryptoCore {
 
   /**
    * Generate a random private key
+   *
+   * Implements private key generation directly to avoid @noble/curves' internal
+   * Uint8Array type checking which can fail in bundled browser environments
+   * due to multiple Uint8Array realms.
+   *
+   * A valid secp256k1 private key is a 32-byte value in range [1, n-1]
+   * where n is the curve order.
    */
   public generatePrivateKey(): Uint8Array {
-    return secp256k1.utils.randomSecretKey();
+    // secp256k1 curve order
+    const CURVE_ORDER = BigInt(
+      '0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141',
+    );
+
+    // Generate 48 bytes of randomness for bias elimination
+    // (extra entropy ensures uniform distribution after modular reduction)
+    const randomBytes = new Uint8Array(48);
+    if (
+      typeof globalThis !== 'undefined' &&
+      globalThis.crypto?.getRandomValues
+    ) {
+      globalThis.crypto.getRandomValues(randomBytes);
+    } else if (
+      typeof window !== 'undefined' &&
+      window.crypto?.getRandomValues
+    ) {
+      window.crypto.getRandomValues(randomBytes);
+    } else if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      crypto.getRandomValues(randomBytes);
+    } else {
+      throw new Error('No secure random source available');
+    }
+
+    // Convert bytes to BigInt (big-endian)
+    let num = BigInt(0);
+    for (let i = 0; i < randomBytes.length; i++) {
+      num = (num << BigInt(8)) | BigInt(randomBytes[i]);
+    }
+
+    // Reduce to valid range: 1 <= key < n
+    // Using (num % (n-1)) + 1 ensures we never get 0
+    const reduced = (num % (CURVE_ORDER - BigInt(1))) + BigInt(1);
+
+    // Convert back to 32-byte Uint8Array (big-endian)
+    const result = new Uint8Array(32);
+    let temp = reduced;
+    for (let i = 31; i >= 0; i--) {
+      result[i] = Number(temp & BigInt(0xff));
+      temp = temp >> BigInt(8);
+    }
+
+    return result;
   }
 
   /**

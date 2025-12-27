@@ -24,11 +24,12 @@ export class EciesSignature {
   ): SignatureUint8Array {
     const hash = sha256(data);
     // Use deterministic signatures (RFC 6979) for consistency
+    // In v1.9.x, sign() returns a Signature object
     const signature = secp256k1.sign(hash, privateKey, {
-      format: 'compact',
       extraEntropy: false,
     });
-    return signature as SignatureUint8Array;
+    // Get compact format (64 bytes: r || s)
+    return signature.toCompactRawBytes() as SignatureUint8Array;
   }
 
   /**

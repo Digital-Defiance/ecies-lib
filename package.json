@@ -1,11 +1,15 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "4.5.14",
+  "version": "4.5.15",
   "description": "Digital Defiance ECIES Library",
   "homepage": "https://github.com/Digital-Defiance/ecies-lib",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Digital-Defiance/ecies-lib.git"
+  },
+  "resolutions": {
+    "@noble/curves": "1.9.0",
+    "@noble/hashes": "1.8.0"
   },
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -64,9 +68,9 @@
   "dependencies": {
     "@digitaldefiance/i18n-lib": "3.8.16",
     "@ethereumjs/wallet": "^10.0.0",
-    "@noble/curves": "^2.0.1",
-    "@noble/hashes": "^2.0.1",
-    "@scure/bip32": "^2.0.0",
+    "@noble/curves": "1.9.0",
+    "@noble/hashes": "1.8.0",
+    "@scure/bip32": "1.7.0",
     "bson": "^6.10.4",
     "ts-brand": "^0.2.0"
   },

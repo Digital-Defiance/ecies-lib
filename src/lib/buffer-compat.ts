@@ -67,8 +67,9 @@ const isNodeEnvironment = ((): boolean => {
   try {
     // Access via globalThis to prevent static analysis during bundling
     const g = globalThis as any;
-    return typeof g.process !== 'undefined' && 
-           g.process?.versions?.node != null;
+    return (
+      typeof g.process !== 'undefined' && g.process?.versions?.node != null
+    );
   } catch {
     return false;
   }

@@ -1,3 +1,4 @@
+import { Buffer } from '../buffer-compat';
 import { IdProviderErrorType } from '../../enumerations/id-provider-error-type';
 import { IdProviderError } from '../../errors/id-provider';
 import { BaseIdProvider } from '../base-id-provider';

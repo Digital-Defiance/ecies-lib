@@ -2,6 +2,7 @@ import {
   buildReasonMap,
   TypedHandleableError,
 } from '@digitaldefiance/i18n-lib';
+import { Buffer } from '../lib/buffer-compat';
 import { EciesStringKey } from '../enumerations';
 import { GuidBrandType } from '../enumerations/guid-brand-type';
 import { GuidErrorType } from '../enumerations/guid-error-type';
