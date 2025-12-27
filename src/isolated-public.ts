@@ -465,7 +465,7 @@ export class IsolatedPublicKey
 
   /**
    * Verifies that the keyId matches the SHA-256 hash of the public key 'n'
-   * Sync version for interface compatibility
+   * Sync version throws error - use verifyKeyIdAsync instead
    */
   public verifyKeyId(): void {
     throw new VotingError(VotingErrorType.KeyPairValidationFailed);

@@ -7,20 +7,29 @@ import type { SecureString } from '../secure-string';
 import type { SignatureUint8Array } from '../types';
 import type { IECIESConstants } from './ecies-consts';
 import type { IEncryptedChunk } from './encrypted-chunk';
+import type { PlatformBuffer } from './platform-buffer';
 
 /**
- * Interface representing a member with cryptographic capabilities.
- * This interface defines the contract for member operations without
- * referencing concrete class implementations.
+ * Generic interface representing a member with cryptographic capabilities.
+ * This interface defines the contract for member operations across both
+ * ecies-lib (Uint8Array) and node-ecies-lib (Buffer) implementations.
+ *
+ * @template TBuffer - The buffer type (Uint8Array for browser, Buffer for Node.js)
+ * @template TID - The ID type (Uint8Array for browser, Buffer/string/ObjectId for Node.js)
+ * @template TSignature - The signature type (SignatureUint8Array for browser, SignatureBuffer for Node.js)
  */
-export interface IMember {
+export interface IMember<
+  TBuffer extends PlatformBuffer = Uint8Array,
+  TID extends string | TBuffer = TBuffer,
+  TSignature extends TBuffer = TBuffer,
+> {
   // Required properties
-  readonly id: Uint8Array;
+  readonly id: TID;
   readonly type: MemberType;
   readonly name: string;
   readonly email: EmailString;
-  readonly publicKey: Uint8Array;
-  readonly creatorId: Uint8Array;
+  readonly publicKey: TBuffer;
+  readonly creatorId: TID;
   readonly dateCreated: Date;
   readonly dateUpdated: Date;
 
@@ -44,28 +53,30 @@ export interface IMember {
   loadPrivateKey(privateKey: SecureBuffer): void;
 
   // Voting key management methods (optional, for systems that need voting)
-  loadVotingKeys?(
+  loadVotingKeys(
     votingPublicKey: PublicKey,
     votingPrivateKey?: PrivateKey,
   ): void;
-  deriveVotingKeys?(): void;
-  unloadVotingPrivateKey?(): void;
+  deriveVotingKeys(
+    options?: Record<string, unknown>,
+  ): Promise<void>;
+  unloadVotingPrivateKey(): void;
 
   // Cryptographic methods
-  sign(data: Uint8Array): SignatureUint8Array;
-  signData(data: Uint8Array): SignatureUint8Array;
-  verify(signature: SignatureUint8Array, data: Uint8Array): boolean;
+  sign(data: TBuffer): TSignature;
+  signData(data: TBuffer): TSignature;
+  verify(signature: TSignature, data: TBuffer): boolean;
   verifySignature(
-    data: Uint8Array,
-    signature: Uint8Array,
-    publicKey: Uint8Array,
+    data: TBuffer,
+    signature: TBuffer,
+    publicKey: TBuffer,
   ): boolean;
 
   // Encryption/Decryption methods
   encryptDataStream(
-    source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
+    source: AsyncIterable<TBuffer> | ReadableStream<TBuffer>,
     options?: {
-      recipientPublicKey?: Uint8Array;
+      recipientPublicKey?: TBuffer;
       onProgress?: (progress: {
         bytesProcessed: number;
         chunksProcessed: number;
@@ -75,7 +86,7 @@ export interface IMember {
   ): AsyncGenerator<IEncryptedChunk, void, unknown>;
 
   decryptDataStream(
-    source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
+    source: AsyncIterable<TBuffer> | ReadableStream<TBuffer>,
     options?: {
       onProgress?: (progress: {
         bytesProcessed: number;
@@ -83,14 +94,14 @@ export interface IMember {
       }) => void;
       signal?: AbortSignal;
     },
-  ): AsyncGenerator<Uint8Array, void, unknown>;
+  ): AsyncGenerator<TBuffer, void, unknown>;
 
   encryptData(
-    data: string | Uint8Array,
-    recipientPublicKey?: Uint8Array,
-  ): Promise<Uint8Array>;
+    data: string | TBuffer,
+    recipientPublicKey?: TBuffer,
+  ): Promise<TBuffer> | TBuffer;
 
-  decryptData(encryptedData: Uint8Array): Promise<Uint8Array>;
+  decryptData(encryptedData: TBuffer): Promise<TBuffer> | TBuffer;
 
   // Serialization methods
   toJson(): string;
