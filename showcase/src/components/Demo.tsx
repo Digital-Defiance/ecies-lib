@@ -16,8 +16,19 @@ import {
   FaVoteYea,
   FaUserFriends,
   FaChartBar,
+  FaReceipt,
+  FaShieldAlt,
+  FaExclamationTriangle,
+  FaCheckCircle,
 } from 'react-icons/fa';
 import './Demo.css';
+
+interface VoteReceipt {
+  voterId: string;
+  voteCommitment: string; // Hash of encrypted vote
+  timestamp: number;
+  receiptCode: string; // Unique verification code
+}
 
 interface Voter {
   name: string;
@@ -25,6 +36,7 @@ interface Voter {
   vote: string | null;
   encryptedVotes: Map<string, bigint>;
   hasVoted: boolean;
+  receipt: VoteReceipt | null;
 }
 
 interface Candidate {
@@ -87,6 +99,12 @@ const Demo = () => {
   const [tallyResults, setTallyResults] = useState<Map<string, number>>(
     new Map(),
   );
+  const [bulletinBoard, setBulletinBoard] = useState<VoteReceipt[]>([]);
+  const [showVerification, setShowVerification] = useState(false);
+  const [tamperedVoterIndex, setTamperedVoterIndex] = useState<number | null>(
+    null,
+  );
+  const [tamperDetected, setTamperDetected] = useState(false);
 
   useEffect(() => {
     const generateKeys = async () => {
@@ -167,6 +185,7 @@ const Demo = () => {
             vote: null,
             encryptedVotes: new Map(),
             hasVoted: false,
+            receipt: null,
           });
         }
 
@@ -180,6 +199,25 @@ const Demo = () => {
     };
     initElection();
   }, [votingService, service]);
+
+  // Generate a cryptographic commitment (hash) for vote verification
+  const generateVoteCommitment = (
+    encryptedVotes: Map<string, bigint>,
+  ): string => {
+    const voteString = Array.from(encryptedVotes.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([candidate, vote]) => `${candidate}:${vote.toString()}`)
+      .join('|');
+
+    // Simple hash function for demo purposes
+    let hash = 0;
+    for (let i = 0; i < voteString.length; i++) {
+      const char = voteString.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(16).padStart(8, '0');
+  };
 
   const castVote = (candidateName: string) => {
     if (!electionKeys) return;
@@ -202,21 +240,50 @@ const Demo = () => {
       vote: candidateName,
       encryptedVotes,
       hasVoted: true,
+      receipt: null,
     };
+
+    // Generate receipt for vote verification
+    const commitment = generateVoteCommitment(encryptedVotes);
+    const receipt: VoteReceipt = {
+      voterId: voter.name,
+      voteCommitment: commitment,
+      timestamp: Date.now(),
+      receiptCode: `${voter.name.substring(0, 2).toUpperCase()}-${commitment.substring(0, 6)}`,
+    };
+
+    updatedVoters[selectedVoter].receipt = receipt;
+
+    // Add to public bulletin board
+    setBulletinBoard((prev) => [...prev, receipt]);
+
     setVoters(updatedVoters);
 
-    // Move to next voter who hasn't voted
-    const nextVoter = updatedVoters.findIndex(
-      (v, i) => i > selectedVoter && !v.hasVoted,
-    );
-    if (nextVoter !== -1) {
-      setSelectedVoter(nextVoter);
-    }
+    // Stay on current voter to show their receipt
+    // (removed auto-advance to next voter)
   };
 
   const tallyVotes = () => {
     if (!electionKeys) return;
     setElectionPhase('tallying');
+    setTamperDetected(false);
+
+    // First, verify all votes against bulletin board
+    let allValid = true;
+    for (const voter of voters) {
+      if (voter.hasVoted && voter.receipt) {
+        const currentCommitment = generateVoteCommitment(voter.encryptedVotes);
+        if (currentCommitment !== voter.receipt.voteCommitment) {
+          allValid = false;
+          setTamperDetected(true);
+          break;
+        }
+      }
+    }
+
+    if (!allValid) {
+      return; // Don't proceed with tally if tampering detected
+    }
 
     // Homomorphically add all encrypted votes for each candidate
     const tallies = new Map<string, bigint>();
@@ -278,6 +345,7 @@ const Demo = () => {
         vote: null,
         encryptedVotes: new Map(),
         hasVoted: false,
+        receipt: null,
       })),
     );
     candidates.forEach((c) => {
@@ -287,6 +355,56 @@ const Demo = () => {
     setTallyResults(new Map());
     setElectionPhase('voting');
     setSelectedVoter(0);
+    setBulletinBoard([]);
+    setShowVerification(false);
+    setTamperedVoterIndex(null);
+    setTamperDetected(false);
+  };
+
+  // Simulate vote tampering for demonstration
+  const simulateTampering = () => {
+    if (!electionKeys || voters.length === 0) return;
+
+    // Pick a random voter who has voted
+    const votedVoters = voters
+      .map((v, idx) => ({ voter: v, idx }))
+      .filter(({ voter }) => voter.hasVoted);
+    if (votedVoters.length === 0) return;
+
+    const randomVoted =
+      votedVoters[Math.floor(Math.random() * votedVoters.length)];
+    const voterIndex = randomVoted.idx;
+
+    // Change their vote without updating the receipt
+    const updatedVoters = [...voters];
+    const newEncryptedVotes = new Map<string, bigint>();
+
+    // Pick a different candidate
+    const originalVote = updatedVoters[voterIndex].vote;
+    const otherCandidates = candidates.filter((c) => c.name !== originalVote);
+    const newCandidate =
+      otherCandidates[Math.floor(Math.random() * otherCandidates.length)];
+
+    for (const candidate of candidates) {
+      const voteValue = candidate.name === newCandidate.name ? 1n : 0n;
+      const encrypted = electionKeys.publicKey.encrypt(voteValue);
+      newEncryptedVotes.set(candidate.name, encrypted);
+    }
+
+    updatedVoters[voterIndex].encryptedVotes = newEncryptedVotes;
+    updatedVoters[voterIndex].vote = newCandidate.name;
+    // Note: receipt stays the same - this is the tampering!
+
+    setVoters(updatedVoters);
+    setTamperedVoterIndex(voterIndex);
+  };
+
+  const verifyVote = (receipt: VoteReceipt) => {
+    const voter = voters.find((v) => v.name === receipt.voterId);
+    if (!voter || !voter.hasVoted) return false;
+
+    const currentCommitment = generateVoteCommitment(voter.encryptedVotes);
+    return currentCommitment === receipt.voteCommitment;
   };
 
   const getWinner = () => {
@@ -352,7 +470,26 @@ const Demo = () => {
           Interactive <span className="gradient-text">Demo</span>
         </h2>
         <p className="features-subtitle">
-          Experience ECIES encryption in real-time directly in your browser
+          Visualizing ECIES encryption capabilities
+        </p>
+        <p
+          className="demo-disclaimer"
+          style={{
+            textAlign: 'center',
+            maxWidth: '800px',
+            margin: '0 auto 2rem',
+            opacity: 0.8,
+            fontSize: '0.9rem',
+          }}
+        >
+          <em>
+            Note: This visualization uses{' '}
+            <code>@digitaldefiance/ecies-lib</code> (the browser library) for
+            demonstration purposes. <code>@digitaldefiance/node-ecies-lib</code>{' '}
+            provides identical functionality with the same API for Node.js
+            server applications. Both libraries are binary-compatible, so data
+            encrypted with one can be decrypted by the other.
+          </em>
         </p>
 
         {keyGenError && (
@@ -486,6 +623,30 @@ const Demo = () => {
             tally all votes{' '}
             <strong>without ever seeing individual ballots</strong>.
           </p>
+          <div
+            style={{
+              padding: '1rem',
+              background: 'rgba(59, 130, 246, 0.1)',
+              borderRadius: '8px',
+              borderLeft: '4px solid #3b82f6',
+              marginBottom: '1rem',
+            }}
+          >
+            <h5 style={{ marginBottom: '0.5rem', fontSize: '0.95rem' }}>
+              🌍 Real-World Applications
+            </h5>
+            <p style={{ fontSize: '0.85rem', opacity: 0.9, margin: 0 }}>
+              These cryptographic techniques are used in real voting systems
+              like <strong>Helios Voting</strong> (open-source verifiable
+              voting), <strong>Scantegrity</strong> (used in Takoma Park, MD
+              elections), and <strong>Estonia's i-Voting</strong> system. This
+              demo shows three key features: <strong>vote verification</strong>{' '}
+              (voters can check their vote was counted),{' '}
+              <strong>tamper detection</strong> (cryptographic commitments catch
+              any changes), and <strong>end-to-end verifiability</strong>{' '}
+              (anyone can audit the election without compromising privacy).
+            </p>
+          </div>
 
           {!votingService && !votingError && (
             <div
@@ -596,10 +757,7 @@ const Demo = () => {
                       {voters.map((voter, idx) => (
                         <button
                           key={voter.name}
-                          onClick={() =>
-                            !voter.hasVoted && setSelectedVoter(idx)
-                          }
-                          disabled={voter.hasVoted}
+                          onClick={() => setSelectedVoter(idx)}
                           style={{
                             padding: '0.5rem 1rem',
                             borderRadius: '20px',
@@ -613,14 +771,26 @@ const Demo = () => {
                                 ? 'var(--primary-color)'
                                 : 'rgba(255,255,255,0.1)',
                             color: voter.hasVoted ? '#4ade80' : 'white',
-                            cursor: voter.hasVoted ? 'default' : 'pointer',
-                            opacity: voter.hasVoted ? 0.7 : 1,
+                            cursor: 'pointer',
+                            opacity: voter.hasVoted ? 0.9 : 1,
                           }}
                         >
                           {voter.name} {voter.hasVoted && '✓'}
                         </button>
                       ))}
                     </div>
+                    <p
+                      style={{
+                        fontSize: '0.75rem',
+                        opacity: 0.6,
+                        marginTop: '0.5rem',
+                        marginBottom: 0,
+                      }}
+                    >
+                      {voters[selectedVoter]?.hasVoted
+                        ? 'Click any voter to view their receipt'
+                        : 'Select a voter to cast their ballot'}
+                    </p>
                   </div>
 
                   {/* Current Voter's Ballot */}
@@ -699,9 +869,305 @@ const Demo = () => {
                       >
                         Their vote is encrypted and cannot be viewed by anyone.
                       </p>
+
+                      {/* Vote Receipt */}
+                      {voters[selectedVoter]?.receipt && (
+                        <div
+                          style={{
+                            marginTop: '1.5rem',
+                            padding: '1.5rem',
+                            background: 'rgba(255,255,255,0.05)',
+                            borderRadius: '8px',
+                            border: '2px dashed rgba(74, 222, 128, 0.3)',
+                          }}
+                        >
+                          <h5
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '0.5rem',
+                              marginBottom: '1rem',
+                              fontSize: '1.1rem',
+                            }}
+                          >
+                            <FaReceipt /> {voters[selectedVoter].name}'s Vote
+                            Receipt
+                          </h5>
+                          <div
+                            style={{
+                              fontSize: '0.9rem',
+                              textAlign: 'left',
+                              fontFamily: 'monospace',
+                              background: 'rgba(0,0,0,0.2)',
+                              padding: '1rem',
+                              borderRadius: '6px',
+                            }}
+                          >
+                            <div style={{ marginBottom: '0.5rem' }}>
+                              <strong>Receipt Code:</strong>{' '}
+                              <span style={{ color: '#4ade80' }}>
+                                {voters[selectedVoter].receipt.receiptCode}
+                              </span>
+                            </div>
+                            <div style={{ marginBottom: '0.5rem' }}>
+                              <strong>Commitment:</strong>{' '}
+                              <span style={{ color: '#3b82f6' }}>
+                                {voters[selectedVoter].receipt.voteCommitment}
+                              </span>
+                            </div>
+                            <div>
+                              <strong>Timestamp:</strong>{' '}
+                              {new Date(
+                                voters[selectedVoter].receipt.timestamp,
+                              ).toLocaleString()}
+                            </div>
+                          </div>
+                          <p
+                            style={{
+                              fontSize: '0.8rem',
+                              opacity: 0.7,
+                              marginTop: '1rem',
+                              marginBottom: 0,
+                              lineHeight: '1.4',
+                            }}
+                          >
+                            💡 This receipt proves {voters[selectedVoter].name}
+                            's vote was recorded. The commitment is a
+                            cryptographic hash that will detect any tampering.
+                            Save this to verify the vote later!
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Verification & Tampering Tools */}
+                  {votedCount > 0 && (
+                    <div
+                      style={{
+                        marginTop: '1.5rem',
+                        display: 'flex',
+                        gap: '1rem',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <button
+                        className="demo-btn"
+                        onClick={() => setShowVerification(!showVerification)}
+                        style={{
+                          flex: 1,
+                          minWidth: '200px',
+                          background: '#3b82f6',
+                        }}
+                      >
+                        <FaShieldAlt />{' '}
+                        {showVerification
+                          ? 'Hide Verification'
+                          : 'Verify Votes'}
+                      </button>
+                      {electionPhase === 'voting' && (
+                        <button
+                          className="demo-btn"
+                          onClick={simulateTampering}
+                          style={{
+                            flex: 1,
+                            minWidth: '200px',
+                            background: '#ef4444',
+                          }}
+                        >
+                          <FaExclamationTriangle /> Simulate Tampering
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Verification Panel */}
+                  {showVerification && (
+                    <div
+                      style={{
+                        marginTop: '1.5rem',
+                        padding: '1.5rem',
+                        background: 'rgba(59, 130, 246, 0.1)',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                      }}
+                    >
+                      <h4
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          marginBottom: '1rem',
+                        }}
+                      >
+                        <FaShieldAlt /> Public Bulletin Board
+                      </h4>
+                      <p
+                        style={{
+                          fontSize: '0.85rem',
+                          opacity: 0.8,
+                          marginBottom: '1rem',
+                        }}
+                      >
+                        All vote receipts are published here. Anyone can verify
+                        their vote was recorded correctly by checking their
+                        receipt code.
+                      </p>
+
+                      <div style={{ display: 'grid', gap: '0.75rem' }}>
+                        {bulletinBoard.map((receipt, idx) => {
+                          const isValid = verifyVote(receipt);
+                          const isTampered =
+                            tamperedVoterIndex !== null &&
+                            voters[tamperedVoterIndex]?.name ===
+                              receipt.voterId;
+
+                          return (
+                            <div
+                              key={idx}
+                              style={{
+                                padding: '1rem',
+                                background: isValid
+                                  ? 'rgba(74, 222, 128, 0.1)'
+                                  : 'rgba(239, 68, 68, 0.1)',
+                                borderRadius: '8px',
+                                border: `1px solid ${isValid ? 'rgba(74, 222, 128, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                                fontSize: '0.85rem',
+                                fontFamily: 'monospace',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  marginBottom: '0.5rem',
+                                }}
+                              >
+                                <strong>{receipt.receiptCode}</strong>
+                                {isValid ? (
+                                  <span
+                                    style={{
+                                      color: '#4ade80',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.25rem',
+                                    }}
+                                  >
+                                    <FaCheckCircle /> Valid
+                                  </span>
+                                ) : (
+                                  <span
+                                    style={{
+                                      color: '#ef4444',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.25rem',
+                                    }}
+                                  >
+                                    <FaExclamationTriangle /> TAMPERED
+                                  </span>
+                                )}
+                              </div>
+                              <div
+                                style={{ opacity: 0.7, fontSize: '0.75rem' }}
+                              >
+                                Voter: {receipt.voterId} | Commitment:{' '}
+                                {receipt.voteCommitment}
+                              </div>
+                              {isTampered && (
+                                <div
+                                  style={{
+                                    marginTop: '0.5rem',
+                                    padding: '0.5rem',
+                                    background: 'rgba(239, 68, 68, 0.2)',
+                                    borderRadius: '4px',
+                                    fontSize: '0.75rem',
+                                  }}
+                                >
+                                  ⚠️ This vote was altered after being cast! The
+                                  cryptographic commitment doesn't match the
+                                  current encrypted vote.
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div
+                        style={{
+                          marginTop: '1rem',
+                          padding: '1rem',
+                          background: 'rgba(255,255,255,0.05)',
+                          borderRadius: '8px',
+                          fontSize: '0.85rem',
+                        }}
+                      >
+                        <strong>How it works:</strong>
+                        <ul
+                          style={{
+                            marginTop: '0.5rem',
+                            paddingLeft: '1.5rem',
+                            opacity: 0.8,
+                          }}
+                        >
+                          <li>
+                            Each vote generates a cryptographic commitment
+                            (hash)
+                          </li>
+                          <li>
+                            The commitment is published on a public bulletin
+                            board
+                          </li>
+                          <li>
+                            Voters can verify their vote wasn't changed by
+                            checking the commitment
+                          </li>
+                          <li>
+                            Any tampering will cause the verification to fail
+                          </li>
+                        </ul>
+                      </div>
                     </div>
                   )}
                 </>
+              )}
+
+              {/* Tamper Detection Alert */}
+              {tamperDetected && (
+                <div
+                  style={{
+                    padding: '1.5rem',
+                    background: 'rgba(239, 68, 68, 0.15)',
+                    borderRadius: '12px',
+                    border: '2px solid #ef4444',
+                    marginBottom: '1.5rem',
+                  }}
+                >
+                  <h4
+                    style={{
+                      color: '#ef4444',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      marginBottom: '0.75rem',
+                    }}
+                  >
+                    <FaExclamationTriangle /> Election Tampering Detected!
+                  </h4>
+                  <p style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                    One or more votes have been altered after being cast. The
+                    cryptographic commitments on the bulletin board don't match
+                    the current encrypted votes.
+                  </p>
+                  <p style={{ fontSize: '0.85rem', opacity: 0.8, margin: 0 }}>
+                    This demonstrates how end-to-end verifiable voting systems
+                    can detect tampering, even by election officials or system
+                    administrators.
+                  </p>
+                </div>
               )}
 
               {/* Tallying Phase */}
@@ -823,11 +1289,8 @@ const Demo = () => {
                             (b.decryptedTally || 0) - (a.decryptedTally || 0),
                         )
                         .map((candidate, idx) => {
-                          const maxVotes = Math.max(
-                            ...candidates.map((c) => c.decryptedTally || 0),
-                          );
                           const percentage =
-                            maxVotes > 0
+                            votedCount > 0
                               ? ((candidate.decryptedTally || 0) / votedCount) *
                                 100
                               : 0;
