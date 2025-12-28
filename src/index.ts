@@ -66,6 +66,9 @@ export * from './services';
 export * from './types';
 export * from './utils';
 
+// Voting system exports (IMember already exported from ./interfaces)
+export * from './lib/voting';
+
 // Additional voting service type exports for convenience
 export type {
   PrivateKey,

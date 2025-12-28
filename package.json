@@ -1,6 +1,6 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "4.6.3",
+  "version": "4.7.0",
   "description": "Digital Defiance ECIES Library",
   "homepage": "https://github.com/Digital-Defiance/ecies-lib",
   "repository": {
@@ -30,7 +30,8 @@
     "test": "npx nx test digitaldefiance-ecies-lib",
     "test:nocache": "npx nx test --skip-nx-cache digitaldefiance-ecies-lib",
     "test:stream": "npx nx test --outputStyle=stream digitaldefiance-ecies-lib",
-    "test:logged": "npx nx test --outputStyle=stream digitaldefiance-ecies-lib 2>&1 | ansifilter -o test.log",
+    "test:logged": "npx jest --config=jest.config.js 2>&1 | tee test.log",
+    "test:logged:verbose": "VERBOSE_TESTS=1 npx jest --config=jest.config.js 2>&1 | tee test.log",
     "test:coverage": "npx jest --coverage --testPathPattern=digitaldefiance-ecies-lib --coverageReporters=text",
     "check:circular": "madge --circular --extensions ts src/index.ts",
     "check:circular:json": "madge --circular --extensions ts --json src/index.ts",
@@ -57,14 +58,6 @@
   "author": "Digital Defiance",
   "license": "MIT",
   "packageManager": "yarn@4.11.0",
-  "peerDependencies": {
-    "paillier-bigint": "^3.4.1"
-  },
-  "peerDependenciesMeta": {
-    "paillier-bigint": {
-      "optional": true
-    }
-  },
   "dependencies": {
     "@digitaldefiance/i18n-lib": "3.8.16",
     "@ethereumjs/wallet": "^10.0.0",
@@ -72,6 +65,7 @@
     "@noble/hashes": "1.8.0",
     "@scure/bip32": "1.7.0",
     "bson": "^6.10.4",
+    "paillier-bigint": "^3.4.1",
     "ts-brand": "^0.2.0"
   },
   "devDependencies": {

@@ -201,7 +201,7 @@ export class SecureString {
     return this.obfuscateData(new TextEncoder().encode(checksum));
   }
 
-  private async createObfuscatedChecksum(
+  private async __createObfuscatedChecksum(
     data: string | Uint8Array,
   ): Promise<Uint8Array> {
     const checksum = await this.generateChecksum(data);
@@ -226,7 +226,7 @@ export class SecureString {
     }
     return result === 0;
   }
-  private async validateObfuscatedChecksum(
+  private async __validateObfuscatedChecksum(
     data: string | Uint8Array,
   ): Promise<boolean> {
     const deobfuscatedChecksum = new TextDecoder().decode(

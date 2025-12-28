@@ -1,4 +1,4 @@
-import validator from 'validator';
+import { isEmail } from 'validator';
 import { InvalidEmailErrorType } from './enumerations/invalid-email-type';
 import { InvalidEmailError } from './errors/invalid-email';
 
@@ -23,7 +23,7 @@ export class EmailString {
     if (trimmedEmail.length != email.length) {
       throw new InvalidEmailError(InvalidEmailErrorType.Whitespace, email);
     }
-    if (!validator.isEmail(trimmedEmail)) {
+    if (!isEmail(trimmedEmail)) {
       throw new InvalidEmailError(InvalidEmailErrorType.Invalid, email);
     }
     this.email = trimmedEmail;

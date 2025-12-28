@@ -51,20 +51,6 @@ export class IsolatedPrivateKey
   }
 
   /**
-   * Converts hex string to Uint8Array
-   */
-  private hexToUint8Array(hex: string): Uint8Array {
-    if (hex.length % 2 !== 0) {
-      hex = '0' + hex;
-    }
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-      bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
-    }
-    return bytes;
-  }
-
-  /**
    * Converts Uint8Array to hex string
    */
   private uint8ArrayToHex(bytes: Uint8Array): string {

@@ -9,6 +9,7 @@ import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
 import { SecureString } from '../../secure-string';
 import { SignatureString, SignatureUint8Array } from '../../types';
+import { VotingService } from '../voting.service';
 import { EciesCryptoCore } from './crypto-core';
 import {
   IMultiEncryptedMessage,
@@ -31,6 +32,7 @@ export class ECIESService {
   protected readonly singleRecipient: EciesSingleRecipient;
   protected readonly multiRecipient: EciesMultiRecipient;
   protected readonly eciesConsts: IECIESConstants;
+  protected readonly votingService: VotingService;
 
   constructor(
     config?: Partial<IECIESConfig>,
@@ -58,6 +60,7 @@ export class ECIESService {
       this._config,
       this.eciesConsts,
     );
+    this.votingService = VotingService.getInstance();
   }
 
   public get core(): EciesCryptoCore {
@@ -70,6 +73,10 @@ export class ECIESService {
 
   public get curveName(): string {
     return this._config.curveName;
+  }
+
+  public get voting(): VotingService {
+    return this.votingService;
   }
 
   // === Key Management Methods ===

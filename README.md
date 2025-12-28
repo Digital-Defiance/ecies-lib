@@ -271,6 +271,393 @@ console.log(member.id); // Uint8Array (size depends on provider)
 const encrypted = await member.encryptData('My Secrets');
 ```
 
+## ID Providers and Members: Deep Dive
+
+### Overview
+
+The ID provider system is a core architectural feature that enables flexible identifier formats throughout the library. The `Member` class seamlessly integrates with the configured ID provider, making it easy to work with different ID formats (MongoDB ObjectIDs, GUIDs, UUIDs, or custom formats) without changing your application code.
+
+### How Member Uses ID Providers
+
+The `Member` class relies on `Constants.idProvider` for three critical operations:
+
+1. **ID Generation** - Creating unique identifiers for new members
+2. **Serialization** - Converting binary IDs to strings for storage/transmission
+3. **Deserialization** - Converting string IDs back to binary format
+
+#### Internal Implementation
+
+```typescript
+// 1. ID Generation (in Member constructor)
+this._id = id ?? Constants.idProvider.generate();
+
+// 2. Serialization (in Member.toJson())
+public toJson(): string {
+  const storage = {
+    id: Constants.idProvider.serialize(this._id),  // Uint8Array → string
+    // ... other fields
+  };
+  return JSON.stringify(storage);
+}
+
+// 3. Deserialization (in Member.fromJson())
+public static fromJson(json: string, eciesService: ECIESService): Member {
+  const storage = JSON.parse(json);
+  return new Member(
+    eciesService,
+    // ...
+    Constants.idProvider.deserialize(storage.id),  // string → Uint8Array
+  );
+}
+```
+
+### Available ID Providers
+
+#### ObjectIdProvider (Default)
+
+**Format**: 12-byte MongoDB-compatible ObjectID  
+**Serialization**: 24-character hex string  
+**Use Case**: MongoDB integration, backward compatibility
+
+```typescript
+import { ObjectIdProvider, createRuntimeConfiguration } from '@digitaldefiance/ecies-lib';
+
+const config = createRuntimeConfiguration({
+  idProvider: new ObjectIdProvider()
+});
+
+const id = config.idProvider.generate();
+console.log(id.length); // 12
+console.log(config.idProvider.serialize(id)); // "507f1f77bcf86cd799439011"
+```
+
+#### GuidV4Provider
+
+**Format**: 16-byte RFC 4122 v4 GUID  
+**Serialization**: 24-character base64 string (compact)  
+**Use Case**: Windows/.NET integration, compact serialization
+
+```typescript
+import { GuidV4Provider } from '@digitaldefiance/ecies-lib';
+
+const provider = new GuidV4Provider();
+const id = provider.generate();
+console.log(id.length); // 16
+console.log(provider.serialize(id)); // "kT8xVzQ2RkKmN5pP3w=="
+
+// Supports multiple deserialization formats
+provider.deserialize('kT8xVzQ2RkKmN5pP3w==');  // base64 (24 chars)
+provider.deserialize('913f315734364642a6379a4fdf');  // hex (32 chars)
+provider.deserialize('913f3157-3436-4642-a637-9a4fdf000000');  // full hex with dashes (36 chars)
+
+// Deterministic GUIDs (v5)
+const deterministicId = provider.fromNamespace('my-namespace', 'user-alice');
+```
+
+#### UuidProvider
+
+**Format**: 16-byte RFC 4122 v4 UUID  
+**Serialization**: 36-character string with dashes (standard format)  
+**Use Case**: Standard UUID format, maximum compatibility
+
+```typescript
+import { UuidProvider } from '@digitaldefiance/ecies-lib';
+
+const provider = new UuidProvider();
+const id = provider.generate();
+console.log(id.length); // 16
+console.log(provider.serialize(id)); // "550e8400-e29b-41d4-a716-446655440000"
+```
+
+#### CustomIdProvider
+
+**Format**: Any byte length (1-255 bytes)  
+**Serialization**: Hexadecimal string  
+**Use Case**: Custom requirements, legacy systems, specialized formats
+
+```typescript
+import { CustomIdProvider } from '@digitaldefiance/ecies-lib';
+
+// 32-byte SHA-256 hash as ID
+const provider = new CustomIdProvider(32, 'SHA256Hash');
+const id = provider.generate();
+console.log(id.length); // 32
+console.log(provider.serialize(id)); // 64-character hex string
+```
+
+### Using ID Providers with Members
+
+#### Creating Members with Different ID Providers
+
+```typescript
+import { 
+  Member, 
+  MemberType, 
+  EmailString, 
+  ECIESService,
+  createRuntimeConfiguration,
+  ConstantsRegistry,
+  GuidV4Provider,
+  ObjectIdProvider
+} from '@digitaldefiance/ecies-lib';
+
+const ecies = new ECIESService();
+
+// Option 1: Use default ObjectIdProvider
+const alice = Member.newMember(
+  ecies,
+  MemberType.User,
+  'Alice',
+  new EmailString('alice@example.com')
+);
+console.log(alice.member.id.length); // 12 bytes
+
+// Option 2: Configure GUID provider globally
+const guidConfig = createRuntimeConfiguration({
+  idProvider: new GuidV4Provider()
+});
+ConstantsRegistry.register('guid-config', guidConfig);
+
+// Now all new members use GUID IDs
+const bob = Member.newMember(
+  ecies,
+  MemberType.User,
+  'Bob',
+  new EmailString('bob@example.com')
+);
+console.log(bob.member.id.length); // 16 bytes
+```
+
+#### Serializing and Deserializing Members
+
+```typescript
+import { Member, ECIESService, Constants } from '@digitaldefiance/ecies-lib';
+
+const ecies = new ECIESService();
+const { member } = Member.newMember(
+  ecies,
+  MemberType.User,
+  'Charlie',
+  new EmailString('charlie@example.com')
+);
+
+// Serialize to JSON (ID automatically converted to string)
+const json = member.toJson();
+console.log(json);
+// {
+//   "id": "507f1f77bcf86cd799439011",  // Serialized using idProvider
+//   "type": 1,
+//   "name": "Charlie",
+//   "email": "charlie@example.com",
+//   "publicKey": "...",
+//   "creatorId": "507f1f77bcf86cd799439011",
+//   "dateCreated": "2024-01-15T10:30:00.000Z",
+//   "dateUpdated": "2024-01-15T10:30:00.000Z"
+// }
+
+// Deserialize from JSON (ID automatically converted back to Uint8Array)
+const restored = Member.fromJson(json, ecies);
+console.log(restored.id); // Uint8Array(12) [80, 127, 31, 119, ...]
+```
+
+#### Working with Member IDs
+
+```typescript
+import { Member, Constants } from '@digitaldefiance/ecies-lib';
+
+const { member } = Member.newMember(/* ... */);
+
+// Get binary ID
+const binaryId: Uint8Array = member.id;
+
+// Convert to string for display/storage
+const stringId = Constants.idProvider.serialize(member.id);
+console.log(`Member ID: ${stringId}`);
+
+// Convert string back to binary
+const restoredId = Constants.idProvider.deserialize(stringId);
+
+// Compare IDs (constant-time comparison)
+const isEqual = Constants.idProvider.equals(member.id, restoredId);
+
+// Validate ID format
+const isValid = Constants.idProvider.validate(member.id);
+
+// Clone ID (defensive copy)
+const idCopy = Constants.idProvider.clone(member.id);
+```
+
+### Multi-Recipient Encryption with Different ID Providers
+
+The ID provider system is critical for multi-recipient encryption, where recipient IDs are embedded in the encrypted message:
+
+```typescript
+import { ECIESService, Member, MemberType, EmailString, GuidV4Provider, createRuntimeConfiguration } from '@digitaldefiance/ecies-lib';
+
+// Configure GUID provider (16 bytes)
+const config = createRuntimeConfiguration({
+  idProvider: new GuidV4Provider()
+});
+
+const ecies = new ECIESService(config);
+
+// Create recipients with GUID IDs
+const alice = Member.newMember(ecies, MemberType.User, 'Alice', new EmailString('alice@example.com'));
+const bob = Member.newMember(ecies, MemberType.User, 'Bob', new EmailString('bob@example.com'));
+
+const message = new TextEncoder().encode('Shared Secret');
+
+// Encrypt for multiple recipients
+// Each recipient's 16-byte GUID is embedded in the message
+const encrypted = await ecies.encryptMultiple(
+  [
+    { id: alice.member.id, publicKey: alice.member.publicKey },
+    { id: bob.member.id, publicKey: bob.member.publicKey }
+  ],
+  message
+);
+
+// Each recipient can decrypt using their ID
+const aliceDecrypted = await ecies.decryptMultiple(
+  alice.member.id,
+  alice.member.privateKey!.value,
+  encrypted
+);
+```
+
+### Configuration Auto-Sync
+
+When you change the ID provider, the library automatically updates related constants:
+
+```typescript
+import { createRuntimeConfiguration, CustomIdProvider } from '@digitaldefiance/ecies-lib';
+
+// Create 20-byte custom ID provider
+const customProvider = new CustomIdProvider(20, 'CustomHash');
+
+const config = createRuntimeConfiguration({
+  idProvider: customProvider
+});
+
+// These are automatically synced:
+console.log(config.MEMBER_ID_LENGTH); // 20 (auto-synced)
+console.log(config.ECIES.MULTIPLE.RECIPIENT_ID_SIZE); // 20 (auto-synced)
+console.log(config.idProvider.byteLength); // 20
+```
+
+### Best Practices
+
+1. **Choose the Right Provider**:
+   - Use `ObjectIdProvider` for MongoDB integration
+   - Use `GuidV4Provider` for compact serialization and Windows/.NET compatibility
+   - Use `UuidProvider` for standard UUID format and maximum compatibility
+   - Use `CustomIdProvider` for specialized requirements
+
+2. **Configure Early**: Set your ID provider before creating any members:
+   ```typescript
+   const config = createRuntimeConfiguration({ idProvider: new GuidV4Provider() });
+   ConstantsRegistry.register('app-config', config);
+   const ecies = new ECIESService(config);
+   ```
+
+3. **Consistent Configuration**: Use the same ID provider across your entire application to ensure compatibility
+
+4. **Serialization for Storage**: Always use `idProvider.serialize()` when storing IDs in databases or transmitting over networks
+
+5. **Validation**: Validate IDs when receiving them from external sources:
+   ```typescript
+   if (!Constants.idProvider.validate(receivedId)) {
+     throw new Error('Invalid ID format');
+   }
+   ```
+
+6. **Cross-Platform Compatibility**: The same ID provider configuration works in both browser (`ecies-lib`) and Node.js (`node-ecies-lib`)
+
+### Common Patterns
+
+#### Pattern 1: Application-Wide ID Provider
+
+```typescript
+// config.ts
+import { createRuntimeConfiguration, GuidV4Provider, ConstantsRegistry } from '@digitaldefiance/ecies-lib';
+
+export const APP_CONFIG_KEY = 'app-config';
+
+const config = createRuntimeConfiguration({
+  idProvider: new GuidV4Provider()
+});
+
+ConstantsRegistry.register(APP_CONFIG_KEY, config);
+
+export { config };
+
+// app.ts
+import { ECIESService } from '@digitaldefiance/ecies-lib';
+import { config } from './config';
+
+const ecies = new ECIESService(config);
+// All members created with this service will use GUID IDs
+```
+
+#### Pattern 2: Multiple ID Providers for Different Contexts
+
+```typescript
+import { 
+  createRuntimeConfiguration, 
+  ConstantsRegistry,
+  ObjectIdProvider,
+  GuidV4Provider,
+  ECIESService
+} from '@digitaldefiance/ecies-lib';
+
+// User context uses ObjectID (MongoDB)
+const userConfig = createRuntimeConfiguration({
+  idProvider: new ObjectIdProvider()
+});
+ConstantsRegistry.register('user-context', userConfig);
+
+// Device context uses GUID
+const deviceConfig = createRuntimeConfiguration({
+  idProvider: new GuidV4Provider()
+});
+ConstantsRegistry.register('device-context', deviceConfig);
+
+// Use different services for different contexts
+const userEcies = new ECIESService(userConfig);
+const deviceEcies = new ECIESService(deviceConfig);
+```
+
+#### Pattern 3: ID Provider Abstraction Layer
+
+```typescript
+import { Constants, Member, ECIESService } from '@digitaldefiance/ecies-lib';
+
+class MemberService {
+  constructor(private ecies: ECIESService) {}
+
+  createMember(name: string, email: string) {
+    return Member.newMember(
+      this.ecies,
+      MemberType.User,
+      name,
+      new EmailString(email)
+    );
+  }
+
+  serializeMemberId(id: Uint8Array): string {
+    return Constants.idProvider.serialize(id);
+  }
+
+  deserializeMemberId(id: string): Uint8Array {
+    return Constants.idProvider.deserialize(id);
+  }
+
+  validateMemberId(id: Uint8Array): boolean {
+    return Constants.idProvider.validate(id);
+  }
+}
+```
+
 ## API Reference
 
 ### Core Services
@@ -280,6 +667,39 @@ const encrypted = await member.encryptData('My Secrets');
 - **`EciesMultiRecipient`**: Specialized service for handling multi-recipient messages.
 - **`EciesFileService`**: Helper for chunked file encryption.
 - **`PasswordLoginService`**: Secure authentication using PBKDF2 and encrypted key bundles.
+
+### ID Providers
+
+- **`IIdProvider`**: Interface that all ID providers implement
+  - `generate()`: Create a new random ID
+  - `validate(id)`: Check if an ID is valid
+  - `serialize(id)`: Convert Uint8Array to string
+  - `deserialize(str)`: Convert string to Uint8Array
+  - `equals(a, b)`: Constant-time comparison
+  - `clone(id)`: Create defensive copy
+  - `idToString(id)`: Convert any ID type to string
+  - `idFromString(str)`: Convert string to ID buffer
+
+- **`ObjectIdProvider`**: 12-byte MongoDB ObjectID format
+- **`GuidV4Provider`**: 16-byte GUID with base64 serialization
+- **`UuidProvider`**: 16-byte UUID with standard dash formatting
+- **`CustomIdProvider`**: Custom byte length (1-255 bytes)
+- **`BaseIdProvider`**: Abstract base class for creating custom providers
+
+### Member System
+
+- **`Member`**: High-level user abstraction with cryptographic operations
+  - `id`: Unique identifier (format determined by ID provider)
+  - `publicKey`: Member's public key
+  - `privateKey`: Member's private key (optional, can be loaded/unloaded)
+  - `encryptData(data, recipientPublicKey?)`: Encrypt data
+  - `decryptData(encryptedData)`: Decrypt data
+  - `sign(data)`: Sign data with private key
+  - `verify(signature, data)`: Verify signature
+  - `toJson()`: Serialize to JSON (uses ID provider)
+  - `fromJson(json, eciesService)`: Deserialize from JSON (uses ID provider)
+  - `newMember(...)`: Static factory method
+  - `fromMnemonic(...)`: Create from BIP39 mnemonic
 
 ### Configuration & Registry
 

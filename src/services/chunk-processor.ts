@@ -16,7 +16,7 @@ import { ECIESService } from './ecies/service';
 export class ChunkProcessor {
   constructor(
     private readonly ecies: ECIESService,
-    private readonly eciesConsts: IECIESConstants = Constants.ECIES,
+    private readonly _eciesConsts: IECIESConstants = Constants.ECIES,
   ) {}
 
   /**

@@ -252,7 +252,7 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
   }
 
   private static readonly MAX_ENCRYPTION_SIZE = 1024 * 1024 * 10; // 10MB limit
-  private static readonly VALID_STRING_REGEX = /^[\x20-\x7E\n\r\t]*$/; // Printable ASCII + common whitespace
+  private static readonly _VALID_STRING_REGEX = /^[\x20-\x7E\n\r\t]*$/; // Printable ASCII + common whitespace
 
   /**
    * Encrypt data stream (for large data)
@@ -464,7 +464,7 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
   public static fromMnemonic(
     mnemonic: SecureString,
     eciesService: ECIESService,
-    eciesParams?: IECIESConstants,
+    __eciesParams?: IECIESConstants,
     name = 'Test User',
     email = new EmailString('test@example.com'),
   ): Member {

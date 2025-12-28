@@ -95,7 +95,7 @@ export function getEciesI18nEngine(config?: EngineConfig): I18nEngine {
  * Proxy for backward compatibility
  */
 export const eciesI18nEngine = new Proxy({} as I18nEngine, {
-  get(target, prop) {
+  get(__target, prop) {
     return getEciesI18nEngine()[prop as keyof I18nEngine];
   },
 });

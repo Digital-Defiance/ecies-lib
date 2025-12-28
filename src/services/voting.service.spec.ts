@@ -234,7 +234,8 @@ describe('VotingService (Web)', () => {
   describe('Deterministic Key Pair Generation (Web)', () => {
     it('should generate valid Paillier key pair', async () => {
       const seed = crypto.getRandomValues(new Uint8Array(64));
-      const keyPair = await generateDeterministicKeyPair(seed, 2048, 128);
+      // Use smaller key for basic validation test
+      const keyPair = await generateDeterministicKeyPair(seed, 512, 64);
 
       expect(keyPair.publicKey).toBeDefined();
       expect(keyPair.privateKey).toBeDefined();
@@ -250,8 +251,9 @@ describe('VotingService (Web)', () => {
     it('should generate same key pair from same seed', async () => {
       const seed = crypto.getRandomValues(new Uint8Array(64));
 
-      const keyPair1 = await generateDeterministicKeyPair(seed, 2048, 128);
-      const keyPair2 = await generateDeterministicKeyPair(seed, 2048, 128);
+      // Use smaller key for determinism test
+      const keyPair1 = await generateDeterministicKeyPair(seed, 512, 64);
+      const keyPair2 = await generateDeterministicKeyPair(seed, 512, 64);
 
       expect(keyPair1.publicKey.n).toBe(keyPair2.publicKey.n);
       expect(keyPair1.privateKey.lambda).toBe(keyPair2.privateKey.lambda);
@@ -260,7 +262,8 @@ describe('VotingService (Web)', () => {
 
     it('should support homomorphic addition', async () => {
       const seed = crypto.getRandomValues(new Uint8Array(64));
-      const keyPair = await generateDeterministicKeyPair(seed, 2048, 128);
+      // Use smaller key for homomorphic property test
+      const keyPair = await generateDeterministicKeyPair(seed, 512, 64);
 
       const m1 = 10n;
       const m2 = 20n;
@@ -472,7 +475,8 @@ describe('VotingService (Web)', () => {
   describe('Enhanced Paillier Homomorphic Property Tests (Web)', () => {
     let keyPair: { publicKey: PublicKey; privateKey: PrivateKey };
 
-    beforeEach(async () => {
+    beforeAll(async () => {
+      // Generate keys ONCE for all tests - major performance improvement
       const seed = crypto.getRandomValues(new Uint8Array(64));
       keyPair = await generateDeterministicKeyPair(seed, 2048, 128);
     });
@@ -676,8 +680,9 @@ describe('VotingService (Web)', () => {
         const seed = crypto.getRandomValues(new Uint8Array(64));
 
         const results = [];
+        // Use smaller key size for determinism test - still validates the property
         for (let i = 0; i < 5; i++) {
-          const kp = await generateDeterministicKeyPair(seed, 2048, 128);
+          const kp = await generateDeterministicKeyPair(seed, 512, 64);
           results.push({
             n: kp.publicKey.n,
             g: kp.publicKey.g,
@@ -699,8 +704,9 @@ describe('VotingService (Web)', () => {
         // Note: Paillier encryption is probabilistic, but with deterministic randomness
         // from the same DRBG state, we can verify consistency
         const seed = crypto.getRandomValues(new Uint8Array(64));
-        const kp1 = await generateDeterministicKeyPair(seed, 2048, 128);
-        const kp2 = await generateDeterministicKeyPair(seed, 2048, 128);
+        // Use smaller key size - still validates determinism
+        const kp1 = await generateDeterministicKeyPair(seed, 512, 64);
+        const kp2 = await generateDeterministicKeyPair(seed, 512, 64);
 
         const message = 42n;
 

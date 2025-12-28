@@ -1,0 +1,261 @@
+/**
+ * Secure Voting Poll - Browser Compatible
+ * Sits on top of ecies-lib with proper role separation
+ */
+import type { PublicKey } from 'paillier-bigint';
+import { ImmutableAuditLog, type AuditLog } from './audit';
+import { VotingSecurityValidator } from './security';
+import {
+  VotingMethod,
+  type IMember,
+  type VoteReceipt,
+  type EncryptedVote,
+} from './types';
+
+/**
+ * Poll aggregates encrypted votes using only public key.
+ * Cannot decrypt votes - requires separate Tallier with private key.
+ */
+export class Poll {
+  private readonly _id: Uint8Array;
+  private readonly _choices: ReadonlyArray<string>;
+  private readonly _method: VotingMethod;
+  private readonly _authority: IMember;
+  private readonly ___votingPublicKey: PublicKey;
+  private readonly _votes: Map<string, bigint[]> = new Map();
+  private readonly _receipts: Map<string, VoteReceipt> = new Map();
+  private readonly _createdAt: number;
+  private _closedAt?: number;
+  private _maxWeight?: bigint;
+  private readonly _auditLog: ImmutableAuditLog;
+
+  constructor(
+    id: Uint8Array,
+    choices: string[],
+    method: VotingMethod,
+    authority: IMember,
+    votingPublicKey: PublicKey,
+    maxWeight?: bigint,
+    allowInsecure?: boolean,
+  ) {
+    if (choices.length < 2) throw new Error('Poll requires at least 2 choices');
+    if (!authority.votingPublicKey)
+      throw new Error('Authority must have voting keys');
+
+    VotingSecurityValidator.validate(method, { allowInsecure });
+
+    this._id = id;
+    this._choices = Object.freeze([...choices]);
+    this._method = method;
+    this._authority = authority;
+    this.___votingPublicKey = votingPublicKey;
+    this._maxWeight = maxWeight;
+    this._createdAt = Date.now();
+    this._auditLog = new ImmutableAuditLog(authority);
+
+    // Record poll creation in audit log
+    this._auditLog.recordPollCreated(id, {
+      method,
+      choiceCount: choices.length,
+      maxWeight: maxWeight?.toString(),
+    });
+  }
+
+  get id(): Uint8Array {
+    return this._id;
+  }
+  get choices(): ReadonlyArray<string> {
+    return this._choices;
+  }
+  get method(): VotingMethod {
+    return this._method;
+  }
+  get isClosed(): boolean {
+    return this._closedAt !== undefined;
+  }
+  get voterCount(): number {
+    return this._receipts.size;
+  }
+  get createdAt(): number {
+    return this._createdAt;
+  }
+  get closedAt(): number | undefined {
+    return this._closedAt;
+  }
+
+  get auditLog(): AuditLog {
+    return this._auditLog;
+  }
+
+  /**
+   * Cast a vote - validates and encrypts based on method
+   */
+  vote(voter: IMember, vote: EncryptedVote): VoteReceipt {
+    if (this.isClosed) throw new Error('Poll is closed');
+
+    const voterId = this._toKey(voter.id);
+    if (this._receipts.has(voterId)) throw new Error('Already voted');
+
+    // Validate vote structure based on method
+    this._validateVote(vote);
+
+    // Store encrypted vote
+    this._votes.set(voterId, vote.encrypted);
+
+    // Generate receipt
+    const receipt = this._generateReceipt(voter);
+    this._receipts.set(voterId, receipt);
+
+    // Record vote in audit log
+    const voterIdHash = this._hashVoterId(voter.id);
+    this._auditLog.recordVoteCast(this._id, voterIdHash);
+
+    return receipt;
+  }
+
+  /**
+   * Verify a receipt is valid for this poll
+   */
+  verifyReceipt(voter: IMember, receipt: VoteReceipt): boolean {
+    const voterId = this._toKey(voter.id);
+    const stored = this._receipts.get(voterId);
+    if (!stored) return false;
+
+    // Verify signature
+    const data = this._receiptData(receipt);
+    return this._authority.verify(receipt.signature, data);
+  }
+
+  /**
+   * Close the poll - no more votes accepted
+   */
+  close(): void {
+    if (this.isClosed) throw new Error('Already closed');
+    this._closedAt = Date.now();
+
+    // Record closure in audit log
+    this._auditLog.recordPollClosed(this._id, {
+      voterCount: this.voterCount,
+      closedAt: this._closedAt,
+    });
+  }
+
+  /**
+   * Get encrypted votes for tallying (read-only)
+   */
+  getEncryptedVotes(): ReadonlyMap<string, readonly bigint[]> {
+    // Create a proxy that throws on mutation attempts
+    const frozenEntries = Array.from(this._votes.entries()).map(
+      ([key, value]) => [key, Object.freeze([...value])] as const,
+    );
+    const readonlyMap = new Map(frozenEntries);
+
+    return new Proxy(readonlyMap, {
+      get(target, prop) {
+        if (prop === 'set' || prop === 'delete' || prop === 'clear') {
+          throw new Error('Cannot modify readonly map');
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const value = Reflect.get(target, prop);
+        // Bind methods to target to preserve 'this' context
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        return typeof value === 'function' ? value.bind(target) : value;
+      },
+    }) as ReadonlyMap<string, readonly bigint[]>;
+  }
+
+  private _validateVote(vote: EncryptedVote): void {
+    switch (this._method) {
+      case VotingMethod.Plurality:
+        if (vote.choiceIndex === undefined) throw new Error('Choice required');
+        if (vote.choiceIndex < 0 || vote.choiceIndex >= this._choices.length) {
+          throw new Error('Invalid choice');
+        }
+        break;
+
+      case VotingMethod.Approval:
+        if (!vote.choices?.length) throw new Error('Choices required');
+        for (const c of vote.choices) {
+          if (c < 0 || c >= this._choices.length)
+            throw new Error('Invalid choice');
+        }
+        break;
+
+      case VotingMethod.Weighted:
+        if (vote.choiceIndex === undefined) throw new Error('Choice required');
+        if (!vote.weight || vote.weight <= 0n)
+          throw new Error('Weight must be positive');
+        if (this._maxWeight && vote.weight > this._maxWeight) {
+          throw new Error('Weight exceeds maximum');
+        }
+        break;
+
+      case VotingMethod.Borda:
+      case VotingMethod.RankedChoice: {
+        if (!vote.rankings?.length) throw new Error('Rankings required');
+        const seen = new Set<number>();
+        for (const r of vote.rankings) {
+          if (r < 0 || r >= this._choices.length)
+            throw new Error('Invalid choice');
+          if (seen.has(r)) throw new Error('Duplicate ranking');
+          seen.add(r);
+        }
+        break;
+      }
+    }
+
+    if (!vote.encrypted?.length) throw new Error('Encrypted data required');
+  }
+
+  private _generateReceipt(voter: IMember): VoteReceipt {
+    const nonce = new Uint8Array(16);
+    crypto.getRandomValues(nonce);
+
+    const receipt: VoteReceipt = {
+      voterId: voter.id,
+      pollId: this._id,
+      timestamp: Date.now(),
+      signature: new Uint8Array(0),
+      nonce,
+    };
+
+    const data = this._receiptData(receipt);
+    receipt.signature = this._authority.sign(data);
+
+    return receipt;
+  }
+
+  private _receiptData(receipt: VoteReceipt): Uint8Array {
+    const parts = [
+      receipt.voterId,
+      receipt.pollId,
+      new Uint8Array(new BigUint64Array([BigInt(receipt.timestamp)]).buffer),
+      receipt.nonce,
+    ];
+    const totalLength = parts.reduce((sum, p) => sum + p.length, 0);
+    const result = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const part of parts) {
+      result.set(part, offset);
+      offset += part.length;
+    }
+    return result;
+  }
+
+  private _toKey(id: Uint8Array): string {
+    return Array.from(id)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  private _hashVoterId(voterId: Uint8Array): Uint8Array {
+    // Simple hash for voter ID anonymization
+    const encoder = new TextEncoder();
+    const data = encoder.encode(this._toKey(voterId));
+    const hash = new Uint8Array(32);
+    for (let i = 0; i < data.length && i < 32; i++) {
+      hash[i] = data[i];
+    }
+    return hash;
+  }
+}

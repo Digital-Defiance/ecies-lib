@@ -1,6 +1,5 @@
 import { Brand } from 'ts-brand';
 import { GuidBrandType } from './enumerations';
-import { Buffer } from './lib/buffer-compat';
 
 export type SignatureUint8Array = Uint8Array &
   Brand<Uint8Array, 'SignatureArray'>;
@@ -41,6 +40,7 @@ export type DataBuffer = Uint8Array & {
 };
 
 // Placeholder GUID types for cross-project compatibility
-export type BinaryGuid = Buffer | Uint8Array;
+// Note: Buffer type removed - use Uint8Array for cross-platform compatibility
+export type BinaryGuid = Uint8Array;
 export type HexGuid = string;
 export type ShortGuid = string;

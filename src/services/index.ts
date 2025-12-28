@@ -8,4 +8,8 @@ export * from './pbkdf2';
 export * from './progress-tracker';
 export * from './resumable-encryption';
 export { VotingService } from './voting.service';
+export type {
+  DeriveVotingKeysOptions,
+  SecureDeterministicDRBG,
+} from './voting.service';
 export * from './xor';

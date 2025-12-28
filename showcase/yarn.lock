@@ -209,9 +209,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digitaldefiance/ecies-lib@npm:^4.5.18":
-  version: 4.5.18
-  resolution: "@digitaldefiance/ecies-lib@npm:4.5.18"
+"@digitaldefiance/ecies-lib@npm:^4.7.0":
+  version: 4.7.0
+  resolution: "@digitaldefiance/ecies-lib@npm:4.7.0"
   dependencies:
     "@digitaldefiance/i18n-lib": "npm:3.8.16"
     "@ethereumjs/wallet": "npm:^10.0.0"
@@ -219,13 +219,9 @@ __metadata:
     "@noble/hashes": "npm:1.8.0"
     "@scure/bip32": "npm:1.7.0"
     bson: "npm:^6.10.4"
+    paillier-bigint: "npm:^3.4.1"
     ts-brand: "npm:^0.2.0"
-  peerDependencies:
-    paillier-bigint: ^3.4.1
-  peerDependenciesMeta:
-    paillier-bigint:
-      optional: true
-  checksum: 10c0/5e0ceb72f210d1497aa507f02b1278d219a5f4c1b47eae6af43aeb1730a0620104f7271eee192c43bba464f24080a2cc035fac57acc3edbca4944a0c6da7c219
+  checksum: 10c0/8e3cc9cd926ebc3d1bbbd5f3fd96229cd842eeca3c6a6bb191697e50e1d93551b1fc16c9bacc3e13bd15ee0aa3c3af0ccd0378b540c1910a0431a1ed7185f937
   languageName: node
   linkType: hard
 
@@ -704,18 +700,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-alias@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "@rollup/plugin-alias@npm:6.0.0"
-  peerDependencies:
-    rollup: ">=4.0.0"
-  peerDependenciesMeta:
-    rollup:
-      optional: true
-  checksum: 10c0/d3cd6a236b6d209dd9d3882fab84ad6bd253dcc5bb9fc1308ac1c08d4217ce5cfac805271ebe36daab4816f6bf5096b1f824a9eb1eb4158c67976fde765266be
-  languageName: node
-  linkType: hard
-
 "@rollup/plugin-commonjs@npm:^29.0.0":
   version: 29.0.0
   resolution: "@rollup/plugin-commonjs@npm:29.0.0"
@@ -1004,6 +988,15 @@ __metadata:
   version: 7.0.15
   resolution: "@types/json-schema@npm:7.0.15"
   checksum: 10c0/a996a745e6c5d60292f36731dd41341339d4eeed8180bb09226e5c8d23759067692b1d88e5d91d72ee83dfc00d3aca8e7bd43ea120516c17922cbcb7c3e252db
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^22.10.5":
+  version: 22.19.3
+  resolution: "@types/node@npm:22.19.3"
+  dependencies:
+    undici-types: "npm:~6.21.0"
+  checksum: 10c0/a30a75d503da795ddbd5f8851014f3e91925c2a63fa3f14128d54c998f25d682dfba96dc9589c73cf478b87a16d88beb790b11697bb8cd5bee913079237a58f2
   languageName: node
   linkType: hard
 
@@ -1452,17 +1445,17 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ecies-lib-showcase@workspace:."
   dependencies:
-    "@digitaldefiance/ecies-lib": "npm:^4.5.18"
+    "@digitaldefiance/ecies-lib": "npm:^4.7.0"
     "@digitaldefiance/i18n-lib": "npm:^3.8.16"
     "@eslint/js": "npm:^9.39.1"
     "@ethereumjs/wallet": "npm:^10.0.0"
     "@noble/curves": "npm:1.9.0"
     "@noble/hashes": "npm:1.8.0"
-    "@rollup/plugin-alias": "npm:^6.0.0"
     "@rollup/plugin-commonjs": "npm:^29.0.0"
     "@rollup/plugin-node-resolve": "npm:^16.0.3"
     "@scure/bip32": "npm:1.7.0"
     "@scure/bip39": "npm:^1.5.0"
+    "@types/node": "npm:^22.10.5"
     "@types/react": "npm:^19.2.5"
     "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react": "npm:^5.1.1"
@@ -2937,11 +2930,11 @@ __metadata:
   linkType: hard
 
 "ts-api-utils@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "ts-api-utils@npm:2.1.0"
+  version: 2.3.0
+  resolution: "ts-api-utils@npm:2.3.0"
   peerDependencies:
     typescript: ">=4.8.4"
-  checksum: 10c0/9806a38adea2db0f6aa217ccc6bc9c391ddba338a9fe3080676d0d50ed806d305bb90e8cef0276e793d28c8a929f400abb184ddd7ff83a416959c0f4d2ce754f
+  checksum: 10c0/9f2aadb8ac55926c79db03e37ee3b014135923d1705f6868b9e787e6b8822d2fd8e19df2f9002563f4e6268c994425ddaad61df24d0dad833a4be9f26f789213
   languageName: node
   linkType: hard
 
@@ -3000,6 +2993,13 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10c0/ad09fdf7a756814dce65bc60c1657b40d44451346858eea230e10f2e95a289d9183b6e32e5c11e95acc0ccc214b4f36289dcad4bf1886b0adb84d711d336a430
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.21.0":
+  version: 6.21.0
+  resolution: "undici-types@npm:6.21.0"
+  checksum: 10c0/c01ed51829b10aa72fc3ce64b747f8e74ae9b60eafa19a7b46ef624403508a54c526ffab06a14a26b3120d055e1104d7abe7c9017e83ced038ea5cf52f8d5e04
   languageName: node
   linkType: hard
 

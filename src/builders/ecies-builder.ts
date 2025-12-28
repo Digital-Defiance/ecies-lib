@@ -11,7 +11,7 @@ import { ECIESService } from '../services/ecies/service';
 export class ECIESBuilder {
   private serviceConfig: Partial<IECIESConfig> = {};
   private eciesConsts: Partial<IECIESConstants> = {};
-  private i18n?: PluginI18nEngine<string>;
+  private _i18n?: PluginI18nEngine<string>;
 
   static create(): ECIESBuilder {
     return new ECIESBuilder();
@@ -28,7 +28,7 @@ export class ECIESBuilder {
   }
 
   withI18n(engine: PluginI18nEngine<string>): this {
-    this.i18n = engine;
+    this._i18n = engine;
     return this;
   }
 

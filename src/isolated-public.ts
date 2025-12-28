@@ -34,8 +34,9 @@ export class IsolatedPublicKey
 
   /**
    * Original instance ID generated at construction time
+   * @deprecated Currently unused, may be used for instance tracking in future
    */
-  private readonly _originalInstanceId: Uint8Array;
+  private readonly ___originalInstanceId: Uint8Array;
 
   /**
    * Current instance ID (can be updated via updateInstanceId())
@@ -44,8 +45,9 @@ export class IsolatedPublicKey
 
   /**
    * Unique salt used for instance ID generation
+   * @deprecated Currently stored but not actively used
    */
-  private readonly uniqueInstanceSalt: Uint8Array;
+  private readonly __uniqueInstanceSalt: Uint8Array;
 
   /**
    * Updates the current instance ID to a new random value.
@@ -91,7 +93,10 @@ export class IsolatedPublicKey
    * Async SHA-256 hash using Web Crypto API
    */
   private async sha256Async(data: Uint8Array): Promise<Uint8Array> {
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashBuffer = await crypto.subtle.digest(
+      'SHA-256',
+      data as BufferSource,
+    );
     return new Uint8Array(hashBuffer);
   }
 
@@ -125,11 +130,11 @@ export class IsolatedPublicKey
     // Generate unique salt for this instance
     const uniqueInstanceSalt = new Uint8Array(32);
     crypto.getRandomValues(uniqueInstanceSalt);
-    this.uniqueInstanceSalt = uniqueInstanceSalt;
+    this.__uniqueInstanceSalt = uniqueInstanceSalt;
 
     // Generate instance IDs (this is problematic with sync constructor)
     // We'll need to handle this differently
-    this._originalInstanceId = new Uint8Array(32); // Placeholder
+    this.___originalInstanceId = new Uint8Array(32); // Placeholder
     this._currentInstanceId = new Uint8Array(32); // Placeholder
 
     // TODO: This needs to be refactored to use async factory method
@@ -164,13 +169,13 @@ export class IsolatedPublicKey
     const instanceId = await key.sha256Async(combined);
 
     // Use Object.defineProperty to set readonly fields
-    Object.defineProperty(key, 'uniqueInstanceSalt', {
+    Object.defineProperty(key, '_uniqueInstanceSalt', {
       value: uniqueInstanceSalt,
       writable: false,
       enumerable: true,
       configurable: false,
     });
-    Object.defineProperty(key, '_originalInstanceId', {
+    Object.defineProperty(key, '__originalInstanceId', {
       value: instanceId,
       writable: false,
       enumerable: false,
@@ -203,13 +208,13 @@ export class IsolatedPublicKey
     const uniqueInstanceSalt = new Uint8Array(0);
 
     // Use Object.defineProperty to set readonly fields
-    Object.defineProperty(key, 'uniqueInstanceSalt', {
+    Object.defineProperty(key, '_uniqueInstanceSalt', {
       value: uniqueInstanceSalt,
       writable: false,
       enumerable: true,
       configurable: false,
     });
-    Object.defineProperty(key, '_originalInstanceId', {
+    Object.defineProperty(key, '__originalInstanceId', {
       value: instanceId,
       writable: false,
       enumerable: false,

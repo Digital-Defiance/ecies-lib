@@ -25,6 +25,37 @@ BigInt.prototype.toJSON = function () {
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 jest.setTimeout(30000);
 
+// Global test logging
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+beforeEach(() => {
+  if (!process.env.VERBOSE_TESTS) return;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+  const testName = expect.getState().currentTestName;
+  if (testName) {
+    const msg = `\n▶ ${testName}\n`;
+    process.stderr.write(msg);
+    // @ts-expect-error - Force flush
+    if (
+      process.stderr._handle &&
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      typeof process.stderr._handle.setBlocking === 'function'
+    ) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      process.stderr._handle.setBlocking(true);
+    }
+  }
+});
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+afterEach(() => {
+  if (!process.env.VERBOSE_TESTS) return;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+  const testName = expect.getState().currentTestName;
+  if (testName) {
+    process.stderr.write(`✓ ${testName}\n`);
+  }
+});
+
 // Re-export the matcher
 export { toThrowType };
 

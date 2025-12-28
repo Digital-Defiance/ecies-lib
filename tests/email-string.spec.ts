@@ -1,4 +1,4 @@
-import validator from 'validator';
+import * as validator from 'validator';
 import { EmailString } from '../src/email-string';
 import { InvalidEmailErrorType } from '../src/enumerations/invalid-email-type';
 import { InvalidEmailError } from '../src/errors/invalid-email';

@@ -1,12 +1,12 @@
+import { Wallet } from '@ethereumjs/wallet';
+import { faker } from '@faker-js/faker';
+import { ObjectId } from 'bson';
 import {
   EmailString,
   MemberType,
   SecureBuffer,
   SecureString,
 } from '@digitaldefiance/ecies-lib';
-import { Wallet } from '@ethereumjs/wallet';
-import { faker } from '@faker-js/faker';
-import { ObjectId } from 'bson';
 import type { IFrontendMemberOperational } from '../interfaces/frontend-member-operational';
 import { SignatureUint8Array } from '../types';
 

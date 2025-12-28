@@ -580,7 +580,7 @@ export class EciesSingleRecipient {
     );
   }
 
-  private arraysEqual(a: Uint8Array, b: Uint8Array): boolean {
+  private _arraysEqual(a: Uint8Array, b: Uint8Array): boolean {
     if (a.length !== b.length) return false;
 
     // Constant-time comparison to prevent timing attacks

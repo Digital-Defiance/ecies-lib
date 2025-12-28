@@ -29,9 +29,9 @@ export class MultiRecipientProcessor {
    */
   constructor(
     private readonly ecies: ECIESService,
-    private readonly config: IConstants = Constants,
+    private readonly _config: IConstants = Constants,
   ) {
-    this.recipientIdSize = config.idProvider.byteLength;
+    this.recipientIdSize = _config.idProvider.byteLength;
     this.constants = getMultiRecipientConstants(this.recipientIdSize);
   }
 

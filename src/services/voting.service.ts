@@ -156,7 +156,9 @@ export function lcm(a: bigint, b: bigint): bigint {
  * @param compressedKey - 33 bytes (1 byte prefix + 32 bytes x-coordinate)
  * @returns 65 bytes uncompressed key (0x04 + x + y)
  */
-function _decompressSecp256k1PublicKey(compressedKey: Uint8Array): Uint8Array {
+function ___decompressSecp256k1PublicKey(
+  compressedKey: Uint8Array,
+): Uint8Array {
   if (compressedKey.length !== 33) {
     throw new Error(
       `Invalid compressed key length: expected 33 bytes, got ${compressedKey.length}`,
@@ -236,7 +238,7 @@ export async function hkdf(
   // Import key material
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
-    secret,
+    secret as BufferSource,
     { name: 'HKDF' },
     false,
     ['deriveBits'],
@@ -247,7 +249,7 @@ export async function hkdf(
     {
       name: 'HKDF',
       hash: hmacAlgorithm,
-      salt: salt || new Uint8Array(0),
+      salt: (salt || new Uint8Array(0)) as BufferSource,
       info: new TextEncoder().encode(info),
     },
     keyMaterial,
@@ -273,7 +275,7 @@ export class SecureDeterministicDRBG {
   private readonly hmacAlgorithm: string;
   private readonly hashLength: number;
 
-  private constructor(seed: Uint8Array, hmacAlgorithm: string = 'SHA-512') {
+  private constructor(__seed: Uint8Array, hmacAlgorithm: string = 'SHA-512') {
     this.hmacAlgorithm = hmacAlgorithm;
     // SHA-512 = 64 bytes, SHA-256 = 32 bytes
     this.hashLength = hmacAlgorithm === 'SHA-512' ? 64 : 32;
@@ -301,12 +303,16 @@ export class SecureDeterministicDRBG {
   ): Promise<Uint8Array> {
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
-      key,
+      key as BufferSource,
       { name: 'HMAC', hash: this.hmacAlgorithm },
       false,
       ['sign'],
     );
-    const signature = await crypto.subtle.sign('HMAC', cryptoKey, data);
+    const signature = await crypto.subtle.sign(
+      'HMAC',
+      cryptoKey,
+      data as BufferSource,
+    );
     return new Uint8Array(signature);
   }
 
@@ -599,7 +605,7 @@ export async function deriveVotingKeysFromECDH(
   );
 
   // Remove the 0x04 prefix from shared secret (getSharedSecret returns uncompressed point)
-  const _sharedSecretBytes = sharedSecret.slice(1);
+  const ___sharedSecretBytes = sharedSecret.slice(1);
 
   // Derive seed using HKDF
   const seed = await hkdf(
@@ -1128,7 +1134,10 @@ export class VotingService implements IVotingService {
   }
 
   private async sha256(data: Uint8Array): Promise<Uint8Array> {
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashBuffer = await crypto.subtle.digest(
+      'SHA-256',
+      data as BufferSource,
+    );
     return new Uint8Array(hashBuffer);
   }
 

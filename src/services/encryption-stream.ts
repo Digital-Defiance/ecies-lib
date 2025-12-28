@@ -50,14 +50,14 @@ export class EncryptionStream {
   private readonly multiRecipientProcessor: MultiRecipientProcessor;
 
   constructor(
-    private readonly ecies: ECIESService,
+    private readonly _ecies: ECIESService,
     private readonly config: IStreamConfig = DEFAULT_STREAM_CONFIG,
-    private readonly eciesConsts: IECIESConstants = Constants.ECIES,
+    private readonly _eciesConsts: IECIESConstants = Constants.ECIES,
     private readonly constants: IConstants = Constants,
   ) {
-    this.processor = new ChunkProcessor(ecies, eciesConsts);
+    this.processor = new ChunkProcessor(_ecies, _eciesConsts);
     this.multiRecipientProcessor = new MultiRecipientProcessor(
-      ecies,
+      _ecies,
       constants,
     );
   }
