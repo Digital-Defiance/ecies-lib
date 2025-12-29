@@ -10,6 +10,7 @@ export const RankedChoiceDemo = () => {
   const [bulletinBoard, setBulletinBoard] = useState<PublicBulletinBoard | null>(null);
   const [voters] = useState(['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace']);
   const [votes, setVotes] = useState<Map<string, number[]>>(new Map());
+  const [submittedVoters, setSubmittedVoters] = useState<Set<string>>(new Set());
   const [results, setResults] = useState<PollResults | null>(null);
   const { isInitializing, setIsInitializing, isTallying, withTallying } = useVotingDemo();
   const [showIntro, setShowIntro] = useState(true);
@@ -86,6 +87,9 @@ export const RankedChoiceDemo = () => {
     const voterIdHash = new Uint8Array(await crypto.subtle.digest('SHA-256', new Uint8Array(voter.id)));
     const encryptedVote = vote.encrypted;
     bulletinBoard.publishVote(poll.id, encryptedVote, voterIdHash);
+    
+    // Mark voter as submitted
+    setSubmittedVoters(new Set(submittedVoters).add(voterName));
   };
 
   const tallyVotes = () => withTallying(async () => {
@@ -94,6 +98,20 @@ export const RankedChoiceDemo = () => {
     poll.close();
     const tallier = new PollTallier(authority, authority.votingPrivateKey, authority.votingPublicKey);
     const result = tallier.tally(poll);
+    
+    // Debug logging
+    console.log('Tally Results:', {
+      winner: result.winner,
+      rounds: result.rounds?.map(r => ({
+        round: r.round,
+        tallies: r.tallies.map(t => t.toString()),
+        eliminated: r.eliminated,
+        winner: r.winner
+      })),
+      finalTallies: result.tallies.map(t => t.toString()),
+      voterCount: result.voterCount
+    });
+    
     setResults(result);
     
     // Publish tally proof to bulletin board
@@ -111,6 +129,7 @@ export const RankedChoiceDemo = () => {
     const newPoll = PollFactory.createRankedChoice(candidates.map(c => c.name), authority);
     setPoll(newPoll);
     setVotes(new Map());
+    setSubmittedVoters(new Set());
     setResults(null);
     setBulletinBoard(new PublicBulletinBoard(authority));
   };
@@ -142,7 +161,7 @@ export const RankedChoiceDemo = () => {
     );
   }
 
-  const votedVoters = voters.filter(v => votes.has(v));
+  const votedVoters = Array.from(submittedVoters);
 
   return (
     <div className="voting-demo">
@@ -169,7 +188,7 @@ export const RankedChoiceDemo = () => {
           <div className="voters-section">
             <h4>Rank Your Preferences ({votedVoters.length}/{voters.length} voted)</h4>
             {voters.map(voter => {
-              const hasVoted = votedVoters.includes(voter);
+              const hasVoted = submittedVoters.has(voter);
               const rankings = votes.get(voter) || [];
               const availableCandidates = candidates.filter((_, idx) => !rankings.includes(idx));
               
