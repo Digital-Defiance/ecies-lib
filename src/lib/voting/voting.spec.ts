@@ -289,6 +289,37 @@ describe('Voting System - Comprehensive Tests', () => {
       expect(results.winner).toBe(0);
       expect(results.rounds).toHaveLength(1);
     });
+
+    test('should handle first-round majority with 4 candidates (showcase scenario)', () => {
+      const poll = PollFactory.createRankedChoice(
+        ['Progressive', 'Conservative', 'Libertarian', 'Green'],
+        authority,
+      );
+
+      // 5 voters choose Progressive first (majority of 7)
+      for (let i = 0; i < 5; i++) {
+        poll.vote(voters[i], encoder.encodeRankedChoice([0, 1, 2, 3], 4));
+      }
+      // 2 voters choose Conservative first
+      for (let i = 5; i < 7; i++) {
+        poll.vote(voters[i], encoder.encodeRankedChoice([1, 0, 2, 3], 4));
+      }
+
+      poll.close();
+      const results = tallier.tally(poll);
+
+      // Progressive should win in round 1 with 5 votes (>50% of 7)
+      expect(results.winner).toBe(0);
+      expect(results.rounds).toBeDefined();
+      expect(results.rounds).toHaveLength(1);
+      expect(results.rounds![0].round).toBe(1);
+      expect(results.rounds![0].tallies[0]).toBe(5n); // Progressive
+      expect(results.rounds![0].tallies[1]).toBe(2n); // Conservative
+      expect(results.rounds![0].tallies[2]).toBe(0n); // Libertarian
+      expect(results.rounds![0].tallies[3]).toBe(0n); // Green
+      expect(results.rounds![0].winner).toBe(0);
+      expect(results.rounds![0].eliminated).toBeUndefined();
+    });
   });
 
   describe('Two-Round Voting', () => {

@@ -272,32 +272,40 @@ export const RankedChoiceDemo = () => {
         <div className="results-section">
           <h4>🏆 Instant Runoff Results</h4>
           
-          {results.rounds && results.rounds.length > 1 && (
+          {results.rounds && results.rounds.length > 0 && (
             <div className="rounds-section">
               <h5>Elimination Rounds</h5>
-              {results.rounds.map((round, roundIdx) => (
-                <div key={roundIdx} className="round-result">
-                  <strong>Round {round.round}</strong>
-                  <div className="round-tallies">
-                    {candidates.map((candidate, idx) => {
-                      const tally = Number(round.tallies[idx]);
-                      const isEliminated = round.eliminated === idx;
-                      const isWinner = round.winner === idx;
-                      
-                      if (tally === 0 && roundIdx > 0) return null;
-                      
-                      return (
-                        <div key={idx} className={`round-tally ${isEliminated ? 'eliminated' : ''} ${isWinner ? 'winner' : ''}`}>
-                          <span>{candidate.emoji} {candidate.name}</span>
-                          <span>{tally} votes</span>
-                          {isEliminated && <span className="eliminated-badge">Eliminated</span>}
-                          {isWinner && <span className="winner-badge">Winner!</span>}
-                        </div>
-                      );
-                    })}
+              {results.rounds.map((round, roundIdx) => {
+                const eliminatedInPriorRounds = new Set(
+                  results.rounds!.slice(0, roundIdx).map(r => r.eliminated).filter(e => e !== undefined)
+                );
+                
+                return (
+                  <div key={roundIdx} className="round-result">
+                    <strong>Round {round.round}</strong>
+                    <div className="round-tallies">
+                      {candidates.map((candidate, idx) => {
+                        const tally = Number(round.tallies[idx]);
+                        const isEliminated = round.eliminated === idx;
+                        const isWinner = round.winner === idx;
+                        const wasEliminatedBefore = eliminatedInPriorRounds.has(idx);
+                        
+                        // Don't show candidates eliminated in prior rounds
+                        if (wasEliminatedBefore) return null;
+                        
+                        return (
+                          <div key={idx} className={`round-tally ${isEliminated ? 'eliminated' : ''} ${isWinner ? 'winner' : ''}`}>
+                            <span>{candidate.emoji} {candidate.name}</span>
+                            <span>{tally} votes</span>
+                            {isEliminated && <span className="eliminated-badge">Eliminated</span>}
+                            {isWinner && <span className="winner-badge">Winner!</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
