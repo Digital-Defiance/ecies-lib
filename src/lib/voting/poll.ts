@@ -91,9 +91,10 @@ export class VotingPoll {
     const receipt = new Uint8Array(hash.length + signature.length);
     receipt.set(hash, 0);
     receipt.set(signature, hash.length);
+    // Encrypt to the poll's public key so the poll can decrypt and verify later
     const encryptedReceipt = await this.eciesService.encryptSimpleOrSingle(
       false,
-      member.publicKey,
+      this.ecKeyPair.publicKey,
       receipt,
     );
     this.receipts.set(memberId, encryptedReceipt);

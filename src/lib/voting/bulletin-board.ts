@@ -397,7 +397,10 @@ export class PublicBulletinBoard implements BulletinBoard {
   }
 
   private getMicrosecondTimestamp(): number {
-    return Math.floor(performance.now() * 1000) + Date.now() * 1000;
+    // Get milliseconds since epoch and convert to microseconds
+    // performance.now() is relative to process start, not epoch, so we only use Date.now()
+    const now = Date.now();
+    return now * 1000;
   }
 
   private sha256(data: Uint8Array): Uint8Array {

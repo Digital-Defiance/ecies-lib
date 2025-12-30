@@ -165,7 +165,7 @@ describe('PollEventLogger', () => {
 
       const before = Date.now() * 1000;
       const entry = logger.logVoteCast(pollId, new Uint8Array([2]));
-      const after = Date.now() * 1000 + 10000000; // +10 seconds
+      const after = Date.now() * 1000 + 1000; // Add 1ms buffer
 
       expect(entry.timestamp).toBeGreaterThanOrEqual(before);
       expect(entry.timestamp).toBeLessThanOrEqual(after);

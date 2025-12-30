@@ -68,7 +68,7 @@ describe('PublicBulletinBoard', () => {
 
       const before = Date.now() * 1000;
       const entry = board.publishVote(pollId, vote, hash);
-      const after = Date.now() * 1000 + 10000000; // +10 seconds for safety
+      const after = Date.now() * 1000 + 1000; // Add 1ms buffer
 
       expect(entry.timestamp).toBeGreaterThanOrEqual(before);
       expect(entry.timestamp).toBeLessThanOrEqual(after);
@@ -178,7 +178,7 @@ describe('PublicBulletinBoard', () => {
 
       const before = Date.now() * 1000;
       const proof = board.publishTally(pollId, tallies, choices, votes);
-      const after = Date.now() * 1000 + 10000000; // +10 seconds for safety
+      const after = Date.now() * 1000 + 1000; // Add 1ms buffer
 
       expect(proof.timestamp).toBeGreaterThanOrEqual(before);
       expect(proof.timestamp).toBeLessThanOrEqual(after);

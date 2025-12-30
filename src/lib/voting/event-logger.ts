@@ -269,7 +269,10 @@ export class PollEventLogger implements EventLogger {
   }
 
   private getMicrosecondTimestamp(): number {
-    return Math.floor(performance.now() * 1000) + Date.now() * 1000;
+    // Get milliseconds since epoch and convert to microseconds
+    // performance.now() is relative to process start, not epoch, so we only use Date.now()
+    const now = Date.now();
+    return now * 1000;
   }
 
   private encodeNumber(n: number): Uint8Array {
