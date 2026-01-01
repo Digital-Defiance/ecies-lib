@@ -5,6 +5,7 @@ import {
 } from '../../enumerations/ecies-encryption-type';
 import { EciesStringKey } from '../../enumerations/ecies-string-key';
 import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import { IConstants } from '../../interfaces/constants';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
 import { SecureString } from '../../secure-string';
@@ -35,10 +36,26 @@ export class ECIESService {
   protected readonly votingService: VotingService;
 
   constructor(
-    config?: Partial<IECIESConfig>,
+    config?: Partial<IECIESConfig> | IConstants,
     eciesParams: IECIESConstants = Constants.ECIES,
   ) {
     this.eciesConsts = eciesParams;
+    
+    // Type guard to check if config is IConstants
+    const isFullConfig = config && typeof config === 'object' && 'ECIES' in config && 'idProvider' in config;
+    
+    // Extract ECIES config from IConstants or use config directly
+    const eciesConfig: Partial<IECIESConfig> = isFullConfig
+      ? {
+          curveName: (config as IConstants).ECIES.CURVE_NAME,
+          primaryKeyDerivationPath: (config as IConstants).ECIES.PRIMARY_KEY_DERIVATION_PATH,
+          mnemonicStrength: (config as IConstants).ECIES.MNEMONIC_STRENGTH,
+          symmetricAlgorithm: (config as IConstants).ECIES.SYMMETRIC.ALGORITHM,
+          symmetricKeyBits: (config as IConstants).ECIES.SYMMETRIC.KEY_BITS,
+          symmetricKeyMode: (config as IConstants).ECIES.SYMMETRIC.MODE,
+        }
+      : (config as Partial<IECIESConfig> | undefined) || {};
+    
     this._config = {
       curveName: this.eciesConsts.CURVE_NAME,
       primaryKeyDerivationPath: this.eciesConsts.PRIMARY_KEY_DERIVATION_PATH,
@@ -46,7 +63,7 @@ export class ECIESService {
       symmetricAlgorithm: this.eciesConsts.SYMMETRIC.ALGORITHM,
       symmetricKeyBits: this.eciesConsts.SYMMETRIC.KEY_BITS,
       symmetricKeyMode: this.eciesConsts.SYMMETRIC.MODE,
-      ...config,
+      ...eciesConfig,
     };
 
     // Initialize components

@@ -194,6 +194,8 @@ const config = createRuntimeConfiguration({
 });
 
 // 3. Initialize Service
+// The constructor accepts either IConstants (from createRuntimeConfiguration)
+// or Partial<IECIESConfig> for backward compatibility
 const ecies = new ECIESService(config);
 
 // 4. Generate Keys
@@ -222,6 +224,7 @@ const config = createRuntimeConfiguration({
   idProvider: new GuidV4Provider()
 });
 
+// Pass IConstants directly to the constructor
 const ecies = new ECIESService(config);
 const id = config.idProvider.generate(); // Returns 16-byte Uint8Array
 ```
@@ -270,6 +273,30 @@ console.log(member.id); // Uint8Array (size depends on provider)
 // Encrypt data for this member
 const encrypted = await member.encryptData('My Secrets');
 ```
+
+### Constructor Signature Flexibility
+
+The `ECIESService` constructor accepts two types of configuration:
+
+1. **`IConstants`** (from `createRuntimeConfiguration`): Complete runtime configuration including ID provider and all cryptographic constants
+2. **`Partial<IECIESConfig>`**: ECIES-specific configuration only (for backward compatibility)
+
+```typescript
+// Option 1: Pass IConstants (recommended)
+const config = createRuntimeConfiguration({ idProvider: new GuidV4Provider() });
+const ecies = new ECIESService(config);
+
+// Option 2: Pass Partial<IECIESConfig> (legacy)
+const ecies = new ECIESService({
+  curveName: 'secp256k1',
+  symmetricAlgorithm: 'aes-256-gcm'
+});
+
+// Option 3: Use defaults
+const ecies = new ECIESService();
+```
+
+This flexibility ensures backward compatibility while enabling the documented usage pattern with `createRuntimeConfiguration`.
 
 ## ID Providers and Members: Deep Dive
 
@@ -663,6 +690,10 @@ class MemberService {
 ### Core Services
 
 - **`ECIESService`**: The main entry point for encryption/decryption operations.
+  - **Constructor**: `constructor(config?: Partial<IECIESConfig> | IConstants, eciesParams?: IECIESConstants)`
+    - Accepts either `IConstants` (from `createRuntimeConfiguration`) or `Partial<IECIESConfig>` for backward compatibility
+    - When `IConstants` is provided, ECIES configuration is automatically extracted
+    - Optional `eciesParams` provides default values for any missing configuration
 - **`EciesCryptoCore`**: Low-level cryptographic primitives (keys, signatures, ECDH).
 - **`EciesMultiRecipient`**: Specialized service for handling multi-recipient messages.
 - **`EciesFileService`**: Helper for chunked file encryption.

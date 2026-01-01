@@ -1,8 +1,10 @@
 import { ECIES } from '../../../src/constants';
+import { createRuntimeConfiguration } from '../../../src/constants';
 import {
   EciesEncryptionTypeEnum,
   EciesStringKey,
 } from '../../../src/enumerations';
+import { GuidV4Provider } from '../../../src/lib/id-providers';
 import { ECIESService } from '../../../src/services/ecies/service';
 import { englishTranslations } from '../../../src/translations/en-US';
 
@@ -133,6 +135,115 @@ describe('ECIESService', () => {
             .Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode
         ],
       );
+    });
+  });
+
+  describe('Constructor Signature', () => {
+    describe('IConstants acceptance', () => {
+      it('should accept IConstants from createRuntimeConfiguration without TypeScript errors', () => {
+        const config = createRuntimeConfiguration({
+          idProvider: new GuidV4Provider(),
+        });
+        
+        // This should compile without type errors
+        const service = new ECIESService(config);
+        
+        expect(service).toBeInstanceOf(ECIESService);
+        expect(service.config).toBeDefined();
+      });
+
+      it('should correctly extract ECIES config from IConstants', () => {
+        const config = createRuntimeConfiguration({
+          idProvider: new GuidV4Provider(),
+        });
+        
+        const service = new ECIESService(config);
+        
+        // Verify that ECIES config was correctly extracted
+        expect(service.config.curveName).toBe(config.ECIES.CURVE_NAME);
+        expect(service.config.symmetricAlgorithm).toBe(config.ECIES.SYMMETRIC.ALGORITHM);
+        expect(service.config.symmetricKeyBits).toBe(config.ECIES.SYMMETRIC.KEY_BITS);
+        expect(service.config.symmetricKeyMode).toBe(config.ECIES.SYMMETRIC.MODE);
+      });
+    });
+
+    describe('Partial<IECIESConfig> acceptance', () => {
+      it('should accept Partial<IECIESConfig> without TypeScript errors', () => {
+        const config = {
+          curveName: 'secp256k1',
+          symmetricAlgorithm: 'aes-256-gcm',
+        };
+        
+        // This should compile without type errors
+        const service = new ECIESService(config);
+        
+        expect(service).toBeInstanceOf(ECIESService);
+        expect(service.config.curveName).toBe('secp256k1');
+        expect(service.config.symmetricAlgorithm).toBe('aes-256-gcm');
+      });
+
+      it('should merge partial config with defaults', () => {
+        const config = {
+          curveName: 'secp256k1',
+        };
+        
+        const service = new ECIESService(config);
+        
+        expect(service.config.curveName).toBe('secp256k1');
+        expect(service.config.symmetricAlgorithm).toBe(ECIES.SYMMETRIC.ALGORITHM);
+      });
+    });
+
+    describe('No parameters', () => {
+      it('should use defaults when no config is provided', () => {
+        const service = new ECIESService();
+        
+        expect(service.config.curveName).toBe(ECIES.CURVE_NAME);
+        expect(service.config.symmetricAlgorithm).toBe(ECIES.SYMMETRIC.ALGORITHM);
+      });
+    });
+
+    describe('Backward compatibility', () => {
+      it('should maintain existing behavior with Partial<IECIESConfig>', () => {
+        const config = {
+          curveName: 'secp256k1',
+          symmetricAlgorithm: 'aes-256-gcm',
+          symmetricKeyBits: 256,
+        };
+        
+        const service = new ECIESService(config);
+        
+        // Verify service is correctly initialized
+        expect(service.config.curveName).toBe('secp256k1');
+        expect(service.config.symmetricAlgorithm).toBe('aes-256-gcm');
+        expect(service.config.symmetricKeyBits).toBe(256);
+        
+        // Verify service functionality works
+        const mnemonic = service.generateNewMnemonic();
+        expect(mnemonic.value?.split(' ').length).toBe(24);
+      });
+
+      it('should work with existing usage patterns', async () => {
+        const service = new ECIESService();
+        
+        const recipientMnemonic = service.generateNewMnemonic();
+        const recipientKeyPair = service.mnemonicToSimpleKeyPair(recipientMnemonic);
+        const message = new TextEncoder().encode('Test message');
+        
+        const encrypted = await service.encryptSimpleOrSingle(
+          true,
+          recipientKeyPair.publicKey,
+          message,
+        );
+        
+        const decrypted = await service.decryptSimpleOrSingleWithHeader(
+          true,
+          recipientKeyPair.privateKey,
+          encrypted,
+        );
+        
+        expect(new TextDecoder().decode(decrypted)).toBe('Test message');
+      });
     });
   });
 });
