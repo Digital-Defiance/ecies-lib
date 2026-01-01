@@ -256,4 +256,70 @@ describe('ECIESService', () => {
       });
     });
   });
+
+  describe('idProvider Configuration', () => {
+    describe('IConstants preservation', () => {
+      it('should preserve GuidV4Provider when configured', () => {
+        const config = createRuntimeConfiguration({
+          idProvider: new GuidV4Provider(),
+        });
+        const service = new ECIESService(config);
+
+        expect(service.constants).toBeDefined();
+        expect(service.constants.idProvider).toBe(config.idProvider);
+        expect(service.constants.idProvider.byteLength).toBe(16);
+      });
+
+      it('should preserve ObjectIdProvider when configured', () => {
+        const config = createRuntimeConfiguration({
+          idProvider: new GuidV4Provider(),
+        });
+        const service = new ECIESService(config);
+
+        expect(service.constants).toBeDefined();
+        expect(service.constants.idProvider).toBe(config.idProvider);
+        expect(service.constants.idProvider.byteLength).toBe(16);
+      });
+
+      it('should use default Constants for Partial<IECIESConfig>', () => {
+        const partialConfig = {
+          curveName: 'secp256k1' as const,
+          symmetricAlgorithm: 'aes-256-gcm' as const,
+        };
+        const service = new ECIESService(partialConfig);
+
+        expect(service.constants.idProvider.byteLength).toBe(12); // Default ObjectIdProvider
+      });
+    });
+
+    describe('config property backward compatibility', () => {
+      it('should return IECIESConfig without idProvider', () => {
+        const config = createRuntimeConfiguration({
+          idProvider: new GuidV4Provider(),
+        });
+        const service = new ECIESService(config);
+
+        expect(service.config).toBeDefined();
+        expect('idProvider' in service.config).toBe(false);
+        expect(service.config.curveName).toBeDefined();
+        expect(service.config.symmetricAlgorithm).toBeDefined();
+      });
+    });
+
+    describe('constants property', () => {
+      it('should return full IConstants', () => {
+        const config = createRuntimeConfiguration({
+          idProvider: new GuidV4Provider(),
+        });
+        const service = new ECIESService(config);
+
+        expect(service.constants).toBeDefined();
+        expect(service.constants.idProvider).toBeDefined();
+        expect(service.constants.ECIES).toBeDefined();
+        expect(service.constants.CHECKSUM).toBeDefined();
+        expect(service.constants.PBKDF2).toBeDefined();
+        expect(service.constants.VOTING).toBeDefined();
+      });
+    });
+  });
 });
