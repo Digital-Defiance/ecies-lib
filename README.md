@@ -306,7 +306,7 @@ The ID provider system is a core architectural feature that enables flexible ide
 
 ### How Member Uses ID Providers
 
-The `Member` class relies on `Constants.idProvider` for three critical operations:
+The `Member` class relies on the `ECIESService`'s configured `idProvider` (accessed via `eciesService.constants.idProvider`) for three critical operations:
 
 1. **ID Generation** - Creating unique identifiers for new members
 2. **Serialization** - Converting binary IDs to strings for storage/transmission
@@ -315,13 +315,16 @@ The `Member` class relies on `Constants.idProvider` for three critical operation
 #### Internal Implementation
 
 ```typescript
-// 1. ID Generation (in Member constructor)
-this._id = id ?? Constants.idProvider.generate();
+// 1. ID Generation (in Member.newMember())
+// Uses the configured idProvider from the ECIESService
+const idProvider = eciesService.constants.idProvider;
+
+const newId = idProvider.generate();
 
 // 2. Serialization (in Member.toJson())
 public toJson(): string {
   const storage = {
-    id: Constants.idProvider.serialize(this._id),  // Uint8Array → string
+    id: this._eciesService.constants.idProvider.serialize(this._id),  // Uint8Array → string
     // ... other fields
   };
   return JSON.stringify(storage);
@@ -330,11 +333,15 @@ public toJson(): string {
 // 3. Deserialization (in Member.fromJson())
 public static fromJson(json: string, eciesService: ECIESService): Member {
   const storage = JSON.parse(json);
-  return new Member(
-    eciesService,
-    // ...
-    Constants.idProvider.deserialize(storage.id),  // string → Uint8Array
-  );
+  const id = eciesService.constants.idProvider.deserialize(storage.id);  // string → Uint8Array
+  
+  // Validates ID length matches configured provider (warns if mismatch)
+  const expectedLength = eciesService.constants.idProvider.byteLength;
+  if (id.length !== expectedLength) {
+    console.warn(`Member ID length mismatch...`);
+  }
+  
+  return new Member(eciesService, /* ... */, id);
 }
 ```
 
@@ -490,28 +497,32 @@ console.log(restored.id); // Uint8Array(12) [80, 127, 31, 119, ...]
 #### Working with Member IDs
 
 ```typescript
-import { Member, Constants } from '@digitaldefiance/ecies-lib';
+import { Member, ECIESService, createRuntimeConfiguration, GuidV4Provider } from '@digitaldefiance/ecies-lib';
 
-const { member } = Member.newMember(/* ... */);
+// Create service with custom idProvider
+const config = createRuntimeConfiguration({ idProvider: new GuidV4Provider() });
+const ecies = new ECIESService(config);
+
+const { member } = Member.newMember(ecies, /* ... */);
 
 // Get binary ID
 const binaryId: Uint8Array = member.id;
 
-// Convert to string for display/storage
-const stringId = Constants.idProvider.serialize(member.id);
+// Convert to string for display/storage (uses service's configured idProvider)
+const stringId = ecies.constants.idProvider.serialize(member.id);
 console.log(`Member ID: ${stringId}`);
 
 // Convert string back to binary
-const restoredId = Constants.idProvider.deserialize(stringId);
+const restoredId = ecies.constants.idProvider.deserialize(stringId);
 
 // Compare IDs (constant-time comparison)
-const isEqual = Constants.idProvider.equals(member.id, restoredId);
+const isEqual = ecies.constants.idProvider.equals(member.id, restoredId);
 
 // Validate ID format
-const isValid = Constants.idProvider.validate(member.id);
+const isValid = ecies.constants.idProvider.validate(member.id);
 
 // Clone ID (defensive copy)
-const idCopy = Constants.idProvider.clone(member.id);
+const idCopy = ecies.constants.idProvider.clone(member.id);
 ```
 
 ### Multi-Recipient Encryption with Different ID Providers
@@ -589,11 +600,11 @@ console.log(config.idProvider.byteLength); // 20
 
 3. **Consistent Configuration**: Use the same ID provider across your entire application to ensure compatibility
 
-4. **Serialization for Storage**: Always use `idProvider.serialize()` when storing IDs in databases or transmitting over networks
+4. **Serialization for Storage**: Always use `ecies.constants.idProvider.serialize()` when storing IDs in databases or transmitting over networks
 
 5. **Validation**: Validate IDs when receiving them from external sources:
    ```typescript
-   if (!Constants.idProvider.validate(receivedId)) {
+   if (!ecies.constants.idProvider.validate(receivedId)) {
      throw new Error('Invalid ID format');
    }
    ```
@@ -607,6 +618,7 @@ console.log(config.idProvider.byteLength); // 20
 ```typescript
 // config.ts
 import { createRuntimeConfiguration, GuidV4Provider, ConstantsRegistry } from '@digitaldefiance/ecies-lib';
+
 
 export const APP_CONFIG_KEY = 'app-config';
 
@@ -657,7 +669,7 @@ const deviceEcies = new ECIESService(deviceConfig);
 #### Pattern 3: ID Provider Abstraction Layer
 
 ```typescript
-import { Constants, Member, ECIESService } from '@digitaldefiance/ecies-lib';
+import { Member, ECIESService, MemberType, EmailString } from '@digitaldefiance/ecies-lib';
 
 class MemberService {
   constructor(private ecies: ECIESService) {}
@@ -672,15 +684,15 @@ class MemberService {
   }
 
   serializeMemberId(id: Uint8Array): string {
-    return Constants.idProvider.serialize(id);
+    return this.ecies.constants.idProvider.serialize(id);
   }
 
   deserializeMemberId(id: string): Uint8Array {
-    return Constants.idProvider.deserialize(id);
+    return this.ecies.constants.idProvider.deserialize(id);
   }
 
   validateMemberId(id: Uint8Array): boolean {
-    return Constants.idProvider.validate(id);
+    return this.ecies.constants.idProvider.validate(id);
   }
 }
 ```
@@ -694,6 +706,8 @@ class MemberService {
     - Accepts either `IConstants` (from `createRuntimeConfiguration`) or `Partial<IECIESConfig>` for backward compatibility
     - When `IConstants` is provided, ECIES configuration is automatically extracted
     - Optional `eciesParams` provides default values for any missing configuration
+  - **`constants`**: Returns the full `IConstants` configuration including `idProvider`
+  - **`config`**: Returns `IECIESConfig` for backward compatibility
 - **`EciesCryptoCore`**: Low-level cryptographic primitives (keys, signatures, ECDH).
 - **`EciesMultiRecipient`**: Specialized service for handling multi-recipient messages.
 - **`EciesFileService`**: Helper for chunked file encryption.
@@ -947,6 +961,40 @@ The library maintains **100% test coverage** with over 1,200 tests, including:
 - **Property-based Tests**: Fuzzing inputs for robustness.
 
 ## ChangeLog
+
+### v4.7.12
+
+**Bug Fix: idProvider Configuration Now Respected by Member.newMember()**
+
+This release fixes a critical bug where `Member.newMember()` ignored the configured `idProvider` in `ECIESService` and always used the default `Constants.idProvider`.
+
+**What Changed:**
+- `ECIESService` now stores the full `IConstants` configuration (not just `IECIESConfig`)
+- New `ECIESService.constants` getter provides access to the complete configuration including `idProvider`
+- `Member.newMember()` now uses `eciesService.constants.idProvider.generate()` for ID generation
+- `Member.toJson()` and `Member.fromJson()` now use the service's configured `idProvider` for serialization
+- `Member.fromJson()` validates ID length and warns if it doesn't match the configured `idProvider`
+
+**Before (Broken):**
+```typescript
+const config = createRuntimeConfiguration({ idProvider: new GuidV4Provider() });
+const service = new ECIESService(config);
+const { member } = Member.newMember(service, MemberType.User, 'Alice', email);
+console.log(member.id.length); // 12 (wrong - used default ObjectIdProvider)
+```
+
+**After (Fixed):**
+```typescript
+const config = createRuntimeConfiguration({ idProvider: new GuidV4Provider() });
+const service = new ECIESService(config);
+const { member } = Member.newMember(service, MemberType.User, 'Alice', email);
+console.log(member.id.length); // 16 (correct - uses configured GuidV4Provider)
+```
+
+**Backward Compatibility:**
+- Existing code using default `idProvider` continues to work unchanged
+- The `ECIESService.config` getter still returns `IECIESConfig` for backward compatibility
+- `Member.fromJson()` warns but doesn't fail on ID length mismatch (for compatibility with existing serialized data)
 
 ### v4.4.2
 
