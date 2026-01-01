@@ -1,5 +1,4 @@
-import { ECIES } from '../../../src/constants';
-import { createRuntimeConfiguration } from '../../../src/constants';
+import { ECIES, createRuntimeConfiguration } from '../../../src/constants';
 import {
   EciesEncryptionTypeEnum,
   EciesStringKey,
@@ -144,10 +143,10 @@ describe('ECIESService', () => {
         const config = createRuntimeConfiguration({
           idProvider: new GuidV4Provider(),
         });
-        
+
         // This should compile without type errors
         const service = new ECIESService(config);
-        
+
         expect(service).toBeInstanceOf(ECIESService);
         expect(service.config).toBeDefined();
       });
@@ -156,14 +155,20 @@ describe('ECIESService', () => {
         const config = createRuntimeConfiguration({
           idProvider: new GuidV4Provider(),
         });
-        
+
         const service = new ECIESService(config);
-        
+
         // Verify that ECIES config was correctly extracted
         expect(service.config.curveName).toBe(config.ECIES.CURVE_NAME);
-        expect(service.config.symmetricAlgorithm).toBe(config.ECIES.SYMMETRIC.ALGORITHM);
-        expect(service.config.symmetricKeyBits).toBe(config.ECIES.SYMMETRIC.KEY_BITS);
-        expect(service.config.symmetricKeyMode).toBe(config.ECIES.SYMMETRIC.MODE);
+        expect(service.config.symmetricAlgorithm).toBe(
+          config.ECIES.SYMMETRIC.ALGORITHM,
+        );
+        expect(service.config.symmetricKeyBits).toBe(
+          config.ECIES.SYMMETRIC.KEY_BITS,
+        );
+        expect(service.config.symmetricKeyMode).toBe(
+          config.ECIES.SYMMETRIC.MODE,
+        );
       });
     });
 
@@ -173,10 +178,10 @@ describe('ECIESService', () => {
           curveName: 'secp256k1',
           symmetricAlgorithm: 'aes-256-gcm',
         };
-        
+
         // This should compile without type errors
         const service = new ECIESService(config);
-        
+
         expect(service).toBeInstanceOf(ECIESService);
         expect(service.config.curveName).toBe('secp256k1');
         expect(service.config.symmetricAlgorithm).toBe('aes-256-gcm');
@@ -186,20 +191,24 @@ describe('ECIESService', () => {
         const config = {
           curveName: 'secp256k1',
         };
-        
+
         const service = new ECIESService(config);
-        
+
         expect(service.config.curveName).toBe('secp256k1');
-        expect(service.config.symmetricAlgorithm).toBe(ECIES.SYMMETRIC.ALGORITHM);
+        expect(service.config.symmetricAlgorithm).toBe(
+          ECIES.SYMMETRIC.ALGORITHM,
+        );
       });
     });
 
     describe('No parameters', () => {
       it('should use defaults when no config is provided', () => {
         const service = new ECIESService();
-        
+
         expect(service.config.curveName).toBe(ECIES.CURVE_NAME);
-        expect(service.config.symmetricAlgorithm).toBe(ECIES.SYMMETRIC.ALGORITHM);
+        expect(service.config.symmetricAlgorithm).toBe(
+          ECIES.SYMMETRIC.ALGORITHM,
+        );
       });
     });
 
@@ -210,14 +219,14 @@ describe('ECIESService', () => {
           symmetricAlgorithm: 'aes-256-gcm',
           symmetricKeyBits: 256,
         };
-        
+
         const service = new ECIESService(config);
-        
+
         // Verify service is correctly initialized
         expect(service.config.curveName).toBe('secp256k1');
         expect(service.config.symmetricAlgorithm).toBe('aes-256-gcm');
         expect(service.config.symmetricKeyBits).toBe(256);
-        
+
         // Verify service functionality works
         const mnemonic = service.generateNewMnemonic();
         expect(mnemonic.value?.split(' ').length).toBe(24);
@@ -225,23 +234,24 @@ describe('ECIESService', () => {
 
       it('should work with existing usage patterns', async () => {
         const service = new ECIESService();
-        
+
         const recipientMnemonic = service.generateNewMnemonic();
-        const recipientKeyPair = service.mnemonicToSimpleKeyPair(recipientMnemonic);
+        const recipientKeyPair =
+          service.mnemonicToSimpleKeyPair(recipientMnemonic);
         const message = new TextEncoder().encode('Test message');
-        
+
         const encrypted = await service.encryptSimpleOrSingle(
           true,
           recipientKeyPair.publicKey,
           message,
         );
-        
+
         const decrypted = await service.decryptSimpleOrSingleWithHeader(
           true,
           recipientKeyPair.privateKey,
           encrypted,
         );
-        
+
         expect(new TextDecoder().decode(decrypted)).toBe('Test message');
       });
     });
