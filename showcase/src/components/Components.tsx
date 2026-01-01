@@ -4,170 +4,166 @@ import { FaGithub } from "react-icons/fa";
 import { SiNpm } from "react-icons/si";
 import "./Components.css";
 
-interface Component {
+interface Feature {
   title: string;
   description: string;
   icon: string;
   tech: string[];
   github?: string;
   npm?: string;
-  stats?: {
-    tests?: string;
-    coverage?: string;
-  };
   highlights: string[];
-  category:
-    | "Workflow"
-    | "Requirements"
-    | "Testing"
-    | "Integration"
-    | "Management";
+  category: "Crypto" | "Identity" | "Advanced" | "Security" | "Integration" | "Voting";
 }
 
-const components: Component[] = [
+const features: Feature[] = [
   {
-    title: "Structured Workflow",
-    icon: "📋",
+    title: "ECIES v4.0 Protocol",
+    icon: "🛡️",
     description:
-      "Guided spec-driven development through four distinct phases: Requirements → Design → Tasks → Execution. Each phase requires explicit approval before proceeding to ensure quality and correctness at every step.",
-    tech: [
-      "EARS Patterns",
-      "INCOSE Rules",
-      "Phase Approvals",
-      "Progress Tracking",
-    ],
-    category: "Workflow",
+      "Modern ECIES implementation with HKDF-SHA256 key derivation, AAD binding for tamper prevention, and shared ephemeral key optimization for multi-recipient encryption.",
+    tech: ["HKDF-SHA256", "AES-256-GCM", "secp256k1", "AAD Binding"],
+    category: "Crypto",
     highlights: [
-      "Requirements Phase: EARS-compliant user stories with acceptance criteria",
-      "Design Phase: Technical designs with correctness properties",
-      "Tasks Phase: Actionable implementation plans with 2-level hierarchy",
-      "Execution Phase: Task execution with full context loading",
-      "Visual progress tracking with sidebar tree view and status indicators",
+      "HKDF-SHA256: Cryptographically robust key derivation (RFC 5869)",
+      "AAD Binding: Header metadata and recipient IDs bound to encryption context",
+      "Shared Ephemeral Key: Optimized multi-recipient encryption",
+      "Compressed Keys: 33-byte compressed public keys for efficiency",
+      "Three modes: Simple, Single, and Multiple (up to 65,535 recipients)",
     ],
   },
   {
-    title: "EARS Requirements",
-    icon: "✅",
+    title: "Government-Grade Voting",
+    icon: "🗳️",
     description:
-      "All requirements follow the Easy Approach to Requirements Syntax (EARS) with six supported patterns: ubiquitous, event-driven, state-driven, unwanted-event, optional, and complex.",
-    tech: [
-      "EARS Patterns",
-      "User Stories",
-      "Acceptance Criteria",
-      "Validation",
-    ],
-    category: "Requirements",
+      "Comprehensive voting system with homomorphic encryption (Paillier), 17 voting methods, verifiable receipts, and immutable audit logs. 1100+ test cases.",
+    tech: ["Paillier", "Homomorphic", "ECDSA", "Merkle Tree"],
+    category: "Advanced",
     highlights: [
-      "Ubiquitous: 'The system shall...'",
-      "Event-driven: 'WHEN [trigger] THEN the system SHALL [response]'",
-      "State-driven: 'WHILE [state] the system SHALL [behavior]'",
-      "Unwanted-event: 'IF [unwanted condition] THEN the system SHALL...'",
-      "Automatic validation against INCOSE semantic quality rules",
+      "17 voting methods: Plurality, Approval, Ranked Choice, STAR, STV, etc.",
+      "Homomorphic encryption: Votes remain encrypted until tally",
+      "Verifiable receipts: ECDSA signatures for vote verification",
+      "Audit log: Immutable hash-chained audit trail",
+      "Bulletin board: Append-only with Merkle tree integrity",
     ],
   },
   {
-    title: "Property-Based Testing",
-    icon: "🧪",
+    title: "Pluggable ID Providers",
+    icon: "🆔",
     description:
-      "Generate correctness properties from acceptance criteria that can be implemented with PBT libraries. Properties include universal quantification, requirement references, and minimum 100 iterations.",
-    tech: ["fast-check", "Hypothesis", "jqwik", "QuickCheck"],
-    category: "Testing",
+      "Flexible identifier system supporting ObjectId (12 bytes), GUID/UUID (16 bytes), or custom formats (1-255 bytes). Configuration automatically adapts all cryptographic constants.",
+    tech: ["ObjectId", "GUID", "UUID", "Custom IDs"],
+    category: "Identity",
     highlights: [
-      "Universal quantification: 'For any X, Y should Z'",
-      "Reference to validated requirements",
-      "Support for multiple PBT libraries across languages",
-      "Automatic round-trip property detection",
-      "Minimum 100 test iterations with automatic shrinking",
+      "ObjectIdProvider: 12-byte MongoDB-style IDs (default)",
+      "GuidV4Provider: 16-byte raw GUIDs with base64 serialization",
+      "UuidProvider: 16-byte UUIDs with standard dash formatting",
+      "CustomIdProvider: Any byte length (1-255 bytes)",
+      "Auto-sync: Configuration adapts all constants to ID provider",
     ],
   },
   {
-    title: "Model Context Protocol",
-    icon: "🔌",
+    title: "BIP39 & HD Wallets",
+    icon: "🔑",
     description:
-      "Persistent context management through MCP integration. Spec documents remain accessible across chat sessions with structured tools for programmatic access to all spec operations.",
-    tech: ["MCP", "Persistent Context", "State Management", "File Operations"],
+      "Complete key management with BIP39 mnemonic phrase generation (12-24 words) and BIP32/BIP44 hierarchical deterministic wallet derivation.",
+    tech: ["BIP39", "BIP32", "BIP44", "Mnemonics"],
+    category: "Identity",
+    highlights: [
+      "BIP39: Mnemonic phrase generation (12-24 words)",
+      "HD Wallets: BIP32/BIP44 hierarchical deterministic derivation",
+      "Secure Storage: SecureString and SecureBuffer with XOR obfuscation",
+      "Auto-zeroing: Memory-safe sensitive data handling",
+      "Cross-platform: Works in browser and Node.js",
+    ],
+  },
+  {
+    title: "Streaming Encryption",
+    icon: "🚀",
+    description:
+      "Memory-efficient processing for large files with less than 10MB RAM usage for any file size. Includes progress tracking with throughput and ETA.",
+    tech: ["Streaming", "Chunking", "Progress Tracking"],
+    category: "Advanced",
+    highlights: [
+      "Memory efficient: <10MB RAM for any file size",
+      "Single-recipient streaming: ~50-100 MB/s throughput",
+      "Multi-recipient streaming: ~40-80 MB/s throughput",
+      "Progress tracking: Real-time throughput, ETA, completion %",
+      "Chunk processing: Configurable chunk sizes",
+    ],
+  },
+  {
+    title: "Member System",
+    icon: "👤",
+    description:
+      "High-level user abstraction integrating keys, IDs, and encryption operations. Includes fluent builder API and JSON serialization with ID provider support.",
+    tech: ["TypeScript", "Builder Pattern", "Serialization"],
+    category: "Identity",
+    highlights: [
+      "Member class: User abstraction with cryptographic operations",
+      "MemberBuilder: Fluent API for member creation",
+      "ID integration: Fully integrated with configured ID provider",
+      "JSON serialization: toJson() and fromJson() with ID provider",
+      "Encryption helpers: encryptData(), decryptData(), sign(), verify()",
+    ],
+  },
+  {
+    title: "Internationalization",
+    icon: "🌍",
+    description:
+      "Automatic error translation in 8 languages with comprehensive i18n support. All error messages are localized and type-safe.",
+    tech: ["i18n", "8 Languages", "Type-Safe"],
     category: "Integration",
     highlights: [
-      "Spec documents accessible across all Copilot sessions",
-      "Programmatic tools for create, update, read operations",
-      "Workflow state tracking with .state.json files",
-      "Task progress monitoring and completion percentage",
-      "Full context loading for execution phase",
+      "8 languages: en-US, en-GB, fr, es, de, zh-CN, ja, uk",
+      "Automatic translation: Error messages localized automatically",
+      "Type-safe: Full TypeScript support for translations",
+      "Component-based: i18n engine with component registration",
+      "Extensible: Add custom translations easily",
     ],
   },
   {
-    title: "Glossary Management",
-    icon: "📚",
+    title: "Security Hardening",
+    icon: "🔒",
     description:
-      "Automatic extraction and definition of technical terms from requirements. Ensures consistent terminology across specs and helps maintain clear, unambiguous documentation.",
-    tech: ["Term Extraction", "Definition Management", "Consistency Checks"],
-    category: "Requirements",
+      "Comprehensive security validations across all layers including key validation, size bounds checking, and safe accumulation with overflow detection.",
+    tech: ["Validation", "Bounds Checking", "Overflow Detection"],
+    category: "Security",
     highlights: [
-      "Automatic detection of domain-specific terms",
-      "Centralized glossary per spec",
-      "Reference linking from requirements to definitions",
-      "Terminology consistency validation",
-      "Export capabilities for team sharing",
+      "Key validation: Public/private key all-zeros checks",
+      "Size validation: Message size limits (max 2GB)",
+      "AES-GCM validation: Key length, IV length, data validation",
+      "Multi-recipient: Chunk index bounds, safe accumulation",
+      "< 0.1% overhead: Minimal performance impact",
     ],
   },
   {
-    title: "INCOSE Validation",
-    icon: "✔️",
+    title: "Runtime Configuration",
+    icon: "⚙️",
     description:
-      "Automatic validation of all requirements against INCOSE semantic quality rules. Ensures requirements are clear, complete, consistent, correct, and testable before proceeding to design phase.",
-    tech: ["INCOSE Standards", "Quality Rules", "Semantic Analysis"],
-    category: "Requirements",
-    highlights: [
-      "Checks for ambiguous or weak language",
-      "Validates completeness and consistency",
-      "Ensures requirements are testable",
-      "Identifies circular dependencies",
-      "Provides actionable feedback for improvements",
-    ],
-  },
-  {
-    title: "CodeLens Integration",
-    icon: "🔍",
-    description:
-      "Execute tasks directly from task documents using CodeLens. Click to run individual tasks or entire workflows with full context from requirements and design phases.",
-    tech: ["VS Code CodeLens", "Task Execution", "Context Loading"],
+      "Injectable configuration profiles via ConstantsRegistry for dependency injection and testing. Create isolated configurations for different contexts.",
+    tech: ["DI", "Configuration", "Testing"],
     category: "Integration",
     highlights: [
-      "Execute individual tasks from document",
-      "Run entire workflows with one click",
-      "Real-time task status updates",
-      "Preserve document formatting during updates",
-      "Skip optional tasks unless explicitly requested",
+      "ConstantsRegistry: Named configuration management",
+      "createRuntimeConfiguration: Validated config creation",
+      "Multiple instances: Isolated engines for different contexts",
+      "Testing support: Easy mocking and configuration override",
+      "Type-safe: Full TypeScript support for configuration",
     ],
   },
   {
-    title: "@spec Chat Participant",
-    icon: "💬",
+    title: "Cross-Platform",
+    icon: "🌐",
     description:
-      "Dedicated Copilot Chat participant for all spec operations. Create, list, update, execute, and approve specs through natural language commands in the chat interface.",
-    tech: ["GitHub Copilot", "Chat Participant", "Natural Language"],
+      "Fully compatible with Node.js 18+ and modern browsers. Binary compatible with @digitaldefiance/node-ecies-lib for seamless cross-platform operations.",
+    tech: ["Web Crypto API", "Node.js", "Browser"],
     category: "Integration",
     highlights: [
-      "'@spec create <name>' - Create new specs",
-      "'@spec list' - View all specs with status",
-      "'@spec execute <task>' - Run specific tasks",
-      "'@spec approve <phase> <name>' - Approve workflow phases",
-      "'@spec status <name>' - Check detailed spec progress",
-    ],
-  },
-  {
-    title: "Sidebar Tree View",
-    icon: "🌲",
-    description:
-      "Visual representation of all specs with phase indicators, progress tracking, and quick navigation. See at a glance which specs are in progress, completed, or need attention.",
-    tech: ["VS Code Tree View", "Status Indicators", "Progress Tracking"],
-    category: "Management",
-    highlights: [
-      "Hierarchical view of all spec directories",
-      "Phase indicators for each spec",
-      "Completion percentage for tasks",
-      "Quick navigation to requirements, design, tasks",
-      "Real-time updates as specs progress",
+      "Browser: Chrome, Edge, Firefox, Safari support",
+      "Node.js: 18+ with Web Crypto API built-in",
+      "Binary compatible: Same version node-ecies-lib interop",
+      "Cross-platform: Encrypt in browser, decrypt in Node.js",
+      "E2E tested: Comprehensive compatibility test suite",
     ],
   },
 ];
@@ -190,8 +186,7 @@ const Components = () => {
           Key <span className="gradient-text">Features</span>
         </h2>
         <p className="components-subtitle">
-          A structured approach to spec-driven development integrated with
-          GitHub Copilot Chat
+          Production-ready ECIES encryption for browser and Node.js applications
         </p>
 
         <motion.div
@@ -201,124 +196,124 @@ const Components = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           <h3>
-            Transform your development workflow with{" "}
-            <em>requirements engineering</em>, <em>property-based testing</em>,
-            and <em>persistent context</em>
+            Enterprise-grade <em>ECIES encryption</em> with{" "}
+            <em>streaming support</em>, <em>voting system</em>, and <em>cross-platform compatibility</em>
           </h3>
           <p>
             <strong>
-              Akira brings enterprise-grade requirements engineering to VS Code.
+              @digitaldefiance/ecies-lib brings modern cryptography to TypeScript.
             </strong>{" "}
-            This isn't just another extension—it's a complete workflow system
-            that guides you through a structured development process with{" "}
-            <strong>EARS-compliant requirements</strong>,{" "}
-            <strong>INCOSE validation</strong>, and{" "}
-            <strong>Model Context Protocol integration</strong>.
+            This isn't just another encryption library—it's a complete
+            cryptographic toolkit with{" "}
+            <strong>ECIES v4.0 protocol</strong>,{" "}
+            <strong>pluggable ID providers</strong>,{" "}
+            <strong>government-grade voting</strong>, and{" "}
+            <strong>memory-efficient streaming</strong>.
           </p>
           <div className="problem-solution">
             <div className="problem">
-              <h4>❌ The Problem: Unstructured Development</h4>
+              <h4>❌ The Problem: Cryptography Is Hard</h4>
               <ul>
-                <li>Requirements are scattered across documents and chat</li>
-                <li>Design decisions are lost between sessions</li>
-                <li>Tasks lack proper context from requirements</li>
-                <li>Testing is ad-hoc without clear correctness properties</li>
-                <li>Progress tracking is manual and error-prone</li>
+                <li>Implementing ECIES correctly requires deep expertise</li>
+                <li>Key management and derivation are error-prone</li>
+                <li>Large file encryption exhausts memory</li>
+                <li>Cross-platform compatibility is challenging</li>
+                <li>ID format flexibility is often missing</li>
               </ul>
               <p>
-                <strong>Result:</strong> You waste time searching for context
-                instead of building features.
+                <strong>Result:</strong> You spend months building crypto
+                infrastructure instead of features.
               </p>
             </div>
             <div className="solution">
-              <h4>✅ The Solution: Structured Spec-Driven Workflow</h4>
+              <h4>✅ The Solution: Production-Ready ECIES</h4>
               <p>
-                <strong>Akira</strong> provides a{" "}
-                <strong>4-phase structured workflow</strong> that keeps all
-                context accessible: Requirements (EARS patterns), Design
-                (correctness properties), Tasks (actionable plans), and
-                Execution (context-aware implementation).
+                <strong>ecies-lib</strong> provides{" "}
+                <strong>ECIES v4.0 with HKDF key derivation</strong>,{" "}
+                <strong>pluggable ID providers</strong> for flexible identifiers,{" "}
+                <strong>streaming encryption</strong> for large files,{" "}
+                <strong>government-grade voting</strong> with homomorphic encryption, and{" "}
+                <strong>binary compatibility</strong> with node-ecies-lib.
               </p>
               <p>
-                Built for GitHub Copilot Chat with TypeScript and extensively
-                tested, Akira uses the <strong>Model Context Protocol</strong>{" "}
-                for persistent context, <strong>EARS patterns</strong> for clear
-                requirements, and <strong>INCOSE rules</strong> for quality
-                validation.
+                Built with <strong>Web Crypto API</strong> and{" "}
+                <strong>@noble/curves</strong>, this library includes 1,200+
+                tests and comprehensive security hardening. It provides
+                everything you need for secure encryption in browser and Node.js.
               </p>
             </div>
           </div>
           <div className="value-props">
             <div className="value-prop">
-              <strong>📋 Structured Workflow</strong>
+              <strong>🛡️ Protocol v4.0</strong>
               <p>
-                Four-phase approach with explicit approvals ensures quality at
-                every step
+                HKDF-SHA256 key derivation, AAD binding, and optimized
+                multi-recipient encryption
               </p>
             </div>
             <div className="value-prop">
-              <strong>✅ EARS Compliance</strong>
+              <strong>🗳️ Voting System</strong>
               <p>
-                Six EARS patterns with automatic INCOSE validation for clear,
-                testable requirements
+                17 voting methods with homomorphic encryption, verifiable
+                receipts, and audit logs
               </p>
             </div>
             <div className="value-prop">
-              <strong>🧪 Property-Based Testing</strong>
+              <strong>🆔 Pluggable IDs</strong>
               <p>
-                Generate correctness properties from acceptance criteria with
-                universal quantification
+                ObjectId, GUID, UUID, or custom formats with automatic
+                configuration sync
               </p>
             </div>
             <div className="value-prop">
-              <strong>🔌 MCP Integration</strong>
+              <strong>🌐 Cross-Platform</strong>
               <p>
-                Persistent context across sessions with structured tools for
-                programmatic access
+                Binary compatible between browser and Node.js with same version
+                node-ecies-lib
               </p>
             </div>
           </div>
         </motion.div>
 
         <div className="components-grid">
-          {components.map((component, index) => (
+          {features.map((feature, index) => (
             <motion.div
-              key={component.title}
+              key={feature.title}
               className="component-card card"
               initial={{ opacity: 0, y: 50 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: index * 0.1, duration: 0.6 }}
             >
               <div className="component-header">
-                <div className="component-icon">{component.icon}</div>
-                <h3>{component.title}</h3>
+                <div className="component-icon">{feature.icon}</div>
+                <h3>{feature.title}</h3>
                 <span
-                  className={`component-badge ${component.category.toLowerCase()}`}
+                  className={`component-badge ${feature.category.toLowerCase()}`}
                 >
-                  {component.category}
+                  {feature.category}
                 </span>
               </div>
 
-              <p className="component-description">{component.description}</p>
+              <p className="component-description">{feature.description}</p>
 
               <ul className="component-highlights">
-                {component.highlights.map((highlight, i) => (
+                {feature.highlights.map((highlight, i) => (
                   <li key={i}>{highlight}</li>
                 ))}
               </ul>
 
               <div className="component-tech">
-                {component.tech.map((tech) => (
+                {feature.tech.map((tech) => (
                   <span key={tech} className="tech-badge">
                     {tech}
                   </span>
                 ))}
               </div>
 
-              {component.github && (
+              {feature.github && (
                 <div className="component-links">
                   <a
-                    href={component.github}
+                    href={feature.github}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="component-link"
@@ -326,9 +321,9 @@ const Components = () => {
                     <FaGithub />
                     GitHub
                   </a>
-                  {component.npm && (
+                  {feature.npm && (
                     <a
-                      href={component.npm}
+                      href={feature.npm}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="component-link"
