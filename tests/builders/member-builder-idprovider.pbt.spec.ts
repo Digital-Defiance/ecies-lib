@@ -11,11 +11,8 @@ import { MemberBuilder } from '../../src/builders/member-builder';
 import { createRuntimeConfiguration } from '../../src/constants';
 import { EmailString } from '../../src/email-string';
 import { MemberType } from '../../src/enumerations/member-type';
-import {
-  GuidV4Provider,
-  ObjectIdProvider,
-} from '../../src/lib/id-providers';
 import { GuidV4 } from '../../src/lib/guid';
+import { GuidV4Provider, ObjectIdProvider } from '../../src/lib/id-providers';
 import { ECIESService } from '../../src/services/ecies/service';
 
 describe('Property-Based Tests: MemberBuilder idProvider Integration', () => {
@@ -38,7 +35,9 @@ describe('Property-Based Tests: MemberBuilder idProvider Integration', () => {
             createRuntimeConfiguration({ idProvider: new ObjectIdProvider() }),
           ),
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (constants, memberType, name, email) => {
             // Create service with configured idProvider
@@ -67,7 +66,9 @@ describe('Property-Based Tests: MemberBuilder idProvider Integration', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (memberType, name, email) => {
             const constants = createRuntimeConfiguration({
@@ -102,7 +103,9 @@ describe('Property-Based Tests: MemberBuilder idProvider Integration', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (memberType, name, email) => {
             const constants = createRuntimeConfiguration({
@@ -122,7 +125,9 @@ describe('Property-Based Tests: MemberBuilder idProvider Integration', () => {
             expect(service.constants.idProvider.byteLength).toBe(12);
 
             // Verify ObjectID compatibility
-            const objectIdString = constants.idProvider.serialize(result.member.id);
+            const objectIdString = constants.idProvider.serialize(
+              result.member.id,
+            );
             expect(objectIdString).toBeDefined();
             expect(objectIdString.length).toBe(24);
           },
@@ -135,7 +140,9 @@ describe('Property-Based Tests: MemberBuilder idProvider Integration', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (memberType, name, email) => {
             // Create service without custom idProvider
@@ -167,7 +174,9 @@ describe('Property-Based Tests: MemberBuilder idProvider Integration', () => {
           fc.array(
             fc.record({
               type: fc.constantFrom(MemberType.User, MemberType.Admin),
-              name: fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+              name: fc
+                .string({ minLength: 1, maxLength: 50 })
+                .filter((s) => s.trim() === s),
               email: fc.emailAddress(),
             }),
             { minLength: 2, maxLength: 5 },
@@ -177,7 +186,7 @@ describe('Property-Based Tests: MemberBuilder idProvider Integration', () => {
             const expectedLength = service.constants.idProvider.byteLength;
 
             // Create multiple members
-            const members = memberConfigs.map(config =>
+            const members = memberConfigs.map((config) =>
               MemberBuilder.create()
                 .withEciesService(service)
                 .withType(config.type)
@@ -187,13 +196,15 @@ describe('Property-Based Tests: MemberBuilder idProvider Integration', () => {
             );
 
             // Verify all have consistent ID lengths
-            members.forEach(result => {
+            members.forEach((result) => {
               expect(result.member.id.length).toBe(expectedLength);
             });
 
             // Verify IDs are unique
-            const ids = members.map(m => m.member.id);
-            const uniqueIds = new Set(ids.map(id => Buffer.from(id).toString('hex')));
+            const ids = members.map((m) => m.member.id);
+            const uniqueIds = new Set(
+              ids.map((id) => Buffer.from(id).toString('hex')),
+            );
             expect(uniqueIds.size).toBe(ids.length);
           },
         ),

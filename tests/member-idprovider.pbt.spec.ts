@@ -10,11 +10,8 @@ import * as fc from 'fast-check';
 import { createRuntimeConfiguration } from '../src/constants';
 import { EmailString } from '../src/email-string';
 import { MemberType } from '../src/enumerations/member-type';
-import {
-  GuidV4Provider,
-  ObjectIdProvider,
-} from '../src/lib/id-providers';
 import { GuidV4 } from '../src/lib/guid';
+import { GuidV4Provider, ObjectIdProvider } from '../src/lib/id-providers';
 import { Member } from '../src/member';
 import { ECIESService } from '../src/services/ecies/service';
 
@@ -37,7 +34,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
             createRuntimeConfiguration({ idProvider: new ObjectIdProvider() }),
           ),
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (constants, memberType, name, email) => {
             // Create service with configured idProvider
@@ -66,7 +65,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (memberType, name, email) => {
             const constants = createRuntimeConfiguration({
@@ -94,7 +95,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (memberType, name, email) => {
             const constants = createRuntimeConfiguration({
@@ -139,7 +142,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
             { requiredKeys: [] },
           ),
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (partialConfig, memberType, name, email) => {
             // Create service with Partial<IECIESConfig> (no custom idProvider)
@@ -165,7 +170,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (memberType, name, email) => {
             const service = new ECIESService();
@@ -200,7 +207,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (memberType, name, email) => {
             const constants = createRuntimeConfiguration({
@@ -244,7 +253,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (memberType, name, email) => {
             const constants = createRuntimeConfiguration({
@@ -261,7 +272,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
 
             // Verify ObjectID conversion succeeds
             expect(() => {
-              const objectIdString = constants.idProvider.serialize(result.member.id);
+              const objectIdString = constants.idProvider.serialize(
+                result.member.id,
+              );
               expect(objectIdString).toBeDefined();
               expect(typeof objectIdString).toBe('string');
               expect(objectIdString.length).toBe(24); // ObjectID hex string is 24 chars
@@ -291,7 +304,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
             createRuntimeConfiguration({ idProvider: new ObjectIdProvider() }),
           ),
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (constants, memberType, name, email) => {
             const service = new ECIESService(constants);
@@ -340,7 +355,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
             createRuntimeConfiguration({ idProvider: new ObjectIdProvider() }),
           ),
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (constants, memberType, name, email) => {
             const service = new ECIESService(constants);
@@ -376,7 +393,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
             expect(deserializedMember.email.toString()).toBe(
               originalMember.email.toString(),
             );
-            expect(deserializedMember.publicKey).toEqual(originalMember.publicKey);
+            expect(deserializedMember.publicKey).toEqual(
+              originalMember.publicKey,
+            );
           },
         ),
         { numRuns: 100 },
@@ -387,7 +406,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (memberType, name, email) => {
             const constants = createRuntimeConfiguration({
@@ -424,7 +445,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(MemberType.User, MemberType.Admin),
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim() === s),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (memberType, name, email) => {
             const constants = createRuntimeConfiguration({
@@ -449,7 +472,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
             expect(deserialized.id.length).toBe(12);
 
             // Verify ObjectID compatibility maintained
-            const objectIdString = constants.idProvider.serialize(deserialized.id);
+            const objectIdString = constants.idProvider.serialize(
+              deserialized.id,
+            );
             expect(objectIdString).toBeDefined();
             expect(objectIdString.length).toBe(24);
           },

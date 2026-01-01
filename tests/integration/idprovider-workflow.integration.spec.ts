@@ -15,11 +15,8 @@ import { MemberBuilder } from '../../src/builders/member-builder';
 import { createRuntimeConfiguration } from '../../src/constants';
 import { EmailString } from '../../src/email-string';
 import { MemberType } from '../../src/enumerations/member-type';
-import {
-  GuidV4Provider,
-  ObjectIdProvider,
-} from '../../src/lib/id-providers';
 import { GuidV4 } from '../../src/lib/guid';
+import { GuidV4Provider, ObjectIdProvider } from '../../src/lib/id-providers';
 import { Member } from '../../src/member';
 import { ECIESService } from '../../src/services/ecies/service';
 
@@ -179,7 +176,9 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
       expect(deserialized.id).toEqual(originalId);
 
       // Step 7: Convert deserialized ID to ObjectID string
-      const deserializedObjectIdString = config.idProvider.serialize(deserialized.id);
+      const deserializedObjectIdString = config.idProvider.serialize(
+        deserialized.id,
+      );
       expect(deserializedObjectIdString).toBe(objectIdString);
     });
 
@@ -347,7 +346,9 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
       }
 
       // Verify all IDs are unique
-      const idStrings = members.map(m => GuidV4.fromBuffer(m.id).asFullHexGuid);
+      const idStrings = members.map(
+        (m) => GuidV4.fromBuffer(m.id).asFullHexGuid,
+      );
       const uniqueIds = new Set(idStrings);
       expect(uniqueIds.size).toBe(members.length);
 
@@ -382,7 +383,7 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
       }
 
       // Verify all IDs are unique
-      const idStrings = members.map(m => config.idProvider.serialize(m.id));
+      const idStrings = members.map((m) => config.idProvider.serialize(m.id));
       const uniqueIds = new Set(idStrings);
       expect(uniqueIds.size).toBe(members.length);
 
@@ -436,7 +437,9 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
         /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
       );
 
-      const objectIdString = objectIdConfig.idProvider.serialize(objectIdMember.member.id);
+      const objectIdString = objectIdConfig.idProvider.serialize(
+        objectIdMember.member.id,
+      );
       expect(objectIdString.length).toBe(24);
       expect(objectIdString).toMatch(/^[0-9a-f]{24}$/i);
     });
@@ -444,9 +447,15 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
     it('should maintain isolation between service instances', () => {
       // Create multiple services
       const services = [
-        new ECIESService(createRuntimeConfiguration({ idProvider: new GuidV4Provider() })),
-        new ECIESService(createRuntimeConfiguration({ idProvider: new ObjectIdProvider() })),
-        new ECIESService(createRuntimeConfiguration({ idProvider: new GuidV4Provider() })),
+        new ECIESService(
+          createRuntimeConfiguration({ idProvider: new GuidV4Provider() }),
+        ),
+        new ECIESService(
+          createRuntimeConfiguration({ idProvider: new ObjectIdProvider() }),
+        ),
+        new ECIESService(
+          createRuntimeConfiguration({ idProvider: new GuidV4Provider() }),
+        ),
         new ECIESService(), // Default
       ];
 
@@ -476,11 +485,36 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
       );
 
       // Interleave Member creation
-      const m1 = Member.newMember(guidService, MemberType.User, 'G1', new EmailString('g1@example.com'));
-      const m2 = Member.newMember(objectIdService, MemberType.User, 'O1', new EmailString('o1@example.com'));
-      const m3 = Member.newMember(guidService, MemberType.User, 'G2', new EmailString('g2@example.com'));
-      const m4 = Member.newMember(objectIdService, MemberType.User, 'O2', new EmailString('o2@example.com'));
-      const m5 = Member.newMember(guidService, MemberType.User, 'G3', new EmailString('g3@example.com'));
+      const m1 = Member.newMember(
+        guidService,
+        MemberType.User,
+        'G1',
+        new EmailString('g1@example.com'),
+      );
+      const m2 = Member.newMember(
+        objectIdService,
+        MemberType.User,
+        'O1',
+        new EmailString('o1@example.com'),
+      );
+      const m3 = Member.newMember(
+        guidService,
+        MemberType.User,
+        'G2',
+        new EmailString('g2@example.com'),
+      );
+      const m4 = Member.newMember(
+        objectIdService,
+        MemberType.User,
+        'O2',
+        new EmailString('o2@example.com'),
+      );
+      const m5 = Member.newMember(
+        guidService,
+        MemberType.User,
+        'G3',
+        new EmailString('g3@example.com'),
+      );
 
       // Verify correct ID lengths
       expect(m1.member.id.length).toBe(16);
@@ -529,7 +563,9 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
       );
 
       // Decrypt using recipient's private key
-      const recipientKeyPair = service.mnemonicToSimpleKeyPair(recipient.mnemonic);
+      const recipientKeyPair = service.mnemonicToSimpleKeyPair(
+        recipient.mnemonic,
+      );
       const decrypted = await service.decryptSimpleOrSingleWithHeader(
         true,
         recipientKeyPair.privateKey,

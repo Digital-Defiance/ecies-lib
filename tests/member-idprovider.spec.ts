@@ -9,11 +9,8 @@
 import { createRuntimeConfiguration } from '../src/constants';
 import { EmailString } from '../src/email-string';
 import { MemberType } from '../src/enumerations/member-type';
-import {
-  GuidV4Provider,
-  ObjectIdProvider,
-} from '../src/lib/id-providers';
 import { GuidV4 } from '../src/lib/guid';
+import { GuidV4Provider, ObjectIdProvider } from '../src/lib/id-providers';
 import { Member } from '../src/member';
 import { ECIESService } from '../src/services/ecies/service';
 
@@ -379,8 +376,12 @@ describe('Unit Tests: Member idProvider Integration', () => {
       expect(deserialized.email.toString()).toBe(original.email.toString());
       expect(deserialized.publicKey).toEqual(original.publicKey);
       expect(deserialized.creatorId).toEqual(original.creatorId);
-      expect(deserialized.dateCreated.getTime()).toBe(original.dateCreated.getTime());
-      expect(deserialized.dateUpdated.getTime()).toBe(original.dateUpdated.getTime());
+      expect(deserialized.dateCreated.getTime()).toBe(
+        original.dateCreated.getTime(),
+      );
+      expect(deserialized.dateUpdated.getTime()).toBe(
+        original.dateUpdated.getTime(),
+      );
     });
   });
 });

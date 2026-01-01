@@ -10,11 +10,8 @@ import { MemberBuilder } from '../../src/builders/member-builder';
 import { createRuntimeConfiguration } from '../../src/constants';
 import { EmailString } from '../../src/email-string';
 import { MemberType } from '../../src/enumerations/member-type';
-import {
-  GuidV4Provider,
-  ObjectIdProvider,
-} from '../../src/lib/id-providers';
 import { GuidV4 } from '../../src/lib/guid';
+import { GuidV4Provider, ObjectIdProvider } from '../../src/lib/id-providers';
 import { ECIESService } from '../../src/services/ecies/service';
 
 describe('Unit Tests: MemberBuilder idProvider Integration', () => {

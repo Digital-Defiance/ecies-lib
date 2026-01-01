@@ -415,7 +415,9 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
       name: this._name,
       email: this._email.toString(),
       publicKey: uint8ArrayToBase64(this._publicKey),
-      creatorId: this._eciesService.constants.idProvider.serialize(this._creatorId),
+      creatorId: this._eciesService.constants.idProvider.serialize(
+        this._creatorId,
+      ),
       dateCreated: this._dateCreated.toISOString(),
       dateUpdated: this._dateUpdated.toISOString(),
     };
@@ -446,14 +448,16 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
 
     // Deserialize IDs using configured idProvider
     const id = eciesService.constants.idProvider.deserialize(storage.id);
-    const creatorId = eciesService.constants.idProvider.deserialize(storage.creatorId);
+    const creatorId = eciesService.constants.idProvider.deserialize(
+      storage.creatorId,
+    );
 
     // Optional validation: warn if ID length doesn't match configured idProvider
     const expectedLength = eciesService.constants.idProvider.byteLength;
     if (id.length !== expectedLength) {
       console.warn(
         `Member ID length (${id.length}) does not match configured idProvider length (${expectedLength}). ` +
-        `This may indicate the Member was created with a different idProvider configuration.`
+          `This may indicate the Member was created with a different idProvider configuration.`,
       );
     }
 
@@ -532,7 +536,8 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
     const publicKey = eciesService.getPublicKey(privateKey);
 
     // Use configured idProvider from service, with defensive fallback
-    const idProvider = eciesService.constants?.idProvider ?? Constants.idProvider;
+    const idProvider =
+      eciesService.constants?.idProvider ?? Constants.idProvider;
     const newId = idProvider.generate();
     const dateCreated = new Date();
     return {
