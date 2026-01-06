@@ -73,6 +73,9 @@ export const ApprovalDemo = () => {
     const { member: voter } = Member.newMember(voterEcies, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
     poll.vote(voter, vote);
     
+    // Update submitted voters state
+    setSubmittedVoters(prev => new Set([...prev, voterName]));
+    
     // Log vote cast with anonymized token
     const voterToken = new Uint8Array(await crypto.subtle.digest('SHA-256', new Uint8Array(voter.id)));
     eventLogger.logVoteCast(poll.id, voterToken, {
