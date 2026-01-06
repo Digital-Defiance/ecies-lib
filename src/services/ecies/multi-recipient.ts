@@ -232,12 +232,12 @@ export class EciesMultiRecipient {
     const recipientKeys: Uint8Array[] = [];
 
     for (const recipient of recipients) {
-      // Use Recipient ID as AAD for key encryption to bind key to recipient
+      // Use Recipient ID bytes as AAD for key encryption to bind key to recipient
       const encryptedKey = await this.encryptKey(
         recipient.publicKey,
         symmetricKey,
         ephemeralKeyPair.privateKey,
-        recipient.id,
+        Constants.idProvider.toBytes(recipient.id),
       );
 
       recipientIds.push(recipient.id);
@@ -332,7 +332,7 @@ export class EciesMultiRecipient {
       );
     }
 
-    // Use Recipient ID as AAD for key decryption
+    // Use Recipient ID bytes as AAD for key decryption
     const symmetricKey = await this.decryptKey(
       privateKey,
       encryptedKey,
