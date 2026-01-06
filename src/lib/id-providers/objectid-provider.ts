@@ -108,7 +108,7 @@ export class ObjectIdProvider extends BaseIdProvider {
    * Convert an ID of unknown type to a string representation.
    * Handles Uint8Array, ObjectId instances, and falls back to String().
    */
-  override idToString(id: unknown): string {
+  override idToString(id: ObjectId): string {
     if (id instanceof ObjectId) {
       return id.toHexString();
     }
@@ -121,5 +121,23 @@ export class ObjectIdProvider extends BaseIdProvider {
    */
   override idFromString(str: string): Uint8Array {
     return this.deserialize(str);
+  }
+
+  /**
+   * Convert any ID representation to canonical Uint8Array format.
+   */
+  override toBytes(id: ObjectId): Uint8Array {
+    if (id instanceof ObjectId) {
+      return new Uint8Array(id.id);
+    }
+    return super.toBytes(id);
+  }
+
+  /**
+   * Convert Uint8Array to ObjectId bytes (stays as Uint8Array for consistency).
+   */
+  override fromBytes(bytes: Uint8Array): Uint8Array {
+    this.validateLength(bytes, 'ObjectIdProvider.fromBytes');
+    return this.clone(bytes);
   }
 }

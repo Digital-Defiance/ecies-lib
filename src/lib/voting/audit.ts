@@ -2,6 +2,8 @@
  * Immutable Audit Log for Government-Grade Voting
  * Implements requirement 1.1: Cryptographically signed, hash-chained audit trail
  */
+import { Constants } from '../../constants';
+import { PlatformID } from '../../interfaces';
 import type { IMember } from './types';
 
 export enum AuditEventType {
@@ -10,7 +12,7 @@ export enum AuditEventType {
   PollClosed = 'poll_closed',
 }
 
-export interface AuditEntry {
+export interface AuditEntry<TID extends PlatformID> {
   /** Sequence number (monotonically increasing) */
   readonly sequence: number;
   /** Event type */
@@ -18,11 +20,11 @@ export interface AuditEntry {
   /** Microsecond-precision timestamp */
   readonly timestamp: number;
   /** Poll identifier */
-  readonly pollId: Uint8Array;
+  readonly pollId: TID;
   /** Hash of voter ID (for vote events) */
   readonly voterIdHash?: Uint8Array;
   /** Authority/creator ID (for creation/closure events) */
-  readonly authorityId?: Uint8Array;
+  readonly authorityId?: TID;
   /** Hash of previous entry (chain integrity) */
   readonly previousHash: Uint8Array;
   /** Hash of this entry's data */
@@ -33,26 +35,26 @@ export interface AuditEntry {
   readonly metadata?: Record<string, unknown>;
 }
 
-export interface AuditLog {
+export interface AuditLog<TID extends PlatformID> {
   /** Get all entries in chronological order */
-  getEntries(): readonly AuditEntry[];
+  getEntries(): readonly AuditEntry<TID>[];
   /** Get entries for a specific poll */
-  getEntriesForPoll(pollId: Uint8Array): readonly AuditEntry[];
+  getEntriesForPoll(pollId: TID): readonly AuditEntry<TID>[];
   /** Verify the entire chain integrity */
   verifyChain(): boolean;
   /** Verify a specific entry's signature */
-  verifyEntry(entry: AuditEntry): boolean;
+  verifyEntry(entry: AuditEntry<TID>): boolean;
 }
 
 /**
  * Immutable audit log with cryptographic hash chain
  */
-export class ImmutableAuditLog implements AuditLog {
-  private readonly entries: AuditEntry[] = [];
-  private readonly authority: IMember;
+export class ImmutableAuditLog<TID extends PlatformID> implements AuditLog<TID> {
+  private readonly entries: AuditEntry<TID>[] = [];
+  private readonly authority: IMember<TID>;
   private sequence = 0;
 
-  constructor(authority: IMember) {
+  constructor(authority: IMember<TID>) {
     this.authority = authority;
   }
 
@@ -60,9 +62,9 @@ export class ImmutableAuditLog implements AuditLog {
    * Record poll creation event
    */
   recordPollCreated(
-    pollId: Uint8Array,
+    pollId: TID,
     metadata?: Record<string, unknown>,
-  ): AuditEntry {
+  ): AuditEntry<TID> {
     return this.appendEntry({
       eventType: AuditEventType.PollCreated,
       pollId,
@@ -75,10 +77,10 @@ export class ImmutableAuditLog implements AuditLog {
    * Record vote cast event
    */
   recordVoteCast(
-    pollId: Uint8Array,
+    pollId: TID,
     voterIdHash: Uint8Array,
     metadata?: Record<string, unknown>,
-  ): AuditEntry {
+  ): AuditEntry<TID> {
     return this.appendEntry({
       eventType: AuditEventType.VoteCast,
       pollId,
@@ -91,9 +93,9 @@ export class ImmutableAuditLog implements AuditLog {
    * Record poll closure event
    */
   recordPollClosed(
-    pollId: Uint8Array,
+    pollId: TID,
     metadata?: Record<string, unknown>,
-  ): AuditEntry {
+  ): AuditEntry<TID> {
     return this.appendEntry({
       eventType: AuditEventType.PollClosed,
       pollId,
@@ -102,14 +104,14 @@ export class ImmutableAuditLog implements AuditLog {
     });
   }
 
-  getEntries(): readonly AuditEntry[] {
+  getEntries(): readonly AuditEntry<TID>[] {
     return Object.freeze([...this.entries]);
   }
 
-  getEntriesForPoll(pollId: Uint8Array): readonly AuditEntry[] {
-    const pollIdStr = this.toHex(pollId);
+  getEntriesForPoll(pollId: TID): readonly AuditEntry<TID>[] {
+    const pollIdStr = this.toHex(Constants.idProvider.toBytes(pollId));
     return Object.freeze(
-      this.entries.filter((e) => this.toHex(e.pollId) === pollIdStr),
+      this.entries.filter((e) => this.toHex(Constants.idProvider.toBytes(e.pollId)) === pollIdStr),
     );
   }
 
@@ -142,23 +144,23 @@ export class ImmutableAuditLog implements AuditLog {
     return true;
   }
 
-  verifyEntry(entry: AuditEntry): boolean {
+  verifyEntry(entry: AuditEntry<TID>): boolean {
     const data = this.serializeEntryForSigning(entry);
     return this.authority.verify(entry.signature, data);
   }
 
   private appendEntry(
     partial: Omit<
-      AuditEntry,
+      AuditEntry<TID>,
       'sequence' | 'timestamp' | 'previousHash' | 'entryHash' | 'signature'
     >,
-  ): AuditEntry {
+  ): AuditEntry<TID> {
     const previousHash =
       this.entries.length > 0
         ? this.entries[this.entries.length - 1].entryHash
         : new Uint8Array(32); // Genesis entry uses zero hash
 
-    const entry: Omit<AuditEntry, 'entryHash' | 'signature'> = {
+    const entry: Omit<AuditEntry<TID>, 'entryHash' | 'signature'> = {
       sequence: this.sequence++,
       timestamp: this.getMicrosecondTimestamp(),
       previousHash,
@@ -169,7 +171,7 @@ export class ImmutableAuditLog implements AuditLog {
     const data = this.serializeEntryForSigning({ ...entry, entryHash });
     const signature = this.authority.sign(data);
 
-    const finalEntry: AuditEntry = {
+    const finalEntry: AuditEntry<TID> = {
       ...entry,
       entryHash,
       signature,
@@ -180,25 +182,25 @@ export class ImmutableAuditLog implements AuditLog {
   }
 
   private computeEntryHash(
-    entry: Omit<AuditEntry, 'entryHash' | 'signature'>,
+    entry: Omit<AuditEntry<TID>, 'entryHash' | 'signature'>,
   ): Uint8Array {
     const data = this.serializeEntryForHashing(entry);
     return this.sha256Sync(data);
   }
 
   private serializeEntryForHashing(
-    entry: Omit<AuditEntry, 'entryHash' | 'signature'>,
+    entry: Omit<AuditEntry<TID>, 'entryHash' | 'signature'>,
   ): Uint8Array {
     const parts: Uint8Array[] = [
       this.encodeNumber(entry.sequence),
       this.encodeString(entry.eventType),
       this.encodeNumber(entry.timestamp),
-      entry.pollId,
+      Constants.idProvider.toBytes(entry.pollId),
       entry.previousHash,
     ];
 
     if (entry.voterIdHash) parts.push(entry.voterIdHash);
-    if (entry.authorityId) parts.push(entry.authorityId);
+    if (entry.authorityId) parts.push(Constants.idProvider.toBytes(entry.authorityId));
     if (entry.metadata)
       parts.push(this.encodeString(JSON.stringify(entry.metadata)));
 
@@ -206,7 +208,7 @@ export class ImmutableAuditLog implements AuditLog {
   }
 
   private serializeEntryForSigning(
-    entry: Omit<AuditEntry, 'signature'>,
+    entry: Omit<AuditEntry<TID>, 'signature'>,
   ): Uint8Array {
     return this.concat([this.serializeEntryForHashing(entry), entry.entryHash]);
   }

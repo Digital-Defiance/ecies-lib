@@ -1,12 +1,13 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
 import type { IConstants } from '../interfaces/constants';
+import type { PlatformID } from '../interfaces';
 
 /**
  * Calculates a checksum for a configuration object.
  * Uses SHA-256 of JSON representation.
  */
-export function calculateConfigChecksum(config: IConstants): string {
+export function calculateConfigChecksum<TID extends PlatformID = Uint8Array>(config: IConstants): string {
   // Create a stable JSON representation with BigInt support
   const replacer = (_key: string, value: unknown) =>
     typeof value === 'bigint' ? value.toString() : value;

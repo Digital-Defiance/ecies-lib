@@ -5,7 +5,6 @@ export * from './ecies-config';
 export * from './ecies-consts';
 export * from './ecies-file-service';
 export * from './ecies-library';
-export * from './frontend-member-operational';
 export * from './guid';
 export type * from './member';
 export * from './member-storage';
@@ -14,6 +13,7 @@ export * from './pbkdf2-config';
 export * from './pbkdf2-consts';
 export * from './pbkdf2-result';
 export * from './platform-buffer';
+export * from './platform-id';
 export * from './voting-consts';
 export {
   type IPoll,

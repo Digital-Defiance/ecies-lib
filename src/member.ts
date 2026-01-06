@@ -7,7 +7,6 @@ import { MemberType } from './enumerations/member-type';
 import { MemberError } from './errors/member';
 import { IECIESConstants } from './interfaces/ecies-consts';
 import { IEncryptedChunk } from './interfaces/encrypted-chunk';
-import { IFrontendMemberOperational } from './interfaces/frontend-member-operational';
 import { IMember } from './interfaces/member';
 import { IMemberStorageData } from './interfaces/member-storage';
 import { IMemberWithMnemonic } from './interfaces/member-with-mnemonic';
@@ -25,20 +24,22 @@ import {
   uint8ArrayToBase64,
   uint8ArrayToHex,
 } from './utils';
+import { PlatformBuffer, PlatformID } from './interfaces';
 
 /**
  * Represents a member with cryptographic capabilities.
  * This class provides methods for signing, verifying, encrypting, and decrypting data.
  * It also manages the member's keys and wallet.
  */
-export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
+export class Member<TID extends PlatformID = Uint8Array> implements IMember<TID> {
   private readonly _eciesService: ECIESService;
-  private readonly _id: Uint8Array;
+  private readonly _id: TID;
+  private readonly _idBytes: Uint8Array;
   private readonly _type: MemberType;
   private readonly _name: string;
   private readonly _email: EmailString;
   private readonly _publicKey: Uint8Array;
-  private readonly _creatorId: Uint8Array;
+  private readonly _creatorId: TID;
   private readonly _dateCreated: Date;
   private readonly _dateUpdated: Date;
   private _privateKey?: SecureBuffer;
@@ -58,16 +59,18 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
     publicKey: Uint8Array,
     privateKey?: SecureBuffer,
     wallet?: Wallet,
-    id?: Uint8Array,
+    id?: TID,
     dateCreated?: Date,
     dateUpdated?: Date,
-    creatorId?: Uint8Array,
+    creatorId?: TID,
   ) {
     // Assign injected services
     this._eciesService = eciesService;
     // Assign original parameters
     this._type = type;
-    this._id = id ?? Constants.idProvider.generate();
+    const __id = id ?? (Constants.idProvider.generate() as TID);
+    this._id = __id;
+    this._idBytes = Constants.idProvider.toBytes(this._id);
     this._name = name;
     if (!this._name || this._name.length == 0) {
       throw new MemberError(MemberErrorType.MissingMemberName);
@@ -94,8 +97,11 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
   }
 
   // Required getters
-  public get id(): Uint8Array {
+  public get id(): TID {
     return this._id;
+  }
+  public get idBytes(): Uint8Array {
+    return this._idBytes;
   }
   public get type(): MemberType {
     return this._type;
@@ -109,7 +115,7 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
   public get publicKey(): Uint8Array {
     return this._publicKey;
   }
-  public get creatorId(): Uint8Array {
+  public get creatorId(): TID {
     return this._creatorId;
   }
   public get dateCreated(): Date {
@@ -127,6 +133,10 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
     if (!this._wallet) {
       throw new MemberError(MemberErrorType.NoWallet);
     }
+    return this._wallet;
+  }
+
+  public get walletOptional(): Wallet | undefined {
     return this._wallet;
   }
 
@@ -410,14 +420,12 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
 
   public toJson(): string {
     const storage: IMemberStorageData = {
-      id: this._eciesService.constants.idProvider.serialize(this._id),
+      id: this._eciesService.constants.idProvider.serialize(Constants.idProvider.toBytes(this._id)),
       type: this._type,
       name: this._name,
       email: this._email.toString(),
       publicKey: uint8ArrayToBase64(this._publicKey),
-      creatorId: this._eciesService.constants.idProvider.serialize(
-        this._creatorId,
-      ),
+      creatorId: this._eciesService.constants.idProvider.serialize(Constants.idProvider.toBytes(this._creatorId)),
       dateCreated: this._dateCreated.toISOString(),
       dateUpdated: this._dateUpdated.toISOString(),
     };
@@ -436,8 +444,11 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
   public static fromJson(
     json: string,
     // Add injected services as parameters
-    eciesService: ECIESService,
+    eciesService?: ECIESService,
   ): Member {
+    if (!eciesService) {
+      eciesService = new ECIESService();
+    }
     let storage: IMemberStorageData;
     try {
       storage = JSON.parse(json) as IMemberStorageData;
@@ -501,7 +512,7 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
     );
   }
 
-  public static newMember(
+  public static newMember<TID extends PlatformID = Uint8Array>(
     // Add injected services as parameters
     eciesService: ECIESService,
     // Original parameters
@@ -511,7 +522,7 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
     forceMnemonic?: SecureString,
     createdBy?: Uint8Array,
     _eciesParams?: IECIESConstants,
-  ): IMemberWithMnemonic {
+  ): IMemberWithMnemonic<TID> {
     // Validate inputs first
     if (!name || name.length == 0) {
       throw new MemberError(MemberErrorType.MissingMemberName);
@@ -542,7 +553,7 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
     const dateCreated = new Date();
     return {
       // Pass injected services to constructor
-      member: new Member(
+      member: new Member<TID>(
         eciesService,
         type,
         name,
@@ -550,10 +561,10 @@ export class Member implements IMember, IFrontendMemberOperational<Uint8Array> {
         publicKey,
         new SecureBuffer(privateKey),
         wallet,
-        newId,
+        newId as TID,
         dateCreated,
         dateCreated,
-        createdBy ?? newId,
+        (createdBy ?? newId) as TID,
       ),
       mnemonic,
     };

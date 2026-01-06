@@ -34,6 +34,30 @@ export abstract class BaseIdProvider implements IIdProvider {
   }
 
   /**
+   * Convert any ID representation to canonical Uint8Array format.
+   * Default implementation handles common types.
+   */
+  toBytes(id: unknown): Uint8Array {
+    if (id instanceof Uint8Array) {
+      return this.clone(id);
+    }
+    if (typeof id === 'string') {
+      return this.deserialize(id);
+    }
+    // For other types, convert to string first then deserialize
+    return this.deserialize(String(id));
+  }
+
+  /**
+   * Convert Uint8Array to the provider's native representation.
+   * Default implementation returns Uint8Array (no conversion).
+   */
+  fromBytes(bytes: Uint8Array): unknown {
+    this.validateLength(bytes, 'BaseIdProvider.fromBytes');
+    return this.clone(bytes);
+  }
+
+  /**
    * Constant-time comparison to prevent timing attacks.
    */
   equals(a: Uint8Array, b: Uint8Array): boolean {

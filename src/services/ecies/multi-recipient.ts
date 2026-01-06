@@ -656,6 +656,35 @@ export class EciesMultiRecipient {
     };
   }
 
+  /**
+   * Parse multi-encrypted header (alias for parseHeader)
+   */
+  public parseMultiEncryptedHeader(data: Uint8Array): IMultiEncryptedParsedHeader {
+    return this.parseHeader(data);
+  }
+
+  /**
+   * Build ECIES multiple recipient header (alias for buildHeader)
+   */
+  public buildECIESMultipleRecipientHeader(data: IMultiEncryptedMessage): Uint8Array {
+    return this.buildHeader(data);
+  }
+
+  /**
+   * Decrypt multiple ECIE for recipient (alias for decryptMultipleForRecipient)
+   */
+  public async decryptMultipleECIEForRecipient(
+    encryptedData: IMultiEncryptedMessage,
+    recipient: { idBytes: Uint8Array; privateKey?: { value: Uint8Array } },
+  ): Promise<Uint8Array> {
+    const privateKey = recipient.privateKey?.value || new Uint8Array();
+    return this.decryptMultipleForRecipient(
+      encryptedData,
+      recipient.idBytes,
+      privateKey,
+    );
+  }
+
   private arraysEqual(a: Uint8Array, b: Uint8Array): boolean {
     if (a.length !== b.length) return false;
     for (let i = 0; i < a.length; i++) {

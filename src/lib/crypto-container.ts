@@ -3,7 +3,6 @@
  */
 
 import { I18nEngine } from '@digitaldefiance/i18n-lib';
-import { Constants } from '../constants';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
 import type { IConstants } from '../interfaces/constants';
@@ -29,10 +28,15 @@ export class CryptoContainer {
   }
 
   static create(
-    config: IConstants = Constants,
+    config?: IConstants,
     i18n?: I18nEngine,
   ): CryptoContainer {
-    return new CryptoContainer(config, i18n || getEciesI18nEngine());
+    const finalConfig: IConstants = config ?? (() => {
+      // Lazy import to avoid circular dependency
+      const { Constants } = require('../constants');
+      return Constants as IConstants;
+    })();
+    return new CryptoContainer(finalConfig, i18n || getEciesI18nEngine());
   }
 
   get<T>(key: CryptoServiceKey): T {

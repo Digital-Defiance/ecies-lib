@@ -11,29 +11,31 @@ import {
   type VoteReceipt,
   type EncryptedVote,
 } from './types';
+import { PlatformID } from '../../interfaces';
+import { Constants } from '../../constants';
 
 /**
  * Poll aggregates encrypted votes using only public key.
  * Cannot decrypt votes - requires separate Tallier with private key.
  */
-export class Poll {
-  private readonly _id: Uint8Array;
+export class Poll<TID extends PlatformID> {
+  private readonly _id: TID;
   private readonly _choices: ReadonlyArray<string>;
   private readonly _method: VotingMethod;
-  private readonly _authority: IMember;
+  private readonly _authority: IMember<TID>;
   private readonly ___votingPublicKey: PublicKey;
   private readonly _votes: Map<string, bigint[]> = new Map();
-  private readonly _receipts: Map<string, VoteReceipt> = new Map();
+  private readonly _receipts: Map<string, VoteReceipt<TID>> = new Map();
   private readonly _createdAt: number;
   private _closedAt?: number;
   private _maxWeight?: bigint;
-  private readonly _auditLog: ImmutableAuditLog;
+  private readonly _auditLog: ImmutableAuditLog<TID>;
 
   constructor(
-    id: Uint8Array,
+    id: TID,
     choices: string[],
     method: VotingMethod,
-    authority: IMember,
+    authority: IMember<TID>,
     votingPublicKey: PublicKey,
     maxWeight?: bigint,
     allowInsecure?: boolean,
@@ -51,7 +53,7 @@ export class Poll {
     this.___votingPublicKey = votingPublicKey;
     this._maxWeight = maxWeight;
     this._createdAt = Date.now();
-    this._auditLog = new ImmutableAuditLog(authority);
+    this._auditLog = new ImmutableAuditLog<TID>(authority);
 
     // Record poll creation in audit log
     this._auditLog.recordPollCreated(id, {
@@ -61,7 +63,7 @@ export class Poll {
     });
   }
 
-  get id(): Uint8Array {
+  get id(): TID {
     return this._id;
   }
   get choices(): ReadonlyArray<string> {
@@ -83,17 +85,17 @@ export class Poll {
     return this._closedAt;
   }
 
-  get auditLog(): AuditLog {
+  get auditLog(): AuditLog<TID> {
     return this._auditLog;
   }
 
   /**
    * Cast a vote - validates and encrypts based on method
    */
-  vote(voter: IMember, vote: EncryptedVote): VoteReceipt {
+  vote(voter: IMember<TID>, vote: EncryptedVote<TID>): VoteReceipt<TID> {
     if (this.isClosed) throw new Error('Poll is closed');
 
-    const voterId = this._toKey(voter.id);
+    const voterId = this._toKey(Constants.idProvider.toBytes(voter.id));
     if (this._receipts.has(voterId)) throw new Error('Already voted');
 
     // Validate vote structure based on method
@@ -107,7 +109,7 @@ export class Poll {
     this._receipts.set(voterId, receipt);
 
     // Record vote in audit log
-    const voterIdHash = this._hashVoterId(voter.id);
+    const voterIdHash = this._hashVoterId(Constants.idProvider.toBytes(voter.id));
     this._auditLog.recordVoteCast(this._id, voterIdHash);
 
     return receipt;
@@ -116,8 +118,8 @@ export class Poll {
   /**
    * Verify a receipt is valid for this poll
    */
-  verifyReceipt(voter: IMember, receipt: VoteReceipt): boolean {
-    const voterId = this._toKey(voter.id);
+  verifyReceipt(voter: IMember<TID>, receipt: VoteReceipt<TID>): boolean {
+    const voterId = this._toKey(Constants.idProvider.toBytes(voter.id));
     const stored = this._receipts.get(voterId);
     if (!stored) return false;
 
@@ -164,7 +166,7 @@ export class Poll {
     }) as ReadonlyMap<string, readonly bigint[]>;
   }
 
-  private _validateVote(vote: EncryptedVote): void {
+  private _validateVote(vote: EncryptedVote<TID>): void {
     switch (this._method) {
       case VotingMethod.Plurality:
         if (vote.choiceIndex === undefined) throw new Error('Choice required');
@@ -207,11 +209,11 @@ export class Poll {
     if (!vote.encrypted?.length) throw new Error('Encrypted data required');
   }
 
-  private _generateReceipt(voter: IMember): VoteReceipt {
+  private _generateReceipt(voter: IMember<TID>): VoteReceipt<TID> {
     const nonce = new Uint8Array(16);
     crypto.getRandomValues(nonce);
 
-    const receipt: VoteReceipt = {
+    const receipt: VoteReceipt<TID> = {
       voterId: voter.id,
       pollId: this._id,
       timestamp: Date.now(),
@@ -225,10 +227,10 @@ export class Poll {
     return receipt;
   }
 
-  private _receiptData(receipt: VoteReceipt): Uint8Array {
+  private _receiptData(receipt: VoteReceipt<TID>): Uint8Array {
     const parts = [
-      receipt.voterId,
-      receipt.pollId,
+      Constants.idProvider.toBytes(receipt.voterId),
+      Constants.idProvider.toBytes(receipt.pollId),
       new Uint8Array(new BigUint64Array([BigInt(receipt.timestamp)]).buffer),
       receipt.nonce,
     ];

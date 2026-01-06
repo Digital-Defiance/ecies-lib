@@ -2,6 +2,9 @@
  * Poll Factory - Convenient poll creation
  * Browser compatible
  */
+import { Constants } from '../../constants';
+import { PlatformID } from '../../interfaces';
+import { Member } from '../../member';
 import { Poll } from './poll-core';
 import { VotingMethod, type IMember } from './types';
 
@@ -9,23 +12,22 @@ export class PollFactory {
   /**
    * Create a new poll with specified method
    */
-  static create(
+  static create<TID extends PlatformID>(
     choices: string[],
     method: VotingMethod,
-    authority: IMember,
+    authority: Member<TID>,
     options?: {
       maxWeight?: bigint;
     },
-  ): Poll {
+  ): Poll<TID> {
     if (!authority.votingPublicKey) {
       throw new Error('Authority must have voting public key');
     }
 
     // Generate poll ID
-    const id = new Uint8Array(16);
-    crypto.getRandomValues(id);
+    const id = Constants.idProvider.generate() as TID;
 
-    return new Poll(
+    return new Poll<TID>(
       id,
       choices,
       method,
@@ -38,25 +40,25 @@ export class PollFactory {
   /**
    * Create a plurality poll (simple majority)
    */
-  static createPlurality(choices: string[], authority: IMember): Poll {
+  static createPlurality<TID extends PlatformID>(choices: string[], authority: Member<TID>): Poll<TID> {
     return this.create(choices, VotingMethod.Plurality, authority);
   }
 
   /**
    * Create an approval voting poll
    */
-  static createApproval(choices: string[], authority: IMember): Poll {
+  static createApproval<TID extends PlatformID>(choices: string[], authority: Member<TID>): Poll<TID> {
     return this.create(choices, VotingMethod.Approval, authority);
   }
 
   /**
    * Create a weighted voting poll
    */
-  static createWeighted(
+  static createWeighted<TID extends PlatformID>(
     choices: string[],
-    authority: IMember,
+    authority: Member<TID>,
     maxWeight: bigint,
-  ): Poll {
+  ): Poll<TID> {
     return this.create(choices, VotingMethod.Weighted, authority, {
       maxWeight,
     });
@@ -65,14 +67,14 @@ export class PollFactory {
   /**
    * Create a Borda count poll
    */
-  static createBorda(choices: string[], authority: IMember): Poll {
+  static createBorda<TID extends PlatformID>(choices: string[], authority: Member<TID>): Poll<TID> {
     return this.create(choices, VotingMethod.Borda, authority);
   }
 
   /**
    * Create a ranked choice (IRV) poll
    */
-  static createRankedChoice(choices: string[], authority: IMember): Poll {
+  static createRankedChoice<TID extends PlatformID>(choices: string[], authority: Member<TID>): Poll<TID> {
     return this.create(choices, VotingMethod.RankedChoice, authority);
   }
 }

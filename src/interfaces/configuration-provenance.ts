@@ -1,11 +1,12 @@
 import type { DeepPartial } from '../types/deep-partial';
 import type { IConstants } from './constants';
+import type { PlatformID } from './platform-id';
 
 /**
  * Provenance information for a configuration.
  * Tracks who created it, when, and what modifications were made.
  */
-export interface IConfigurationProvenance {
+export interface IConfigurationProvenance<TID extends PlatformID = Uint8Array> {
   /**
    * The base configuration key this was derived from
    */
@@ -46,9 +47,3 @@ export interface IConfigurationProvenance {
    */
   readonly creationStack?: string;
 }
-
-// Re-export utility functions from lib
-export {
-  calculateConfigChecksum,
-  captureCreationStack,
-} from '../lib/configuration-provenance-utils';

@@ -4,14 +4,15 @@
  */
 import type { PublicKey } from 'paillier-bigint';
 import { VotingMethod, type EncryptedVote } from './types';
+import { PlatformID } from '../../interfaces';
 
-export class VoteEncoder {
+export class VoteEncoder<TID extends PlatformID = Uint8Array> {
   constructor(private readonly votingPublicKey: PublicKey) {}
 
   /**
    * Encode a plurality vote (single choice)
    */
-  encodePlurality(choiceIndex: number, choiceCount: number): EncryptedVote {
+  encodePlurality(choiceIndex: number, choiceCount: number): EncryptedVote<TID> {
     const encrypted: bigint[] = [];
 
     for (let i = 0; i < choiceCount; i++) {
@@ -32,7 +33,7 @@ export class VoteEncoder {
   /**
    * Encode an approval vote (multiple choices)
    */
-  encodeApproval(choices: number[], choiceCount: number): EncryptedVote {
+  encodeApproval(choices: number[], choiceCount: number): EncryptedVote<TID> {
     const choiceSet = new Set(choices);
     const encrypted: bigint[] = [];
 
@@ -57,7 +58,7 @@ export class VoteEncoder {
     choiceIndex: number,
     weight: bigint,
     choiceCount: number,
-  ): EncryptedVote {
+  ): EncryptedVote<TID> {
     const encrypted: bigint[] = [];
 
     for (let i = 0; i < choiceCount; i++) {
@@ -79,7 +80,7 @@ export class VoteEncoder {
    * Encode a Borda count vote (ranked with points)
    * First choice gets N points, second gets N-1, etc.
    */
-  encodeBorda(rankings: number[], choiceCount: number): EncryptedVote {
+  encodeBorda(rankings: number[], choiceCount: number): EncryptedVote<TID> {
     const encrypted: bigint[] = new Array(choiceCount) as bigint[];
     const points = BigInt(rankings.length);
 
@@ -107,7 +108,7 @@ export class VoteEncoder {
    * Encode a ranked choice vote (for IRV/STV)
    * Stores ranking order, not points
    */
-  encodeRankedChoice(rankings: number[], choiceCount: number): EncryptedVote {
+  encodeRankedChoice(rankings: number[], choiceCount: number): EncryptedVote<TID> {
     const encrypted: bigint[] = new Array(choiceCount) as bigint[];
 
     // Initialize all to 0 (not ranked)
@@ -141,7 +142,7 @@ export class VoteEncoder {
       weight?: bigint;
     },
     choiceCount: number,
-  ): EncryptedVote {
+  ): EncryptedVote<TID> {
     switch (method) {
       case VotingMethod.Plurality:
         if (data.choiceIndex === undefined) throw new Error('Choice required');

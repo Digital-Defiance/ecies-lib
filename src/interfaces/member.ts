@@ -6,28 +6,28 @@ import type { SecureBuffer } from '../secure-buffer';
 import type { SecureString } from '../secure-string';
 import type { IECIESConstants } from './ecies-consts';
 import type { IEncryptedChunk } from './encrypted-chunk';
-import type { PlatformBuffer } from './platform-buffer';
+import type { PlatformID } from './platform-id';
 
 /**
  * Generic interface representing a member with cryptographic capabilities.
  * This interface defines the contract for member operations across both
- * ecies-lib (Uint8Array) and node-ecies-lib (Buffer) implementations.
+ * ecies-lib (Uint8Array) and node-ecies-lib (Uint8Array) implementations.
  *
- * @template TBuffer - The buffer type (Uint8Array for browser, Buffer for Node.js)
- * @template TID - The ID type (Uint8Array for browser, Buffer/string/ObjectId for Node.js)
- * @template TSignature - The signature type (SignatureUint8Array for browser, SignatureBuffer for Node.js)
+ * @template Uint8Array - The Uint8Array type (Uint8Array for browser, Uint8Array for Node.js)
+ * @template TID - The ID type (Uint8Array for browser, Uint8Array/string/ObjectId for Node.js)
+ * @template TSignature - The signature type (SignatureUint8Array for browser, SignatureUint8Array for Node.js)
  */
 export interface IMember<
-  TBuffer extends PlatformBuffer = Uint8Array,
-  TID extends string | TBuffer = TBuffer,
-  TSignature extends TBuffer = TBuffer,
+  TID extends PlatformID = Uint8Array,
+  TSignature extends Uint8Array = Uint8Array,
 > {
   // Required properties
   readonly id: TID;
+  readonly idBytes: Uint8Array; // Canonical storage format for crypto operations
   readonly type: MemberType;
   readonly name: string;
   readonly email: EmailString;
-  readonly publicKey: TBuffer;
+  readonly publicKey: Uint8Array;
   readonly creatorId: TID;
   readonly dateCreated: Date;
   readonly dateUpdated: Date;
@@ -35,6 +35,9 @@ export interface IMember<
   // Optional private data properties
   readonly privateKey: SecureBuffer | undefined;
   readonly wallet: Wallet;
+  
+  // Optional wallet getter for compatibility
+  get walletOptional(): Wallet | undefined;
 
   // Optional voting keys (for homomorphic encryption voting systems)
   readonly votingPublicKey?: PublicKey;
@@ -60,20 +63,20 @@ export interface IMember<
   unloadVotingPrivateKey(): void;
 
   // Cryptographic methods
-  sign(data: TBuffer): TSignature;
-  signData(data: TBuffer): TSignature;
-  verify(signature: TSignature, data: TBuffer): boolean;
+  sign(data: Uint8Array): TSignature;
+  signData(data: Uint8Array): TSignature;
+  verify(signature: TSignature, data: Uint8Array): boolean;
   verifySignature(
-    data: TBuffer,
-    signature: TBuffer,
-    publicKey: TBuffer,
+    data: Uint8Array,
+    signature: Uint8Array,
+    publicKey: Uint8Array,
   ): boolean;
 
   // Encryption/Decryption methods
   encryptDataStream(
-    source: AsyncIterable<TBuffer> | ReadableStream<TBuffer>,
+    source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
     options?: {
-      recipientPublicKey?: TBuffer;
+      recipientPublicKey?: Uint8Array;
       onProgress?: (progress: {
         bytesProcessed: number;
         chunksProcessed: number;
@@ -83,7 +86,7 @@ export interface IMember<
   ): AsyncGenerator<IEncryptedChunk, void, unknown>;
 
   decryptDataStream(
-    source: AsyncIterable<TBuffer> | ReadableStream<TBuffer>,
+    source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
     options?: {
       onProgress?: (progress: {
         bytesProcessed: number;
@@ -91,14 +94,14 @@ export interface IMember<
       }) => void;
       signal?: AbortSignal;
     },
-  ): AsyncGenerator<TBuffer, void, unknown>;
+  ): AsyncGenerator<Uint8Array, void, unknown>;
 
   encryptData(
-    data: string | TBuffer,
-    recipientPublicKey?: TBuffer,
-  ): Promise<TBuffer> | TBuffer;
+    data: string | Uint8Array,
+    recipientPublicKey?: Uint8Array,
+  ): Promise<Uint8Array> | Uint8Array;
 
-  decryptData(encryptedData: TBuffer): Promise<TBuffer> | TBuffer;
+  decryptData(encryptedData: Uint8Array): Promise<Uint8Array> | Uint8Array;
 
   // Serialization methods
   toJson(): string;

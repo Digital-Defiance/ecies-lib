@@ -2,8 +2,8 @@ import {
   Constants,
   ConstantsRegistry,
   createRuntimeConfiguration,
+  calculateConfigChecksum,
 } from '../../src/constants';
-import { calculateConfigChecksum } from '../../src/interfaces/configuration-provenance';
 import { GuidV4Provider, ObjectIdProvider } from '../../src/lib/id-providers';
 
 describe('Configuration Provenance Tracking', () => {

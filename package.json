@@ -1,6 +1,6 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "4.7.14",
+  "version": "4.8.0",
   "description": "Digital Defiance ECIES Library",
   "homepage": "https://github.com/Digital-Defiance/ecies-lib",
   "repository": {
@@ -64,7 +64,7 @@
     "@noble/curves": "1.9.0",
     "@noble/hashes": "1.8.0",
     "@scure/bip32": "1.7.0",
-    "bson": "^6.10.4",
+    "bson": "^7.0.0",
     "paillier-bigint": "^3.4.1",
     "ts-brand": "^0.2.0"
   },

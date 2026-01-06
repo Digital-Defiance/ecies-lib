@@ -5,6 +5,7 @@ import {
 } from '../../enumerations/ecies-encryption-type';
 import { EciesStringKey } from '../../enumerations/ecies-string-key';
 import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import { IMember } from '../../interfaces';
 import { IConstants } from '../../interfaces/constants';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
@@ -14,6 +15,7 @@ import { VotingService } from '../voting.service';
 import { EciesCryptoCore } from './crypto-core';
 import {
   IMultiEncryptedMessage,
+  IMultiEncryptedParsedHeader,
   IMultiRecipient,
   ISimpleKeyPair,
   IWalletSeed,
@@ -465,5 +467,69 @@ export class ECIESService {
       ephemeralPublicKey,
       aad,
     );
+  }
+
+  /**
+   * Calculate overhead for multiple recipient encryption
+   */
+  public calculateECIESMultipleRecipientOverhead(
+    recipientCount: number,
+    includeMessageOverhead: boolean = true,
+  ): number {
+    // ECIES overhead: ephemeral pubkey (33) + iv (16) + tag (16) + mac (32) = 97
+    const ECIES_OVERHEAD = 97;
+    // Per recipient: encrypted key (32) + recipient pubkey (33) + signature (64) = 129
+    const RECIPIENT_OVERHEAD = 129;
+
+    let overhead = recipientCount * RECIPIENT_OVERHEAD;
+    if (includeMessageOverhead) {
+      overhead += ECIES_OVERHEAD;
+    }
+    return overhead;
+  }
+
+  /**
+   * Parse multi-encrypted header
+   */
+  public parseMultiEncryptedHeader(data: Uint8Array): IMultiEncryptedParsedHeader {
+    return this.multiRecipient.parseMultiEncryptedHeader(data);
+  }
+
+  /**
+   * Build multi-recipient header
+   */
+  public buildECIESMultipleRecipientHeader(data: IMultiEncryptedMessage): Uint8Array {
+    return this.multiRecipient.buildECIESMultipleRecipientHeader(data);
+  }
+
+  /**
+   * Decrypt multiple ECIE for recipient
+   */
+  public async decryptMultipleECIEForRecipient(
+    encryptedData: IMultiEncryptedMessage,
+    recipient: IMember,
+  ): Promise<Uint8Array> {
+    return this.multiRecipient.decryptMultipleECIEForRecipient(
+      encryptedData,
+      recipient,
+    );
+  }
+
+  /**
+   * Convert signature buffer to string (alias for existing method)
+   */
+  public signatureBufferToSignatureString(
+    signatureBuffer: SignatureUint8Array,
+  ): string {
+    return this.signatureUint8ArrayToSignatureString(signatureBuffer);
+  }
+
+  /**
+   * Convert signature string to buffer (alias for existing method)
+   */
+  public signatureStringToSignatureBuffer(
+    signatureString: string,
+  ): SignatureUint8Array {
+    return this.signatureStringToSignatureUint8Array(signatureString as SignatureString);
   }
 }

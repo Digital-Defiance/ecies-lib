@@ -70,6 +70,16 @@ describe('ID Providers', () => {
       expect(provider.equals(id1, id2)).toBe(true);
       expect(provider.equals(id1, id3)).toBe(false);
     });
+
+    it('should convert to/from bytes', () => {
+      const id = provider.generate();
+      const bytes = provider.toBytes(id);
+      const restored = provider.fromBytes(bytes);
+
+      expect(bytes).toBeInstanceOf(Uint8Array);
+      expect(bytes.length).toBe(12);
+      expect(provider.equals(id, restored)).toBe(true);
+    });
   });
 
   describe('GuidV4Provider', () => {
@@ -124,6 +134,16 @@ describe('ID Providers', () => {
 
       const nonEmptyGuid = provider.generate();
       expect(provider.isEmpty(nonEmptyGuid)).toBe(false);
+    });
+
+    it('should convert to/from bytes', () => {
+      const id = provider.generate();
+      const bytes = provider.toBytes(id);
+      const restored = provider.fromBytes(bytes);
+
+      expect(bytes).toBeInstanceOf(Uint8Array);
+      expect(bytes.length).toBe(16);
+      expect(provider.equals(id, restored)).toBe(true);
     });
   });
 
@@ -183,6 +203,16 @@ describe('ID Providers', () => {
       const nonNilUuid = provider.generate();
       expect(provider.isNil(nonNilUuid)).toBe(false);
     });
+
+    it('should convert to/from bytes', () => {
+      const id = provider.generate();
+      const bytes = provider.toBytes(id);
+      const restored = provider.fromBytes(bytes);
+
+      expect(bytes).toBeInstanceOf(Uint8Array);
+      expect(bytes.length).toBe(16);
+      expect(provider.equals(id, restored)).toBe(true);
+    });
   });
 
   describe('CustomIdProvider', () => {
@@ -229,6 +259,17 @@ describe('ID Providers', () => {
     it('should use default name if not provided', () => {
       const provider = new CustomIdProvider(10);
       expect(provider.name).toBe('Custom');
+    });
+
+    it('should convert to/from bytes', () => {
+      const provider = new CustomIdProvider(20);
+      const id = provider.generate();
+      const bytes = provider.toBytes(id);
+      const restored = provider.fromBytes(bytes);
+
+      expect(bytes).toBeInstanceOf(Uint8Array);
+      expect(bytes.length).toBe(20);
+      expect(provider.equals(id, restored)).toBe(true);
     });
   });
 

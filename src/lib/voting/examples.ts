@@ -3,7 +3,13 @@
  * Shows how to use with ecies-lib Member class
  */
 
+import { getRuntimeConfiguration } from '../../constants';
+import { EmailString } from '../../email-string';
+import { MemberType } from '../../enumerations';
+import { IMember, IMemberWithMnemonic, PlatformID } from '../../interfaces';
 import { Member } from '../../member';
+import { ECIESService } from '../../services';
+import { GuidV4 } from '../guid';
 import {
   PollFactory,
   VoteEncoder,
@@ -14,34 +20,34 @@ import {
 /**
  * Example 1: Simple Plurality Vote
  */
-async function examplePlurality() {
+async function examplePlurality<TID extends PlatformID>() {
   // Create authority (poll creator)
-  const authority = await createMemberWithVotingKeys();
+  const authority = createMemberWithVotingKeys<TID>();
 
   // Create poll
-  const poll = PollFactory.createPlurality(
+  const poll = PollFactory.createPlurality<TID>(
     ['Alice', 'Bob', 'Charlie'],
-    authority,
+    authority.member,
   );
 
   // Create voters
-  const voter1 = await createMemberWithVotingKeys();
-  const voter2 = await createMemberWithVotingKeys();
-  const voter3 = await createMemberWithVotingKeys();
+  const voter1 = createMemberWithVotingKeys<TID>();
+  const voter2 = createMemberWithVotingKeys<TID>();
+  const voter3 = createMemberWithVotingKeys<TID>();
 
   // Cast votes
-  const encoder = new VoteEncoder(authority.votingPublicKey!);
+  const encoder = new VoteEncoder<TID>(authority.member.votingPublicKey!);
 
-  poll.vote(voter1, encoder.encodePlurality(0, 3)); // Alice
-  poll.vote(voter2, encoder.encodePlurality(0, 3)); // Alice
-  poll.vote(voter3, encoder.encodePlurality(1, 3)); // Bob
+  poll.vote(voter1.member, encoder.encodePlurality(0, 3)); // Alice
+  poll.vote(voter2.member, encoder.encodePlurality(0, 3)); // Alice
+  poll.vote(voter3.member, encoder.encodePlurality(1, 3)); // Bob
 
   // Close and tally
   poll.close();
   const tallier = new PollTallier(
-    authority,
-    authority.votingPrivateKey!,
-    authority.votingPublicKey!,
+    authority.member,
+    authority.member.votingPrivateKey!,
+    authority.member.votingPublicKey!,
   );
   const results = tallier.tally(poll);
 
@@ -52,37 +58,37 @@ async function examplePlurality() {
 /**
  * Example 2: Ranked Choice Voting (True IRV)
  */
-async function exampleRankedChoice() {
-  const authority = await createMemberWithVotingKeys();
+async function exampleRankedChoice<TID extends PlatformID>() {
+  const authority = createMemberWithVotingKeys<TID>();
 
-  const poll = PollFactory.createRankedChoice(
+  const poll = PollFactory.createRankedChoice<TID>(
     ['Alice', 'Bob', 'Charlie', 'Diana'],
-    authority,
+    authority.member,
   );
 
-  const encoder = new VoteEncoder(authority.votingPublicKey!);
+  const encoder = new VoteEncoder<TID>(authority.member.votingPublicKey!);
 
   // Voter 1: Alice > Bob > Charlie
-  const voter1 = await createMemberWithVotingKeys();
-  poll.vote(voter1, encoder.encodeRankedChoice([0, 1, 2], 4));
+  const voter1 = await createMemberWithVotingKeys<TID>();
+  poll.vote(voter1.member, encoder.encodeRankedChoice([0, 1, 2], 4));
 
   // Voter 2: Bob > Alice > Diana
-  const voter2 = await createMemberWithVotingKeys();
-  poll.vote(voter2, encoder.encodeRankedChoice([1, 0, 3], 4));
+  const voter2 = await createMemberWithVotingKeys<TID>();
+  poll.vote(voter2.member, encoder.encodeRankedChoice([1, 0, 3], 4));
 
   // Voter 3: Charlie > Diana > Bob
-  const voter3 = await createMemberWithVotingKeys();
-  poll.vote(voter3, encoder.encodeRankedChoice([2, 3, 1], 4));
+  const voter3 = await createMemberWithVotingKeys<TID>();
+  poll.vote(voter3.member, encoder.encodeRankedChoice([2, 3, 1], 4));
 
   // Voter 4: Alice > Charlie
-  const voter4 = await createMemberWithVotingKeys();
-  poll.vote(voter4, encoder.encodeRankedChoice([0, 2], 4));
+  const voter4 = await createMemberWithVotingKeys<TID>();
+  poll.vote(voter4.member, encoder.encodeRankedChoice([0, 2], 4));
 
   poll.close();
   const tallier = new PollTallier(
-    authority,
-    authority.votingPrivateKey!,
-    authority.votingPublicKey!,
+    authority.member,
+    authority.member.votingPrivateKey!,
+    authority.member.votingPublicKey!,
   );
   const results = tallier.tally(poll);
 
@@ -94,34 +100,34 @@ async function exampleRankedChoice() {
 /**
  * Example 3: Weighted Voting (Stakeholder)
  */
-async function exampleWeighted() {
-  const authority = await createMemberWithVotingKeys();
+async function exampleWeighted<TID extends PlatformID = Uint8Array>() {
+  const authority = await createMemberWithVotingKeys<TID>();
 
-  const poll = PollFactory.createWeighted(
+  const poll = PollFactory.createWeighted<TID>(
     ['Proposal A', 'Proposal B'],
-    authority,
+    authority.member,
     1000n, // Max weight
   );
 
-  const encoder = new VoteEncoder(authority.votingPublicKey!);
+  const encoder = new VoteEncoder<TID>(authority.member.votingPublicKey!);
 
   // Large stakeholder
-  const whale = await createMemberWithVotingKeys();
-  poll.vote(whale, encoder.encodeWeighted(0, 500n, 2));
+  const whale = await createMemberWithVotingKeys<TID>();
+  poll.vote(whale.member, encoder.encodeWeighted(0, 500n, 2));
 
   // Medium stakeholder
-  const dolphin = await createMemberWithVotingKeys();
-  poll.vote(dolphin, encoder.encodeWeighted(1, 200n, 2));
+  const dolphin = await createMemberWithVotingKeys<TID>();
+  poll.vote(dolphin.member, encoder.encodeWeighted(1, 200n, 2));
 
   // Small stakeholder
-  const shrimp = await createMemberWithVotingKeys();
-  poll.vote(shrimp, encoder.encodeWeighted(1, 50n, 2));
+  const shrimp = await createMemberWithVotingKeys<TID>();
+  poll.vote(shrimp.member, encoder.encodeWeighted(1, 50n, 2));
 
   poll.close();
-  const tallier = new PollTallier(
-    authority,
-    authority.votingPrivateKey!,
-    authority.votingPublicKey!,
+  const tallier = new PollTallier<TID>(
+    authority.member,
+    authority.member.votingPrivateKey!,
+    authority.member.votingPublicKey!,
   );
   const results = tallier.tally(poll);
 
@@ -131,31 +137,31 @@ async function exampleWeighted() {
 /**
  * Example 4: Borda Count
  */
-async function exampleBorda() {
-  const authority = await createMemberWithVotingKeys();
+async function exampleBorda<TID extends PlatformID = Uint8Array>() {
+  const authority = await createMemberWithVotingKeys<TID>();
 
-  const poll = PollFactory.createBorda(
+  const poll = PollFactory.createBorda<TID>(
     ['Option A', 'Option B', 'Option C'],
-    authority,
+    authority.member,
   );
 
-  const encoder = new VoteEncoder(authority.votingPublicKey!);
+  const encoder = new VoteEncoder<TID>(authority.member.votingPublicKey!);
 
   // Each voter ranks all options
-  const voter1 = await createMemberWithVotingKeys();
-  poll.vote(voter1, encoder.encodeBorda([0, 1, 2], 3)); // A=3, B=2, C=1
+  const voter1 = await createMemberWithVotingKeys<TID>();
+  poll.vote(voter1.member, encoder.encodeBorda([0, 1, 2], 3)); // A=3, B=2, C=1
 
-  const voter2 = await createMemberWithVotingKeys();
-  poll.vote(voter2, encoder.encodeBorda([1, 0, 2], 3)); // B=3, A=2, C=1
+  const voter2 = await createMemberWithVotingKeys<TID>();
+  poll.vote(voter2.member, encoder.encodeBorda([1, 0, 2], 3)); // B=3, A=2, C=1
 
-  const voter3 = await createMemberWithVotingKeys();
-  poll.vote(voter3, encoder.encodeBorda([0, 2, 1], 3)); // A=3, C=2, B=1
+  const voter3 = await createMemberWithVotingKeys<TID>();
+  poll.vote(voter3.member, encoder.encodeBorda([0, 2, 1], 3)); // A=3, C=2, B=1
 
   poll.close();
-  const tallier = new PollTallier(
-    authority,
-    authority.votingPrivateKey!,
-    authority.votingPublicKey!,
+  const tallier = new PollTallier<TID>(
+    authority.member,
+    authority.member.votingPrivateKey!,
+    authority.member.votingPublicKey!,
   );
   const results = tallier.tally(poll);
 
@@ -166,33 +172,33 @@ async function exampleBorda() {
 /**
  * Example 5: Approval Voting
  */
-async function exampleApproval() {
-  const authority = await createMemberWithVotingKeys();
+async function exampleApproval<TID extends PlatformID = Uint8Array>() {
+  const authority = await createMemberWithVotingKeys<TID>();
 
-  const poll = PollFactory.createApproval(
+  const poll = PollFactory.createApproval<TID>(
     ['Red', 'Green', 'Blue', 'Yellow'],
-    authority,
+    authority.member,
   );
 
-  const encoder = new VoteEncoder(authority.votingPublicKey!);
+  const encoder = new VoteEncoder<TID>(authority.member.votingPublicKey!);
 
   // Voter 1 approves Red and Blue
-  const voter1 = await createMemberWithVotingKeys();
-  poll.vote(voter1, encoder.encodeApproval([0, 2], 4));
+  const voter1 = await createMemberWithVotingKeys<TID>();
+  poll.vote(voter1.member, encoder.encodeApproval([0, 2], 4));
 
   // Voter 2 approves Green and Blue
-  const voter2 = await createMemberWithVotingKeys();
-  poll.vote(voter2, encoder.encodeApproval([1, 2], 4));
+  const voter2 = await createMemberWithVotingKeys<TID>();
+  poll.vote(voter2.member, encoder.encodeApproval([1, 2], 4));
 
   // Voter 3 approves only Blue
-  const voter3 = await createMemberWithVotingKeys();
-  poll.vote(voter3, encoder.encodeApproval([2], 4));
+  const voter3 = await createMemberWithVotingKeys<TID>();
+  poll.vote(voter3.member, encoder.encodeApproval([2], 4));
 
   poll.close();
-  const tallier = new PollTallier(
-    authority,
-    authority.votingPrivateKey!,
-    authority.votingPublicKey!,
+  const tallier = new PollTallier<TID>(
+    authority.member,
+    authority.member.votingPrivateKey!,
+    authority.member.votingPublicKey!,
   );
   const results = tallier.tally(poll);
 
@@ -203,35 +209,35 @@ async function exampleApproval() {
 /**
  * Example 6: Receipt Verification
  */
-async function exampleReceipts() {
-  const authority = await createMemberWithVotingKeys();
-  const poll = PollFactory.createPlurality(['Yes', 'No'], authority);
+async function exampleReceipts<TID extends PlatformID>() {
+  const authority = await createMemberWithVotingKeys<TID>();
+  const poll = PollFactory.createPlurality<TID>(['Yes', 'No'], authority.member);
 
-  const voter = await createMemberWithVotingKeys();
-  const encoder = new VoteEncoder(authority.votingPublicKey!);
+  const voter = await createMemberWithVotingKeys<TID>();
+  const encoder = new VoteEncoder<TID>(authority.member.votingPublicKey!);
 
   // Cast vote and get receipt
-  const receipt = poll.vote(voter, encoder.encodePlurality(0, 2));
+  const receipt = poll.vote(voter.member, encoder.encodePlurality(0, 2));
 
   // Verify receipt
-  const isValid = poll.verifyReceipt(voter, receipt);
+  const isValid = poll.verifyReceipt(voter.member, receipt);
   console.log('Receipt valid:', isValid); // true
 
   // Try to verify with wrong voter
-  const otherVoter = await createMemberWithVotingKeys();
-  const isInvalid = poll.verifyReceipt(otherVoter, receipt);
+  const otherVoter = await createMemberWithVotingKeys<TID>();
+  const isInvalid = poll.verifyReceipt(otherVoter.member, receipt);
   console.log('Wrong voter:', isInvalid); // false
 }
 
 /**
  * Helper: Create member with voting keys derived from ECDH
  */
-async function createMemberWithVotingKeys(): Promise<Member> {
+function createMemberWithVotingKeys<TID extends PlatformID>(name: string = 'Voter', email: string = 'voter@example.com', memberType: MemberType = MemberType.Anonymous): { member: Member<TID> } {
   // This would use ecies-lib's Member.newMember() and deriveVotingKeys()
   // Placeholder for example purposes
-  throw new Error(
-    'Use ecies-lib Member.newMember() and member.deriveVotingKeys()',
-  );
+  const eciesService = new ECIESService(getRuntimeConfiguration());
+  const memberWithMnemonic = Member.newMember(eciesService, memberType, name, new EmailString(email));
+  return { member: memberWithMnemonic.member as Member<TID> };
 }
 
 // Export examples

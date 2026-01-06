@@ -1,13 +1,12 @@
+import { ObjectId } from 'bson';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { bytesToHex } from '@noble/hashes/utils.js';
 import { ECIESErrorTypeEnum, EciesStringKey } from './enumerations';
 import { Pbkdf2ProfileEnum } from './enumerations/pbkdf2-profile';
 import { ECIESError } from './errors/ecies';
 import { EciesComponentId, getEciesI18nEngine } from './i18n-setup';
 import type { IChecksumConsts } from './interfaces/checksum-consts';
 import type { IConfigurationProvenance } from './interfaces/configuration-provenance';
-import {
-  calculateConfigChecksum,
-  captureCreationStack,
-} from './interfaces/configuration-provenance';
 import type { IConstants } from './interfaces/constants';
 import type { IECIESConstants } from './interfaces/ecies-consts';
 import type { IPBkdf2Consts } from './interfaces/pbkdf2-consts';
@@ -17,6 +16,32 @@ import { InvariantValidator } from './lib/invariant-validator';
 import type { Pbkdf2Profiles } from './pbkdf2-profiles';
 import { MNEMONIC_REGEX, PASSWORD_REGEX } from './regexes';
 import type { DeepPartial } from './types/deep-partial';
+
+/**
+ * Calculates a checksum for a configuration object.
+ * Uses SHA-256 of JSON representation.
+ */
+function calculateConfigChecksum(config: IConstants): string {
+  // Create a stable JSON representation with BigInt support
+  const replacer = (_key: string, value: unknown) =>
+    typeof value === 'bigint' ? value.toString() : value;
+  const stable = JSON.stringify(config, replacer);
+  const encoder = new TextEncoder();
+  const data = encoder.encode(stable);
+  return bytesToHex(sha256(data));
+}
+
+/**
+ * Captures a stack trace for provenance tracking
+ */
+function captureCreationStack(): string {
+  const stack = new Error().stack;
+  if (!stack) return 'stack unavailable';
+
+  // Remove the first two lines (Error message and this function)
+  const lines = stack.split('\n').slice(2);
+  return lines.join('\n');
+}
 
 export const UINT8_SIZE: number = 1 as const;
 export const UINT16_SIZE: number = 2 as const;
@@ -633,3 +658,6 @@ export function clearRuntimeConfigurations(): void {
 }
 
 export { MNEMONIC_REGEX, PASSWORD_REGEX } from './regexes';
+
+// Export utility functions
+export { calculateConfigChecksum, captureCreationStack };

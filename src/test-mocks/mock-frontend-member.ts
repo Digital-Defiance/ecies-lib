@@ -3,11 +3,11 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'bson';
 import {
   EmailString,
+  IMember,
   MemberType,
   SecureBuffer,
   SecureString,
 } from '@digitaldefiance/ecies-lib';
-import type { IFrontendMemberOperational } from '../interfaces/frontend-member-operational';
 import { SignatureUint8Array } from '../types';
 
 const hexToUint8Array = (hex: string): Uint8Array => {
@@ -29,7 +29,7 @@ const createMockWallet = (): Wallet =>
     sign: () => hexToUint8Array(faker.string.hexadecimal({ length: 128 })),
   }) as unknown as Wallet;
 
-export class MockFrontendMember implements IFrontendMemberOperational<ObjectId> {
+export class MockFrontendMember implements IMember<ObjectId> {
   private _id: ObjectId;
   private _type: MemberType;
   private _name: string;
@@ -79,6 +79,9 @@ export class MockFrontendMember implements IFrontendMemberOperational<ObjectId> 
   get id(): ObjectId {
     return this._id;
   }
+  get idBytes(): Uint8Array {
+    return new Uint8Array(this._id.toHexString().match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+  }
   get type(): MemberType {
     return this._type;
   }
@@ -103,11 +106,27 @@ export class MockFrontendMember implements IFrontendMemberOperational<ObjectId> 
   get privateKey(): SecureBuffer | undefined {
     return this._privateKey;
   }
-  get wallet(): Wallet | undefined {
+  get wallet(): Wallet {
+    if (!this._wallet) {
+      throw new Error('Wallet not available');
+    }
+    return this._wallet;
+  }
+  
+  get walletOptional(): Wallet | undefined {
     return this._wallet;
   }
   get hasPrivateKey(): boolean {
     return this._hasPrivateKey;
+  }
+  get hasVotingPrivateKey(): boolean {
+    return false; // Mock doesn't support voting keys
+  }
+  get votingPublicKey(): undefined {
+    return undefined;
+  }
+  get votingPrivateKey(): undefined {
+    return undefined;
   }
 
   unloadPrivateKey(): void {}
@@ -119,6 +138,24 @@ export class MockFrontendMember implements IFrontendMemberOperational<ObjectId> 
   loadWallet(_mnemonic: SecureString): void {}
 
   loadPrivateKey(_privateKey: SecureBuffer): void {}
+
+  loadVotingKeys(_votingPublicKey: any, _votingPrivateKey?: any): void {}
+
+  async deriveVotingKeys(_options?: Record<string, unknown>): Promise<void> {}
+
+  unloadVotingPrivateKey(): void {}
+
+  signData(data: Uint8Array): SignatureUint8Array {
+    return this.sign(data);
+  }
+
+  verifySignature(
+    _data: Uint8Array,
+    _signature: Uint8Array,
+    _publicKey: Uint8Array,
+  ): boolean {
+    return true;
+  }
 
   sign(_data: Uint8Array): SignatureUint8Array {
     return hexToUint8Array(

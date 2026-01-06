@@ -6,6 +6,7 @@ import { EmailString } from '../email-string';
 import { EciesStringKey } from '../enumerations';
 import { MemberType } from '../enumerations/member-type';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { PlatformID } from '../interfaces';
 import { IMemberWithMnemonic } from '../interfaces/member-with-mnemonic';
 import { Member } from '../member';
 import { SecureString } from '../secure-string';
@@ -130,9 +131,9 @@ export class MemberBuilder {
    * @param json - JSON string representation of member
    * @returns Member instance
    */
-  static fromJson(json: string): Member {
+  static fromJson<TID extends PlatformID = Uint8Array>(json: string): Member<TID> {
     const service = new ECIESService();
-    return Member.fromJson(json, service);
+    return Member.fromJson(json, service) as Member<TID>;
   }
 
   /**
@@ -142,14 +143,14 @@ export class MemberBuilder {
    * @param email - Optional member email (defaults to 'test@example.com')
    * @returns Member instance
    */
-  static fromMnemonic(
+  static fromMnemonic<TID extends PlatformID = Uint8Array>(
     mnemonic: SecureString,
     name = 'Test User',
     email: EmailString | string = 'test@example.com',
-  ): Member {
+  ): Member<TID> {
     const service = new ECIESService();
     const emailObj = typeof email === 'string' ? new EmailString(email) : email;
 
-    return Member.fromMnemonic(mnemonic, service, undefined, name, emailObj);
+    return Member.fromMnemonic(mnemonic, service, undefined, name, emailObj) as Member<TID>;
   }
 }

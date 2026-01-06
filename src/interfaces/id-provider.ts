@@ -79,4 +79,18 @@ export interface IIdProvider {
    * @returns The ID as a Uint8Array of length `byteLength`
    */
   idFromString(str: string): Uint8Array;
+
+  /**
+   * Convert any ID representation to canonical Uint8Array format.
+   * @param id The ID in any supported format
+   * @returns The ID as a Uint8Array of length `byteLength`
+   */
+  toBytes(id: unknown): Uint8Array;
+
+  /**
+   * Convert Uint8Array to the provider's native representation.
+   * @param bytes The ID as a Uint8Array
+   * @returns The ID in the provider's native format
+   */
+  fromBytes(bytes: Uint8Array): unknown;
 }

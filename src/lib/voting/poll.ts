@@ -6,6 +6,7 @@ import { Member } from '../../member';
 import { ECIESService } from '../../services/ecies/service';
 import { VotingService } from '../../services/voting.service';
 import { SignatureUint8Array } from '../../types';
+import { PlatformID } from '../../interfaces';
 
 export interface ECKeyPairBuffer {
   privateKey: Uint8Array;
@@ -43,7 +44,7 @@ export interface VotingPollResults {
  * - Ranked choice voting support
  * - Weighted voting support
  */
-export class VotingPoll {
+export class VotingPoll<TID extends PlatformID = Uint8Array> {
   public readonly choices: string[];
   public readonly votes: bigint[];
   private readonly paillierKeyPair: PaillierKeyPair;
@@ -77,11 +78,11 @@ export class VotingPoll {
     this.createdAt = new Date();
   }
 
-  public async generateEncryptedReceipt(member: Member): Promise<Uint8Array> {
+  public async generateEncryptedReceipt(member: Member<TID>): Promise<Uint8Array> {
     const randomNonce = Buffer.from(nobleRandomBytes(16)).toString(
       VOTING.KEY_FORMAT,
     );
-    const memberId = Constants.idProvider.serialize(member.id);
+    const memberId = Constants.idProvider.serialize(member.idBytes);
     const hashInput = `${Date.now()}-${randomNonce}-${memberId}`;
     const hash = sha256(new TextEncoder().encode(hashInput));
     const signature = this.eciesService.signMessage(
@@ -101,16 +102,16 @@ export class VotingPoll {
     return encryptedReceipt;
   }
 
-  public memberVoted(member: Member): boolean {
-    const memberId = Constants.idProvider.serialize(member.id);
+  public memberVoted(member: Member<TID>): boolean {
+    const memberId = Constants.idProvider.serialize(member.idBytes);
     return this.receipts.has(memberId);
   }
 
   public async verifyReceipt(
-    member: Member,
+    member: Member<TID>,
     encryptedReceipt: Uint8Array,
   ): Promise<boolean> {
-    const memberId = Constants.idProvider.serialize(member.id);
+    const memberId = Constants.idProvider.serialize(member.idBytes);
     const foundReceipt = this.receipts.get(memberId);
     if (!foundReceipt) {
       return false;
@@ -136,7 +137,7 @@ export class VotingPoll {
     );
   }
 
-  public async vote(choiceIndex: number, member: Member): Promise<Uint8Array> {
+  public async vote(choiceIndex: number, member: Member<TID>): Promise<Uint8Array> {
     if (this.isClosed) {
       throw new Error('Poll is closed');
     }
@@ -166,7 +167,7 @@ export class VotingPoll {
   public async voteWeighted(
     choiceIndex: number,
     weight: bigint,
-    member: Member,
+    member: Member<TID>,
   ): Promise<Uint8Array> {
     if (this.isClosed) {
       throw new Error('Poll is closed');
@@ -192,7 +193,7 @@ export class VotingPoll {
 
   public async voteRanked(
     rankedChoices: number[],
-    member: Member,
+    member: Member<TID>,
   ): Promise<Uint8Array> {
     if (this.isClosed) {
       throw new Error('Poll is closed');
@@ -232,7 +233,7 @@ export class VotingPoll {
 
   public async voteApproval(
     approvedChoices: number[],
-    member: Member,
+    member: Member<TID>,
   ): Promise<Uint8Array> {
     if (this.isClosed) {
       throw new Error('Poll is closed');

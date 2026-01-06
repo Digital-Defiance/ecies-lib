@@ -2,6 +2,7 @@
  * Voting system types - browser compatible
  * Uses ecies-lib Member interface
  */
+import { PlatformID } from '../../interfaces';
 import type { IMember } from '../../interfaces/member';
 
 // Re-export IMember for convenience
@@ -57,11 +58,11 @@ export enum VotingMethod {
  * Cryptographically signed receipt proving a vote was cast.
  * Can be used to verify participation without revealing vote content.
  */
-export interface VoteReceipt {
+export interface VoteReceipt<TID extends PlatformID = Uint8Array> {
   /** Unique identifier of the voter */
-  voterId: Uint8Array;
+  voterId: TID;
   /** Unique identifier of the poll */
-  pollId: Uint8Array;
+  pollId: TID;
   /** Unix timestamp when vote was cast */
   timestamp: number;
   /** Cryptographic signature from poll authority */
@@ -112,7 +113,7 @@ export interface RoundResult {
  * Encrypted vote data using Paillier homomorphic encryption.
  * Structure varies by voting method.
  */
-export interface EncryptedVote {
+export interface EncryptedVote<TID extends PlatformID = Uint8Array> {
   /** Single choice index (for Plurality, Weighted, etc.) */
   choiceIndex?: number;
   /** Multiple choice indices (for Approval voting) */
@@ -126,16 +127,16 @@ export interface EncryptedVote {
   /** Array of encrypted vote values (one per choice) */
   encrypted: bigint[];
   /** Plaintext vote data (only for insecure methods) */
-  plaintext?: PlaintextVote;
+  plaintext?: PlaintextVote<TID>;
 }
 
 /**
  * Plaintext vote data for insecure voting methods.
  * WARNING: Only use for Quadratic, Consensus, or ConsentBased methods.
  */
-export interface PlaintextVote {
+export interface PlaintextVote<TID extends PlatformID = Uint8Array> {
   /** Unique identifier of the voter */
-  voterId: Uint8Array;
+  voterId: TID;
   /** Single choice index */
   choiceIndex?: number;
   /** Multiple choice indices */
