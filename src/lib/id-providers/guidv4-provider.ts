@@ -142,4 +142,8 @@ export class GuidV4Provider extends BaseIdProvider {
   override idFromString(str: string): Uint8Array {
     return this.deserialize(str);
   }
+
+  override equals(a: GuidV4, b: GuidV4): boolean {
+    return a.equals(b);
+  }
 }

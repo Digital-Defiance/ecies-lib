@@ -54,7 +54,7 @@ export interface IIdProvider {
    * @param b Second ID
    * @returns True if IDs are equal, false otherwise
    */
-  equals(a: Uint8Array, b: Uint8Array): boolean;
+  equals(a: unknown, b: unknown): boolean;
 
   /**
    * Clone an ID buffer.

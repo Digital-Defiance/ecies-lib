@@ -5,6 +5,7 @@ import {
 } from 'uuid';
 import { IdProviderErrorType } from '../../enumerations/id-provider-error-type';
 import { IdProviderError } from '../../errors/id-provider';
+import { arraysEqual } from '../../utils';
 import { BaseIdProvider } from '../base-id-provider';
 
 /**
@@ -139,5 +140,9 @@ export class UuidProvider extends BaseIdProvider {
    */
   override idFromString(str: string): Uint8Array {
     return this.deserialize(str);
+  }
+
+  override equals(a: Uint8Array, b: Uint8Array): boolean {
+    return arraysEqual(a, b);
   }
 }

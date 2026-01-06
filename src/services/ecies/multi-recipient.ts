@@ -1,9 +1,10 @@
-import { Constants } from '../../constants';
+import { getRuntimeConfiguration } from '../../constants';
 import { EciesCipherSuiteEnum } from '../../enumerations/ecies-cipher-suite';
 import { EciesEncryptionTypeEnum } from '../../enumerations/ecies-encryption-type';
 import { EciesStringKey } from '../../enumerations/ecies-string-key';
 import { EciesVersionEnum } from '../../enumerations/ecies-version';
 import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import type { PlatformID } from '../../interfaces';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
 import { concatUint8Arrays } from '../../utils';
@@ -14,11 +15,12 @@ import {
   IMultiEncryptedParsedHeader,
   IMultiRecipient,
 } from './interfaces';
+const Constants = getRuntimeConfiguration();
 
 /**
  * Browser-compatible multi-recipient ECIES encryption/decryption
  */
-export class EciesMultiRecipient {
+export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
   protected readonly cryptoCore: EciesCryptoCore;
   protected readonly eciesConsts: IECIESConstants;
 
@@ -186,11 +188,11 @@ export class EciesMultiRecipient {
    * Encrypt a message for multiple recipients
    */
   public async encryptMultiple(
-    recipients: IMultiRecipient[],
+    recipients: Array<IMultiRecipient<TID>>,
     message: Uint8Array,
     preamble: Uint8Array = new Uint8Array(0),
     senderPrivateKey?: Uint8Array,
-  ): Promise<IMultiEncryptedMessage> {
+  ): Promise<IMultiEncryptedMessage<TID>> {
     const engine = getEciesI18nEngine();
     if (recipients.length > this.eciesConsts.MULTIPLE.MAX_RECIPIENTS) {
       throw new Error(
@@ -228,7 +230,7 @@ export class EciesMultiRecipient {
     const ephemeralKeyPair = await this.cryptoCore.generateEphemeralKeyPair();
 
     // Encrypt symmetric key for each recipient
-    const recipientIds: Uint8Array[] = [];
+    const recipientIds: TID[] = [];
     const recipientKeys: Uint8Array[] = [];
 
     for (const recipient of recipients) {
@@ -248,7 +250,7 @@ export class EciesMultiRecipient {
 
     // Build the header to use as AAD for message encryption
     // We need to construct a temporary object to build the header
-    const tempHeaderData: IMultiEncryptedMessage = {
+    const tempHeaderData: IMultiEncryptedMessage<TID> = {
       dataLength: messageToEncrypt.length,
       recipientCount: recipients.length,
       recipientIds,
@@ -299,14 +301,14 @@ export class EciesMultiRecipient {
    * Decrypt a multi-recipient message for a specific recipient
    */
   public async decryptMultipleForRecipient(
-    encryptedData: IMultiEncryptedMessage,
-    recipientId: Uint8Array,
+    encryptedData: IMultiEncryptedMessage<TID>,
+    recipientId: TID,
     privateKey: Uint8Array,
     senderPublicKey?: Uint8Array,
   ): Promise<Uint8Array> {
     // Find recipient's encrypted key
     const recipientIndex = encryptedData.recipientIds.findIndex((id) =>
-      this.arraysEqual(id, recipientId),
+      Constants.idProvider.equals(id, recipientId),
     );
 
     if (recipientIndex === -1) {
@@ -337,7 +339,7 @@ export class EciesMultiRecipient {
       privateKey,
       encryptedKey,
       encryptedData.ephemeralPublicKey,
-      recipientId,
+      Constants.idProvider.toBytes(recipientId),
     );
 
     // Rebuild header to use as AAD
@@ -414,7 +416,7 @@ export class EciesMultiRecipient {
   /**
    * Build header for multi-recipient message
    */
-  public buildHeader(data: IMultiEncryptedMessage): Uint8Array {
+  public buildHeader(data: IMultiEncryptedMessage<TID>): Uint8Array {
     if (data.recipientIds.length !== data.recipientKeys.length) {
       const engine = getEciesI18nEngine();
       throw new Error(
@@ -492,7 +494,9 @@ export class EciesMultiRecipient {
     );
 
     // Recipient IDs
-    const recipientIdsUint8Array = concatUint8Arrays(...data.recipientIds);
+    const recipientIdsUint8Array = concatUint8Arrays(
+      ...data.recipientIds.map((id) => Constants.idProvider.toBytes(id)),
+    );
 
     // Encrypted keys
     const encryptedKeysUint8Array = concatUint8Arrays(...data.recipientKeys);
@@ -512,7 +516,7 @@ export class EciesMultiRecipient {
   /**
    * Parse multi-recipient header
    */
-  public parseHeader(data: Uint8Array): IMultiEncryptedParsedHeader {
+  public parseHeader(data: Uint8Array): IMultiEncryptedParsedHeader<TID> {
     const engine = getEciesI18nEngine();
     // minimum: 1 (ver) + 1 (suite) + 1 (type) + 33 (pubkey) + 8 (len) + 2 (count) = 46
     if (data.length < 46) {
@@ -615,9 +619,13 @@ export class EciesMultiRecipient {
     }
 
     // Read recipient IDs
-    const recipientIds: Uint8Array[] = [];
+    const recipientIds: TID[] = [];
     for (let i = 0; i < recipientCount; i++) {
-      recipientIds.push(data.slice(offset, offset + recipientIdSize));
+      recipientIds.push(
+        Constants.idProvider.fromBytes(
+          data.slice(offset, offset + recipientIdSize),
+        ) as TID,
+      );
       offset += recipientIdSize;
     }
 
@@ -646,7 +654,7 @@ export class EciesMultiRecipient {
   /**
    * Parse complete multi-recipient message
    */
-  public parseMessage(data: Uint8Array): IMultiEncryptedMessage {
+  public parseMessage(data: Uint8Array): IMultiEncryptedMessage<TID> {
     const header = this.parseHeader(data);
     const encryptedMessage = data.slice(header.headerSize);
 
@@ -661,7 +669,7 @@ export class EciesMultiRecipient {
    */
   public parseMultiEncryptedHeader(
     data: Uint8Array,
-  ): IMultiEncryptedParsedHeader {
+  ): IMultiEncryptedParsedHeader<TID> {
     return this.parseHeader(data);
   }
 
@@ -669,7 +677,7 @@ export class EciesMultiRecipient {
    * Build ECIES multiple recipient header (alias for buildHeader)
    */
   public buildECIESMultipleRecipientHeader(
-    data: IMultiEncryptedMessage,
+    data: IMultiEncryptedMessage<TID>,
   ): Uint8Array {
     return this.buildHeader(data);
   }
@@ -678,13 +686,13 @@ export class EciesMultiRecipient {
    * Decrypt multiple ECIE for recipient (alias for decryptMultipleForRecipient)
    */
   public async decryptMultipleECIEForRecipient(
-    encryptedData: IMultiEncryptedMessage,
+    encryptedData: IMultiEncryptedMessage<TID>,
     recipient: { idBytes: Uint8Array; privateKey?: { value: Uint8Array } },
   ): Promise<Uint8Array> {
     const privateKey = recipient.privateKey?.value || new Uint8Array();
     return this.decryptMultipleForRecipient(
       encryptedData,
-      recipient.idBytes,
+      Constants.idProvider.fromBytes(recipient.idBytes) as TID,
       privateKey,
     );
   }

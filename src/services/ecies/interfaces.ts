@@ -4,6 +4,7 @@
 
 import { Wallet } from '@ethereumjs/wallet';
 import { EciesEncryptionTypeEnum } from '../../enumerations/ecies-encryption-type';
+import type { PlatformID } from '../../interfaces';
 
 export interface ISimpleKeyPair {
   privateKey: Uint8Array;
@@ -25,10 +26,10 @@ export interface ISingleEncryptedParsedHeader {
   headerSize: number;
 }
 
-export interface IEncryptionResult {
+export interface IEncryptionResult<TID extends PlatformID = Uint8Array> {
   encryptedData: Uint8Array;
   ephemeralPublicKey: Uint8Array;
-  iv: Uint8Array;
+  iv: TID;
   authTag: Uint8Array;
 }
 
@@ -37,25 +38,25 @@ export interface IDecryptionResult {
   consumedBytes: number;
 }
 
-export interface IMultiRecipient {
-  id: Uint8Array; // 16-byte ObjectId
+export interface IMultiRecipient<TID extends PlatformID = Uint8Array> {
+  id: TID;
   publicKey: Uint8Array;
 }
 
-export interface IMultiEncryptedMessage {
+export interface IMultiEncryptedMessage<TID extends PlatformID = Uint8Array> {
   dataLength: number;
   recipientCount: number;
-  recipientIds: Uint8Array[];
+  recipientIds: TID[];
   recipientKeys: Uint8Array[];
   encryptedMessage: Uint8Array;
   headerSize: number;
   ephemeralPublicKey?: Uint8Array; // Added for shared ephemeral key optimization
 }
 
-export interface IMultiEncryptedParsedHeader {
+export interface IMultiEncryptedParsedHeader<TID> {
   dataLength: number;
   recipientCount: number;
-  recipientIds: Uint8Array[];
+  recipientIds: TID[];
   recipientKeys: Uint8Array[];
   headerSize: number;
   ephemeralPublicKey?: Uint8Array; // Added for shared ephemeral key optimization

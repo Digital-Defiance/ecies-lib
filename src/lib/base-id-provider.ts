@@ -60,16 +60,18 @@ export abstract class BaseIdProvider implements IIdProvider {
   /**
    * Constant-time comparison to prevent timing attacks.
    */
-  equals(a: Uint8Array, b: Uint8Array): boolean {
-    if (a.length !== b.length) {
-      return false;
+  equals(a: unknown, b: unknown): boolean {
+    if (a instanceof Uint8Array && b instanceof Uint8Array) {
+      if (a.length !== b.length) {
+        return false;
+      }
+      let diff = 0;
+      for (let i = 0; i < a.length; i++) {
+        diff |= a[i] ^ b[i];
+      }
+      return diff === 0;
     }
-
-    let diff = 0;
-    for (let i = 0; i < a.length; i++) {
-      diff |= a[i] ^ b[i];
-    }
-    return diff === 0;
+    return false;
   }
 
   /**

@@ -140,4 +140,8 @@ export class ObjectIdProvider extends BaseIdProvider {
     this.validateLength(bytes, 'ObjectIdProvider.fromBytes');
     return this.clone(bytes);
   }
+
+  equals(a: ObjectId, b: ObjectId): boolean {
+    return a.equals(b);
+  }
 }
