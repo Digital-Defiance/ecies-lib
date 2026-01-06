@@ -35,7 +35,7 @@ export interface IMember<
   // Optional private data properties
   readonly privateKey: SecureBuffer | undefined;
   readonly wallet: Wallet;
-  
+
   // Optional wallet getter for compatibility
   get walletOptional(): Wallet | undefined;
 

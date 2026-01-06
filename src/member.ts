@@ -5,6 +5,7 @@ import { EmailString } from './email-string';
 import { MemberErrorType } from './enumerations/member-error-type';
 import { MemberType } from './enumerations/member-type';
 import { MemberError } from './errors/member';
+import { PlatformID } from './interfaces';
 import { IECIESConstants } from './interfaces/ecies-consts';
 import { IEncryptedChunk } from './interfaces/encrypted-chunk';
 import { IMember } from './interfaces/member';
@@ -24,14 +25,15 @@ import {
   uint8ArrayToBase64,
   uint8ArrayToHex,
 } from './utils';
-import { PlatformBuffer, PlatformID } from './interfaces';
 
 /**
  * Represents a member with cryptographic capabilities.
  * This class provides methods for signing, verifying, encrypting, and decrypting data.
  * It also manages the member's keys and wallet.
  */
-export class Member<TID extends PlatformID = Uint8Array> implements IMember<TID> {
+export class Member<
+  TID extends PlatformID = Uint8Array,
+> implements IMember<TID> {
   private readonly _eciesService: ECIESService;
   private readonly _id: TID;
   private readonly _idBytes: Uint8Array;
@@ -420,12 +422,16 @@ export class Member<TID extends PlatformID = Uint8Array> implements IMember<TID>
 
   public toJson(): string {
     const storage: IMemberStorageData = {
-      id: this._eciesService.constants.idProvider.serialize(Constants.idProvider.toBytes(this._id)),
+      id: this._eciesService.constants.idProvider.serialize(
+        Constants.idProvider.toBytes(this._id),
+      ),
       type: this._type,
       name: this._name,
       email: this._email.toString(),
       publicKey: uint8ArrayToBase64(this._publicKey),
-      creatorId: this._eciesService.constants.idProvider.serialize(Constants.idProvider.toBytes(this._creatorId)),
+      creatorId: this._eciesService.constants.idProvider.serialize(
+        Constants.idProvider.toBytes(this._creatorId),
+      ),
       dateCreated: this._dateCreated.toISOString(),
       dateUpdated: this._dateUpdated.toISOString(),
     };

@@ -6,10 +6,9 @@
 import { getRuntimeConfiguration } from '../../constants';
 import { EmailString } from '../../email-string';
 import { MemberType } from '../../enumerations';
-import { IMember, IMemberWithMnemonic, PlatformID } from '../../interfaces';
+import { PlatformID } from '../../interfaces';
 import { Member } from '../../member';
 import { ECIESService } from '../../services';
-import { GuidV4 } from '../guid';
 import {
   PollFactory,
   VoteEncoder,
@@ -211,7 +210,10 @@ async function exampleApproval<TID extends PlatformID = Uint8Array>() {
  */
 async function exampleReceipts<TID extends PlatformID>() {
   const authority = await createMemberWithVotingKeys<TID>();
-  const poll = PollFactory.createPlurality<TID>(['Yes', 'No'], authority.member);
+  const poll = PollFactory.createPlurality<TID>(
+    ['Yes', 'No'],
+    authority.member,
+  );
 
   const voter = await createMemberWithVotingKeys<TID>();
   const encoder = new VoteEncoder<TID>(authority.member.votingPublicKey!);
@@ -232,11 +234,20 @@ async function exampleReceipts<TID extends PlatformID>() {
 /**
  * Helper: Create member with voting keys derived from ECDH
  */
-function createMemberWithVotingKeys<TID extends PlatformID>(name: string = 'Voter', email: string = 'voter@example.com', memberType: MemberType = MemberType.Anonymous): { member: Member<TID> } {
+function createMemberWithVotingKeys<TID extends PlatformID>(
+  name: string = 'Voter',
+  email: string = 'voter@example.com',
+  memberType: MemberType = MemberType.Anonymous,
+): { member: Member<TID> } {
   // This would use ecies-lib's Member.newMember() and deriveVotingKeys()
   // Placeholder for example purposes
   const eciesService = new ECIESService(getRuntimeConfiguration());
-  const memberWithMnemonic = Member.newMember(eciesService, memberType, name, new EmailString(email));
+  const memberWithMnemonic = Member.newMember(
+    eciesService,
+    memberType,
+    name,
+    new EmailString(email),
+  );
   return { member: memberWithMnemonic.member as Member<TID> };
 }
 

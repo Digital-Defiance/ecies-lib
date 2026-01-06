@@ -491,14 +491,18 @@ export class ECIESService {
   /**
    * Parse multi-encrypted header
    */
-  public parseMultiEncryptedHeader(data: Uint8Array): IMultiEncryptedParsedHeader {
+  public parseMultiEncryptedHeader(
+    data: Uint8Array,
+  ): IMultiEncryptedParsedHeader {
     return this.multiRecipient.parseMultiEncryptedHeader(data);
   }
 
   /**
    * Build multi-recipient header
    */
-  public buildECIESMultipleRecipientHeader(data: IMultiEncryptedMessage): Uint8Array {
+  public buildECIESMultipleRecipientHeader(
+    data: IMultiEncryptedMessage,
+  ): Uint8Array {
     return this.multiRecipient.buildECIESMultipleRecipientHeader(data);
   }
 
@@ -530,6 +534,8 @@ export class ECIESService {
   public signatureStringToSignatureBuffer(
     signatureString: string,
   ): SignatureUint8Array {
-    return this.signatureStringToSignatureUint8Array(signatureString as SignatureString);
+    return this.signatureStringToSignatureUint8Array(
+      signatureString as SignatureString,
+    );
   }
 }

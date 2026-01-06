@@ -6,7 +6,9 @@ import type { PlatformID } from './platform-id';
  * Provenance information for a configuration.
  * Tracks who created it, when, and what modifications were made.
  */
-export interface IConfigurationProvenance<TID extends PlatformID = Uint8Array> {
+export interface IConfigurationProvenance<
+  _TID extends PlatformID = Uint8Array,
+> {
   /**
    * The base configuration key this was derived from
    */

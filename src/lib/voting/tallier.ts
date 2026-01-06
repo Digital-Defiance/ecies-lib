@@ -3,6 +3,7 @@
  * Separate from Poll to enforce role separation
  */
 import type { PrivateKey, PublicKey } from 'paillier-bigint';
+import { PlatformID } from '../../interfaces';
 import { Poll } from './poll-core';
 import {
   VotingMethod,
@@ -10,7 +11,6 @@ import {
   type RoundResult,
   type IMember,
 } from './types';
-import { PlatformID } from '../../interfaces';
 
 export class PollTallier<TID extends PlatformID = Uint8Array> {
   constructor(

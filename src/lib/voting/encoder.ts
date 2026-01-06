@@ -3,8 +3,8 @@
  * Browser compatible
  */
 import type { PublicKey } from 'paillier-bigint';
-import { VotingMethod, type EncryptedVote } from './types';
 import { PlatformID } from '../../interfaces';
+import { VotingMethod, type EncryptedVote } from './types';
 
 export class VoteEncoder<TID extends PlatformID = Uint8Array> {
   constructor(private readonly votingPublicKey: PublicKey) {}
@@ -12,7 +12,10 @@ export class VoteEncoder<TID extends PlatformID = Uint8Array> {
   /**
    * Encode a plurality vote (single choice)
    */
-  encodePlurality(choiceIndex: number, choiceCount: number): EncryptedVote<TID> {
+  encodePlurality(
+    choiceIndex: number,
+    choiceCount: number,
+  ): EncryptedVote<TID> {
     const encrypted: bigint[] = [];
 
     for (let i = 0; i < choiceCount; i++) {
@@ -108,7 +111,10 @@ export class VoteEncoder<TID extends PlatformID = Uint8Array> {
    * Encode a ranked choice vote (for IRV/STV)
    * Stores ranking order, not points
    */
-  encodeRankedChoice(rankings: number[], choiceCount: number): EncryptedVote<TID> {
+  encodeRankedChoice(
+    rankings: number[],
+    choiceCount: number,
+  ): EncryptedVote<TID> {
     const encrypted: bigint[] = new Array(choiceCount) as bigint[];
 
     // Initialize all to 0 (not ranked)

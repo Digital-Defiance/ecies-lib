@@ -49,7 +49,9 @@ export interface AuditLog<TID extends PlatformID> {
 /**
  * Immutable audit log with cryptographic hash chain
  */
-export class ImmutableAuditLog<TID extends PlatformID> implements AuditLog<TID> {
+export class ImmutableAuditLog<
+  TID extends PlatformID,
+> implements AuditLog<TID> {
   private readonly entries: AuditEntry<TID>[] = [];
   private readonly authority: IMember<TID>;
   private sequence = 0;
@@ -111,7 +113,9 @@ export class ImmutableAuditLog<TID extends PlatformID> implements AuditLog<TID> 
   getEntriesForPoll(pollId: TID): readonly AuditEntry<TID>[] {
     const pollIdStr = this.toHex(Constants.idProvider.toBytes(pollId));
     return Object.freeze(
-      this.entries.filter((e) => this.toHex(Constants.idProvider.toBytes(e.pollId)) === pollIdStr),
+      this.entries.filter(
+        (e) => this.toHex(Constants.idProvider.toBytes(e.pollId)) === pollIdStr,
+      ),
     );
   }
 
@@ -200,7 +204,8 @@ export class ImmutableAuditLog<TID extends PlatformID> implements AuditLog<TID> 
     ];
 
     if (entry.voterIdHash) parts.push(entry.voterIdHash);
-    if (entry.authorityId) parts.push(Constants.idProvider.toBytes(entry.authorityId));
+    if (entry.authorityId)
+      parts.push(Constants.idProvider.toBytes(entry.authorityId));
     if (entry.metadata)
       parts.push(this.encodeString(JSON.stringify(entry.metadata)));
 

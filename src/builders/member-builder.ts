@@ -131,7 +131,9 @@ export class MemberBuilder {
    * @param json - JSON string representation of member
    * @returns Member instance
    */
-  static fromJson<TID extends PlatformID = Uint8Array>(json: string): Member<TID> {
+  static fromJson<TID extends PlatformID = Uint8Array>(
+    json: string,
+  ): Member<TID> {
     const service = new ECIESService();
     return Member.fromJson(json, service) as Member<TID>;
   }
@@ -151,6 +153,12 @@ export class MemberBuilder {
     const service = new ECIESService();
     const emailObj = typeof email === 'string' ? new EmailString(email) : email;
 
-    return Member.fromMnemonic(mnemonic, service, undefined, name, emailObj) as Member<TID>;
+    return Member.fromMnemonic(
+      mnemonic,
+      service,
+      undefined,
+      name,
+      emailObj,
+    ) as Member<TID>;
   }
 }

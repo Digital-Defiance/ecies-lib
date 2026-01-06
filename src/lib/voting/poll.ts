@@ -2,11 +2,11 @@ import { sha256 } from '@noble/hashes/sha256';
 import { randomBytes as nobleRandomBytes } from '@noble/hashes/utils';
 import { KeyPair as PaillierKeyPair } from 'paillier-bigint';
 import { Constants, VOTING } from '../../constants';
+import { PlatformID } from '../../interfaces';
 import { Member } from '../../member';
 import { ECIESService } from '../../services/ecies/service';
 import { VotingService } from '../../services/voting.service';
 import { SignatureUint8Array } from '../../types';
-import { PlatformID } from '../../interfaces';
 
 export interface ECKeyPairBuffer {
   privateKey: Uint8Array;
@@ -78,7 +78,9 @@ export class VotingPoll<TID extends PlatformID = Uint8Array> {
     this.createdAt = new Date();
   }
 
-  public async generateEncryptedReceipt(member: Member<TID>): Promise<Uint8Array> {
+  public async generateEncryptedReceipt(
+    member: Member<TID>,
+  ): Promise<Uint8Array> {
     const randomNonce = Buffer.from(nobleRandomBytes(16)).toString(
       VOTING.KEY_FORMAT,
     );
@@ -137,7 +139,10 @@ export class VotingPoll<TID extends PlatformID = Uint8Array> {
     );
   }
 
-  public async vote(choiceIndex: number, member: Member<TID>): Promise<Uint8Array> {
+  public async vote(
+    choiceIndex: number,
+    member: Member<TID>,
+  ): Promise<Uint8Array> {
     if (this.isClosed) {
       throw new Error('Poll is closed');
     }

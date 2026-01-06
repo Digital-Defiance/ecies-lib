@@ -3,6 +3,8 @@
  * Sits on top of ecies-lib with proper role separation
  */
 import type { PublicKey } from 'paillier-bigint';
+import { Constants } from '../../constants';
+import { PlatformID } from '../../interfaces';
 import { ImmutableAuditLog, type AuditLog } from './audit';
 import { VotingSecurityValidator } from './security';
 import {
@@ -11,8 +13,6 @@ import {
   type VoteReceipt,
   type EncryptedVote,
 } from './types';
-import { PlatformID } from '../../interfaces';
-import { Constants } from '../../constants';
 
 /**
  * Poll aggregates encrypted votes using only public key.
@@ -109,7 +109,9 @@ export class Poll<TID extends PlatformID> {
     this._receipts.set(voterId, receipt);
 
     // Record vote in audit log
-    const voterIdHash = this._hashVoterId(Constants.idProvider.toBytes(voter.id));
+    const voterIdHash = this._hashVoterId(
+      Constants.idProvider.toBytes(voter.id),
+    );
     this._auditLog.recordVoteCast(this._id, voterIdHash);
 
     return receipt;

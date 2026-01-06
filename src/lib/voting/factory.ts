@@ -6,7 +6,7 @@ import { Constants } from '../../constants';
 import { PlatformID } from '../../interfaces';
 import { Member } from '../../member';
 import { Poll } from './poll-core';
-import { VotingMethod, type IMember } from './types';
+import { VotingMethod } from './types';
 
 export class PollFactory {
   /**
@@ -40,14 +40,20 @@ export class PollFactory {
   /**
    * Create a plurality poll (simple majority)
    */
-  static createPlurality<TID extends PlatformID>(choices: string[], authority: Member<TID>): Poll<TID> {
+  static createPlurality<TID extends PlatformID>(
+    choices: string[],
+    authority: Member<TID>,
+  ): Poll<TID> {
     return this.create(choices, VotingMethod.Plurality, authority);
   }
 
   /**
    * Create an approval voting poll
    */
-  static createApproval<TID extends PlatformID>(choices: string[], authority: Member<TID>): Poll<TID> {
+  static createApproval<TID extends PlatformID>(
+    choices: string[],
+    authority: Member<TID>,
+  ): Poll<TID> {
     return this.create(choices, VotingMethod.Approval, authority);
   }
 
@@ -67,14 +73,20 @@ export class PollFactory {
   /**
    * Create a Borda count poll
    */
-  static createBorda<TID extends PlatformID>(choices: string[], authority: Member<TID>): Poll<TID> {
+  static createBorda<TID extends PlatformID>(
+    choices: string[],
+    authority: Member<TID>,
+  ): Poll<TID> {
     return this.create(choices, VotingMethod.Borda, authority);
   }
 
   /**
    * Create a ranked choice (IRV) poll
    */
-  static createRankedChoice<TID extends PlatformID>(choices: string[], authority: Member<TID>): Poll<TID> {
+  static createRankedChoice<TID extends PlatformID>(
+    choices: string[],
+    authority: Member<TID>,
+  ): Poll<TID> {
     return this.create(choices, VotingMethod.RankedChoice, authority);
   }
 }

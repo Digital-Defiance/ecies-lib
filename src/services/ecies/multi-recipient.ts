@@ -659,14 +659,18 @@ export class EciesMultiRecipient {
   /**
    * Parse multi-encrypted header (alias for parseHeader)
    */
-  public parseMultiEncryptedHeader(data: Uint8Array): IMultiEncryptedParsedHeader {
+  public parseMultiEncryptedHeader(
+    data: Uint8Array,
+  ): IMultiEncryptedParsedHeader {
     return this.parseHeader(data);
   }
 
   /**
    * Build ECIES multiple recipient header (alias for buildHeader)
    */
-  public buildECIESMultipleRecipientHeader(data: IMultiEncryptedMessage): Uint8Array {
+  public buildECIESMultipleRecipientHeader(
+    data: IMultiEncryptedMessage,
+  ): Uint8Array {
     return this.buildHeader(data);
   }
 

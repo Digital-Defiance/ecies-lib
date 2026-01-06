@@ -80,7 +80,12 @@ export class MockFrontendMember implements IMember<ObjectId> {
     return this._id;
   }
   get idBytes(): Uint8Array {
-    return new Uint8Array(this._id.toHexString().match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+    return new Uint8Array(
+      this._id
+        .toHexString()
+        .match(/.{1,2}/g)!
+        .map((byte) => parseInt(byte, 16)),
+    );
   }
   get type(): MemberType {
     return this._type;
@@ -112,7 +117,7 @@ export class MockFrontendMember implements IMember<ObjectId> {
     }
     return this._wallet;
   }
-  
+
   get walletOptional(): Wallet | undefined {
     return this._wallet;
   }
@@ -139,6 +144,7 @@ export class MockFrontendMember implements IMember<ObjectId> {
 
   loadPrivateKey(_privateKey: SecureBuffer): void {}
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   loadVotingKeys(_votingPublicKey: any, _votingPrivateKey?: any): void {}
 
   async deriveVotingKeys(_options?: Record<string, unknown>): Promise<void> {}

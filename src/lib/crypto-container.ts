@@ -27,15 +27,15 @@ export class CryptoContainer {
     this.initServices();
   }
 
-  static create(
-    config?: IConstants,
-    i18n?: I18nEngine,
-  ): CryptoContainer {
-    const finalConfig: IConstants = config ?? (() => {
-      // Lazy import to avoid circular dependency
-      const { Constants } = require('../constants');
-      return Constants as IConstants;
-    })();
+  static create(config?: IConstants, i18n?: I18nEngine): CryptoContainer {
+    const finalConfig: IConstants =
+      config ??
+      (() => {
+        // Lazy import to avoid circular dependency
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+        const { Constants } = require('../constants');
+        return Constants as IConstants;
+      })();
     return new CryptoContainer(finalConfig, i18n || getEciesI18nEngine());
   }
 
