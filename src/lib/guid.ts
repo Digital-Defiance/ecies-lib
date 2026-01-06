@@ -396,6 +396,17 @@ export class GuidV4 implements IGuidV4 {
   }
 
   /**
+   * Factory method to create a GUID from a raw Uint8Array.
+   * This is an explicit alias for fromBuffer(), provided for clarity when working
+   * with browser environments where Uint8Array is the native binary type.
+   * @param bytes The raw 16-byte Uint8Array
+   * @returns A new GuidV4 instance
+   */
+  public static fromUint8Array(bytes: Uint8Array): GuidV4 {
+    return new GuidV4(bytes as RawGuidBuffer);
+  }
+
+  /**
    * Creates a namespace-based v3 GUID (MD5 hash).
    * Use this for deterministic GUIDs based on a namespace and name.
    * @param namespace The namespace GUID (e.g., uuid.v3.DNS)

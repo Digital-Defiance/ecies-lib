@@ -15,7 +15,7 @@ import { BaseIdProvider } from '../base-id-provider';
  * const provider = new CustomIdProvider(20, 'SHA1Hash');
  * ```
  */
-export class CustomIdProvider extends BaseIdProvider {
+export class CustomIdProvider extends BaseIdProvider<Uint8Array> {
   readonly byteLength: number;
   readonly name: string;
 
@@ -92,18 +92,32 @@ export class CustomIdProvider extends BaseIdProvider {
   }
 
   /**
-   * Convert an ID of unknown type to a string representation.
-   * Delegates to base implementation.
+   * Create a defensive copy of an ID.
    */
-  override idToString(id: unknown): string {
-    return super.idToString(id);
+  clone(id: Uint8Array): Uint8Array {
+    return new Uint8Array(id);
   }
 
   /**
-   * Convert a string representation of an ID back to an ID buffer.
-   * Delegates to deserialize.
+   * Convert Uint8Array to the provider's native representation.
+   * For CustomIdProvider, the native type is Uint8Array, so this is a pass-through.
    */
-  override idFromString(str: string): Uint8Array {
-    return this.deserialize(str);
+  fromBytes(bytes: Uint8Array): Uint8Array {
+    return bytes;
+  }
+
+  /**
+   * Convert the provider's native representation to Uint8Array.
+   * For CustomIdProvider, the native type is Uint8Array, so this is a pass-through.
+   */
+  toBytes(id: Uint8Array): Uint8Array {
+    return id;
+  }
+
+  /**
+   * Compare two IDs for equality using constant-time comparison.
+   */
+  equals(a: Uint8Array, b: Uint8Array): boolean {
+    return this.constantTimeEquals(a, b);
   }
 }

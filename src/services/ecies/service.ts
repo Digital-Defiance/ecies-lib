@@ -6,6 +6,7 @@ import {
 import { EciesStringKey } from '../../enumerations/ecies-string-key';
 import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
 import { IMember } from '../../interfaces';
+import type { PlatformID } from '../../interfaces';
 import { IConstants } from '../../interfaces/constants';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
@@ -28,13 +29,13 @@ import { EciesSingleRecipient } from './single-recipient';
  * Browser-compatible ECIES service that mirrors the server-side functionality
  * Uses Web Crypto API and @scure/@noble libraries for browser compatibility
  */
-export class ECIESService {
+export class ECIESService<TID extends PlatformID = Uint8Array> {
   protected readonly _config: IECIESConfig;
   protected readonly _constants: IConstants;
   protected readonly cryptoCore: EciesCryptoCore;
   protected readonly signature: EciesSignature;
   protected readonly singleRecipient: EciesSingleRecipient;
-  protected readonly multiRecipient: EciesMultiRecipient;
+  protected readonly multiRecipient: EciesMultiRecipient<TID>;
   protected readonly eciesConsts: IECIESConstants;
   protected readonly votingService: VotingService;
 
@@ -428,10 +429,10 @@ export class ECIESService {
    * @returns
    */
   public async encryptMultiple(
-    recipients: Array<IMultiRecipient>,
+    recipients: Array<IMultiRecipient<TID>>,
     message: Uint8Array,
     preamble?: Uint8Array,
-  ): Promise<IMultiEncryptedMessage> {
+  ): Promise<IMultiEncryptedMessage<TID>> {
     return this.multiRecipient.encryptMultiple(recipients, message, preamble);
   }
 
@@ -493,7 +494,7 @@ export class ECIESService {
    */
   public parseMultiEncryptedHeader(
     data: Uint8Array,
-  ): IMultiEncryptedParsedHeader {
+  ): IMultiEncryptedParsedHeader<TID> {
     return this.multiRecipient.parseMultiEncryptedHeader(data);
   }
 
@@ -501,7 +502,7 @@ export class ECIESService {
    * Build multi-recipient header
    */
   public buildECIESMultipleRecipientHeader(
-    data: IMultiEncryptedMessage,
+    data: IMultiEncryptedMessage<TID>,
   ): Uint8Array {
     return this.multiRecipient.buildECIESMultipleRecipientHeader(data);
   }
@@ -510,7 +511,7 @@ export class ECIESService {
    * Decrypt multiple ECIE for recipient
    */
   public async decryptMultipleECIEForRecipient(
-    encryptedData: IMultiEncryptedMessage,
+    encryptedData: IMultiEncryptedMessage<TID>,
     recipient: IMember,
   ): Promise<Uint8Array> {
     return this.multiRecipient.decryptMultipleECIEForRecipient(

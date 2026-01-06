@@ -1,4 +1,3 @@
-import { Constants } from './constants';
 import { SecureStorageErrorType } from './enumerations/secure-storage-error-type';
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
@@ -6,6 +5,7 @@ import type { IIdProvider } from './interfaces/id-provider';
 import { ObjectIdProvider } from './lib/id-providers/objectid-provider';
 import { XorService } from './services/xor';
 import { uint8ArrayToHex } from './utils';
+import type { ObjectId } from 'bson';
 
 /**
  * Default ID provider (singleton, no circular dependency)
@@ -19,7 +19,7 @@ export class SecureString {
   private _disposed: boolean = false;
   private readonly _isNull: boolean;
   private readonly _id: Uint8Array;
-  private readonly _idProvider: IIdProvider;
+  private readonly _idProvider: IIdProvider<ObjectId>;
   private readonly _length: number;
   private readonly _obfuscatedValue: Uint8Array;
   private readonly _key: Uint8Array;
@@ -27,7 +27,7 @@ export class SecureString {
   private _disposedAt?: string;
   constructor(
     data?: string | Uint8Array | null,
-    idProvider: IIdProvider = DEFAULT_ID_PROVIDER,
+    idProvider: IIdProvider<ObjectId> = DEFAULT_ID_PROVIDER,
   ) {
     this._idProvider = idProvider;
     this._id = this._idProvider.generate();
@@ -54,12 +54,12 @@ export class SecureString {
   }
 
   /**
-   * Factory method for backward compatibility that uses Constants.idProvider
+   * Factory method for backward compatibility that uses the default ObjectIdProvider
    * @param data Optional data to secure
-   * @returns A new SecureString instance using the global ID provider
+   * @returns A new SecureString instance using the default ID provider
    */
   static create(data?: string | Uint8Array | null): SecureString {
-    return new SecureString(data, Constants.idProvider);
+    return new SecureString(data, DEFAULT_ID_PROVIDER);
   }
 
   private assertNotDisposed(): void {
