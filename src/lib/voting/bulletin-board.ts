@@ -170,12 +170,7 @@ export class PublicBulletinBoard<
   }
 
   getEntries(pollId: TID): readonly BulletinBoardEntry<TID>[] {
-    const pollIdStr = this.toHex(Constants.idProvider.toBytes(pollId));
-    return Object.freeze(
-      this.entries.filter(
-        (e) => this.toHex(Constants.idProvider.toBytes(e.pollId)) === pollIdStr,
-      ),
-    );
+    return this.entries.filter((e) => this.pollIdsEqual(e.pollId, pollId));
   }
 
   getAllEntries(): readonly BulletinBoardEntry<TID>[] {
@@ -470,6 +465,17 @@ export class PublicBulletinBoard<
       if (a[i] !== b[i]) return false;
     }
     return true;
+  }
+
+  private pollIdsEqual(a: TID, b: TID): boolean {
+    // Handle Uint8Array directly
+    if (a instanceof Uint8Array && b instanceof Uint8Array) {
+      return this.arraysEqual(a, b);
+    }
+    // For other types, convert to bytes and compare
+    const aBytes = Constants.idProvider.toBytes(a);
+    const bBytes = Constants.idProvider.toBytes(b);
+    return this.arraysEqual(aBytes, bBytes);
   }
 
   private toHex(arr: Uint8Array): string {
