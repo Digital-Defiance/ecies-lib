@@ -209,9 +209,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digitaldefiance/ecies-lib@npm:^4.8.6":
-  version: 4.8.6
-  resolution: "@digitaldefiance/ecies-lib@npm:4.8.6"
+"@digitaldefiance/ecies-lib@npm:^4.8.7":
+  version: 4.8.7
+  resolution: "@digitaldefiance/ecies-lib@npm:4.8.7"
   dependencies:
     "@digitaldefiance/i18n-lib": "npm:3.8.16"
     "@ethereumjs/wallet": "npm:^10.0.0"
@@ -221,7 +221,7 @@ __metadata:
     bson: "npm:^7.0.0"
     paillier-bigint: "npm:^3.4.1"
     ts-brand: "npm:^0.2.0"
-  checksum: 10c0/05f901623415ff3cb1f7512c075e99d33ba1f6df68d602dc253a804f6536cb1fb540eb51945f2b2d5eed173227a7698f53d8bc83c6b146de7a0896afa5973915
+  checksum: 10c0/2a8840c814b8a773f66c127b289d6d47cbf11d2ab81470dfdbf0e8bf7184453450c5ee029f86fa80f90752879680d07e1e0e8dbcb4de855bbe7f177cd821743f
   languageName: node
   linkType: hard
 
@@ -1452,7 +1452,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ecies-lib-showcase@workspace:."
   dependencies:
-    "@digitaldefiance/ecies-lib": "npm:^4.8.6"
+    "@digitaldefiance/ecies-lib": "npm:^4.8.7"
     "@digitaldefiance/i18n-lib": "npm:^3.8.16"
     "@eslint/js": "npm:^9.39.1"
     "@ethereumjs/wallet": "npm:^10.0.0"
