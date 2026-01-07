@@ -2,13 +2,15 @@
  * Simple validation test to verify our test fixes work
  */
 
-import { EciesEncryptionTypeEnum } from '../src/enumerations/ecies-encryption-type';
-import { encryptionTypeToString } from '..//src/utils/encryption-type-utils';
 import { ObjectIdProvider } from '..//src/lib/id-providers';
+import { encryptionTypeToString } from '..//src/utils/encryption-type-utils';
+import { EciesEncryptionTypeEnum } from '../src/enumerations/ecies-encryption-type';
 
 describe('Test Fixes Validation', () => {
   it('should validate utils fix works', () => {
-    expect(encryptionTypeToString(EciesEncryptionTypeEnum.Simple)).toBe('simple');
+    expect(encryptionTypeToString(EciesEncryptionTypeEnum.Simple)).toBe(
+      'simple',
+    );
   });
 
   it('should validate ObjectId provider works', () => {

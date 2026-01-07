@@ -5,8 +5,8 @@ import { VoteEncoder, PollFactory, PollTallier, Member, MemberType, EmailString,
 import type { Poll, PollResults } from '@digitaldefiance/ecies-lib';
 
 export const BordaDemo = () => {
-  const [poll, setPoll] = useState<Poll | null>(null);
-  const [authority, setAuthority] = useState<Member | null>(null);
+  const [poll, setPoll] = useState<Poll<Uint8Array> | null>(null);
+  const [authority, setAuthority] = useState<Member<Uint8Array> | null>(null);
   const [voters] = useState(['USA', 'France', 'Japan', 'Brazil', 'Kenya']);
   const [votes, setVotes] = useState<Map<string, number[]>>(new Map());
   const [results, setResults] = useState<PollResults | null>(null);
@@ -22,11 +22,11 @@ export const BordaDemo = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const eciesService = new ECIESService();
-        const { member } = Member.newMember(eciesService, MemberType.System, 'IOC', new EmailString('ioc@olympics.org'));
+        const eciesService = new ECIESService<Uint8Array>();
+        const { member } = Member.newMember<Uint8Array>(eciesService, MemberType.System, 'IOC', new EmailString('ioc@olympics.org'));
         await member.deriveVotingKeys();
-        setAuthority(member as Member);
-        const newPoll = PollFactory.createBorda(candidates.map(c => c.name), member);
+        setAuthority(member as Member<Uint8Array>);
+        const newPoll = PollFactory.createBorda<Uint8Array>(candidates.map(c => c.name), member as Member<Uint8Array>);
         setPoll(newPoll);
       } catch (e) {
         console.error('Init failed:', e);
@@ -39,10 +39,10 @@ export const BordaDemo = () => {
 
   const submitRanking = (voterName: string, rankings: number[]) => {
     if (!poll || !authority?.votingPublicKey) return;
-    const encoder = new VoteEncoder(authority.votingPublicKey);
+    const encoder = new VoteEncoder<Uint8Array>(authority.votingPublicKey);
     const vote = encoder.encodeBorda(rankings, candidates.length);
-    const voterEcies = new ECIESService();
-    const { member: voter } = Member.newMember(voterEcies, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
+    const voterEcies = new ECIESService<Uint8Array>();
+    const { member: voter } = Member.newMember<Uint8Array>(voterEcies, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
     poll.vote(voter, vote);
     setVotes(new Map(votes.set(voterName, rankings)));
   };
@@ -50,14 +50,14 @@ export const BordaDemo = () => {
   const tallyVotes = () => withTallying(async () => {
     if (!poll || !authority?.votingPrivateKey || !authority?.votingPublicKey) return;
     poll.close();
-    const tallier = new PollTallier(authority, authority.votingPrivateKey, authority.votingPublicKey);
+    const tallier = new PollTallier<Uint8Array>(authority, authority.votingPrivateKey, authority.votingPublicKey);
     const result = tallier.tally(poll);
     setResults(result);
   });
 
   const reset = () => {
     if (!authority) return;
-    const newPoll = PollFactory.createBorda(candidates.map(c => c.name), authority);
+    const newPoll = PollFactory.createBorda<Uint8Array>(candidates.map(c => c.name), authority);
     setPoll(newPoll);
     setVotes(new Map());
     setResults(null);

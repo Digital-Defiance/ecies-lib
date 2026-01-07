@@ -4,7 +4,7 @@ import type { IIdProvider } from '../interfaces/id-provider';
 
 /**
  * Base class for ID providers with common utility methods.
- * 
+ *
  * Subclasses must implement all abstract methods for their specific ID type.
  * For providers where T = Uint8Array, see ByteIdProvider for a concrete base.
  */

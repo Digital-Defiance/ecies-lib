@@ -1,3 +1,4 @@
+import type { ObjectId } from 'bson';
 import { SecureStorageErrorType } from './enumerations/secure-storage-error-type';
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
@@ -5,7 +6,6 @@ import type { IIdProvider } from './interfaces/id-provider';
 import { ObjectIdProvider } from './lib/id-providers/objectid-provider';
 import { XorService } from './services/xor';
 import { uint8ArrayToHex } from './utils';
-import type { ObjectId } from 'bson';
 
 /**
  * Default ID provider (singleton, no circular dependency)

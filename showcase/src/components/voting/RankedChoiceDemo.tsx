@@ -5,8 +5,8 @@ import { VoteEncoder, PollFactory, PollTallier, Member, MemberType, EmailString,
 import type { Poll, PollResults } from '@digitaldefiance/ecies-lib';
 
 export const RankedChoiceDemo = () => {
-  const [poll, setPoll] = useState<Poll | null>(null);
-  const [authority, setAuthority] = useState<Member | null>(null);
+  const [poll, setPoll] = useState<Poll<Uint8Array> | null>(null);
+  const [authority, setAuthority] = useState<Member<Uint8Array> | null>(null);
   const [bulletinBoard, setBulletinBoard] = useState<PublicBulletinBoard | null>(null);
   const [voters] = useState(['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace']);
   const [votes, setVotes] = useState<Map<string, number[]>>(new Map());

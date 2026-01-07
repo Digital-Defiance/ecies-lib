@@ -5,7 +5,6 @@ import {
 } from 'uuid';
 import { IdProviderErrorType } from '../../enumerations/id-provider-error-type';
 import { IdProviderError } from '../../errors/id-provider';
-import { arraysEqual } from '../../utils';
 import { BaseIdProvider } from '../base-id-provider';
 
 /**

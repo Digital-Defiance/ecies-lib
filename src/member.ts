@@ -79,7 +79,9 @@ export class Member<
       this._id = id;
       // For provided IDs, we need to convert to bytes
       // Use type assertion since Constants.idProvider is IIdProviderBase
-      this._idBytes = (Constants.idProvider as { toBytes(id: unknown): Uint8Array }).toBytes(this._id);
+      this._idBytes = (
+        Constants.idProvider as { toBytes(id: unknown): Uint8Array }
+      ).toBytes(this._id);
     } else {
       // Generate raw bytes first
       this._idBytes = Constants.idProvider.generate();
@@ -111,9 +113,12 @@ export class Member<
     this._dateUpdated = dateUpdated ?? now();
     this._creatorId = creatorId ?? this._id;
     // Derive creatorIdBytes from creatorId, using idBytes if creator is self
-    this._creatorIdBytes = this._creatorId === this._id
-      ? this._idBytes
-      : (Constants.idProvider as { toBytes(id: unknown): Uint8Array }).toBytes(this._creatorId);
+    this._creatorIdBytes =
+      this._creatorId === this._id
+        ? this._idBytes
+        : (
+            Constants.idProvider as { toBytes(id: unknown): Uint8Array }
+          ).toBytes(this._creatorId);
   }
 
   // Required getters
@@ -546,7 +551,7 @@ export class Member<
     name: string,
     email: EmailString,
     forceMnemonic?: SecureString,
-    createdBy?: Uint8Array,
+    _createdBy?: Uint8Array,
     _eciesParams?: IECIESConstants,
   ): IMemberWithMnemonic<TID> {
     // Validate inputs first

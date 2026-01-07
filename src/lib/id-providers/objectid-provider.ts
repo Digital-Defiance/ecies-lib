@@ -1,8 +1,8 @@
 import { ObjectId } from 'bson';
 import { IdProviderErrorType } from '../../enumerations/id-provider-error-type';
 import { IdProviderError } from '../../errors/id-provider';
-import { BaseIdProvider } from '../base-id-provider';
 import { hexToUint8Array } from '../../utils';
+import { BaseIdProvider } from '../base-id-provider';
 
 /**
  * ID provider for MongoDB/BSON ObjectIDs (12 bytes).

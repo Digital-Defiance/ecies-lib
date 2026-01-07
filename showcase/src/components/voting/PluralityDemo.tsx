@@ -5,9 +5,9 @@ import { VoteEncoder, PollFactory, PollTallier, VotingService, Member, MemberTyp
 import type { Poll, PollResults } from '@digitaldefiance/ecies-lib';
 
 export const PluralityDemo = () => {
-  const [poll, setPoll] = useState<Poll | null>(null);
+  const [poll, setPoll] = useState<Poll<Uint8Array> | null>(null);
   const [authority, setAuthority] = useState<Member | null>(null);
-  const [auditLog, setAuditLog] = useState<ImmutableAuditLog | null>(null);
+  const [auditLog, setAuditLog] = useState<ImmutableAuditLog<Uint8Array> | null>(null);
   const [voters] = useState(['Alice', 'Bob', 'Charlie', 'Diana', 'Eve']);
   const [votes, setVotes] = useState<Map<string, number>>(new Map());
   const [results, setResults] = useState<PollResults | null>(null);
@@ -24,17 +24,17 @@ export const PluralityDemo = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const eciesService = new ECIESService();
-        const { member } = Member.newMember(eciesService, MemberType.System, 'Election Authority', new EmailString('authority@example.com'));
+        const eciesService = new ECIESService<Uint8Array>();
+        const { member } = Member.newMember<Uint8Array>(eciesService, MemberType.System, 'Election Authority', new EmailString('authority@example.com'));
         await member.deriveVotingKeys();
-        setAuthority(member as Member);
+        setAuthority(member as Member<Uint8Array>);
         
-        const audit = new ImmutableAuditLog(member);
+        const audit = new ImmutableAuditLog<Uint8Array>(member);
         setAuditLog(audit);
         
-        const newPoll = PollFactory.createPlurality(
+        const newPoll = PollFactory.createPlurality<Uint8Array>(
           candidates.map(c => c.name),
-          member
+          member as Member<Uint8Array>
         );
         setPoll(newPoll);
         
@@ -55,11 +55,11 @@ export const PluralityDemo = () => {
   const castVote = async (voterName: string, candidateIndex: number) => {
     if (!poll || !authority?.votingPublicKey || !auditLog) return;
     
-    const encoder = new VoteEncoder(authority.votingPublicKey);
+    const encoder = new VoteEncoder<Uint8Array>(authority.votingPublicKey);
     const vote = encoder.encodePlurality(candidateIndex, candidates.length);
     
-    const voterEcies = new ECIESService();
-    const { member: voter } = Member.newMember(voterEcies, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
+    const voterEcies = new ECIESService<Uint8Array>();
+    const { member: voter } = Member.newMember<Uint8Array>(voterEcies, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
     poll.vote(voter, vote);
     
     // Record vote in audit log with hashed voter ID
@@ -73,7 +73,7 @@ export const PluralityDemo = () => {
     if (!poll || !authority?.votingPrivateKey || !authority?.votingPublicKey || !auditLog) return;
     
     poll.close();
-    const tallier = new PollTallier(authority, authority.votingPrivateKey, authority.votingPublicKey);
+    const tallier = new PollTallier<Uint8Array>(authority, authority.votingPrivateKey, authority.votingPublicKey);
     const result = tallier.tally(poll);
     setResults(result);
     
@@ -86,12 +86,12 @@ export const PluralityDemo = () => {
 
   const reset = () => {
     if (!authority) return;
-    const newPoll = PollFactory.createPlurality(candidates.map(c => c.name), authority);
+    const newPoll = PollFactory.createPlurality<Uint8Array>(candidates.map(c => c.name), authority);
     setPoll(newPoll);
     setVotes(new Map());
     setResults(null);
     
-    const audit = new ImmutableAuditLog(authority);
+    const audit = new ImmutableAuditLog<Uint8Array>(authority);
     setAuditLog(audit);
     audit.recordPollCreated(newPoll.id, {
       method: 'plurality',

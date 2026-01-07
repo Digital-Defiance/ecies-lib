@@ -2,15 +2,18 @@
  * Public Bulletin Board for Government-Grade Voting
  * Implements requirement 1.2: Append-only, publicly verifiable vote publication
  */
+import { getRuntimeConfiguration } from '../../constants';
+import type { PlatformID } from '../../interfaces';
 import type { IMember } from './types';
+const Constants = getRuntimeConfiguration();
 
-export interface BulletinBoardEntry {
+export interface BulletinBoardEntry<TID extends PlatformID = Uint8Array> {
   /** Sequence number (monotonically increasing) */
   readonly sequence: number;
   /** Microsecond-precision timestamp */
   readonly timestamp: number;
   /** Poll identifier */
-  readonly pollId: Uint8Array;
+  readonly pollId: TID;
   /** Encrypted vote data */
   readonly encryptedVote: bigint[];
   /** Hash of voter ID (anonymized) */
@@ -23,9 +26,9 @@ export interface BulletinBoardEntry {
   readonly signature: Uint8Array;
 }
 
-export interface TallyProof {
+export interface TallyProof<TID extends PlatformID = Uint8Array> {
   /** Poll identifier */
-  readonly pollId: Uint8Array;
+  readonly pollId: TID;
   /** Final tallies */
   readonly tallies: bigint[];
   /** Choice names */
@@ -40,36 +43,35 @@ export interface TallyProof {
   readonly signature: Uint8Array;
 }
 
-export interface BulletinBoard {
+export interface BulletinBoard<TID extends PlatformID = Uint8Array> {
   /** Publish encrypted vote to bulletin board */
   publishVote(
-    pollId: Uint8Array,
+    pollId: TID,
     encryptedVote: bigint[],
     voterIdHash: Uint8Array,
-  ): BulletinBoardEntry;
+  ): BulletinBoardEntry<TID>;
 
   /** Publish tally with cryptographic proof */
   publishTally(
-    pollId: Uint8Array,
+    pollId: TID,
     tallies: bigint[],
     choices: string[],
     encryptedVotes: bigint[][],
-  ): TallyProof;
-
+  ): TallyProof<TID>;
   /** Get all entries for a poll */
-  getEntries(pollId: Uint8Array): readonly BulletinBoardEntry[];
+  getEntries(pollId: TID): readonly BulletinBoardEntry<TID>[];
 
   /** Get all entries (entire bulletin board) */
-  getAllEntries(): readonly BulletinBoardEntry[];
+  getAllEntries(): readonly BulletinBoardEntry<TID>[];
 
   /** Get tally proof for a poll */
-  getTallyProof(pollId: Uint8Array): TallyProof | undefined;
+  getTallyProof(pollId: TID): TallyProof<TID> | undefined;
 
   /** Verify entry signature and hash */
-  verifyEntry(entry: BulletinBoardEntry): boolean;
+  verifyEntry(entry: BulletinBoardEntry<TID>): boolean;
 
   /** Verify tally proof */
-  verifyTallyProof(proof: TallyProof): boolean;
+  verifyTallyProof(proof: TallyProof<TID>): boolean;
 
   /** Verify Merkle tree integrity */
   verifyMerkleTree(): boolean;
@@ -81,9 +83,11 @@ export interface BulletinBoard {
 /**
  * Append-only public bulletin board with cryptographic verification
  */
-export class PublicBulletinBoard implements BulletinBoard {
-  private readonly entries: BulletinBoardEntry[] = [];
-  private readonly tallyProofs = new Map<string, TallyProof>();
+export class PublicBulletinBoard<
+  TID extends PlatformID = Uint8Array,
+> implements BulletinBoard<TID> {
+  private readonly entries: BulletinBoardEntry<TID>[] = [];
+  private readonly tallyProofs = new Map<string, TallyProof<TID>>();
   private readonly authority: IMember;
   private sequence = 0;
 
@@ -92,10 +96,10 @@ export class PublicBulletinBoard implements BulletinBoard {
   }
 
   publishVote(
-    pollId: Uint8Array,
+    pollId: TID,
     encryptedVote: bigint[],
     voterIdHash: Uint8Array,
-  ): BulletinBoardEntry {
+  ): BulletinBoardEntry<TID> {
     const timestamp = this.getMicrosecondTimestamp();
     const merkleRoot = this.computeMerkleRoot([...this.entries]);
 
@@ -111,7 +115,7 @@ export class PublicBulletinBoard implements BulletinBoard {
     const entryHash = this.sha256(entryData);
     const signature = this.authority.sign(entryHash);
 
-    const entry: BulletinBoardEntry = {
+    const entry: BulletinBoardEntry<TID> = {
       sequence: this.sequence++,
       timestamp,
       pollId,
@@ -127,11 +131,12 @@ export class PublicBulletinBoard implements BulletinBoard {
   }
 
   publishTally(
-    pollId: Uint8Array,
+    pollId: TID,
     tallies: bigint[],
     choices: string[],
     encryptedVotes: bigint[][],
-  ): TallyProof {
+  ): TallyProof<TID> {
+    const pollIdBytes = Constants.idProvider.toBytes(pollId);
     const timestamp = this.getMicrosecondTimestamp();
     const votesHash = this.hashEncryptedVotes(encryptedVotes);
     const decryptionProof = this.generateDecryptionProof(
@@ -150,7 +155,7 @@ export class PublicBulletinBoard implements BulletinBoard {
 
     const signature = this.authority.sign(proofData);
 
-    const proof: TallyProof = {
+    const proof: TallyProof<TID> = {
       pollId,
       tallies,
       choices,
@@ -160,26 +165,30 @@ export class PublicBulletinBoard implements BulletinBoard {
       signature,
     };
 
-    this.tallyProofs.set(this.toHex(pollId), proof);
+    this.tallyProofs.set(this.toHex(pollIdBytes), proof);
     return proof;
   }
 
-  getEntries(pollId: Uint8Array): readonly BulletinBoardEntry[] {
-    const pollIdStr = this.toHex(pollId);
+  getEntries(pollId: TID): readonly BulletinBoardEntry<TID>[] {
+    const pollIdStr = this.toHex(Constants.idProvider.toBytes(pollId));
     return Object.freeze(
-      this.entries.filter((e) => this.toHex(e.pollId) === pollIdStr),
+      this.entries.filter(
+        (e) => this.toHex(Constants.idProvider.toBytes(e.pollId)) === pollIdStr,
+      ),
     );
   }
 
-  getAllEntries(): readonly BulletinBoardEntry[] {
+  getAllEntries(): readonly BulletinBoardEntry<TID>[] {
     return Object.freeze([...this.entries]);
   }
 
-  getTallyProof(pollId: Uint8Array): TallyProof | undefined {
-    return this.tallyProofs.get(this.toHex(pollId));
+  getTallyProof(pollId: TID): TallyProof<TID> | undefined {
+    return this.tallyProofs.get(
+      this.toHex(Constants.idProvider.toBytes(pollId)),
+    );
   }
 
-  verifyEntry(entry: BulletinBoardEntry): boolean {
+  verifyEntry(entry: BulletinBoardEntry<TID>): boolean {
     const entryData = this.serializeEntryData({
       sequence: entry.sequence,
       timestamp: entry.timestamp,
@@ -197,7 +206,7 @@ export class PublicBulletinBoard implements BulletinBoard {
     return this.authority.verify(entry.signature, entry.entryHash);
   }
 
-  verifyTallyProof(proof: TallyProof): boolean {
+  verifyTallyProof(proof: TallyProof<TID>): boolean {
     const proofData = this.serializeTallyProof({
       pollId: proof.pollId,
       tallies: proof.tallies,
@@ -240,7 +249,7 @@ export class PublicBulletinBoard implements BulletinBoard {
     return this.concat(parts);
   }
 
-  private computeMerkleRoot(entries: BulletinBoardEntry[]): Uint8Array {
+  private computeMerkleRoot(entries: BulletinBoardEntry<TID>[]): Uint8Array {
     if (entries.length === 0) {
       return new Uint8Array(32);
     }
@@ -293,7 +302,7 @@ export class PublicBulletinBoard implements BulletinBoard {
   private serializeEntryData(data: {
     sequence: number;
     timestamp: number;
-    pollId: Uint8Array;
+    pollId: TID;
     encryptedVote: bigint[];
     voterIdHash: Uint8Array;
     merkleRoot: Uint8Array;
@@ -301,7 +310,7 @@ export class PublicBulletinBoard implements BulletinBoard {
     const parts: Uint8Array[] = [
       this.encodeNumber(data.sequence),
       this.encodeNumber(data.timestamp),
-      data.pollId,
+      Constants.idProvider.toBytes(data.pollId),
       data.voterIdHash,
       data.merkleRoot,
     ];
@@ -314,7 +323,7 @@ export class PublicBulletinBoard implements BulletinBoard {
   }
 
   private serializeTallyProof(data: {
-    pollId: Uint8Array;
+    pollId: TID;
     tallies: bigint[];
     choices: string[];
     timestamp: number;
@@ -322,7 +331,7 @@ export class PublicBulletinBoard implements BulletinBoard {
     decryptionProof: Uint8Array;
   }): Uint8Array {
     const parts: Uint8Array[] = [
-      data.pollId,
+      Constants.idProvider.toBytes(data.pollId),
       this.encodeNumber(data.timestamp),
       data.votesHash,
       data.decryptionProof,
@@ -339,12 +348,13 @@ export class PublicBulletinBoard implements BulletinBoard {
     return this.concat(parts);
   }
 
-  private serializeEntry(entry: BulletinBoardEntry): Uint8Array {
+  private serializeEntry(entry: BulletinBoardEntry<TID>): Uint8Array {
+    const pollIdBytes = Constants.idProvider.toBytes(entry.pollId);
     const parts: Uint8Array[] = [
       this.encodeNumber(entry.sequence),
       this.encodeNumber(entry.timestamp),
-      this.encodeNumber(entry.pollId.length),
-      entry.pollId,
+      this.encodeNumber(pollIdBytes.length),
+      pollIdBytes,
       this.encodeNumber(entry.encryptedVote.length),
     ];
 
@@ -366,10 +376,11 @@ export class PublicBulletinBoard implements BulletinBoard {
     return this.concat(parts);
   }
 
-  private serializeTallyProofFull(proof: TallyProof): Uint8Array {
+  private serializeTallyProofFull(proof: TallyProof<TID>): Uint8Array {
+    const pollIdBytes = Constants.idProvider.toBytes(proof.pollId);
     const parts: Uint8Array[] = [
-      this.encodeNumber(proof.pollId.length),
-      proof.pollId,
+      this.encodeNumber(pollIdBytes.length),
+      pollIdBytes,
       this.encodeNumber(proof.tallies.length),
     ];
 

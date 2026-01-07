@@ -10,8 +10,8 @@
  * for other purposes like multi-recipient encryption.
  */
 
-import * as fc from 'fast-check';
 import { ObjectId } from 'bson';
+import * as fc from 'fast-check';
 import { Constants } from '../src/constants';
 import { EmailString } from '../src/email-string';
 import { MemberType } from '../src/enumerations/member-type';
@@ -185,7 +185,7 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
 
             // Verify member.id is an ObjectId
             expect(result.member.id).toBeInstanceOf(ObjectId);
-            
+
             // Verify idBytes can be serialized (using idBytes, not id)
             expect(() => {
               const objectIdString = Constants.idProvider.serialize(
@@ -231,15 +231,20 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
 
             // Verify idBytes conversion doesn't throw
             expect(() => {
-              const idString = Constants.idProvider.serialize(result.member.idBytes);
+              const idString = Constants.idProvider.serialize(
+                result.member.idBytes,
+              );
               expect(idString).toBeDefined();
               expect(typeof idString).toBe('string');
             }).not.toThrow();
 
             // Verify round-trip conversion works with idBytes
             expect(() => {
-              const idString = Constants.idProvider.serialize(result.member.idBytes);
-              const deserializedBytes = Constants.idProvider.deserialize(idString);
+              const idString = Constants.idProvider.serialize(
+                result.member.idBytes,
+              );
+              const deserializedBytes =
+                Constants.idProvider.deserialize(idString);
               expect(deserializedBytes).toEqual(result.member.idBytes);
             }).not.toThrow();
           },
@@ -288,7 +293,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
             const deserializedMember = Member.fromJson(json, service);
 
             // Verify ID bytes are preserved (compare by value)
-            expect(Array.from(deserializedMember.idBytes)).toEqual(Array.from(originalIdBytes));
+            expect(Array.from(deserializedMember.idBytes)).toEqual(
+              Array.from(originalIdBytes),
+            );
             expect(deserializedMember.idBytes.length).toBe(12);
 
             // Verify other properties are preserved
@@ -330,7 +337,9 @@ describe('Property-Based Tests: Member idProvider Integration', () => {
             const deserialized = Member.fromJson(json, service);
 
             // Verify 12-byte ID preserved (compare by value)
-            expect(Array.from(deserialized.idBytes)).toEqual(Array.from(originalIdBytes));
+            expect(Array.from(deserialized.idBytes)).toEqual(
+              Array.from(originalIdBytes),
+            );
             expect(deserialized.idBytes.length).toBe(12);
 
             // Verify ObjectID compatibility maintained (using idBytes)

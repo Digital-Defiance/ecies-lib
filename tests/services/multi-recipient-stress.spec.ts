@@ -27,10 +27,10 @@ describe('Multi-Recipient Stress Tests', () => {
       symmetricKeyBits: ECIES.SYMMETRIC.KEY_BITS,
       symmetricKeyMode: ECIES.SYMMETRIC.MODE,
     };
-    
+
     eciesService = new ECIESService(config);
     cryptoCore = new EciesCryptoCore(config);
-    
+
     const runtimeConfig = createRuntimeConfiguration({
       idProvider: new ObjectIdProvider(),
     });
@@ -42,7 +42,7 @@ describe('Multi-Recipient Stress Tests', () => {
       const maxRecipients = 1000;
       const recipients = [];
       const message = new Uint8Array([1, 2, 3, 4, 5]);
-      
+
       // Generate recipients
       for (let i = 0; i < maxRecipients; i++) {
         const keyPair = await cryptoCore.generateEphemeralKeyPair();
@@ -51,8 +51,8 @@ describe('Multi-Recipient Stress Tests', () => {
         const idView = new DataView(id.buffer);
         idView.setUint32(0, Math.floor(Date.now() / 1000)); // Timestamp
         idView.setUint32(4, i); // Counter
-        idView.setUint32(8, Math.random() * 0xFFFFFFFF); // Random
-        
+        idView.setUint32(8, Math.random() * 0xffffffff); // Random
+
         recipients.push({
           id,
           publicKey: keyPair.publicKey,
@@ -62,20 +62,22 @@ describe('Multi-Recipient Stress Tests', () => {
 
       const symmetricKey = cryptoCore.generatePrivateKey();
       const startTime = Date.now();
-      
+
       const encrypted = await processor.encryptChunk(
         message,
-        recipients.map(r => ({ id: r.id, publicKey: r.publicKey })),
+        recipients.map((r) => ({ id: r.id, publicKey: r.publicKey })),
         0,
         true,
         symmetricKey,
       );
-      
+
       const encryptTime = Date.now() - startTime;
-      console.log(`Encryption time for ${maxRecipients} recipients: ${encryptTime}ms`);
-      
+      console.log(
+        `Encryption time for ${maxRecipients} recipients: ${encryptTime}ms`,
+      );
+
       expect(encrypted.recipientCount).toBe(maxRecipients);
-      
+
       // Test decryption for first and last recipients
       const firstDecrypted = await processor.decryptChunk(
         encrypted.data,
@@ -83,7 +85,7 @@ describe('Multi-Recipient Stress Tests', () => {
         recipients[0].privateKey,
       );
       expect(firstDecrypted.data).toEqual(message);
-      
+
       const lastDecrypted = await processor.decryptChunk(
         encrypted.data,
         recipients[maxRecipients - 1].id,
@@ -99,20 +101,24 @@ describe('Multi-Recipient Stress Tests', () => {
           super(ecies, config);
           // Override the constants to have a lower max
           (this as any).constants = {
-            ...((this as any).constants),
+            ...(this as any).constants,
             MAX_RECIPIENTS: 5,
           };
         }
       }
-      
+
       const config = createRuntimeConfiguration({
         idProvider: new ObjectIdProvider(),
       });
-      
-      const testProcessor = new TestMultiRecipientProcessor(eciesService, config);
+
+      const testProcessor = new TestMultiRecipientProcessor(
+        eciesService,
+        config,
+      );
 
       const recipients = [];
-      for (let i = 0; i < 6; i++) { // One more than max
+      for (let i = 0; i < 6; i++) {
+        // One more than max
         const keyPair = await cryptoCore.generateEphemeralKeyPair();
         recipients.push({
           id: new Uint8Array(12).fill(i),
@@ -124,7 +130,7 @@ describe('Multi-Recipient Stress Tests', () => {
       const symmetricKey = cryptoCore.generatePrivateKey();
 
       await expect(
-        testProcessor.encryptChunk(message, recipients, 0, true, symmetricKey)
+        testProcessor.encryptChunk(message, recipients, 0, true, symmetricKey),
       ).rejects.toThrow();
     });
   });
@@ -134,7 +140,7 @@ describe('Multi-Recipient Stress Tests', () => {
       const recipientCount = 100;
       const messageSize = 1024 * 1024; // 1MB message
       const message = new Uint8Array(messageSize);
-      
+
       // Fill with pattern to ensure it's not optimized away
       for (let i = 0; i < messageSize; i++) {
         message[i] = i % 256;
@@ -152,17 +158,17 @@ describe('Multi-Recipient Stress Tests', () => {
 
       const initialMemory = process.memoryUsage().heapUsed;
       const symmetricKey = cryptoCore.generatePrivateKey();
-      
+
       const encrypted = await processor.encryptChunk(
         message,
-        recipients.map(r => ({ id: r.id, publicKey: r.publicKey })),
+        recipients.map((r) => ({ id: r.id, publicKey: r.publicKey })),
         0,
         true,
         symmetricKey,
       );
 
-      const afterEncryptMemory = process.memoryUsage().heapUsed;
-      
+      const _afterEncryptMemory = process.memoryUsage().heapUsed;
+
       // Decrypt a few recipients to ensure it works
       for (let i = 0; i < 3; i++) {
         const decrypted = await processor.decryptChunk(
@@ -175,17 +181,19 @@ describe('Multi-Recipient Stress Tests', () => {
 
       const finalMemory = process.memoryUsage().heapUsed;
       const memoryIncrease = finalMemory - initialMemory;
-      
+
       // Memory increase should be reasonable (less than 650MB for this test)
       expect(memoryIncrease).toBeLessThan(650 * 1024 * 1024);
-      
-      console.log(`Memory increase: ${Math.round(memoryIncrease / 1024 / 1024)}MB`);
+
+      console.log(
+        `Memory increase: ${Math.round(memoryIncrease / 1024 / 1024)}MB`,
+      );
     }, 30000);
 
     it('should handle rapid encryption/decryption cycles', async () => {
       const cycles = 50;
       const recipientCount = 10;
-      const message = new Uint8Array(1024).fill(0xAA);
+      const message = new Uint8Array(1024).fill(0xaa);
 
       for (let cycle = 0; cycle < cycles; cycle++) {
         const recipients = [];
@@ -201,7 +209,7 @@ describe('Multi-Recipient Stress Tests', () => {
         const symmetricKey = cryptoCore.generatePrivateKey();
         const encrypted = await processor.encryptChunk(
           message,
-          recipients.map(r => ({ id: r.id, publicKey: r.publicKey })),
+          recipients.map((r) => ({ id: r.id, publicKey: r.publicKey })),
           0,
           true,
           symmetricKey,
@@ -236,7 +244,7 @@ describe('Multi-Recipient Stress Tests', () => {
 
         const symmetricKey = cryptoCore.generatePrivateKey();
         const startTime = process.hrtime.bigint();
-        
+
         await processor.encryptChunk(
           message,
           recipients,
@@ -244,10 +252,10 @@ describe('Multi-Recipient Stress Tests', () => {
           true,
           symmetricKey,
         );
-        
+
         const endTime = process.hrtime.bigint();
         const duration = Number(endTime - startTime) / 1_000_000; // Convert to milliseconds
-        
+
         performanceResults.push({ count, duration });
         console.log(`${count} recipients: ${duration.toFixed(2)}ms`);
       }
@@ -259,7 +267,7 @@ describe('Multi-Recipient Stress Tests', () => {
         const curr = performanceResults[i];
         const ratio = curr.duration / prev.duration;
         const recipientRatio = curr.count / prev.count;
-        
+
         // Performance ratio should not be more than 3x the recipient ratio
         expect(ratio).toBeLessThan(recipientRatio * 3);
       }
@@ -280,22 +288,22 @@ describe('Multi-Recipient Stress Tests', () => {
 
         const recipientList = [];
         const usedIds = new Set();
-        
+
         for (let i = 0; i < recipientCount; i++) {
           const keyPair = await cryptoCore.generateEphemeralKeyPair();
           const id = new Uint8Array(idSize);
-          
+
           // Create truly unique ID
           let uniqueValue;
           let idStr;
           do {
-            uniqueValue = Math.floor(Math.random() * 0xFFFFFFFF);
+            uniqueValue = Math.floor(Math.random() * 0xffffffff);
             for (let j = 0; j < idSize; j++) {
               id[j] = (uniqueValue + i * 256 + j) % 256;
             }
             idStr = Array.from(id).join(',');
           } while (usedIds.has(idStr));
-          
+
           usedIds.add(idStr);
           recipientList.push({
             id,
@@ -307,7 +315,7 @@ describe('Multi-Recipient Stress Tests', () => {
         const symmetricKey = cryptoCore.generatePrivateKey();
         const encrypted = await testProcessor.encryptChunk(
           message,
-          recipientList.map(r => ({ id: r.id, publicKey: r.publicKey })),
+          recipientList.map((r) => ({ id: r.id, publicKey: r.publicKey })),
           0,
           true,
           symmetricKey,
@@ -331,7 +339,7 @@ describe('Multi-Recipient Stress Tests', () => {
       await withConsoleMocks({ mute: true }, async () => {
         const validRecipients = [];
         const invalidRecipients = [];
-        
+
         // Create valid recipients
         for (let i = 0; i < 5; i++) {
           const keyPair = await cryptoCore.generateEphemeralKeyPair();
@@ -360,11 +368,11 @@ describe('Multi-Recipient Stress Tests', () => {
         await expect(
           processor.encryptChunk(
             message,
-            allRecipients.map(r => ({ id: r.id, publicKey: r.publicKey })),
+            allRecipients.map((r) => ({ id: r.id, publicKey: r.publicKey })),
             0,
             true,
             symmetricKey,
-          )
+          ),
         ).rejects.toThrow();
       });
     });
@@ -391,7 +399,7 @@ describe('Multi-Recipient Stress Tests', () => {
           const symmetricKey = cryptoCore.generatePrivateKey();
           const encrypted = await processor.encryptChunk(
             message,
-            recipients.map(r => ({ id: r.id, publicKey: r.publicKey })),
+            recipients.map((r) => ({ id: r.id, publicKey: r.publicKey })),
             0,
             true,
             symmetricKey,
@@ -403,7 +411,7 @@ describe('Multi-Recipient Stress Tests', () => {
             recipients[0].id,
             recipients[0].privateKey,
           );
-          
+
           return decrypted.data;
         })();
 
@@ -411,7 +419,7 @@ describe('Multi-Recipient Stress Tests', () => {
       }
 
       const results = await Promise.all(encryptionPromises);
-      
+
       // All should succeed and return the original message
       for (const result of results) {
         expect(result).toEqual(message);

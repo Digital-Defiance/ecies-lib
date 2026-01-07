@@ -12,7 +12,7 @@
 
 import { ObjectId } from 'bson';
 import { MemberBuilder } from '../../src/builders/member-builder';
-import { Constants, createRuntimeConfiguration } from '../../src/constants';
+import { createRuntimeConfiguration } from '../../src/constants';
 import { EmailString } from '../../src/email-string';
 import { MemberType } from '../../src/enumerations/member-type';
 import { GuidV4Provider, ObjectIdProvider } from '../../src/lib/id-providers';

@@ -33,7 +33,7 @@ describe('Large Message and Streaming Tests', () => {
     it('should handle 256KB message encryption/decryption', async () => {
       const messageSize = 256 * 1024; // 256KB
       const message = new Uint8Array(messageSize);
-      
+
       // Fill with pattern to ensure compression doesn't affect test
       for (let i = 0; i < messageSize; i++) {
         message[i] = (i % 256) ^ ((i >> 8) % 256);
@@ -41,33 +41,33 @@ describe('Large Message and Streaming Tests', () => {
 
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       const startTime = Date.now();
-      
+
       const encrypted = await eciesService.encryptSimpleOrSingle(
         true,
         keyPair.publicKey,
         message,
       );
-      
+
       const encryptTime = Date.now() - startTime;
       console.log(`256KB encryption time: ${encryptTime}ms`);
-      
+
       const decryptStart = Date.now();
       const decrypted = await eciesService.decryptSimpleOrSingleWithHeader(
         true,
         keyPair.privateKey,
         encrypted,
       );
-      
+
       const decryptTime = Date.now() - decryptStart;
       console.log(`256KB decryption time: ${decryptTime}ms`);
-      
+
       // Force garbage collection if available
       if (global.gc) {
         global.gc();
       }
-      
+
       expect(decrypted).toEqual(message);
-      
+
       // Performance should be reasonable (less than 5 seconds for 256KB)
       expect(encryptTime + decryptTime).toBeLessThan(5000);
     }, 15000);
@@ -75,7 +75,7 @@ describe('Large Message and Streaming Tests', () => {
     it('should handle 2MB message encryption/decryption', async () => {
       const messageSize = 2 * 1024 * 1024; // 2MB
       const message = new Uint8Array(messageSize);
-      
+
       // Fill with pseudo-random pattern
       let seed = 12345;
       for (let i = 0; i < messageSize; i++) {
@@ -85,48 +85,50 @@ describe('Large Message and Streaming Tests', () => {
 
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       const initialMemory = process.memoryUsage().heapUsed;
-      
+
       const startTime = Date.now();
       const encrypted = await eciesService.encryptSimpleOrSingle(
         true,
         keyPair.publicKey,
         message,
       );
-      
+
       const encryptTime = Date.now() - startTime;
-      
+
       const decryptStart = Date.now();
       const decrypted = await eciesService.decryptSimpleOrSingleWithHeader(
         true,
         keyPair.privateKey,
         encrypted,
       );
-      
+
       const decryptTime = Date.now() - decryptStart;
       const finalMemory = process.memoryUsage().heapUsed;
-      
+
       console.log(`2MB encryption time: ${encryptTime}ms`);
       console.log(`2MB decryption time: ${decryptTime}ms`);
-      console.log(`Memory increase: ${Math.round((finalMemory - initialMemory) / 1024 / 1024)}MB`);
-      
+      console.log(
+        `Memory increase: ${Math.round((finalMemory - initialMemory) / 1024 / 1024)}MB`,
+      );
+
       // Force garbage collection if available
       if (global.gc) {
         global.gc();
       }
-      
+
       expect(decrypted).toEqual(message);
-      
+
       // Memory usage should not exceed 20MB for 2MB message
       expect(finalMemory - initialMemory).toBeLessThan(20 * 1024 * 1024);
     }, 30000);
 
     it('should handle boundary message sizes', async () => {
       const sizes = [
-        255,           // UInt8 boundary
-        256,           // UInt8 + 1
-        65535,         // UInt16 boundary
-        65536,         // UInt16 + 1
-        1024 * 1024,   // 1MB
+        255, // UInt8 boundary
+        256, // UInt8 + 1
+        65535, // UInt16 boundary
+        65536, // UInt16 + 1
+        1024 * 1024, // 1MB
         2 * 1024 * 1024, // 2MB
       ];
 
@@ -170,12 +172,12 @@ describe('Large Message and Streaming Tests', () => {
         while (offset < totalSize) {
           const currentChunkSize = Math.min(chunkSize, totalSize - offset);
           const chunk = new Uint8Array(currentChunkSize);
-          
+
           // Fill with pattern based on offset
           for (let i = 0; i < currentChunkSize; i++) {
-            chunk[i] = ((offset + i) % 256) ^ ((offset + i) >> 8) % 256;
+            chunk[i] = ((offset + i) % 256) ^ (((offset + i) >> 8) % 256);
           }
-          
+
           offset += currentChunkSize;
           yield chunk;
         }
@@ -188,7 +190,7 @@ describe('Large Message and Streaming Tests', () => {
       for await (const chunk of encryptionStream.encryptStream(
         generateData(),
         keyPair.publicKey,
-        { chunkSize: chunkSize }
+        { chunkSize: chunkSize },
       )) {
         encryptedChunks.push(chunk.data);
       }
@@ -208,7 +210,7 @@ describe('Large Message and Streaming Tests', () => {
 
       for await (const chunk of encryptionStream.decryptStream(
         encryptedSource(),
-        keyPair.privateKey
+        keyPair.privateKey,
       )) {
         decryptedChunks.push(chunk);
       }
@@ -240,7 +242,7 @@ describe('Large Message and Streaming Tests', () => {
       for (const chunkSize of chunkSizes) {
         const totalSize = chunkSize * 10; // 10 chunks
         const originalData = new Uint8Array(totalSize);
-        
+
         // Fill with chunk-size dependent pattern
         for (let i = 0; i < totalSize; i++) {
           originalData[i] = (i + chunkSize) % 256;
@@ -261,7 +263,7 @@ describe('Large Message and Streaming Tests', () => {
         for await (const chunk of encryptionStream.encryptStream(
           dataSource(),
           keyPair.publicKey,
-          { chunkSize }
+          { chunkSize },
         )) {
           encryptedChunks.push(chunk.data);
         }
@@ -276,7 +278,7 @@ describe('Large Message and Streaming Tests', () => {
         const decryptedChunks: Uint8Array[] = [];
         for await (const chunk of encryptionStream.decryptStream(
           encryptedSource(),
-          keyPair.privateKey
+          keyPair.privateKey,
         )) {
           decryptedChunks.push(chunk);
         }
@@ -301,30 +303,30 @@ describe('Large Message and Streaming Tests', () => {
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       const chunkSize = 64 * 1024; // 64KB chunks
       const numChunks = 10; // 640KB total
-      
+
       const memoryReadings: number[] = [];
 
       async function* dataSource() {
         for (let i = 0; i < numChunks; i++) {
           const chunk = new Uint8Array(chunkSize);
           chunk.fill(i % 256);
-          
+
           // Record memory usage
           memoryReadings.push(process.memoryUsage().heapUsed);
-          
+
           yield chunk;
         }
       }
 
       const encryptedChunks: Uint8Array[] = [];
-      
+
       for await (const chunk of encryptionStream.encryptStream(
         dataSource(),
         keyPair.publicKey,
-        { chunkSize }
+        { chunkSize },
       )) {
         encryptedChunks.push(chunk.data);
-        
+
         // Force garbage collection if available
         if (global.gc) {
           global.gc();
@@ -335,33 +337,35 @@ describe('Large Message and Streaming Tests', () => {
       const initialMemory = memoryReadings[0];
       const finalMemory = memoryReadings[memoryReadings.length - 1];
       const memoryIncrease = finalMemory - initialMemory;
-      
+
       // Memory increase should be less than 10MB for 640KB of data
       expect(memoryIncrease).toBeLessThan(10 * 1024 * 1024);
-      
-      console.log(`Memory increase during streaming: ${Math.round(memoryIncrease / 1024 / 1024)}MB`);
+
+      console.log(
+        `Memory increase during streaming: ${Math.round(memoryIncrease / 1024 / 1024)}MB`,
+      );
     }, 60000);
 
     it('should handle memory pressure gracefully', async () => {
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
-      
+
       // Create a message that might cause memory pressure
       const messageSize = 2 * 1024 * 1024; // 2MB
-      
+
       // Use streaming to avoid loading entire message into memory
       async function* largeDataSource() {
         const chunkSize = 64 * 1024; // 64KB chunks
         let offset = 0;
-        
+
         while (offset < messageSize) {
           const currentSize = Math.min(chunkSize, messageSize - offset);
           const chunk = new Uint8Array(currentSize);
-          
+
           // Fill with pattern
           for (let i = 0; i < currentSize; i++) {
             chunk[i] = ((offset + i) % 256) ^ (((offset + i) >> 16) % 256);
           }
-          
+
           offset += currentSize;
           yield chunk;
         }
@@ -372,21 +376,21 @@ describe('Large Message and Streaming Tests', () => {
       let chunkCount = 0;
 
       // Process in streaming fashion
-      for await (const chunk of encryptionStream.encryptStream(
+      for await (const _chunk of encryptionStream.encryptStream(
         largeDataSource(),
         keyPair.publicKey,
-        { chunkSize: 1024 * 1024 }
+        { chunkSize: 1024 * 1024 },
       )) {
         chunkCount++;
-        
+
         const currentMemory = process.memoryUsage().heapUsed;
         maxMemory = Math.max(maxMemory, currentMemory);
-        
+
         // Periodically force garbage collection
         if (chunkCount % 10 === 0 && global.gc) {
           global.gc();
         }
-        
+
         // Don't store all chunks to avoid memory buildup
         if (chunkCount > 3) {
           break; // Just test first 192KB worth
@@ -394,8 +398,10 @@ describe('Large Message and Streaming Tests', () => {
       }
 
       const memoryIncrease = maxMemory - initialMemory;
-      console.log(`Max memory increase: ${Math.round(memoryIncrease / 1024 / 1024)}MB`);
-      
+      console.log(
+        `Max memory increase: ${Math.round(memoryIncrease / 1024 / 1024)}MB`,
+      );
+
       // Memory increase should be reasonable (less than 10MB)
       expect(memoryIncrease).toBeLessThan(10 * 1024 * 1024);
     }, 30000);
@@ -405,7 +411,7 @@ describe('Large Message and Streaming Tests', () => {
     it('should handle corruption in large encrypted messages', async () => {
       const messageSize = 512 * 1024; // 512KB
       const message = new Uint8Array(messageSize);
-      message.fill(0xAA);
+      message.fill(0xaa);
 
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       const encrypted = await eciesService.encryptSimpleOrSingle(
@@ -423,21 +429,21 @@ describe('Large Message and Streaming Tests', () => {
 
       for (const test of corruptionTests) {
         const corruptedMessage = new Uint8Array(encrypted);
-        corruptedMessage[Math.floor(test.position)] ^= 0xFF;
+        corruptedMessage[Math.floor(test.position)] ^= 0xff;
 
         await expect(
           eciesService.decryptSimpleOrSingleWithHeader(
             true,
             keyPair.privateKey,
             corruptedMessage,
-          )
+          ),
         ).rejects.toThrow();
       }
     });
 
     it('should handle streaming interruption gracefully', async () => {
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
-      
+
       async function* interruptedSource() {
         for (let i = 0; i < 5; i++) {
           const chunk = new Uint8Array(1024 * 1024);
@@ -451,7 +457,7 @@ describe('Large Message and Streaming Tests', () => {
         const chunks: Uint8Array[] = [];
         for await (const chunk of encryptionStream.encryptStream(
           interruptedSource(),
-          keyPair.publicKey
+          keyPair.publicKey,
         )) {
           chunks.push(chunk.data);
         }

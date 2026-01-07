@@ -29,7 +29,12 @@ jest.setTimeout(30000);
 if (typeof global.gc === 'undefined') {
   try {
     // Try to enable gc if --expose-gc flag is available
-    global.gc = require('vm').runInNewContext('gc');
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      global.gc = require('vm').runInNewContext('gc');
+    } catch {
+      // gc not available, continue without it
+    }
   } catch {
     // gc not available, continue without it
   }

@@ -1,9 +1,6 @@
-import { ObjectId } from 'bson';
-import { Constants } from './constants';
 import { SecureStorageErrorType } from './enumerations/secure-storage-error-type';
 import { DisposedError } from './errors/disposed';
 import { SecureStorageError } from './errors/secure-storage';
-import type { IIdProvider } from './interfaces/id-provider';
 import { ObjectIdProvider } from './lib/id-providers/objectid-provider';
 import { XorService } from './services/xor';
 import { uint8ArrayToHex } from './utils';
@@ -30,9 +27,7 @@ export class SecureBuffer implements Disposable {
   private readonly _obfuscatedChecksum: Uint8Array;
   private _disposedAt?: string;
 
-  constructor(
-    data?: Uint8Array,
-  ) {
+  constructor(data?: Uint8Array) {
     this._idProvider = new ObjectIdProvider();
     this._id = this._idProvider.generate();
     // don't bother encrypting an empty buffer

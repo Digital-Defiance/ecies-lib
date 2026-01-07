@@ -33,17 +33,16 @@ describe('EciesCryptoCore - Edge Cases & Security', () => {
     });
 
     it('should reject all-FF private keys', () => {
-      const maxKey = new Uint8Array(32).fill(0xFF);
+      const maxKey = new Uint8Array(32).fill(0xff);
       expect(() => cryptoCore.getPublicKey(maxKey)).toThrow();
     });
 
     it('should reject private keys larger than curve order', () => {
       // secp256k1 order - 1
       const overflowKey = new Uint8Array([
-        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE,
-        0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B,
-        0xBF, 0xD2, 0x5E, 0x8C, 0xD0, 0x36, 0x41, 0x42
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0xff, 0xff, 0xff, 0xfe, 0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b,
+        0xbf, 0xd2, 0x5e, 0x8c, 0xd0, 0x36, 0x41, 0x42,
       ]);
       expect(() => cryptoCore.getPublicKey(overflowKey)).toThrow();
     });
@@ -57,7 +56,7 @@ describe('EciesCryptoCore - Edge Cases & Security', () => {
     it('should reject public keys with invalid curve points', () => {
       const invalidPoint = new Uint8Array(33);
       invalidPoint[0] = 0x02; // Valid prefix
-      invalidPoint.fill(0xFF, 1); // Invalid point
+      invalidPoint.fill(0xff, 1); // Invalid point
       // Note: Some implementations may not validate curve points immediately
       // This test may need adjustment based on actual implementation behavior
       try {
@@ -75,29 +74,39 @@ describe('EciesCryptoCore - Edge Cases & Security', () => {
       const keyPair1 = await cryptoCore.generateEphemeralKeyPair();
       const keyPair2 = await cryptoCore.generateEphemeralKeyPair();
 
-      const secret1 = cryptoCore.computeSharedSecret(keyPair1.privateKey, keyPair2.publicKey);
-      const secret2 = cryptoCore.computeSharedSecret(keyPair2.privateKey, keyPair1.publicKey);
+      const secret1 = cryptoCore.computeSharedSecret(
+        keyPair1.privateKey,
+        keyPair2.publicKey,
+      );
+      const secret2 = cryptoCore.computeSharedSecret(
+        keyPair2.privateKey,
+        keyPair1.publicKey,
+      );
 
       expect(secret1).toEqual(secret2);
       expect(secret1.length).toBe(32);
-      
+
       // Ensure secret is not all zeros
-      expect(secret1.some(byte => byte !== 0)).toBe(true);
+      expect(secret1.some((byte) => byte !== 0)).toBe(true);
     });
 
     it('should reject ECDH with invalid public key', () => {
       const privateKey = cryptoCore.generatePrivateKey();
       const invalidPublicKey = new Uint8Array(33);
-      
-      expect(() => cryptoCore.computeSharedSecret(privateKey, invalidPublicKey)).toThrow();
+
+      expect(() =>
+        cryptoCore.computeSharedSecret(privateKey, invalidPublicKey),
+      ).toThrow();
     });
 
     it('should reject ECDH with point at infinity', () => {
       const privateKey = cryptoCore.generatePrivateKey();
       const pointAtInfinity = new Uint8Array(33);
       pointAtInfinity[0] = 0x00; // Point at infinity marker
-      
-      expect(() => cryptoCore.computeSharedSecret(privateKey, pointAtInfinity)).toThrow();
+
+      expect(() =>
+        cryptoCore.computeSharedSecret(privateKey, pointAtInfinity),
+      ).toThrow();
     });
   });
 
@@ -128,28 +137,36 @@ describe('EciesCryptoCore - Edge Cases & Security', () => {
       const sharedSecret = new Uint8Array(32).fill(1);
       const emptyInfo = new Uint8Array(0);
 
-      expect(() => cryptoCore.deriveSharedKey(sharedSecret, undefined, emptyInfo)).not.toThrow();
+      expect(() =>
+        cryptoCore.deriveSharedKey(sharedSecret, undefined, emptyInfo),
+      ).not.toThrow();
     });
   });
 
   describe('Mnemonic Edge Cases', () => {
     it('should reject invalid mnemonic word counts', () => {
       const invalidMnemonic = new SecureString('word word word'); // Only 3 words
-      expect(() => cryptoCore.walletAndSeedFromMnemonic(invalidMnemonic)).toThrow();
+      expect(() =>
+        cryptoCore.walletAndSeedFromMnemonic(invalidMnemonic),
+      ).toThrow();
     });
 
     it('should reject mnemonic with invalid checksum', () => {
       const invalidMnemonic = new SecureString(
-        'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon'
+        'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon',
       ); // 12 words but invalid checksum
-      expect(() => cryptoCore.walletAndSeedFromMnemonic(invalidMnemonic)).toThrow();
+      expect(() =>
+        cryptoCore.walletAndSeedFromMnemonic(invalidMnemonic),
+      ).toThrow();
     });
 
     it('should reject mnemonic with non-BIP39 words', () => {
       const invalidMnemonic = new SecureString(
-        'invalid words that are not in bip39 wordlist at all here'
+        'invalid words that are not in bip39 wordlist at all here',
       );
-      expect(() => cryptoCore.walletAndSeedFromMnemonic(invalidMnemonic)).toThrow();
+      expect(() =>
+        cryptoCore.walletAndSeedFromMnemonic(invalidMnemonic),
+      ).toThrow();
     });
 
     it('should handle different mnemonic strengths', () => {
@@ -160,7 +177,7 @@ describe('EciesCryptoCore - Edge Cases & Security', () => {
       };
       const cryptoCore128 = new EciesCryptoCore(config128);
       const mnemonic128 = cryptoCore128.generateNewMnemonic();
-      
+
       // Test with 256-bit strength (24 words)
       const config256: IECIESConfig = {
         ...mockConfig,
@@ -180,17 +197,25 @@ describe('EciesCryptoCore - Edge Cases & Security', () => {
       const emptyMessage = new Uint8Array(0);
 
       const signature = cryptoCore.sign(keyPair.privateKey, emptyMessage);
-      const isValid = cryptoCore.verify(keyPair.publicKey, emptyMessage, signature);
+      const isValid = cryptoCore.verify(
+        keyPair.publicKey,
+        emptyMessage,
+        signature,
+      );
 
       expect(isValid).toBe(true);
     });
 
     it('should handle large message signing', async () => {
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
-      const largeMessage = new Uint8Array(1024 * 1024).fill(0xAA); // 1MB
+      const largeMessage = new Uint8Array(1024 * 1024).fill(0xaa); // 1MB
 
       const signature = cryptoCore.sign(keyPair.privateKey, largeMessage);
-      const isValid = cryptoCore.verify(keyPair.publicKey, largeMessage, signature);
+      const isValid = cryptoCore.verify(
+        keyPair.publicKey,
+        largeMessage,
+        signature,
+      );
 
       expect(isValid).toBe(true);
     });
@@ -198,16 +223,20 @@ describe('EciesCryptoCore - Edge Cases & Security', () => {
     it('should reject malformed signatures', async () => {
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       const message = new Uint8Array([1, 2, 3]);
-      
+
       const invalidSignatures = [
         new Uint8Array(0), // Empty
         new Uint8Array(32), // Too short
-        new Uint8Array(100).fill(0xFF), // Invalid DER
+        new Uint8Array(100).fill(0xff), // Invalid DER
         new Uint8Array([0x30, 0x06, 0x02, 0x01, 0x00, 0x02, 0x01, 0x00]), // Valid DER but invalid signature
       ];
 
       for (const invalidSig of invalidSignatures) {
-        const isValid = cryptoCore.verify(keyPair.publicKey, message, invalidSig);
+        const isValid = cryptoCore.verify(
+          keyPair.publicKey,
+          message,
+          invalidSig,
+        );
         expect(isValid).toBe(false);
       }
     });
@@ -227,34 +256,34 @@ describe('EciesCryptoCore - Edge Cases & Security', () => {
   describe('Memory and Resource Edge Cases', () => {
     it('should handle rapid key generation without memory leaks', async () => {
       const initialMemory = process.memoryUsage().heapUsed;
-      
+
       for (let i = 0; i < 100; i++) {
         await cryptoCore.generateEphemeralKeyPair();
       }
-      
+
       // Force garbage collection if available
       if (global.gc) {
         global.gc();
       }
-      
+
       const finalMemory = process.memoryUsage().heapUsed;
       const memoryIncrease = finalMemory - initialMemory;
-      
+
       // Memory increase should be reasonable (less than 10MB for 100 key pairs)
       expect(memoryIncrease).toBeLessThan(10 * 1024 * 1024);
     });
 
     it('should handle concurrent key operations', async () => {
-      const promises = Array.from({ length: 10 }, () => 
-        cryptoCore.generateEphemeralKeyPair()
+      const promises = Array.from({ length: 10 }, () =>
+        cryptoCore.generateEphemeralKeyPair(),
       );
 
       const keyPairs = await Promise.all(promises);
-      
+
       // All key pairs should be unique
-      const publicKeys = keyPairs.map(kp => kp.publicKey);
-      const uniqueKeys = new Set(publicKeys.map(pk => pk.toString()));
-      
+      const publicKeys = keyPairs.map((kp) => kp.publicKey);
+      const uniqueKeys = new Set(publicKeys.map((pk) => pk.toString()));
+
       expect(uniqueKeys.size).toBe(keyPairs.length);
     });
   });
@@ -264,32 +293,31 @@ describe('EciesCryptoCore - Edge Cases & Security', () => {
       // Minimum valid private key (1)
       const minKey = new Uint8Array(32);
       minKey[31] = 0x01;
-      
+
       expect(() => cryptoCore.getPublicKey(minKey)).not.toThrow();
 
       // Maximum valid private key (n-1 where n is curve order)
       const maxKey = new Uint8Array([
-        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE,
-        0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B,
-        0xBF, 0xD2, 0x5E, 0x8C, 0xD0, 0x36, 0x41, 0x40
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0xff, 0xff, 0xff, 0xfe, 0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b,
+        0xbf, 0xd2, 0x5e, 0x8c, 0xd0, 0x36, 0x41, 0x40,
       ]);
-      
+
       expect(() => cryptoCore.getPublicKey(maxKey)).not.toThrow();
     });
 
     it('should handle edge case salt values in key derivation', () => {
       const sharedSecret = new Uint8Array(32).fill(1);
-      
+
       // Empty salt
       const key1 = cryptoCore.deriveSharedKey(sharedSecret, new Uint8Array(0));
       expect(key1.length).toBe(32);
-      
+
       // Maximum practical salt
       const largeSalt = new Uint8Array(1024).fill(2);
       const key2 = cryptoCore.deriveSharedKey(sharedSecret, largeSalt);
       expect(key2.length).toBe(32);
-      
+
       expect(key1).not.toEqual(key2);
     });
   });

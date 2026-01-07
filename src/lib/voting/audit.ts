@@ -204,8 +204,7 @@ export class ImmutableAuditLog<
     ];
 
     if (entry.voterIdHash) parts.push(entry.voterIdHash);
-    if (entry.authorityId)
-      parts.push(this.idToBytes(entry.authorityId));
+    if (entry.authorityId) parts.push(this.idToBytes(entry.authorityId));
     if (entry.metadata)
       parts.push(this.encodeString(JSON.stringify(entry.metadata)));
 
@@ -284,7 +283,9 @@ export class ImmutableAuditLog<
     if (id instanceof Uint8Array) {
       return id;
     }
-    return (Constants.idProvider as { toBytes(id: unknown): Uint8Array }).toBytes(id);
+    return (
+      Constants.idProvider as { toBytes(id: unknown): Uint8Array }
+    ).toBytes(id);
   }
 
   private toHex(arr: Uint8Array): string {

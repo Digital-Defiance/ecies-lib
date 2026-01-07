@@ -218,7 +218,9 @@ describe('Property-Based Tests: MemberBuilder ID Generation', () => {
             const service = new ECIESService(constants);
 
             // Service constants reflect configuration
-            expect(service.constants.idProvider.byteLength).toBe(expectedLength);
+            expect(service.constants.idProvider.byteLength).toBe(
+              expectedLength,
+            );
             expect(service.constants.MEMBER_ID_LENGTH).toBe(expectedLength);
           },
         ),

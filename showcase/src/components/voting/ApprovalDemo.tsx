@@ -5,8 +5,8 @@ import { VoteEncoder, PollFactory, PollTallier, Member, MemberType, EmailString,
 import type { Poll, PollResults, PollConfiguration } from '@digitaldefiance/ecies-lib';
 
 export const ApprovalDemo = () => {
-  const [poll, setPoll] = useState<Poll | null>(null);
-  const [authority, setAuthority] = useState<Member | null>(null);
+  const [poll, setPoll] = useState<Poll<Uint8Array> | null>(null);
+  const [authority, setAuthority] = useState<Member<Uint8Array> | null>(null);
   const [eventLogger, setEventLogger] = useState<PollEventLogger | null>(null);
   const [voters] = useState(['Alice', 'Bob', 'Charlie', 'Diana', 'Eve']);
   const [votes, setVotes] = useState<Map<string, number[]>>(new Map());
@@ -27,15 +27,14 @@ export const ApprovalDemo = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const eciesService = new ECIESService();
-        const { member } = Member.newMember(eciesService, MemberType.System, 'Election Authority', new EmailString('authority@example.com'));
-        await member.deriveVotingKeys();
-        setAuthority(member as Member);
+        const eciesService = new ECIESService<Uint8Array>();
+        const { member } = Member.newMember<Uint8Array>(eciesService, MemberType.System, 'Election Authority', new EmailString('authority@example.com'));
+        setAuthority(member as Member<Uint8Array>);
         
         const logger = new PollEventLogger();
         setEventLogger(logger);
         
-        const newPoll = PollFactory.createApproval(candidates.map(c => c.name), member);
+        const newPoll = PollFactory.createApproval<Uint8Array>(candidates.map(c => c.name), member as Member<Uint8Array>);
         setPoll(newPoll);
         
         // Log poll creation
@@ -66,11 +65,11 @@ export const ApprovalDemo = () => {
     if (!poll || !authority?.votingPublicKey || !eventLogger) return;
     
     const selectedIndices = votes.get(voterName) || [];
-    const encoder = new VoteEncoder(authority.votingPublicKey);
+    const encoder = new VoteEncoder<Uint8Array>(authority.votingPublicKey);
     const vote = encoder.encodeApproval(selectedIndices, candidates.length);
     
-    const voterEcies = new ECIESService();
-    const { member: voter } = Member.newMember(voterEcies, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
+    const voterEcies = new ECIESService<Uint8Array>();
+    const { member: voter } = Member.newMember<Uint8Array>(voterEcies, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
     poll.vote(voter, vote);
     
     // Update submitted voters state
@@ -88,7 +87,7 @@ export const ApprovalDemo = () => {
     if (!poll || !authority?.votingPrivateKey || !authority?.votingPublicKey || !eventLogger) return;
     
     poll.close();
-    const tallier = new PollTallier(authority, authority.votingPrivateKey, authority.votingPublicKey);
+    const tallier = new PollTallier<Uint8Array>(authority, authority.votingPrivateKey, authority.votingPublicKey);
     const result = tallier.tally(poll);
     setResults(result);
     
@@ -103,7 +102,7 @@ export const ApprovalDemo = () => {
 
   const reset = () => {
     if (!authority) return;
-    const newPoll = PollFactory.createApproval(candidates.map(c => c.name), authority);
+    const newPoll = PollFactory.createApproval<Uint8Array>(candidates.map(c => c.name), authority);
     setPoll(newPoll);
     setVotes(new Map());
     setSubmittedVoters(new Set());
