@@ -28,6 +28,7 @@
     "build:stream": "npx nx build --outputStyle=stream digitaldefiance-ecies-lib",
     "build:logged": "npx nx build --outputStyle=stream digitaldefiance-ecies-lib 2>&1 | ansifilter -o build.log",
     "test": "npx nx test digitaldefiance-ecies-lib",
+    "test:large": "node --max-old-space-size=8192 --expose-gc ../../node_modules/.bin/jest tests/integration/large-message-tests.spec.ts",
     "test:16": "npx nx test digitaldefiance-ecies-lib --parallel=16",
     "test:dev": "NODE_ENV=development npx nx test digitaldefiance-ecies-lib --configuration=development",
     "test:16:dev:noansi": "NODE_ENV=development npx nx test digitaldefiance-ecies-lib --parallel=16 --configuration=development | ansifilter",

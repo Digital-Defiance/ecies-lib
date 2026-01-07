@@ -2,9 +2,9 @@
  * Simple validation test to verify our test fixes work
  */
 
-import { EciesEncryptionTypeEnum } from '../../src/enumerations/ecies-encryption-type';
-import { encryptionTypeToString } from '../../src/utils/encryption-type-utils';
-import { ObjectIdProvider } from '../../src/lib/id-providers';
+import { EciesEncryptionTypeEnum } from '../src/enumerations/ecies-encryption-type';
+import { encryptionTypeToString } from '..//src/utils/encryption-type-utils';
+import { ObjectIdProvider } from '..//src/lib/id-providers';
 
 describe('Test Fixes Validation', () => {
   it('should validate utils fix works', () => {

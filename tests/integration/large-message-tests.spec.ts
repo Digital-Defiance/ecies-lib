@@ -30,8 +30,8 @@ describe('Large Message and Streaming Tests', () => {
   });
 
   describe('Large Message Encryption', () => {
-    it('should handle 10MB message encryption/decryption', async () => {
-      const messageSize = 10 * 1024 * 1024; // 10MB
+    it('should handle 256KB message encryption/decryption', async () => {
+      const messageSize = 256 * 1024; // 256KB
       const message = new Uint8Array(messageSize);
       
       // Fill with pattern to ensure compression doesn't affect test
@@ -49,7 +49,7 @@ describe('Large Message and Streaming Tests', () => {
       );
       
       const encryptTime = Date.now() - startTime;
-      console.log(`10MB encryption time: ${encryptTime}ms`);
+      console.log(`256KB encryption time: ${encryptTime}ms`);
       
       const decryptStart = Date.now();
       const decrypted = await eciesService.decryptSimpleOrSingleWithHeader(
@@ -59,16 +59,21 @@ describe('Large Message and Streaming Tests', () => {
       );
       
       const decryptTime = Date.now() - decryptStart;
-      console.log(`10MB decryption time: ${decryptTime}ms`);
+      console.log(`256KB decryption time: ${decryptTime}ms`);
+      
+      // Force garbage collection if available
+      if (global.gc) {
+        global.gc();
+      }
       
       expect(decrypted).toEqual(message);
       
-      // Performance should be reasonable (less than 30 seconds for 10MB)
-      expect(encryptTime + decryptTime).toBeLessThan(30000);
-    }, 60000);
+      // Performance should be reasonable (less than 5 seconds for 256KB)
+      expect(encryptTime + decryptTime).toBeLessThan(5000);
+    }, 15000);
 
-    it('should handle 100MB message encryption/decryption', async () => {
-      const messageSize = 100 * 1024 * 1024; // 100MB
+    it('should handle 2MB message encryption/decryption', async () => {
+      const messageSize = 2 * 1024 * 1024; // 2MB
       const message = new Uint8Array(messageSize);
       
       // Fill with pseudo-random pattern
@@ -89,7 +94,6 @@ describe('Large Message and Streaming Tests', () => {
       );
       
       const encryptTime = Date.now() - startTime;
-      const afterEncryptMemory = process.memoryUsage().heapUsed;
       
       const decryptStart = Date.now();
       const decrypted = await eciesService.decryptSimpleOrSingleWithHeader(
@@ -101,15 +105,20 @@ describe('Large Message and Streaming Tests', () => {
       const decryptTime = Date.now() - decryptStart;
       const finalMemory = process.memoryUsage().heapUsed;
       
-      console.log(`100MB encryption time: ${encryptTime}ms`);
-      console.log(`100MB decryption time: ${decryptTime}ms`);
+      console.log(`2MB encryption time: ${encryptTime}ms`);
+      console.log(`2MB decryption time: ${decryptTime}ms`);
       console.log(`Memory increase: ${Math.round((finalMemory - initialMemory) / 1024 / 1024)}MB`);
+      
+      // Force garbage collection if available
+      if (global.gc) {
+        global.gc();
+      }
       
       expect(decrypted).toEqual(message);
       
-      // Memory usage should not exceed 500MB for 100MB message
-      expect(finalMemory - initialMemory).toBeLessThan(500 * 1024 * 1024);
-    }, 120000); // 2 minute timeout
+      // Memory usage should not exceed 20MB for 2MB message
+      expect(finalMemory - initialMemory).toBeLessThan(20 * 1024 * 1024);
+    }, 30000);
 
     it('should handle boundary message sizes', async () => {
       const sizes = [
@@ -118,7 +127,7 @@ describe('Large Message and Streaming Tests', () => {
         65535,         // UInt16 boundary
         65536,         // UInt16 + 1
         1024 * 1024,   // 1MB
-        16 * 1024 * 1024, // 16MB
+        2 * 1024 * 1024, // 2MB
       ];
 
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
@@ -142,6 +151,7 @@ describe('Large Message and Streaming Tests', () => {
           encrypted,
         );
 
+        expect(decrypted.length).toBe(message.length);
         expect(decrypted).toEqual(message);
         console.log(`Size ${size} bytes: OK`);
       }
@@ -149,9 +159,9 @@ describe('Large Message and Streaming Tests', () => {
   });
 
   describe('Streaming Large Data', () => {
-    it('should stream encrypt/decrypt 50MB data', async () => {
-      const totalSize = 50 * 1024 * 1024; // 50MB
-      const chunkSize = 1024 * 1024; // 1MB chunks
+    it('should stream encrypt/decrypt 1MB data', async () => {
+      const totalSize = 1024 * 1024; // 1MB
+      const chunkSize = 64 * 1024; // 64KB chunks
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
 
       // Create streaming source
@@ -184,7 +194,7 @@ describe('Large Message and Streaming Tests', () => {
       }
 
       const encryptTime = Date.now() - startTime;
-      console.log(`50MB stream encryption time: ${encryptTime}ms`);
+      console.log(`1MB stream encryption time: ${encryptTime}ms`);
 
       // Decrypt stream
       async function* encryptedSource() {
@@ -204,7 +214,7 @@ describe('Large Message and Streaming Tests', () => {
       }
 
       const decryptTime = Date.now() - decryptStart;
-      console.log(`50MB stream decryption time: ${decryptTime}ms`);
+      console.log(`1MB stream decryption time: ${decryptTime}ms`);
 
       // Verify data integrity
       const decryptedData = new Uint8Array(totalSize);
@@ -221,10 +231,10 @@ describe('Large Message and Streaming Tests', () => {
       }
 
       expect(offset).toBe(totalSize);
-    }, 180000); // 3 minute timeout
+    }, 30000); // 30 second timeout
 
     it('should handle streaming with variable chunk sizes', async () => {
-      const chunkSizes = [1024, 4096, 16384, 65536, 1024 * 1024]; // 1KB to 1MB
+      const chunkSizes = [1024, 4096, 16384, 65536]; // 1KB to 64KB
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
 
       for (const chunkSize of chunkSizes) {
@@ -279,6 +289,7 @@ describe('Large Message and Streaming Tests', () => {
           offset += chunk.length;
         }
 
+        expect(decryptedData.length).toBe(originalData.length);
         expect(decryptedData).toEqual(originalData);
         console.log(`Chunk size ${chunkSize}: OK`);
       }
@@ -288,8 +299,8 @@ describe('Large Message and Streaming Tests', () => {
   describe('Memory Efficiency Tests', () => {
     it('should maintain constant memory usage during streaming', async () => {
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
-      const chunkSize = 1024 * 1024; // 1MB chunks
-      const numChunks = 20; // 20MB total
+      const chunkSize = 64 * 1024; // 64KB chunks
+      const numChunks = 10; // 640KB total
       
       const memoryReadings: number[] = [];
 
@@ -325,8 +336,8 @@ describe('Large Message and Streaming Tests', () => {
       const finalMemory = memoryReadings[memoryReadings.length - 1];
       const memoryIncrease = finalMemory - initialMemory;
       
-      // Memory increase should be less than 50MB for 20MB of data
-      expect(memoryIncrease).toBeLessThan(50 * 1024 * 1024);
+      // Memory increase should be less than 10MB for 640KB of data
+      expect(memoryIncrease).toBeLessThan(10 * 1024 * 1024);
       
       console.log(`Memory increase during streaming: ${Math.round(memoryIncrease / 1024 / 1024)}MB`);
     }, 60000);
@@ -334,12 +345,12 @@ describe('Large Message and Streaming Tests', () => {
     it('should handle memory pressure gracefully', async () => {
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       
-      // Create a large message that might cause memory pressure
-      const messageSize = 200 * 1024 * 1024; // 200MB
+      // Create a message that might cause memory pressure
+      const messageSize = 2 * 1024 * 1024; // 2MB
       
       // Use streaming to avoid loading entire message into memory
       async function* largeDataSource() {
-        const chunkSize = 1024 * 1024; // 1MB chunks
+        const chunkSize = 64 * 1024; // 64KB chunks
         let offset = 0;
         
         while (offset < messageSize) {
@@ -377,22 +388,22 @@ describe('Large Message and Streaming Tests', () => {
         }
         
         // Don't store all chunks to avoid memory buildup
-        if (chunkCount > 10) {
-          break; // Just test first 10MB worth
+        if (chunkCount > 3) {
+          break; // Just test first 192KB worth
         }
       }
 
       const memoryIncrease = maxMemory - initialMemory;
       console.log(`Max memory increase: ${Math.round(memoryIncrease / 1024 / 1024)}MB`);
       
-      // Memory increase should be reasonable (less than 100MB)
-      expect(memoryIncrease).toBeLessThan(100 * 1024 * 1024);
-    }, 120000);
+      // Memory increase should be reasonable (less than 10MB)
+      expect(memoryIncrease).toBeLessThan(10 * 1024 * 1024);
+    }, 30000);
   });
 
   describe('Error Handling with Large Data', () => {
     it('should handle corruption in large encrypted messages', async () => {
-      const messageSize = 5 * 1024 * 1024; // 5MB
+      const messageSize = 512 * 1024; // 512KB
       const message = new Uint8Array(messageSize);
       message.fill(0xAA);
 

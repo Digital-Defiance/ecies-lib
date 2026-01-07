@@ -9,6 +9,8 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.ts'],
   setupFilesAfterEnv: ['<rootDir>/tests/test-setup.ts'],
   detectOpenHandles: true,
+  maxWorkers: 1, // Use single worker for memory-intensive tests
+  workerIdleMemoryLimit: '1GB',
   transform: {
     '^.+\\.(ts|tsx)$': [
       '@swc/jest',

@@ -153,8 +153,21 @@ describe('EciesCryptoCore - Edge Cases & Security', () => {
     });
 
     it('should handle different mnemonic strengths', () => {
-      const mnemonic128 = cryptoCore.generateNewMnemonic(128);
-      const mnemonic256 = cryptoCore.generateNewMnemonic(256);
+      // Test with 128-bit strength (12 words)
+      const config128: IECIESConfig = {
+        ...mockConfig,
+        mnemonicStrength: 128,
+      };
+      const cryptoCore128 = new EciesCryptoCore(config128);
+      const mnemonic128 = cryptoCore128.generateNewMnemonic();
+      
+      // Test with 256-bit strength (24 words)
+      const config256: IECIESConfig = {
+        ...mockConfig,
+        mnemonicStrength: 256,
+      };
+      const cryptoCore256 = new EciesCryptoCore(config256);
+      const mnemonic256 = cryptoCore256.generateNewMnemonic();
 
       expect(mnemonic128.value!.split(' ').length).toBe(12);
       expect(mnemonic256.value!.split(' ').length).toBe(24);
