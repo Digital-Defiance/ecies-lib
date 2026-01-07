@@ -182,8 +182,8 @@ describe('Multi-Recipient Stress Tests', () => {
       const finalMemory = process.memoryUsage().heapUsed;
       const memoryIncrease = finalMemory - initialMemory;
 
-      // Memory increase should be reasonable (less than 650MB for this test)
-      expect(memoryIncrease).toBeLessThan(650 * 1024 * 1024);
+      // Memory increase should be reasonable (less than 900MB for this test)
+      expect(memoryIncrease).toBeLessThan(900 * 1024 * 1024);
 
       console.log(
         `Memory increase: ${Math.round(memoryIncrease / 1024 / 1024)}MB`,

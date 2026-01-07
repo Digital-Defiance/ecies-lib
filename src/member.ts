@@ -10,7 +10,6 @@ import { IECIESConstants } from './interfaces/ecies-consts';
 import { IEncryptedChunk } from './interfaces/encrypted-chunk';
 import { IMember } from './interfaces/member';
 import { IMemberStorageData } from './interfaces/member-storage';
-import { IMemberWithMnemonic } from './interfaces/member-with-mnemonic';
 import { SecureBuffer } from './secure-buffer';
 import { SecureString } from './secure-string';
 import { ECIESService } from './services/ecies/service';
@@ -25,6 +24,15 @@ import {
   uint8ArrayToBase64,
   uint8ArrayToHex,
 } from './utils';
+
+/**
+ * Interface for a member with their mnemonic phrase.
+ * Defined here to avoid circular dependency with interfaces folder.
+ */
+export interface IMemberWithMnemonic<TID extends PlatformID = Uint8Array> {
+  member: Member<TID>;
+  mnemonic: SecureString;
+}
 
 /**
  * Represents a member with cryptographic capabilities.
@@ -75,15 +83,17 @@ export class Member<
     // Handle ID initialization properly:
     // - If id is provided, use it and derive bytes from it
     // - If not provided, generate bytes first, then derive native ID
+    // Always use global Constants.idProvider for Member IDs (not service config)
     if (id !== undefined) {
       this._id = id;
-      // For provided IDs, we need to convert to bytes
-      // Use type assertion since Constants.idProvider is IIdProviderBase
+      // For provided IDs, we need to convert to bytes using the global idProvider
       this._idBytes = (
-        Constants.idProvider as { toBytes(id: unknown): Uint8Array }
+        Constants.idProvider as {
+          toBytes(id: unknown): Uint8Array;
+        }
       ).toBytes(this._id);
     } else {
-      // Generate raw bytes first
+      // Generate raw bytes first using the global idProvider
       this._idBytes = Constants.idProvider.generate();
       // Convert to native type for storage
       this._id = Constants.idProvider.fromBytes(this._idBytes) as TID;
@@ -117,7 +127,9 @@ export class Member<
       this._creatorId === this._id
         ? this._idBytes
         : (
-            Constants.idProvider as { toBytes(id: unknown): Uint8Array }
+            Constants.idProvider as {
+              toBytes(id: unknown): Uint8Array;
+            }
           ).toBytes(this._creatorId);
   }
 
@@ -448,14 +460,12 @@ export class Member<
 
   public toJson(): string {
     const storage: IMemberStorageData = {
-      id: this._eciesService.constants.idProvider.serialize(this._idBytes),
+      id: Constants.idProvider.serialize(this._idBytes),
       type: this._type,
       name: this._name,
       email: this._email.toString(),
       publicKey: uint8ArrayToBase64(this._publicKey),
-      creatorId: this._eciesService.constants.idProvider.serialize(
-        this._creatorIdBytes,
-      ),
+      creatorId: Constants.idProvider.serialize(this._creatorIdBytes),
       dateCreated: this._dateCreated.toISOString(),
       dateUpdated: this._dateUpdated.toISOString(),
     };
@@ -487,7 +497,7 @@ export class Member<
     }
     const email = new EmailString(storage.email);
 
-    // Deserialize IDs using the global Constants.idProvider (same as Member creation)
+    // Deserialize IDs using the global Constants.idProvider to remain consistent
     // deserialize returns Uint8Array, then fromBytes converts to native type
     const idBytes = Constants.idProvider.deserialize(storage.id);
     const id = Constants.idProvider.fromBytes(idBytes) as TID;

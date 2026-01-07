@@ -3,10 +3,10 @@
  * Browser compatible
  */
 import { Constants } from '../../constants';
-import { PlatformID } from '../../interfaces';
+import type { PlatformID } from '../../interfaces';
 import { Member } from '../../member';
+import { VotingMethod } from './enumerations';
 import { Poll } from './poll-core';
-import { VotingMethod } from './types';
 
 export class PollFactory {
   /**

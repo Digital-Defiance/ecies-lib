@@ -4,7 +4,7 @@
  */
 import { generateRandomKeysSync as generateKeyPair } from 'paillier-bigint';
 import { VoteEncoder } from './encoder';
-import { VotingMethod } from './types';
+import { VotingMethod } from './enumerations/voting-method';
 
 describe('VoteEncoder', () => {
   let encoder: VoteEncoder;

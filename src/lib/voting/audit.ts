@@ -4,47 +4,10 @@
  */
 import { Constants } from '../../constants';
 import { PlatformID } from '../../interfaces';
-import type { IMember } from './types';
-
-export enum AuditEventType {
-  PollCreated = 'poll_created',
-  VoteCast = 'vote_cast',
-  PollClosed = 'poll_closed',
-}
-
-export interface AuditEntry<TID extends PlatformID> {
-  /** Sequence number (monotonically increasing) */
-  readonly sequence: number;
-  /** Event type */
-  readonly eventType: AuditEventType;
-  /** Microsecond-precision timestamp */
-  readonly timestamp: number;
-  /** Poll identifier */
-  readonly pollId: TID;
-  /** Hash of voter ID (for vote events) */
-  readonly voterIdHash?: Uint8Array;
-  /** Authority/creator ID (for creation/closure events) */
-  readonly authorityId?: TID;
-  /** Hash of previous entry (chain integrity) */
-  readonly previousHash: Uint8Array;
-  /** Hash of this entry's data */
-  readonly entryHash: Uint8Array;
-  /** Cryptographic signature from authority */
-  readonly signature: Uint8Array;
-  /** Additional metadata */
-  readonly metadata?: Record<string, unknown>;
-}
-
-export interface AuditLog<TID extends PlatformID> {
-  /** Get all entries in chronological order */
-  getEntries(): readonly AuditEntry<TID>[];
-  /** Get entries for a specific poll */
-  getEntriesForPoll(pollId: TID): readonly AuditEntry<TID>[];
-  /** Verify the entire chain integrity */
-  verifyChain(): boolean;
-  /** Verify a specific entry's signature */
-  verifyEntry(entry: AuditEntry<TID>): boolean;
-}
+import type { IMember } from '../../interfaces';
+import { AuditEventType } from './enumerations/audit-event-type';
+import { AuditEntry } from './interfaces/audit-entry';
+import { AuditLog } from './interfaces/audit-log';
 
 /**
  * Immutable audit log with cryptographic hash chain
@@ -294,3 +257,6 @@ export class ImmutableAuditLog<
       .join('');
   }
 }
+
+// Re-export for convenience
+export { AuditEventType } from './enumerations/audit-event-type';

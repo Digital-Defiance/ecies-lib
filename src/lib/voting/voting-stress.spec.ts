@@ -3,12 +3,12 @@
  * Tests system under load and adversarial conditions
  */
 import { generateRandomKeysSync as generateKeyPair } from 'paillier-bigint';
+import type { IMember } from '../../interfaces/member';
 import { VoteEncoder } from './encoder';
+import { VotingMethod as _VotingMethod } from './enumerations/voting-method';
 import { PollFactory } from './factory';
 import { Poll as _Poll } from './poll-core';
 import { PollTallier } from './tallier';
-import { VotingMethod as _VotingMethod } from './types';
-import type { IMember } from './types';
 
 class MockMember implements IMember {
   constructor(

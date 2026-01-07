@@ -3,9 +3,10 @@
  * Tests Poll class functionality
  */
 import { generateRandomKeysSync as generateKeyPair } from 'paillier-bigint';
+import type { IMember } from '../../interfaces';
+import { VotingMethod } from './enumerations/voting-method';
+import type { EncryptedVote } from './interfaces/encrypted-vote';
 import { Poll } from './poll-core';
-import { VotingMethod } from './types';
-import type { IMember, EncryptedVote } from './types';
 
 class MockMember implements IMember {
   constructor(
@@ -44,6 +45,9 @@ describe('Poll', () => {
 
   beforeAll(() => {
     keyPair = generateKeyPair(512);
+  });
+
+  beforeEach(() => {
     authority = new MockMember(
       new Uint8Array([0]),
       new Uint8Array([0]),
@@ -60,9 +64,6 @@ describe('Poll', () => {
           keyPair.privateKey,
         ),
     );
-  });
-
-  beforeEach(() => {
     poll = new Poll(
       new Uint8Array([1, 2, 3]),
       ['A', 'B', 'C'],

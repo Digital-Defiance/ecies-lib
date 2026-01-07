@@ -4,15 +4,11 @@
  */
 import type { PublicKey } from 'paillier-bigint';
 import { Constants } from '../../constants';
-import { PlatformID } from '../../interfaces';
-import { ImmutableAuditLog, type AuditLog } from './audit';
+import { IMember, PlatformID } from '../../interfaces';
+import { ImmutableAuditLog } from './audit';
+import { VotingMethod } from './enumerations';
+import { AuditLog, EncryptedVote, VoteReceipt } from './interfaces';
 import { VotingSecurityValidator } from './security';
-import {
-  VotingMethod,
-  type IMember,
-  type VoteReceipt,
-  type EncryptedVote,
-} from './types';
 
 /**
  * Poll aggregates encrypted votes using only public key.
@@ -95,7 +91,6 @@ export class Poll<TID extends PlatformID> {
   vote(voter: IMember<TID>, vote: EncryptedVote<TID>): VoteReceipt<TID> {
     if (this.isClosed) throw new Error('Poll is closed');
 
-    // Use voter.idBytes directly - it's already the canonical Uint8Array format
     const voterId = this._toKey(voter.idBytes);
     if (this._receipts.has(voterId)) throw new Error('Already voted');
 

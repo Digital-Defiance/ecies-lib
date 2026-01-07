@@ -217,6 +217,7 @@ describe('PollEventLogger', () => {
 
   describe('Query Operations', () => {
     beforeEach(() => {
+      logger = new PollEventLogger(); // Create fresh logger
       const poll1 = new Uint8Array([1]);
       const poll2 = new Uint8Array([2]);
       const creator = new Uint8Array([3]);

@@ -3,82 +3,11 @@
  * Implements requirement 1.2: Append-only, publicly verifiable vote publication
  */
 import { getRuntimeConfiguration } from '../../constants';
-import type { PlatformID } from '../../interfaces';
-import type { IMember } from './types';
+import type { PlatformID, IMember } from '../../interfaces';
+import { BulletinBoard } from './interfaces/bulletin-board';
+import { BulletinBoardEntry } from './interfaces/bulletin-board-entry';
+import { TallyProof } from './interfaces/tally-proof';
 const Constants = getRuntimeConfiguration();
-
-export interface BulletinBoardEntry<TID extends PlatformID = Uint8Array> {
-  /** Sequence number (monotonically increasing) */
-  readonly sequence: number;
-  /** Microsecond-precision timestamp */
-  readonly timestamp: number;
-  /** Poll identifier */
-  readonly pollId: TID;
-  /** Encrypted vote data */
-  readonly encryptedVote: bigint[];
-  /** Hash of voter ID (anonymized) */
-  readonly voterIdHash: Uint8Array;
-  /** Merkle root of all entries up to this point */
-  readonly merkleRoot: Uint8Array;
-  /** Hash of this entry */
-  readonly entryHash: Uint8Array;
-  /** Authority signature */
-  readonly signature: Uint8Array;
-}
-
-export interface TallyProof<TID extends PlatformID = Uint8Array> {
-  /** Poll identifier */
-  readonly pollId: TID;
-  /** Final tallies */
-  readonly tallies: bigint[];
-  /** Choice names */
-  readonly choices: string[];
-  /** Timestamp of tally */
-  readonly timestamp: number;
-  /** Hash of all encrypted votes */
-  readonly votesHash: Uint8Array;
-  /** Cryptographic proof of correct decryption */
-  readonly decryptionProof: Uint8Array;
-  /** Authority signature */
-  readonly signature: Uint8Array;
-}
-
-export interface BulletinBoard<TID extends PlatformID = Uint8Array> {
-  /** Publish encrypted vote to bulletin board */
-  publishVote(
-    pollId: TID,
-    encryptedVote: bigint[],
-    voterIdHash: Uint8Array,
-  ): BulletinBoardEntry<TID>;
-
-  /** Publish tally with cryptographic proof */
-  publishTally(
-    pollId: TID,
-    tallies: bigint[],
-    choices: string[],
-    encryptedVotes: bigint[][],
-  ): TallyProof<TID>;
-  /** Get all entries for a poll */
-  getEntries(pollId: TID): readonly BulletinBoardEntry<TID>[];
-
-  /** Get all entries (entire bulletin board) */
-  getAllEntries(): readonly BulletinBoardEntry<TID>[];
-
-  /** Get tally proof for a poll */
-  getTallyProof(pollId: TID): TallyProof<TID> | undefined;
-
-  /** Verify entry signature and hash */
-  verifyEntry(entry: BulletinBoardEntry<TID>): boolean;
-
-  /** Verify tally proof */
-  verifyTallyProof(proof: TallyProof<TID>): boolean;
-
-  /** Verify Merkle tree integrity */
-  verifyMerkleTree(): boolean;
-
-  /** Export complete bulletin board for archival */
-  export(): Uint8Array;
-}
 
 /**
  * Append-only public bulletin board with cryptographic verification

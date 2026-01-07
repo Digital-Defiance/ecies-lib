@@ -27,3 +27,4 @@ export { GuidV4Provider } from './guidv4-provider';
 export { ObjectIdProvider } from './objectid-provider';
 export { UuidProvider } from './uuid-provider';
 export { BaseIdProvider } from '../base-id-provider';
+export { Uint8ArrayIdProvider } from './uint8array-provider';

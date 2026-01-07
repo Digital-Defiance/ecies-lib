@@ -2,8 +2,8 @@
  * Tests for Immutable Audit Log (Requirement 1.1)
  */
 import { describe, it, expect, beforeEach } from '@jest/globals';
+import type { IMember } from '../../interfaces/member';
 import { ImmutableAuditLog, AuditEventType } from './audit';
-import type { IMember } from './types';
 
 // Mock Member implementation for testing
 class MockMember implements IMember {

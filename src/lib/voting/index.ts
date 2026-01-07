@@ -9,6 +9,7 @@
  * - Plurality voting
  * - Proper role separation (Poll vs Tallier)
  * - Homomorphic encryption for privacy
+ * - U.S. scale hierarchical aggregation
  *
  * @example
  * ```typescript
@@ -33,36 +34,23 @@
  */
 
 export { Poll } from './poll-core';
-export { VotingPoll } from './poll';
 export { PollTallier } from './tallier';
 export { VoteEncoder } from './encoder';
 export { PollFactory } from './factory';
 export { VotingSecurityValidator, VOTING_SECURITY } from './security';
+export { ImmutableAuditLog } from './audit';
+export { PublicBulletinBoard } from './bulletin-board';
+export { PollEventLogger } from './event-logger';
 export {
-  ImmutableAuditLog,
-  AuditEventType,
-  type AuditEntry,
-  type AuditLog,
-} from './audit';
-export {
-  PublicBulletinBoard,
-  type BulletinBoard,
-  type BulletinBoardEntry,
-  type TallyProof,
-} from './bulletin-board';
-export {
-  PollEventLogger,
-  EventType,
-  type EventLogger,
-  type EventLogEntry,
-  type PollConfiguration,
-} from './event-logger';
-export {
-  VotingMethod,
-  type VoteReceipt,
-  type PollResults,
-  type RoundResult,
-  type EncryptedVote,
-  // IMember is already exported from main index via ./interfaces
-  type SupermajorityConfig,
-} from './types';
+  PrecinctAggregator,
+  CountyAggregator,
+  StateAggregator,
+  NationalAggregator,
+} from './hierarchical-aggregator';
+export { BatchVoteProcessor } from './persistent-state';
+
+// Re-export enumerations
+export * from './enumerations';
+
+// Re-export interfaces
+export type * from './interfaces';

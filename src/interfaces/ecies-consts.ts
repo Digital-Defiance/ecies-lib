@@ -63,6 +63,7 @@ export interface IECIESConstants {
     FIXED_OVERHEAD_SIZE: number;
     ENCRYPTED_KEY_SIZE: number;
     MAX_RECIPIENTS: number;
+    MAX_DATA_SIZE: number;
     RECIPIENT_ID_SIZE: number;
     RECIPIENT_COUNT_SIZE: number;
     DATA_LENGTH_SIZE: number;

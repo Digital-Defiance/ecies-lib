@@ -2,13 +2,8 @@
  * Voting Security Validator
  * Enforces cryptographic security requirements
  */
-import { VotingMethod } from './types';
 
-export enum SecurityLevel {
-  FullyHomomorphic = 'fully-homomorphic', // No intermediate decryption
-  MultiRound = 'multi-round', // Requires intermediate decryption
-  Insecure = 'insecure', // Cannot be made secure with Paillier
-}
+import { SecurityLevel, VotingMethod } from './enumerations';
 
 export const VOTING_SECURITY: Record<VotingMethod, SecurityLevel> = {
   [VotingMethod.Plurality]: SecurityLevel.FullyHomomorphic,
@@ -80,3 +75,6 @@ export class VotingSecurityValidator {
     }
   }
 }
+
+// Re-export for convenience
+export { SecurityLevel } from './enumerations/security-level';

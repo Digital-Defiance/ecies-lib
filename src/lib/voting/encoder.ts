@@ -4,7 +4,8 @@
  */
 import type { PublicKey } from 'paillier-bigint';
 import { PlatformID } from '../../interfaces';
-import { VotingMethod, type EncryptedVote } from './types';
+import { VotingMethod } from './enumerations';
+import type { EncryptedVote } from './interfaces';
 
 export class VoteEncoder<TID extends PlatformID = Uint8Array> {
   constructor(private readonly votingPublicKey: PublicKey) {}

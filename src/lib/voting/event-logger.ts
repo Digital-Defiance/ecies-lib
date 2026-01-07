@@ -2,104 +2,28 @@
  * Event Logger for Government-Grade Voting
  * Implements requirement 1.3: Comprehensive event logging with microsecond timestamps
  */
-import type { IMember as _IMember } from './types';
-
-export enum EventType {
-  PollCreated = 'poll_created',
-  VoteCast = 'vote_cast',
-  PollClosed = 'poll_closed',
-  VoteVerified = 'vote_verified',
-  TallyComputed = 'tally_computed',
-  AuditRequested = 'audit_requested',
-}
-
-export interface PollConfiguration {
-  readonly method: string;
-  readonly choices: string[];
-  readonly maxWeight?: bigint;
-  readonly threshold?: { numerator: number; denominator: number };
-}
-
-export interface EventLogEntry {
-  /** Sequence number (monotonically increasing) */
-  readonly sequence: number;
-  /** Event type */
-  readonly eventType: EventType;
-  /** Microsecond-precision timestamp */
-  readonly timestamp: number;
-  /** Poll identifier */
-  readonly pollId: Uint8Array;
-  /** Creator/authority ID (for creation/closure events) */
-  readonly creatorId?: Uint8Array;
-  /** Anonymized voter token (for vote events) */
-  readonly voterToken?: Uint8Array;
-  /** Poll configuration (for creation events) */
-  readonly configuration?: PollConfiguration;
-  /** Final tally hash (for closure events) */
-  readonly tallyHash?: Uint8Array;
-  /** Additional metadata */
-  readonly metadata?: Record<string, unknown>;
-}
-
-export interface EventLogger {
-  /** Log poll creation event */
-  logPollCreated(
-    pollId: Uint8Array,
-    creatorId: Uint8Array,
-    configuration: PollConfiguration,
-  ): EventLogEntry;
-
-  /** Log vote cast event */
-  logVoteCast(
-    pollId: Uint8Array,
-    voterToken: Uint8Array,
-    metadata?: Record<string, unknown>,
-  ): EventLogEntry;
-
-  /** Log poll closure event */
-  logPollClosed(
-    pollId: Uint8Array,
-    tallyHash: Uint8Array,
-    metadata?: Record<string, unknown>,
-  ): EventLogEntry;
-
-  /** Log generic event */
-  logEvent(
-    eventType: EventType,
-    pollId: Uint8Array,
-    data?: Partial<
-      Omit<EventLogEntry, 'sequence' | 'timestamp' | 'eventType' | 'pollId'>
-    >,
-  ): EventLogEntry;
-
-  /** Get all events */
-  getEvents(): readonly EventLogEntry[];
-
-  /** Get events for specific poll */
-  getEventsForPoll(pollId: Uint8Array): readonly EventLogEntry[];
-
-  /** Get events by type */
-  getEventsByType(eventType: EventType): readonly EventLogEntry[];
-
-  /** Verify sequence integrity */
-  verifySequence(): boolean;
-
-  /** Export events for archival */
-  export(): Uint8Array;
-}
+import { getRuntimeConfiguration } from '../../constants';
+import type { IMember as _IMember, PlatformID } from '../../interfaces';
+import { EventType } from './enumerations/event-type';
+import { EventLogEntry } from './interfaces/event-log-entry';
+import { EventLogger } from './interfaces/event-logger';
+import { PollConfiguration } from './interfaces/poll-configuration';
+const Constants = getRuntimeConfiguration();
 
 /**
  * Comprehensive event logger with sequence tracking
  */
-export class PollEventLogger implements EventLogger {
-  private readonly events: EventLogEntry[] = [];
+export class PollEventLogger<
+  TID extends PlatformID = Uint8Array,
+> implements EventLogger<TID> {
+  private readonly events: EventLogEntry<TID>[] = [];
   private sequence = 0;
 
   logPollCreated(
-    pollId: Uint8Array,
-    creatorId: Uint8Array,
+    pollId: TID,
+    creatorId: TID,
     configuration: PollConfiguration,
-  ): EventLogEntry {
+  ): EventLogEntry<TID> {
     return this.appendEvent({
       eventType: EventType.PollCreated,
       pollId,
@@ -109,10 +33,10 @@ export class PollEventLogger implements EventLogger {
   }
 
   logVoteCast(
-    pollId: Uint8Array,
+    pollId: TID,
     voterToken: Uint8Array,
     metadata?: Record<string, unknown>,
-  ): EventLogEntry {
+  ): EventLogEntry<TID> {
     return this.appendEvent({
       eventType: EventType.VoteCast,
       pollId,
@@ -122,10 +46,10 @@ export class PollEventLogger implements EventLogger {
   }
 
   logPollClosed(
-    pollId: Uint8Array,
+    pollId: TID,
     tallyHash: Uint8Array,
     metadata?: Record<string, unknown>,
-  ): EventLogEntry {
+  ): EventLogEntry<TID> {
     return this.appendEvent({
       eventType: EventType.PollClosed,
       pollId,
@@ -136,11 +60,14 @@ export class PollEventLogger implements EventLogger {
 
   logEvent(
     eventType: EventType,
-    pollId: Uint8Array,
+    pollId: TID,
     data?: Partial<
-      Omit<EventLogEntry, 'sequence' | 'timestamp' | 'eventType' | 'pollId'>
+      Omit<
+        EventLogEntry<TID>,
+        'sequence' | 'timestamp' | 'eventType' | 'pollId'
+      >
     >,
-  ): EventLogEntry {
+  ): EventLogEntry<TID> {
     return this.appendEvent({
       eventType,
       pollId,
@@ -148,18 +75,28 @@ export class PollEventLogger implements EventLogger {
     });
   }
 
-  getEvents(): readonly EventLogEntry[] {
+  getEvents(): readonly EventLogEntry<TID>[] {
     return Object.freeze([...this.events]);
   }
 
-  getEventsForPoll(pollId: Uint8Array): readonly EventLogEntry[] {
-    const pollIdStr = this.toHex(pollId);
+  getEventsForPoll(pollId: TID): readonly EventLogEntry<TID>[] {
+    const pollIdBytes =
+      pollId instanceof Uint8Array
+        ? pollId
+        : Constants.idProvider.toBytes(pollId);
+    const pollIdStr = this.toHex(pollIdBytes);
     return Object.freeze(
-      this.events.filter((e) => this.toHex(e.pollId) === pollIdStr),
+      this.events.filter((e) => {
+        const eventPollIdBytes =
+          e.pollId instanceof Uint8Array
+            ? e.pollId
+            : Constants.idProvider.toBytes(e.pollId);
+        return this.toHex(eventPollIdBytes) === pollIdStr;
+      }),
     );
   }
 
-  getEventsByType(eventType: EventType): readonly EventLogEntry[] {
+  getEventsByType(eventType: EventType): readonly EventLogEntry<TID>[] {
     return Object.freeze(this.events.filter((e) => e.eventType === eventType));
   }
 
@@ -185,9 +122,9 @@ export class PollEventLogger implements EventLogger {
   }
 
   private appendEvent(
-    partial: Omit<EventLogEntry, 'sequence' | 'timestamp'>,
-  ): EventLogEntry {
-    const entry: EventLogEntry = {
+    partial: Omit<EventLogEntry<TID>, 'sequence' | 'timestamp'>,
+  ): EventLogEntry<TID> {
+    const entry: EventLogEntry<TID> = {
       sequence: this.sequence++,
       timestamp: this.getMicrosecondTimestamp(),
       ...partial,
@@ -197,20 +134,24 @@ export class PollEventLogger implements EventLogger {
     return entry;
   }
 
-  private serializeEvent(event: EventLogEntry): Uint8Array {
+  private serializeEvent(event: EventLogEntry<TID>): Uint8Array {
+    const pollIdBytes = Constants.idProvider.toBytes(event.pollId);
+    const creatorIdBytes = event.creatorId
+      ? Constants.idProvider.toBytes(event.creatorId)
+      : undefined;
     const parts: Uint8Array[] = [
       this.encodeNumber(event.sequence),
       this.encodeNumber(event.timestamp),
       this.encodeString(event.eventType),
-      this.encodeNumber(event.pollId.length),
-      event.pollId,
+      this.encodeNumber(pollIdBytes.length),
+      pollIdBytes,
     ];
 
-    if (event.creatorId) {
+    if (creatorIdBytes) {
       parts.push(
         this.encodeNumber(1),
-        this.encodeNumber(event.creatorId.length),
-        event.creatorId,
+        this.encodeNumber(creatorIdBytes.length),
+        creatorIdBytes,
       );
     } else {
       parts.push(this.encodeNumber(0));
@@ -302,3 +243,6 @@ export class PollEventLogger implements EventLogger {
       .join('');
   }
 }
+
+// Re-export for convenience
+export { EventType } from './enumerations/event-type';

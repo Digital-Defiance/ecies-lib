@@ -2,12 +2,9 @@
  * VotingSecurityValidator Tests
  * Tests security classification and validation
  */
-import {
-  VotingSecurityValidator,
-  SecurityLevel,
-  VOTING_SECURITY,
-} from './security';
-import { VotingMethod } from './types';
+import { SecurityLevel } from './enumerations/security-level';
+import { VotingMethod } from './enumerations/voting-method';
+import { VotingSecurityValidator, VOTING_SECURITY } from './security';
 
 describe('VotingSecurityValidator', () => {
   describe('Security Level Classification', () => {

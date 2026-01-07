@@ -3,11 +3,11 @@
  * Government-grade testing for all voting methods
  */
 import { generateRandomKeysSync } from 'paillier-bigint';
+import { IMember } from '../../interfaces';
 import { VoteEncoder } from './encoder';
 import { PollFactory } from './factory';
 import { Poll as _Poll } from './poll-core';
 import { PollTallier } from './tallier';
-import type { IMember } from './types';
 import {
   VotingMethod,
   VotingSecurityValidator,
@@ -61,6 +61,9 @@ describe('Voting System - Comprehensive Tests', () => {
   beforeAll(() => {
     // Generate keys ONCE - major performance improvement
     sharedKeyPair = generateRandomKeysSync(512); // Use 512-bit for faster tests
+  });
+
+  beforeEach(() => {
     authority = createMockMember(0, sharedKeyPair);
     voters = Array.from({ length: 10 }, (_, i) =>
       createMockMember(i + 1, sharedKeyPair),

@@ -1,9 +1,9 @@
+import type { IVotingConsts } from '../lib/voting/interfaces/voting-consts';
 import type { Pbkdf2Profiles } from '../pbkdf2-profiles';
 import type { IChecksumConsts } from './checksum-consts';
 import type { IECIESConstants } from './ecies-consts';
 import type { IIdProviderBase } from './id-provider';
 import type { IPBkdf2Consts } from './pbkdf2-consts';
-import type { IVotingConsts } from './voting-consts';
 
 export interface IConstants {
   UINT8_SIZE: number;

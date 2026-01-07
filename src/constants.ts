@@ -9,9 +9,9 @@ import type { IConfigurationProvenance } from './interfaces/configuration-proven
 import type { IConstants } from './interfaces/constants';
 import type { IECIESConstants } from './interfaces/ecies-consts';
 import type { IPBkdf2Consts } from './interfaces/pbkdf2-consts';
-import type { IVotingConsts } from './interfaces/voting-consts';
 import { ObjectIdProvider } from './lib/id-providers/objectid-provider';
 import { InvariantValidator } from './lib/invariant-validator';
+import type { IVotingConsts } from './lib/voting/interfaces/voting-consts';
 import type { Pbkdf2Profiles } from './pbkdf2-profiles';
 import { MNEMONIC_REGEX, PASSWORD_REGEX } from './regexes';
 import type { DeepPartial } from './types/deep-partial';
@@ -114,6 +114,7 @@ const ECIES_RAW_PUBLIC_KEY_LENGTH = 32 as const;
 const ECIES_IV_SIZE = 12 as const;
 const ECIES_AUTH_TAG_SIZE = 16 as const;
 const ECIES_MULTIPLE_RECIPIENT_ID_SIZE = 12 as const;
+const ECIES_MULTIPLE_MAX_DATA_SIZE = 1048576 as const; //1024 * 1024 as const; // 1MB guardrail for multi-recipient payloads
 const ECIES_VERSION_SIZE = 1 as const;
 const ECIES_CIPHER_SUITE_SIZE = 1 as const;
 
@@ -203,6 +204,7 @@ export const ECIES: IECIESConstants = Object.freeze({
     FIXED_OVERHEAD_SIZE: expectedMultipleOverhead, // version (1) + cipher suite (1) + type (1) + public key (33) + IV (16) + auth tag (16)
     ENCRYPTED_KEY_SIZE: expectedMultipleEncryptedKeySize, // 64
     MAX_RECIPIENTS: 65535,
+    MAX_DATA_SIZE: ECIES_MULTIPLE_MAX_DATA_SIZE,
     RECIPIENT_ID_SIZE: ECIES_MULTIPLE_RECIPIENT_ID_SIZE,
     RECIPIENT_COUNT_SIZE: 2,
     DATA_LENGTH_SIZE: 8,

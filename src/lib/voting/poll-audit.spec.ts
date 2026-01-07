@@ -3,10 +3,11 @@
  */
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import type { PublicKey } from 'paillier-bigint';
+import type { IMember } from '../../interfaces';
 import { AuditEventType } from './audit';
+import { VotingMethod } from './enumerations/voting-method';
+import type { EncryptedVote } from './interfaces/encrypted-vote';
 import { Poll } from './poll-core';
-import { VotingMethod } from './types';
-import type { IMember, EncryptedVote } from './types';
 
 // Mock Member for testing
 class MockMember implements IMember {

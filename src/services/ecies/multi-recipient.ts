@@ -249,7 +249,9 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
         recipient.publicKey,
         symmetricKey,
         ephemeralKeyPair.privateKey,
-        this.idProvider.toBytes(recipient.id),
+        recipient.id instanceof Uint8Array
+          ? recipient.id
+          : this.idProvider.toBytes(recipient.id),
       );
 
       recipientIds.push(recipient.id);
@@ -316,10 +318,18 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     privateKey: Uint8Array,
     senderPublicKey?: Uint8Array,
   ): Promise<Uint8Array> {
-    // Find recipient's encrypted key
-    const recipientIndex = encryptedData.recipientIds.findIndex((id) =>
-      this.idProvider.equals(id, recipientId),
-    );
+    // Normalize target recipient ID to bytes for robust comparison across platforms
+    const targetIdBytes =
+      recipientId instanceof Uint8Array
+        ? recipientId
+        : this.idProvider.toBytes(recipientId);
+
+    // Find recipient's encrypted key by comparing bytes
+    const recipientIndex = encryptedData.recipientIds.findIndex((id) => {
+      const idBytes =
+        id instanceof Uint8Array ? id : this.idProvider.toBytes(id);
+      return this.arraysEqual(idBytes, targetIdBytes);
+    });
 
     if (recipientIndex === -1) {
       const engine = getEciesI18nEngine();
@@ -349,7 +359,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
       privateKey,
       encryptedKey,
       encryptedData.ephemeralPublicKey,
-      this.idProvider.toBytes(recipientId),
+      targetIdBytes,
     );
 
     // Rebuild header to use as AAD
@@ -505,7 +515,9 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
 
     // Recipient IDs
     const recipientIdsUint8Array = concatUint8Arrays(
-      ...data.recipientIds.map((id) => this.idProvider.toBytes(id)),
+      ...data.recipientIds.map((id) =>
+        id instanceof Uint8Array ? id : this.idProvider.toBytes(id),
+      ),
     );
 
     // Encrypted keys

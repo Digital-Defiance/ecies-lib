@@ -7,8 +7,7 @@ import { EciesStringKey } from '../enumerations';
 import { MemberType } from '../enumerations/member-type';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
 import { PlatformID } from '../interfaces';
-import { IMemberWithMnemonic } from '../interfaces/member-with-mnemonic';
-import { Member } from '../member';
+import { IMemberWithMnemonic, Member } from '../member';
 import { SecureString } from '../secure-string';
 import { ECIESService } from '../services/ecies/service';
 

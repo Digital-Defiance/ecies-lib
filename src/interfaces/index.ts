@@ -9,20 +9,11 @@ export * from './guid';
 export type { IIdProvider, IIdProviderBase } from './id-provider';
 export type * from './member';
 export * from './member-storage';
-export type * from './member-with-mnemonic';
 export * from './pbkdf2-config';
 export * from './pbkdf2-consts';
 export * from './pbkdf2-result';
 export * from './platform-buffer';
 export * from './platform-id';
-export * from './voting-consts';
-export {
-  type IPoll,
-  type IVoteEncoder,
-  type IPollTallier,
-  type IPollFactory,
-  type IVotingSecurityValidator,
-  SecurityLevel,
-} from './voting-poll';
-export * from './voting-service';
 export * from './isolated-keys';
+export * from './isolated-private-key-async';
+export * from './isolated-public-key-async';

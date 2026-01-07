@@ -1,8 +1,8 @@
 /**
- * Platform-agnostic buffer type
+ * Platform-agnostic buffer type (base)
  *
- * This type adapts to the execution environment:
- * - Browser (ecies-lib): Uint8Array
- * - Node.js (node-ecies-lib): Buffer (which extends Uint8Array)
+ * This is the base buffer type for browser environments.
+ * Node.js environments should use the extended PlatformBuffer from node-ecies-lib
+ * which adds Buffer support.
  */
-export type PlatformBuffer = Uint8Array | Buffer;
+export type PlatformBuffer = Uint8Array;
