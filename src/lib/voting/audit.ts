@@ -111,10 +111,10 @@ export class ImmutableAuditLog<
   }
 
   getEntriesForPoll(pollId: TID): readonly AuditEntry<TID>[] {
-    const pollIdStr = this.toHex(Constants.idProvider.toBytes(pollId));
+    const pollIdStr = this.toHex(this.idToBytes(pollId));
     return Object.freeze(
       this.entries.filter(
-        (e) => this.toHex(Constants.idProvider.toBytes(e.pollId)) === pollIdStr,
+        (e) => this.toHex(this.idToBytes(e.pollId)) === pollIdStr,
       ),
     );
   }
@@ -199,13 +199,13 @@ export class ImmutableAuditLog<
       this.encodeNumber(entry.sequence),
       this.encodeString(entry.eventType),
       this.encodeNumber(entry.timestamp),
-      Constants.idProvider.toBytes(entry.pollId),
+      this.idToBytes(entry.pollId),
       entry.previousHash,
     ];
 
     if (entry.voterIdHash) parts.push(entry.voterIdHash);
     if (entry.authorityId)
-      parts.push(Constants.idProvider.toBytes(entry.authorityId));
+      parts.push(this.idToBytes(entry.authorityId));
     if (entry.metadata)
       parts.push(this.encodeString(JSON.stringify(entry.metadata)));
 
@@ -273,6 +273,18 @@ export class ImmutableAuditLog<
       if (a[i] !== b[i]) return false;
     }
     return true;
+  }
+
+  /**
+   * Convert an ID to bytes safely.
+   * If id is already Uint8Array, return it directly.
+   * Otherwise, use the idProvider to convert.
+   */
+  private idToBytes(id: TID): Uint8Array {
+    if (id instanceof Uint8Array) {
+      return id;
+    }
+    return (Constants.idProvider as { toBytes(id: unknown): Uint8Array }).toBytes(id);
   }
 
   private toHex(arr: Uint8Array): string {

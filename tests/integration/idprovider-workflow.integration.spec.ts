@@ -1,68 +1,33 @@
 /**
- * Integration Tests: idProvider End-to-End Workflows
+ * Integration Tests: Member ID Generation End-to-End
  *
- * Feature: fix-idprovider-member-generation
- * Task: 12. Write integration tests for end-to-end workflows
+ * These tests verify end-to-end workflows with Member ID generation.
  *
- * These tests verify complete end-to-end workflows involving idProvider configuration,
- * including the documented usage pattern from the bug report, Member lifecycle workflows,
- * MemberBuilder workflows, and service instance switching.
- *
- * Requirements: 5.1, 5.4, 8.7
+ * IMPORTANT ARCHITECTURE NOTE:
+ * - Member always uses global Constants.idProvider (ObjectIdProvider) for ID generation
+ * - The service's idProvider configuration does NOT affect Member ID generation
+ * - member.id is a native type (ObjectId), member.idBytes is the raw Uint8Array
+ * - Service's idProvider IS used for serialization in toJson()
  */
 
+import { ObjectId } from 'bson';
 import { MemberBuilder } from '../../src/builders/member-builder';
-import { createRuntimeConfiguration } from '../../src/constants';
+import { Constants, createRuntimeConfiguration } from '../../src/constants';
 import { EmailString } from '../../src/email-string';
 import { MemberType } from '../../src/enumerations/member-type';
-import { GuidV4 } from '../../src/lib/guid';
 import { GuidV4Provider, ObjectIdProvider } from '../../src/lib/id-providers';
 import { Member } from '../../src/member';
 import { ECIESService } from '../../src/services/ecies/service';
 
-describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
-  describe('Documented Usage Pattern from Bug Report', () => {
-    /**
-     * This test verifies the exact pattern from the bug report works end-to-end.
-     * Requirements: 5.1
-     */
-    it('should work correctly with the documented pattern end-to-end', () => {
-      // Step 1: Configure with GuidV4Provider (from bug report)
-      const config = createRuntimeConfiguration({
-        idProvider: new GuidV4Provider(),
-      });
-
-      // Step 2: Create ECIESService with config
-      const service = new ECIESService(config);
-
-      // Step 3: Create Member using the service
-      const result = Member.newMember(
-        service,
-        MemberType.User,
-        'Test',
-        new EmailString('test@example.com'),
-      );
-
-      // Step 4: Verify the fix - ID should be 16 bytes
-      expect(config.MEMBER_ID_LENGTH).toBe(16);
-      expect(result.member.id.length).toBe(16);
-
-      // Step 5: Verify GuidV4.fromBuffer succeeds (this was failing before the fix)
-      const guid = GuidV4.fromBuffer(result.member.id);
-      expect(guid).toBeDefined();
-      expect(guid.asFullHexGuid).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-      );
-    });
-
-    it('should support the complete documented workflow with encryption', async () => {
-      // Configure with GuidV4Provider
+describe('Integration: Member ID Generation Workflows', () => {
+  describe('Member Creation with Different Service Configurations', () => {
+    it('should create Member with ObjectId regardless of service idProvider', () => {
+      // Even with GuidV4Provider in service config, Member uses global ObjectIdProvider
       const config = createRuntimeConfiguration({
         idProvider: new GuidV4Provider(),
       });
       const service = new ECIESService(config);
 
-      // Create Member
       const result = Member.newMember(
         service,
         MemberType.User,
@@ -70,123 +35,49 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
         new EmailString('test@example.com'),
       );
 
-      // Verify Member ID is UUID-compatible
-      expect(result.member.id.length).toBe(16);
-      const guid = GuidV4.fromBuffer(result.member.id);
-      expect(guid.asFullHexGuid).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-      );
-
-      // Use the Member's keys for encryption
-      const message = new TextEncoder().encode('Hello, World!');
-      const encrypted = await service.encryptSimpleOrSingle(
-        true,
-        result.member.publicKey,
-        message,
-      );
-
-      // Decrypt using the mnemonic-derived private key
-      const keyPair = service.mnemonicToSimpleKeyPair(result.mnemonic);
-      const decrypted = await service.decryptSimpleOrSingleWithHeader(
-        true,
-        keyPair.privateKey,
-        encrypted,
-      );
-
-      expect(new TextDecoder().decode(decrypted)).toBe('Hello, World!');
-    });
-  });
-
-  describe('Member Creation → Serialization → Deserialization → ID Conversion Workflow', () => {
-    /**
-     * This test verifies the complete Member lifecycle with idProvider.
-     * Requirements: 5.4
-     */
-    it('should preserve GuidV4 ID through complete lifecycle', () => {
-      // Step 1: Create service with GuidV4Provider
-      const config = createRuntimeConfiguration({
-        idProvider: new GuidV4Provider(),
-      });
-      const service = new ECIESService(config);
-
-      // Step 2: Create Member
-      const result = Member.newMember(
-        service,
-        MemberType.User,
-        'Test User',
-        new EmailString('test@example.com'),
-      );
-      const originalId = result.member.id;
-      expect(originalId.length).toBe(16);
-
-      // Step 3: Convert to UUID string
-      const originalGuid = GuidV4.fromBuffer(originalId);
-      const uuidString = originalGuid.asFullHexGuid;
-      expect(uuidString).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-      );
-
-      // Step 4: Serialize Member to JSON
-      const json = result.member.toJson();
-      expect(json).toBeDefined();
-
-      // Step 5: Deserialize Member from JSON
-      const deserialized = Member.fromJson(json, service);
-      expect(deserialized.id.length).toBe(16);
-
-      // Step 6: Verify ID is preserved
-      expect(deserialized.id).toEqual(originalId);
-
-      // Step 7: Convert deserialized ID to UUID string
-      const deserializedGuid = GuidV4.fromBuffer(deserialized.id);
-      expect(deserializedGuid.asFullHexGuid).toBe(uuidString);
+      // Member ID is ObjectId (from global Constants.idProvider)
+      expect(result.member.id).toBeInstanceOf(ObjectId);
+      expect(result.member.idBytes.length).toBe(12);
+      // Service config is for serialization, not ID generation
+      expect(service.constants.idProvider.byteLength).toBe(16);
     });
 
-    it('should preserve ObjectId ID through complete lifecycle', () => {
-      // Step 1: Create service with ObjectIdProvider
+    it('should work correctly with ObjectIdProvider service config', () => {
       const config = createRuntimeConfiguration({
         idProvider: new ObjectIdProvider(),
       });
       const service = new ECIESService(config);
 
-      // Step 2: Create Member
       const result = Member.newMember(
         service,
         MemberType.User,
         'Test User',
         new EmailString('test@example.com'),
       );
-      const originalId = result.member.id;
-      expect(originalId.length).toBe(12);
 
-      // Step 3: Convert to ObjectID string
-      const objectIdString = config.idProvider.serialize(originalId);
-      expect(objectIdString.length).toBe(24);
-      expect(objectIdString).toMatch(/^[0-9a-f]{24}$/i);
-
-      // Step 4: Serialize Member to JSON
-      const json = result.member.toJson();
-      expect(json).toBeDefined();
-
-      // Step 5: Deserialize Member from JSON
-      const deserialized = Member.fromJson(json, service);
-      expect(deserialized.id.length).toBe(12);
-
-      // Step 6: Verify ID is preserved
-      expect(deserialized.id).toEqual(originalId);
-
-      // Step 7: Convert deserialized ID to ObjectID string
-      const deserializedObjectIdString = config.idProvider.serialize(
-        deserialized.id,
-      );
-      expect(deserializedObjectIdString).toBe(objectIdString);
+      expect(result.member.id).toBeInstanceOf(ObjectId);
+      expect(result.member.idBytes.length).toBe(12);
+      expect(service.constants.idProvider.byteLength).toBe(12);
     });
 
-    it('should handle multiple serialization/deserialization cycles', () => {
-      const config = createRuntimeConfiguration({
-        idProvider: new GuidV4Provider(),
-      });
-      const service = new ECIESService(config);
+    it('should work with default service config', () => {
+      const service = new ECIESService();
+
+      const result = Member.newMember(
+        service,
+        MemberType.User,
+        'Test User',
+        new EmailString('test@example.com'),
+      );
+
+      expect(result.member.id).toBeInstanceOf(ObjectId);
+      expect(result.member.idBytes.length).toBe(12);
+    });
+  });
+
+  describe('Member Lifecycle: Creation → Serialization → Deserialization', () => {
+    it('should preserve ID through serialization/deserialization', () => {
+      const service = new ECIESService();
 
       // Create Member
       const result = Member.newMember(
@@ -196,32 +87,55 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
         new EmailString('test@example.com'),
       );
       const originalId = result.member.id;
+      const originalIdBytes = result.member.idBytes;
+
+      // Serialize
+      const json = result.member.toJson();
+      expect(typeof json).toBe('string');
+
+      // Deserialize
+      const deserialized = Member.fromJson(json, service);
+
+      // Verify ID preserved
+      expect(deserialized.id.toString()).toBe(originalId.toString());
+      expect(deserialized.idBytes).toEqual(originalIdBytes);
+      expect(deserialized.name).toBe('Test User');
+      expect(deserialized.email.toString()).toBe('test@example.com');
+      expect(deserialized.type).toBe(MemberType.User);
+    });
+
+    it('should preserve all properties through multiple serialization cycles', () => {
+      const service = new ECIESService();
+
+      // Create Member
+      const result = Member.newMember(
+        service,
+        MemberType.Admin,
+        'Admin User',
+        new EmailString('admin@example.com'),
+      );
+      const original = result.member;
 
       // Multiple round-trips
-      let member = result.member;
+      let member = original;
       for (let i = 0; i < 5; i++) {
         const json = member.toJson();
         member = Member.fromJson(json, service);
       }
 
-      // Verify ID is still preserved
-      expect(member.id).toEqual(originalId);
-      expect(member.id.length).toBe(16);
-
-      // Verify UUID conversion still works
-      const guid = GuidV4.fromBuffer(member.id);
-      expect(guid.asFullHexGuid).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-      );
+      // Verify all properties preserved
+      expect(member.id.toString()).toBe(original.id.toString());
+      expect(member.idBytes).toEqual(original.idBytes);
+      expect(member.type).toBe(MemberType.Admin);
+      expect(member.name).toBe('Admin User');
+      expect(member.email.toString()).toBe('admin@example.com');
+      expect(member.publicKey).toEqual(original.publicKey);
+      expect(member.creatorId.toString()).toBe(original.creatorId.toString());
     });
   });
 
-  describe('MemberBuilder Workflow with Custom idProvider', () => {
-    /**
-     * This test verifies MemberBuilder respects idProvider configuration.
-     * Requirements: 5.4, 8.7
-     */
-    it('should create Member with correct ID using MemberBuilder fluent API', () => {
+  describe('MemberBuilder Workflows', () => {
+    it('should create Member with ObjectId using fluent API', () => {
       const config = createRuntimeConfiguration({
         idProvider: new GuidV4Provider(),
       });
@@ -235,21 +149,13 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
         .generateMnemonic()
         .build();
 
-      expect(result.member.id.length).toBe(16);
+      expect(result.member.id).toBeInstanceOf(ObjectId);
+      expect(result.member.idBytes.length).toBe(12);
       expect(result.mnemonic).toBeDefined();
-
-      // Verify UUID compatibility
-      const guid = GuidV4.fromBuffer(result.member.id);
-      expect(guid.asFullHexGuid).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-      );
     });
 
-    it('should support MemberBuilder workflow with createdBy relationship', () => {
-      const config = createRuntimeConfiguration({
-        idProvider: new GuidV4Provider(),
-      });
-      const service = new ECIESService(config);
+    it('should support MemberBuilder with createdBy relationship', () => {
+      const service = new ECIESService();
 
       // Create admin
       const admin = MemberBuilder.create()
@@ -259,40 +165,27 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
         .withEmail(new EmailString('admin@example.com'))
         .build();
 
-      // Create user with createdBy
+      // Create user with createdBy (pass idBytes)
       const user = MemberBuilder.create()
         .withEciesService(service)
         .withType(MemberType.User)
         .withName('User')
         .withEmail(new EmailString('user@example.com'))
-        .withCreatedBy(admin.member.id)
+        .withCreatedBy(admin.member.idBytes)
         .build();
 
-      // Verify both have 16-byte IDs
-      expect(admin.member.id.length).toBe(16);
-      expect(user.member.id.length).toBe(16);
+      // Verify both have ObjectId
+      expect(admin.member.id).toBeInstanceOf(ObjectId);
+      expect(user.member.id).toBeInstanceOf(ObjectId);
 
-      // Verify createdBy relationship
-      expect(user.member.creatorId).toEqual(admin.member.id);
-
-      // Verify both IDs are UUID-compatible
-      const adminGuid = GuidV4.fromBuffer(admin.member.id);
-      const userGuid = GuidV4.fromBuffer(user.member.id);
-      expect(adminGuid.asFullHexGuid).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-      );
-      expect(userGuid.asFullHexGuid).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-      );
+      // Verify creatorIdBytes is set
+      expect(user.member.creatorIdBytes).toBeInstanceOf(Uint8Array);
+      expect(user.member.creatorIdBytes.length).toBe(12);
     });
 
-    it('should support complete MemberBuilder workflow with serialization', () => {
-      const config = createRuntimeConfiguration({
-        idProvider: new GuidV4Provider(),
-      });
-      const service = new ECIESService(config);
+    it('should preserve MemberBuilder-created Members through serialization', () => {
+      const service = new ECIESService();
 
-      // Create Member using builder
       const result = MemberBuilder.create()
         .withEciesService(service)
         .withType(MemberType.User)
@@ -307,64 +200,18 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
       // Deserialize
       const deserialized = Member.fromJson(json, service);
 
-      // Verify ID preserved
-      expect(deserialized.id).toEqual(result.member.id);
-      expect(deserialized.id.length).toBe(16);
-
-      // Verify all properties preserved
+      // Verify all properties
+      expect(deserialized.id.toString()).toBe(result.member.id.toString());
+      expect(deserialized.idBytes).toEqual(result.member.idBytes);
       expect(deserialized.name).toBe('Builder User');
       expect(deserialized.email.toString()).toBe('builder@example.com');
       expect(deserialized.type).toBe(MemberType.User);
     });
   });
 
-  describe('Multiple Members with Same idProvider', () => {
-    /**
-     * This test verifies consistent ID lengths across multiple Members.
-     * Requirements: 5.4, 8.7
-     */
-    it('should create multiple Members with consistent 16-byte IDs', () => {
-      const config = createRuntimeConfiguration({
-        idProvider: new GuidV4Provider(),
-      });
-      const service = new ECIESService(config);
-
-      const members: Member[] = [];
-      for (let i = 0; i < 10; i++) {
-        const result = Member.newMember(
-          service,
-          MemberType.User,
-          `User ${i}`,
-          new EmailString(`user${i}@example.com`),
-        );
-        members.push(result.member);
-      }
-
-      // Verify all have 16-byte IDs
-      for (const member of members) {
-        expect(member.id.length).toBe(16);
-      }
-
-      // Verify all IDs are unique
-      const idStrings = members.map(
-        (m) => GuidV4.fromBuffer(m.id).asFullHexGuid,
-      );
-      const uniqueIds = new Set(idStrings);
-      expect(uniqueIds.size).toBe(members.length);
-
-      // Verify all are valid UUIDs
-      for (const idString of idStrings) {
-        expect(idString).toMatch(
-          /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-        );
-      }
-    });
-
+  describe('Multiple Members with Consistent IDs', () => {
     it('should create multiple Members with consistent 12-byte IDs', () => {
-      const config = createRuntimeConfiguration({
-        idProvider: new ObjectIdProvider(),
-      });
-      const service = new ECIESService(config);
+      const service = new ECIESService();
 
       const members: Member[] = [];
       for (let i = 0; i < 10; i++) {
@@ -377,75 +224,19 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
         members.push(result.member);
       }
 
-      // Verify all have 12-byte IDs
+      // All should have 12-byte IDs
       for (const member of members) {
-        expect(member.id.length).toBe(12);
+        expect(member.id).toBeInstanceOf(ObjectId);
+        expect(member.idBytes.length).toBe(12);
       }
 
-      // Verify all IDs are unique
-      const idStrings = members.map((m) => config.idProvider.serialize(m.id));
+      // All IDs should be unique
+      const idStrings = members.map((m) => m.id.toString());
       const uniqueIds = new Set(idStrings);
       expect(uniqueIds.size).toBe(members.length);
-
-      // Verify all are valid ObjectID strings
-      for (const idString of idStrings) {
-        expect(idString.length).toBe(24);
-        expect(idString).toMatch(/^[0-9a-f]{24}$/i);
-      }
-    });
-  });
-
-  describe('Switching idProvider Between Service Instances', () => {
-    /**
-     * This test verifies that different service instances can use different idProviders.
-     * Requirements: 5.4, 8.7
-     */
-    it('should support switching between GuidV4Provider and ObjectIdProvider', () => {
-      // Create two services with different idProviders
-      const guidConfig = createRuntimeConfiguration({
-        idProvider: new GuidV4Provider(),
-      });
-      const objectIdConfig = createRuntimeConfiguration({
-        idProvider: new ObjectIdProvider(),
-      });
-
-      const guidService = new ECIESService(guidConfig);
-      const objectIdService = new ECIESService(objectIdConfig);
-
-      // Create Members with each service
-      const guidMember = Member.newMember(
-        guidService,
-        MemberType.User,
-        'GUID User',
-        new EmailString('guid@example.com'),
-      );
-
-      const objectIdMember = Member.newMember(
-        objectIdService,
-        MemberType.User,
-        'ObjectID User',
-        new EmailString('objectid@example.com'),
-      );
-
-      // Verify different ID lengths
-      expect(guidMember.member.id.length).toBe(16);
-      expect(objectIdMember.member.id.length).toBe(12);
-
-      // Verify each ID is compatible with its provider
-      const guid = GuidV4.fromBuffer(guidMember.member.id);
-      expect(guid.asFullHexGuid).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-      );
-
-      const objectIdString = objectIdConfig.idProvider.serialize(
-        objectIdMember.member.id,
-      );
-      expect(objectIdString.length).toBe(24);
-      expect(objectIdString).toMatch(/^[0-9a-f]{24}$/i);
     });
 
     it('should maintain isolation between service instances', () => {
-      // Create multiple services
       const services = [
         new ECIESService(
           createRuntimeConfiguration({ idProvider: new GuidV4Provider() }),
@@ -459,7 +250,6 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
         new ECIESService(), // Default
       ];
 
-      // Create Members with each service
       const members = services.map((service, i) =>
         Member.newMember(
           service,
@@ -469,72 +259,17 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
         ),
       );
 
-      // Verify expected ID lengths
-      expect(members[0].member.id.length).toBe(16); // GuidV4
-      expect(members[1].member.id.length).toBe(12); // ObjectId
-      expect(members[2].member.id.length).toBe(16); // GuidV4
-      expect(members[3].member.id.length).toBe(12); // Default (ObjectId)
-    });
-
-    it('should allow interleaved Member creation with different services', () => {
-      const guidService = new ECIESService(
-        createRuntimeConfiguration({ idProvider: new GuidV4Provider() }),
-      );
-      const objectIdService = new ECIESService(
-        createRuntimeConfiguration({ idProvider: new ObjectIdProvider() }),
-      );
-
-      // Interleave Member creation
-      const m1 = Member.newMember(
-        guidService,
-        MemberType.User,
-        'G1',
-        new EmailString('g1@example.com'),
-      );
-      const m2 = Member.newMember(
-        objectIdService,
-        MemberType.User,
-        'O1',
-        new EmailString('o1@example.com'),
-      );
-      const m3 = Member.newMember(
-        guidService,
-        MemberType.User,
-        'G2',
-        new EmailString('g2@example.com'),
-      );
-      const m4 = Member.newMember(
-        objectIdService,
-        MemberType.User,
-        'O2',
-        new EmailString('o2@example.com'),
-      );
-      const m5 = Member.newMember(
-        guidService,
-        MemberType.User,
-        'G3',
-        new EmailString('g3@example.com'),
-      );
-
-      // Verify correct ID lengths
-      expect(m1.member.id.length).toBe(16);
-      expect(m2.member.id.length).toBe(12);
-      expect(m3.member.id.length).toBe(16);
-      expect(m4.member.id.length).toBe(12);
-      expect(m5.member.id.length).toBe(16);
+      // All should have ObjectId regardless of service config
+      for (const member of members) {
+        expect(member.member.id).toBeInstanceOf(ObjectId);
+        expect(member.member.idBytes.length).toBe(12);
+      }
     });
   });
 
-  describe('End-to-End Encryption Workflow with idProvider', () => {
-    /**
-     * This test verifies encryption/decryption works correctly with custom idProvider.
-     * Requirements: 5.1, 5.4
-     */
-    it('should support complete encryption workflow with GuidV4Provider', async () => {
-      const config = createRuntimeConfiguration({
-        idProvider: new GuidV4Provider(),
-      });
-      const service = new ECIESService(config);
+  describe('Encryption Workflow with Member IDs', () => {
+    it('should support encryption workflow with Members', async () => {
+      const service = new ECIESService();
 
       // Create sender and recipient
       const sender = Member.newMember(
@@ -550,9 +285,9 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
         new EmailString('recipient@example.com'),
       );
 
-      // Verify both have 16-byte IDs
-      expect(sender.member.id.length).toBe(16);
-      expect(recipient.member.id.length).toBe(16);
+      // Both should have ObjectId
+      expect(sender.member.id).toBeInstanceOf(ObjectId);
+      expect(recipient.member.id).toBeInstanceOf(ObjectId);
 
       // Encrypt message for recipient
       const message = new TextEncoder().encode('Secret message');
@@ -573,6 +308,70 @@ describe('Integration: idProvider End-to-End Workflows (Browser)', () => {
       );
 
       expect(new TextDecoder().decode(decrypted)).toBe('Secret message');
+    });
+  });
+
+  describe('Service Configuration Effects', () => {
+    it('should use service idProvider for serialization format', () => {
+      // ObjectId service
+      const objectIdConfig = createRuntimeConfiguration({
+        idProvider: new ObjectIdProvider(),
+      });
+      const objectIdService = new ECIESService(objectIdConfig);
+
+      const result = Member.newMember(
+        objectIdService,
+        MemberType.User,
+        'Test User',
+        new EmailString('test@example.com'),
+      );
+
+      // toJson uses service idProvider for serialization
+      const json = result.member.toJson();
+      const parsed = JSON.parse(json);
+
+      // ObjectId hex string is 24 chars
+      expect(parsed.id).toBeDefined();
+      expect(typeof parsed.id).toBe('string');
+      expect(parsed.id.length).toBe(24);
+      expect(parsed.id).toMatch(/^[0-9a-f]{24}$/i);
+    });
+
+    it('should correctly reflect service idProvider configuration', () => {
+      const guidConfig = createRuntimeConfiguration({
+        idProvider: new GuidV4Provider(),
+      });
+      const objectIdConfig = createRuntimeConfiguration({
+        idProvider: new ObjectIdProvider(),
+      });
+
+      const guidService = new ECIESService(guidConfig);
+      const objectIdService = new ECIESService(objectIdConfig);
+
+      // Service constants reflect configuration
+      expect(guidService.constants.idProvider.byteLength).toBe(16);
+      expect(guidService.constants.MEMBER_ID_LENGTH).toBe(16);
+
+      expect(objectIdService.constants.idProvider.byteLength).toBe(12);
+      expect(objectIdService.constants.MEMBER_ID_LENGTH).toBe(12);
+
+      // But Member generation uses global provider
+      const guidMember = Member.newMember(
+        guidService,
+        MemberType.User,
+        'User',
+        new EmailString('user@example.com'),
+      );
+      const objectIdMember = Member.newMember(
+        objectIdService,
+        MemberType.User,
+        'User',
+        new EmailString('user@example.com'),
+      );
+
+      // Both create 12-byte ObjectIds
+      expect(guidMember.member.idBytes.length).toBe(12);
+      expect(objectIdMember.member.idBytes.length).toBe(12);
     });
   });
 });

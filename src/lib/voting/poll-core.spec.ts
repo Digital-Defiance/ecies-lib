@@ -14,6 +14,11 @@ class MockMember implements IMember {
     public readonly votingPublicKey: any,
     public readonly votingPrivateKey: any,
   ) {}
+
+  get idBytes(): Uint8Array {
+    return this.id;
+  }
+
   sign(data: Uint8Array): Uint8Array {
     // Generate unique signature based on data
     const sig = new Uint8Array(64);

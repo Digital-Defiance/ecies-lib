@@ -2,6 +2,7 @@ import { withConsoleMocks } from '@digitaldefiance/express-suite-test-utils';
 import { ECIES } from '../../../src/constants';
 import { getEciesI18nEngine } from '../../../src/i18n-setup';
 import { IECIESConfig } from '../../../src/interfaces/ecies-config';
+import { CustomIdProvider } from '../../../src/lib/id-providers/custom-provider';
 import { EciesCryptoCore } from '../../../src/services/ecies/crypto-core';
 import {
   IMultiEncryptedMessage,
@@ -11,8 +12,9 @@ import { EciesMultiRecipient } from '../../../src/services/ecies/multi-recipient
 import { concatUint8Arrays } from '../../../src/utils';
 
 describe('EciesMultiRecipient', () => {
-  let multiRecipientService: EciesMultiRecipient;
+  let multiRecipientService: EciesMultiRecipient<Uint8Array>;
   let cryptoCore: EciesCryptoCore;
+  let idProvider: CustomIdProvider;
   let recipient1: {
     id: Uint8Array;
     privateKey: Uint8Array;
@@ -34,24 +36,23 @@ describe('EciesMultiRecipient', () => {
       symmetricKeyBits: ECIES.SYMMETRIC.KEY_BITS,
       symmetricKeyMode: ECIES.SYMMETRIC.MODE,
     } as const;
-    multiRecipientService = new EciesMultiRecipient(config);
+
+    // Use CustomIdProvider for Uint8Array-based IDs in tests
+    idProvider = new CustomIdProvider(ECIES.MULTIPLE.RECIPIENT_ID_SIZE);
+    multiRecipientService = new EciesMultiRecipient(config, ECIES, idProvider);
     cryptoCore = new EciesCryptoCore(config);
 
     const r1Keys = await cryptoCore.generateEphemeralKeyPair();
     const r2Keys = await cryptoCore.generateEphemeralKeyPair();
 
     recipient1 = {
-      id: crypto.getRandomValues(
-        new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE),
-      ),
+      id: idProvider.generate(),
       privateKey: r1Keys.privateKey,
       publicKey: r1Keys.publicKey,
     };
 
     recipient2 = {
-      id: crypto.getRandomValues(
-        new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE),
-      ),
+      id: idProvider.generate(),
       privateKey: r2Keys.privateKey,
       publicKey: r2Keys.publicKey,
     };
@@ -129,7 +130,7 @@ describe('EciesMultiRecipient', () => {
   describe('encryptMultiple / decryptMultipleForRecipient', () => {
     it('should encrypt and decrypt a message for multiple recipients', async () => {
       const message = new TextEncoder().encode('Hello, world!');
-      const recipients: IMultiRecipient[] = [
+      const recipients: IMultiRecipient<Uint8Array>[] = [
         { id: recipient1.id, publicKey: recipient1.publicKey },
         { id: recipient2.id, publicKey: recipient2.publicKey },
       ];
@@ -162,7 +163,7 @@ describe('EciesMultiRecipient', () => {
 
     it('should throw an error if recipient is not found', async () => {
       const message = new TextEncoder().encode('Hello, world!');
-      const recipients: IMultiRecipient[] = [
+      const recipients: IMultiRecipient<Uint8Array>[] = [
         { id: recipient1.id, publicKey: recipient1.publicKey },
       ];
 
@@ -171,9 +172,7 @@ describe('EciesMultiRecipient', () => {
         message,
       );
 
-      const nonExistentRecipientId = crypto.getRandomValues(
-        new Uint8Array(ECIES.MULTIPLE.RECIPIENT_ID_SIZE),
-      );
+      const nonExistentRecipientId = idProvider.generate();
 
       await expect(
         multiRecipientService.decryptMultipleForRecipient(
@@ -185,7 +184,7 @@ describe('EciesMultiRecipient', () => {
     });
 
     it('should reject requests that exceed the recipient limit', async () => {
-      const baseRecipient: IMultiRecipient = {
+      const baseRecipient: IMultiRecipient<Uint8Array> = {
         id: recipient1.id,
         publicKey: recipient1.publicKey,
       };
@@ -209,7 +208,7 @@ describe('EciesMultiRecipient', () => {
   describe('buildHeader / parseHeader', () => {
     it('should correctly build and parse a multi-recipient header', async () => {
       const message = new TextEncoder().encode('This is a test message.');
-      const recipients: IMultiRecipient[] = [
+      const recipients: IMultiRecipient<Uint8Array>[] = [
         { id: recipient1.id, publicKey: recipient1.publicKey },
         { id: recipient2.id, publicKey: recipient2.publicKey },
       ];
@@ -231,7 +230,7 @@ describe('EciesMultiRecipient', () => {
 
     it('should correctly parse the header size', async () => {
       const message = new TextEncoder().encode('Another test.');
-      const recipients: IMultiRecipient[] = [
+      const recipients: IMultiRecipient<Uint8Array>[] = [
         { id: recipient1.id, publicKey: recipient1.publicKey },
         { id: recipient2.id, publicKey: recipient2.publicKey },
       ];
@@ -253,7 +252,7 @@ describe('EciesMultiRecipient', () => {
 
     it('should throw when recipient metadata is inconsistent', async () => {
       const message = new TextEncoder().encode('Mismatch test.');
-      const recipients: IMultiRecipient[] = [
+      const recipients: IMultiRecipient<Uint8Array>[] = [
         { id: recipient1.id, publicKey: recipient1.publicKey },
         { id: recipient2.id, publicKey: recipient2.publicKey },
       ];
@@ -331,7 +330,7 @@ describe('EciesMultiRecipient', () => {
 
     it('should parse a full message into header and payload segments', async () => {
       const message = new TextEncoder().encode('Payload segmentation test');
-      const recipients: IMultiRecipient[] = [
+      const recipients: IMultiRecipient<Uint8Array>[] = [
         { id: recipient1.id, publicKey: recipient1.publicKey },
         { id: recipient2.id, publicKey: recipient2.publicKey },
       ];

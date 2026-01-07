@@ -95,7 +95,8 @@ export class Poll<TID extends PlatformID> {
   vote(voter: IMember<TID>, vote: EncryptedVote<TID>): VoteReceipt<TID> {
     if (this.isClosed) throw new Error('Poll is closed');
 
-    const voterId = this._toKey(Constants.idProvider.toBytes(voter.id));
+    // Use voter.idBytes directly - it's already the canonical Uint8Array format
+    const voterId = this._toKey(voter.idBytes);
     if (this._receipts.has(voterId)) throw new Error('Already voted');
 
     // Validate vote structure based on method
@@ -109,9 +110,7 @@ export class Poll<TID extends PlatformID> {
     this._receipts.set(voterId, receipt);
 
     // Record vote in audit log
-    const voterIdHash = this._hashVoterId(
-      Constants.idProvider.toBytes(voter.id),
-    );
+    const voterIdHash = this._hashVoterId(voter.idBytes);
     this._auditLog.recordVoteCast(this._id, voterIdHash);
 
     return receipt;
@@ -121,7 +120,7 @@ export class Poll<TID extends PlatformID> {
    * Verify a receipt is valid for this poll
    */
   verifyReceipt(voter: IMember<TID>, receipt: VoteReceipt<TID>): boolean {
-    const voterId = this._toKey(Constants.idProvider.toBytes(voter.id));
+    const voterId = this._toKey(voter.idBytes);
     const stored = this._receipts.get(voterId);
     if (!stored) return false;
 
