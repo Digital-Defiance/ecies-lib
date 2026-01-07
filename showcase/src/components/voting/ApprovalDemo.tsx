@@ -29,6 +29,10 @@ export const ApprovalDemo = () => {
       try {
         const eciesService = new ECIESService<Uint8Array>();
         const { member } = Member.newMember<Uint8Array>(eciesService, MemberType.System, 'Election Authority', new EmailString('authority@example.com'));
+        
+        // Generate voting keys for the authority
+        await member.deriveVotingKeys();
+        
         setAuthority(member as Member<Uint8Array>);
         
         const logger = new PollEventLogger();
@@ -100,7 +104,7 @@ export const ApprovalDemo = () => {
     });
   });
 
-  const reset = () => {
+  const reset = async () => {
     if (!authority) return;
     const newPoll = PollFactory.createApproval<Uint8Array>(candidates.map(c => c.name), authority);
     setPoll(newPoll);
