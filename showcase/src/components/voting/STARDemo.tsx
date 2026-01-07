@@ -6,8 +6,8 @@ import { useVotingDemo } from './useVotingDemo';
 
 export const STARDemo = () => {
   const { isInitializing, setIsInitializing, isTallying, withTallying } = useVotingDemo();
-  const [_poll, setPoll] = useState<Poll | null>(null);
-  const [authority, setAuthority] = useState<Member | null>(null);
+  const [_poll, setPoll] = useState<Poll<Uint8Array> | null>(null);
+  const [authority, setAuthority] = useState<Member<Uint8Array> | null>(null);
   const [voters] = useState(['Voter 1', 'Voter 2', 'Voter 3', 'Voter 4', 'Voter 5', 'Voter 6', 'Voter 7']);
   const [currentVoter, setCurrentVoter] = useState(0);
   const [currentScores, setCurrentScores] = useState<number[]>([5, 5, 5, 5]);
@@ -26,11 +26,11 @@ export const STARDemo = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const eciesService = new ECIESService();
-        const { member } = Member.newMember(eciesService, MemberType.System, 'Election Board', new EmailString('board@election.gov'));
+        const eciesService = new ECIESService<Uint8Array>();
+        const { member } = Member.newMember<Uint8Array>(eciesService, MemberType.System, 'Election Board', new EmailString('board@election.gov'));
         await member.deriveVotingKeys();
-        setAuthority(member as Member);
-        const newPoll = PollFactory.create(candidates.map(c => c.name), 'star' as any, member);
+        setAuthority(member as Member<Uint8Array>);
+        const newPoll = PollFactory.create<Uint8Array>(candidates.map(c => c.name), 'star' as any, member as Member<Uint8Array>);
         setPoll(newPoll);
       } catch (e) {
         console.error('Init failed:', e);
@@ -81,7 +81,7 @@ export const STARDemo = () => {
 
   const reset = () => {
     if (!authority) return;
-    const newPoll = PollFactory.create(candidates.map(c => c.name), 'star' as any, authority);
+    const newPoll = PollFactory.create<Uint8Array>(candidates.map(c => c.name), 'star' as any, authority);
     setPoll(newPoll);
     setVotes(new Map());
     setScoreResults(null);

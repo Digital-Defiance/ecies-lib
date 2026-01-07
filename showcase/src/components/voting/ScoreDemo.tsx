@@ -6,8 +6,8 @@ import { useVotingDemo } from './useVotingDemo';
 
 export const ScoreDemo = () => {
   const { isInitializing, setIsInitializing, isTallying, isSubmitting, withTallying, withSubmitting } = useVotingDemo();
-  const [poll, setPoll] = useState<Poll | null>(null);
-  const [authority, setAuthority] = useState<Member | null>(null);
+  const [poll, setPoll] = useState<Poll<Uint8Array> | null>(null);
+  const [authority, setAuthority] = useState<Member<Uint8Array> | null>(null);
   const [voters] = useState(['Critic A', 'Critic B', 'Critic C', 'Critic D', 'Critic E']);
   const [currentVoter, setCurrentVoter] = useState(0);
   const [currentScores, setCurrentScores] = useState<number[]>([5, 5, 5]);
@@ -24,11 +24,11 @@ export const ScoreDemo = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const eciesService = new ECIESService();
-        const { member } = Member.newMember(eciesService, MemberType.System, 'Academy', new EmailString('academy@awards.com'));
+        const eciesService = new ECIESService<Uint8Array>();
+        const { member } = Member.newMember<Uint8Array>(eciesService, MemberType.System, 'Academy', new EmailString('academy@awards.com'));
         await member.deriveVotingKeys();
         setAuthority(member as Member);
-        const newPoll = PollFactory.create(movies.map(m => m.name), 'score' as any, member);
+        const newPoll = PollFactory.create<Uint8Array>(movies.map(m => m.name), 'score' as any, member as Member<Uint8Array>);
         setPoll(newPoll);
       } catch (e) {
         console.error('Init failed:', e);
@@ -52,14 +52,14 @@ export const ScoreDemo = () => {
   const tallyVotes = () => withTallying(async () => {
     if (!poll || !authority?.votingPrivateKey || !authority?.votingPublicKey) return;
     poll.close();
-    const tallier = new PollTallier(authority, authority.votingPrivateKey, authority.votingPublicKey);
+    const tallier = new PollTallier<Uint8Array>(authority, authority.votingPrivateKey, authority.votingPublicKey);
     const result = tallier.tally(poll);
     setResults(result);
   });
 
   const reset = () => {
     if (!authority) return;
-    const newPoll = PollFactory.create(movies.map(m => m.name), 'score' as any, authority);
+    const newPoll = PollFactory.create<Uint8Array>(movies.map(m => m.name), 'score' as any, authority);
     setPoll(newPoll);
     setVotes(new Map());
     setResults(null);

@@ -6,8 +6,8 @@ import { useVotingDemo } from './useVotingDemo';
 
 export const TwoRoundDemo = () => {
   const { isInitializing, setIsInitializing, isTallying, withTallying } = useVotingDemo();
-  const [poll, setPoll] = useState<Poll | null>(null);
-  const [authority, setAuthority] = useState<Member | null>(null);
+  const [poll, setPoll] = useState<Poll<Uint8Array> | null>(null);
+  const [authority, setAuthority] = useState<Member<Uint8Array> | null>(null);
   const [voters] = useState(['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Henry', 'Iris', 'Jack']);
   const [round1Votes, setRound1Votes] = useState<Map<string, number>>(new Map());
   const [round2Votes, setRound2Votes] = useState<Map<string, number>>(new Map());
@@ -27,11 +27,11 @@ export const TwoRoundDemo = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const eciesService = new ECIESService();
-        const { member } = Member.newMember(eciesService, MemberType.System, 'Electoral Commission', new EmailString('commission@election.gov'));
+        const eciesService = new ECIESService<Uint8Array>();
+        const { member } = Member.newMember<Uint8Array>(eciesService, MemberType.System, 'Electoral Commission', new EmailString('commission@election.gov'));
         await member.deriveVotingKeys();
-        setAuthority(member as Member);
-        const newPoll = PollFactory.createPlurality(candidates.map(c => c.name), member);
+        setAuthority(member as Member<Uint8Array>);
+        const newPoll = PollFactory.createPlurality<Uint8Array>(candidates.map(c => c.name), member as Member<Uint8Array>);
         setPoll(newPoll);
       } catch (e) {
         console.error('Init failed:', e);
@@ -44,10 +44,10 @@ export const TwoRoundDemo = () => {
 
   const castRound1Vote = (voterName: string, candidateIdx: number) => {
     if (!poll || !authority?.votingPublicKey) return;
-    const encoder = new VoteEncoder(authority.votingPublicKey);
+    const encoder = new VoteEncoder<Uint8Array>(authority.votingPublicKey);
     const vote = encoder.encodePlurality(candidateIdx, candidates.length);
-    const eciesService = new ECIESService();
-    const { member: voter } = Member.newMember(eciesService, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
+    const eciesService = new ECIESService<Uint8Array>();
+    const { member: voter } = Member.newMember<Uint8Array>(eciesService, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
     poll.vote(voter, vote);
     setRound1Votes(new Map(round1Votes.set(voterName, candidateIdx)));
   };
@@ -55,7 +55,7 @@ export const TwoRoundDemo = () => {
   const tallyRound1 = () => withTallying(async () => {
     if (!poll || !authority?.votingPrivateKey || !authority?.votingPublicKey) return;
     poll.close();
-    const tallier = new PollTallier(authority, authority.votingPrivateKey, authority.votingPublicKey);
+    const tallier = new PollTallier<Uint8Array>(authority, authority.votingPrivateKey, authority.votingPublicKey);
     const results = tallier.tally(poll);
     setRound1Results(results);
     
@@ -68,17 +68,17 @@ export const TwoRoundDemo = () => {
   const startRound2 = () => {
     if (!authority || topTwo.length !== 2) return;
     const runoffCandidates = topTwo.map(idx => candidates[idx].name);
-    const newPoll = PollFactory.createPlurality(runoffCandidates, authority);
+    const newPoll = PollFactory.createPlurality<Uint8Array>(runoffCandidates, authority);
     setPoll(newPoll);
     setCurrentRound(2);
   };
 
   const castRound2Vote = (voterName: string, topTwoIdx: number) => {
     if (!poll || !authority?.votingPublicKey) return;
-    const encoder = new VoteEncoder(authority.votingPublicKey);
+    const encoder = new VoteEncoder<Uint8Array>(authority.votingPublicKey);
     const vote = encoder.encodePlurality(topTwoIdx, 2);
-    const eciesService = new ECIESService();
-    const { member: voter } = Member.newMember(eciesService, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
+    const eciesService = new ECIESService<Uint8Array>();
+    const { member: voter } = Member.newMember<Uint8Array>(eciesService, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
     poll.vote(voter, vote);
     setRound2Votes(new Map(round2Votes.set(voterName, topTwoIdx)));
   };
@@ -86,14 +86,14 @@ export const TwoRoundDemo = () => {
   const tallyRound2 = () => withTallying(async () => {
     if (!poll || !authority?.votingPrivateKey || !authority?.votingPublicKey) return;
     poll.close();
-    const tallier = new PollTallier(authority, authority.votingPrivateKey, authority.votingPublicKey);
+    const tallier = new PollTallier<Uint8Array>(authority, authority.votingPrivateKey, authority.votingPublicKey);
     const results = tallier.tally(poll);
     setRound2Results(results);
   });
 
   const reset = () => {
     if (!authority) return;
-    const newPoll = PollFactory.createPlurality(candidates.map(c => c.name), authority);
+    const newPoll = PollFactory.createPlurality<Uint8Array>(candidates.map(c => c.name), authority);
     setPoll(newPoll);
     setRound1Votes(new Map());
     setRound2Votes(new Map());

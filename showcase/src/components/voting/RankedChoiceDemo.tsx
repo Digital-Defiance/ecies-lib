@@ -7,7 +7,7 @@ import type { Poll, PollResults } from '@digitaldefiance/ecies-lib';
 export const RankedChoiceDemo = () => {
   const [poll, setPoll] = useState<Poll<Uint8Array> | null>(null);
   const [authority, setAuthority] = useState<Member<Uint8Array> | null>(null);
-  const [bulletinBoard, setBulletinBoard] = useState<PublicBulletinBoard | null>(null);
+  const [bulletinBoard, setBulletinBoard] = useState<PublicBulletinBoard<Uint8Array> | null>(null);
   const [voters] = useState(['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace']);
   const [votes, setVotes] = useState<Map<string, number[]>>(new Map());
   const [submittedVoters, setSubmittedVoters] = useState<Set<string>>(new Set());
@@ -26,15 +26,15 @@ export const RankedChoiceDemo = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const eciesService = new ECIESService();
-        const { member } = Member.newMember(eciesService, MemberType.System, 'Election Commission', new EmailString('commission@election.gov'));
+        const eciesService = new ECIESService<Uint8Array>();
+        const { member } = Member.newMember<Uint8Array>(eciesService, MemberType.System, 'Election Commission', new EmailString('commission@election.gov'));
         await member.deriveVotingKeys();
         setAuthority(member as Member);
         
-        const board = new PublicBulletinBoard(member);
+        const board = new PublicBulletinBoard<Uint8Array>(member);
         setBulletinBoard(board);
         
-        const newPoll = PollFactory.createRankedChoice(candidates.map(c => c.name), member);
+        const newPoll = PollFactory.createRankedChoice<Uint8Array>(candidates.map(c => c.name), member as Member<Uint8Array>);
         setPoll(newPoll);
       } catch (e) {
         console.error('Init failed:', e);
@@ -76,11 +76,11 @@ export const RankedChoiceDemo = () => {
     if (!poll || !authority?.votingPublicKey || !bulletinBoard) return;
     
     const rankings = votes.get(voterName) || [];
-    const encoder = new VoteEncoder(authority.votingPublicKey);
+    const encoder = new VoteEncoder<Uint8Array>(authority.votingPublicKey);
     const vote = encoder.encodeRankedChoice(rankings, candidates.length);
     
-    const eciesService = new ECIESService();
-    const { member: voter } = Member.newMember(eciesService, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
+    const eciesService = new ECIESService<Uint8Array>();
+    const { member: voter } = Member.newMember<Uint8Array>(eciesService, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
     poll.vote(voter, vote);
     
     // Publish encrypted vote to bulletin board
@@ -96,7 +96,7 @@ export const RankedChoiceDemo = () => {
     if (!poll || !authority?.votingPrivateKey || !authority?.votingPublicKey || !bulletinBoard) return;
     
     poll.close();
-    const tallier = new PollTallier(authority, authority.votingPrivateKey, authority.votingPublicKey);
+    const tallier = new PollTallier<Uint8Array>(authority, authority.votingPrivateKey, authority.votingPublicKey);
     const result = tallier.tally(poll);
     
     // Debug logging
@@ -126,12 +126,12 @@ export const RankedChoiceDemo = () => {
 
   const reset = () => {
     if (!authority) return;
-    const newPoll = PollFactory.createRankedChoice(candidates.map(c => c.name), authority);
+    const newPoll = PollFactory.createRankedChoice<Uint8Array>(candidates.map(c => c.name), authority);
     setPoll(newPoll);
     setVotes(new Map());
     setSubmittedVoters(new Set());
     setResults(null);
-    setBulletinBoard(new PublicBulletinBoard(authority));
+    setBulletinBoard(new PublicBulletinBoard<Uint8Array>(authority));
   };
 
   if (isInitializing) return <LoadingSpinner message="Initializing cryptographic voting system..." />;

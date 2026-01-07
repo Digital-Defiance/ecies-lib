@@ -5,8 +5,8 @@ import { VoteEncoder, PollFactory, PollTallier, Member, MemberType, EmailString,
 import type { Poll, PollResults } from '@digitaldefiance/ecies-lib';
 
 export const YesNoDemo = () => {
-  const [poll, setPoll] = useState<Poll | null>(null);
-  const [authority, setAuthority] = useState<Member | null>(null);
+  const [poll, setPoll] = useState<Poll<Uint8Array> | null>(null);
+  const [authority, setAuthority] = useState<Member<Uint8Array> | null>(null);
   const [voters] = useState(['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace']);
   const [votes, setVotes] = useState<Map<string, number>>(new Map());
   const [results, setResults] = useState<PollResults | null>(null);
@@ -16,11 +16,11 @@ export const YesNoDemo = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const eciesService = new ECIESService();
-        const { member } = Member.newMember(eciesService, MemberType.System, 'Electoral Commission', new EmailString('commission@gov.uk'));
+        const eciesService = new ECIESService<Uint8Array>();
+        const { member } = Member.newMember<Uint8Array>(eciesService, MemberType.System, 'Electoral Commission', new EmailString('commission@gov.uk'));
         await member.deriveVotingKeys();
-        setAuthority(member as Member);
-        const newPoll = PollFactory.create(['Yes', 'No'], 'yes-no' as any, member);
+        setAuthority(member as Member<Uint8Array>);
+        const newPoll = PollFactory.create<Uint8Array>(['Yes', 'No'], 'yes-no' as any, member as Member<Uint8Array>);
         setPoll(newPoll);
       } catch (e) {
         console.error('Init failed:', e);
@@ -33,10 +33,10 @@ export const YesNoDemo = () => {
 
   const castVote = (voterName: string, choice: number) => {
     if (!poll || !authority?.votingPublicKey) return;
-    const encoder = new VoteEncoder(authority.votingPublicKey);
+    const encoder = new VoteEncoder<Uint8Array>(authority.votingPublicKey);
     const vote = encoder.encodePlurality(choice, 2);
-    const eciesService = new ECIESService();
-    const { member: voter } = Member.newMember(eciesService, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
+    const eciesService = new ECIESService<Uint8Array>();
+    const { member: voter } = Member.newMember<Uint8Array>(eciesService, MemberType.User, voterName, new EmailString(`${voterName.toLowerCase()}@example.com`));
     poll.vote(voter, vote);
     setVotes(new Map(votes.set(voterName, choice)));
   };
@@ -44,14 +44,14 @@ export const YesNoDemo = () => {
   const tallyVotes = () => withTallying(async () => {
     if (!poll || !authority?.votingPrivateKey || !authority?.votingPublicKey) return;
     poll.close();
-    const tallier = new PollTallier(authority, authority.votingPrivateKey, authority.votingPublicKey);
+    const tallier = new PollTallier<Uint8Array>(authority, authority.votingPrivateKey, authority.votingPublicKey);
     const result = tallier.tally(poll);
     setResults(result);
   });
 
   const reset = () => {
     if (!authority) return;
-    const newPoll = PollFactory.create(['Yes', 'No'], 'yes-no' as any, authority);
+    const newPoll = PollFactory.create<Uint8Array>(['Yes', 'No'], 'yes-no' as any, authority);
     setPoll(newPoll);
     setVotes(new Map());
     setResults(null);
