@@ -23,6 +23,10 @@ class MockMember implements IMember {
     public readonly votingPrivateKey: any,
   ) {}
 
+  get idBytes(): Uint8Array {
+    return this.id;
+  }
+
   sign(_data: Uint8Array): Uint8Array {
     return new Uint8Array(64); // Mock signature
   }

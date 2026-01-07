@@ -122,7 +122,7 @@ export class ObjectIdProvider extends BaseIdProvider<ObjectId> {
   }
 
   /**
-   * Convert any ID representation to canonical Uint8Array format.
+   * Convert ObjectId to canonical Uint8Array format.
    */
   override toBytes(id: ObjectId): Uint8Array {
     return new Uint8Array(id.id);
@@ -136,6 +136,9 @@ export class ObjectIdProvider extends BaseIdProvider<ObjectId> {
     return new ObjectId(new Uint8Array(bytes));
   }
 
+  /**
+   * Compare two ObjectIds for equality.
+   */
   equals(a: ObjectId, b: ObjectId): boolean {
     return a.equals(b);
   }

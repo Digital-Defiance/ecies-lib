@@ -83,6 +83,20 @@ export class GuidV4 implements IGuidV4 {
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   /**
+   * Type guard to check if a value is a Uint8Array
+   */
+  private static isUint8Array(value: unknown): value is Uint8Array {
+    return value instanceof Uint8Array;
+  }
+
+  /**
+   * Type guard to check if a value is a Buffer or Uint8Array
+   */
+  private static isBufferLike(value: unknown): value is Buffer | Uint8Array {
+    return Buffer.isBuffer(value) || GuidV4.isUint8Array(value);
+  }
+
+  /**
    * Cached empty/nil GUID constant (all zeros)
    */
   private static _empty?: GuidV4;
@@ -184,7 +198,13 @@ export class GuidV4 implements IGuidV4 {
       const buffer = GuidV4.toRawGuidBuffer(value);
 
       // Validate against UUID standard (skip for boundary values)
-      const fullHex = GuidV4.toFullHexGuid(buffer.toString('hex'));
+      let hexString: string;
+      if (GuidV4.isUint8Array(buffer) && !Buffer.isBuffer(buffer)) {
+        hexString = Array.from(buffer as Uint8Array).map((b: number) => b.toString(16).padStart(2, '0')).join('');
+      } else {
+        hexString = (buffer as unknown as Buffer).toString('hex');
+      }
+      const fullHex = GuidV4.toFullHexGuid(hexString);
       const isBoundary = GuidV4.isBoundaryValue(fullHex);
 
       if (!isBoundary && !uuid.validate(fullHex)) {
@@ -472,7 +492,13 @@ export class GuidV4 implements IGuidV4 {
    */
   public get asFullHexGuid(): FullHexGuid {
     if (!this._cachedFullHex) {
-      this._cachedFullHex = GuidV4.toFullHexGuid(this._value.toString('hex'));
+      let hexString: string;
+      if (GuidV4.isUint8Array(this._value) && !Buffer.isBuffer(this._value)) {
+        hexString = Array.from(this._value as Uint8Array).map((b: number) => b.toString(16).padStart(2, '0')).join('');
+      } else {
+        hexString = (this._value as unknown as Buffer).toString('hex');
+      }
+      this._cachedFullHex = GuidV4.toFullHexGuid(hexString);
     }
     return this._cachedFullHex;
   }
@@ -685,7 +711,7 @@ export class GuidV4 implements IGuidV4 {
       let valueLength: number;
       if (typeof value === 'bigint') {
         valueLength = value.toString(16).length;
-      } else if (Buffer.isBuffer(value)) {
+      } else if (GuidV4.isBufferLike(value)) {
         valueLength = value.length;
       } else {
         valueLength = String(value).length;
@@ -697,7 +723,13 @@ export class GuidV4 implements IGuidV4 {
       if (result) {
         try {
           const fromBase64: Uint8Array = GuidV4.toRawGuidBuffer(value);
-          const fullHexGuid = GuidV4.toFullHexGuid(fromBase64.toString('hex'));
+          let hexString: string;
+          if (GuidV4.isUint8Array(fromBase64) && !Buffer.isBuffer(fromBase64)) {
+            hexString = Array.from(fromBase64 as Uint8Array).map((b: number) => b.toString(16).padStart(2, '0')).join('');
+          } else {
+            hexString = (fromBase64 as Buffer).toString('hex');
+          }
+          const fullHexGuid = GuidV4.toFullHexGuid(hexString);
           // Boundary values are always valid
           if (GuidV4.isBoundaryValue(fullHexGuid)) {
             return true;
@@ -729,7 +761,7 @@ export class GuidV4 implements IGuidV4 {
       let valueLength: number;
       if (typeof value === 'bigint') {
         valueLength = value.toString(16).length;
-      } else if (Buffer.isBuffer(value)) {
+      } else if (GuidV4.isBufferLike(value)) {
         valueLength = value.length;
       } else {
         valueLength = String(value).length;
@@ -740,10 +772,16 @@ export class GuidV4 implements IGuidV4 {
       }
 
       try {
-        if (!Buffer.isBuffer(value)) {
+        if (!GuidV4.isBufferLike(value)) {
           return false;
         }
-        const fullHexGuid = GuidV4.toFullHexGuid(value.toString('hex'));
+        let hexString: string;
+        if (GuidV4.isUint8Array(value) && !Buffer.isBuffer(value)) {
+          hexString = Array.from(value as Uint8Array).map((b: number) => b.toString(16).padStart(2, '0')).join('');
+        } else {
+          hexString = (value as Buffer).toString('hex');
+        }
+        const fullHexGuid = GuidV4.toFullHexGuid(hexString);
         // Boundary values are always valid
         if (GuidV4.isBoundaryValue(fullHexGuid)) {
           return true;
@@ -803,8 +841,8 @@ export class GuidV4 implements IGuidV4 {
       return GuidBrandType.BigIntGuid;
     }
 
-    const isBuffer = Buffer.isBuffer(value);
-    const expectedLength = isBuffer ? value.length : String(value).length;
+    const isBuffer = GuidV4.isBufferLike(value);
+    const expectedLength = isBuffer ? (value as Buffer | Uint8Array).length : String(value).length;
 
     return GuidV4.lengthToGuidBrand(expectedLength, isBuffer);
   }
@@ -844,12 +882,18 @@ export class GuidV4 implements IGuidV4 {
     if (typeof guid === 'bigint') {
       return GuidV4.toFullHexFromBigInt(guid);
     } else if (
-      Buffer.isBuffer(guid) &&
+      GuidV4.isBufferLike(guid) &&
       guid.length === GuidV4.guidBrandToLength(GuidBrandType.RawGuidBuffer)
     ) {
-      const shortHex = guid.toString('hex') as ShortHexGuid;
+      let hexString: string;
+      if (GuidV4.isUint8Array(guid) && !Buffer.isBuffer(guid)) {
+        hexString = Array.from(guid as Uint8Array).map((b: number) => b.toString(16).padStart(2, '0')).join('');
+      } else {
+        hexString = (guid as unknown as Buffer).toString('hex');
+      }
+      const shortHex = hexString as ShortHexGuid;
       return GuidV4.shortGuidToFullGuid(shortHex);
-    } else if (Buffer.isBuffer(guid)) {
+    } else if (GuidV4.isBufferLike(guid)) {
       throw new GuidError(GuidErrorType.InvalidGuid);
     }
     // all remaining cases are string types
@@ -892,11 +936,15 @@ export class GuidV4 implements IGuidV4 {
       const fullHex = GuidV4.toFullHexFromBigInt(guid);
       return fullHex.replace(/-/g, '') as ShortHexGuid;
     } else if (
-      Buffer.isBuffer(guid) &&
+      GuidV4.isBufferLike(guid) &&
       guid.length === GuidV4.guidBrandToLength(GuidBrandType.RawGuidBuffer)
     ) {
-      return guid.toString('hex') as ShortHexGuid;
-    } else if (Buffer.isBuffer(guid)) {
+      if (GuidV4.isUint8Array(guid) && !Buffer.isBuffer(guid)) {
+        return Array.from(guid as Uint8Array).map((b: number) => b.toString(16).padStart(2, '0')).join('') as ShortHexGuid;
+      } else {
+        return (guid as unknown as Buffer).toString('hex') as ShortHexGuid;
+      }
+    } else if (GuidV4.isBufferLike(guid)) {
       throw new GuidError(GuidErrorType.InvalidGuid);
     }
     // all remaining cases are string types

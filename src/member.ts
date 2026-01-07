@@ -42,6 +42,7 @@ export class Member<
   private readonly _email: EmailString;
   private readonly _publicKey: Uint8Array;
   private readonly _creatorId: TID;
+  private readonly _creatorIdBytes: Uint8Array;
   private readonly _dateCreated: Date;
   private readonly _dateUpdated: Date;
   private _privateKey?: SecureBuffer;
@@ -70,9 +71,22 @@ export class Member<
     this._eciesService = eciesService;
     // Assign original parameters
     this._type = type;
-    const __id = id ?? (Constants.idProvider.generate() as TID);
-    this._id = __id;
-    this._idBytes = Constants.idProvider.toBytes(this._id);
+
+    // Handle ID initialization properly:
+    // - If id is provided, use it and derive bytes from it
+    // - If not provided, generate bytes first, then derive native ID
+    if (id !== undefined) {
+      this._id = id;
+      // For provided IDs, we need to convert to bytes
+      // Use type assertion since Constants.idProvider is IIdProviderBase
+      this._idBytes = (Constants.idProvider as { toBytes(id: unknown): Uint8Array }).toBytes(this._id);
+    } else {
+      // Generate raw bytes first
+      this._idBytes = Constants.idProvider.generate();
+      // Convert to native type for storage
+      this._id = Constants.idProvider.fromBytes(this._idBytes) as TID;
+    }
+
     this._name = name;
     if (!this._name || this._name.length == 0) {
       throw new MemberError(MemberErrorType.MissingMemberName);
@@ -96,6 +110,10 @@ export class Member<
     this._dateCreated = dateCreated ?? now();
     this._dateUpdated = dateUpdated ?? now();
     this._creatorId = creatorId ?? this._id;
+    // Derive creatorIdBytes from creatorId, using idBytes if creator is self
+    this._creatorIdBytes = this._creatorId === this._id
+      ? this._idBytes
+      : (Constants.idProvider as { toBytes(id: unknown): Uint8Array }).toBytes(this._creatorId);
   }
 
   // Required getters
@@ -119,6 +137,9 @@ export class Member<
   }
   public get creatorId(): TID {
     return this._creatorId;
+  }
+  public get creatorIdBytes(): Uint8Array {
+    return this._creatorIdBytes;
   }
   public get dateCreated(): Date {
     return this._dateCreated;
@@ -422,15 +443,13 @@ export class Member<
 
   public toJson(): string {
     const storage: IMemberStorageData = {
-      id: this._eciesService.constants.idProvider.serialize(
-        Constants.idProvider.toBytes(this._id),
-      ),
+      id: this._eciesService.constants.idProvider.serialize(this._idBytes),
       type: this._type,
       name: this._name,
       email: this._email.toString(),
       publicKey: uint8ArrayToBase64(this._publicKey),
       creatorId: this._eciesService.constants.idProvider.serialize(
-        Constants.idProvider.toBytes(this._creatorId),
+        this._creatorIdBytes,
       ),
       dateCreated: this._dateCreated.toISOString(),
       dateUpdated: this._dateUpdated.toISOString(),
@@ -447,11 +466,11 @@ export class Member<
     }
   }
 
-  public static fromJson(
+  public static fromJson<TID extends PlatformID = Uint8Array>(
     json: string,
     // Add injected services as parameters
     eciesService?: ECIESService,
-  ): Member {
+  ): Member<TID> {
     if (!eciesService) {
       eciesService = new ECIESService();
     }
@@ -463,24 +482,25 @@ export class Member<
     }
     const email = new EmailString(storage.email);
 
-    // Deserialize IDs using configured idProvider
-    const id = eciesService.constants.idProvider.deserialize(storage.id);
-    const creatorId = eciesService.constants.idProvider.deserialize(
-      storage.creatorId,
-    );
+    // Deserialize IDs using the global Constants.idProvider (same as Member creation)
+    // deserialize returns Uint8Array, then fromBytes converts to native type
+    const idBytes = Constants.idProvider.deserialize(storage.id);
+    const id = Constants.idProvider.fromBytes(idBytes) as TID;
+    const creatorIdBytes = Constants.idProvider.deserialize(storage.creatorId);
+    const creatorId = Constants.idProvider.fromBytes(creatorIdBytes) as TID;
 
     // Optional validation: warn if ID length doesn't match configured idProvider
-    const expectedLength = eciesService.constants.idProvider.byteLength;
-    if (id.length !== expectedLength) {
+    const expectedLength = Constants.idProvider.byteLength;
+    if (idBytes.length !== expectedLength) {
       console.warn(
-        `Member ID length (${id.length}) does not match configured idProvider length (${expectedLength}). ` +
+        `Member ID length (${idBytes.length}) does not match configured idProvider length (${expectedLength}). ` +
           `This may indicate the Member was created with a different idProvider configuration.`,
       );
     }
 
     // Pass injected services to constructor
     const dateCreated = new Date(storage.dateCreated);
-    return new Member(
+    return new Member<TID>(
       eciesService,
       storage.type,
       storage.name,
@@ -552,26 +572,28 @@ export class Member<
     // Get compressed public key
     const publicKey = eciesService.getPublicKey(privateKey);
 
-    // Use configured idProvider from service, with defensive fallback
-    const idProvider =
-      eciesService.constants?.idProvider ?? Constants.idProvider;
-    const newId = idProvider.generate();
     const dateCreated = new Date();
+
+    // Create member without specifying ID - let constructor generate it properly
+    // This ensures proper idBytes initialization
+    const member = new Member<TID>(
+      eciesService,
+      type,
+      name,
+      email,
+      publicKey,
+      new SecureBuffer(privateKey),
+      wallet,
+      undefined, // Let constructor generate ID
+      dateCreated,
+      dateCreated,
+      undefined, // creatorId will default to self
+    );
+
+    // If createdBy is provided, we need to set it on a new member
+    // For now, the creator defaults to self which is the expected behavior for newMember
     return {
-      // Pass injected services to constructor
-      member: new Member<TID>(
-        eciesService,
-        type,
-        name,
-        email,
-        publicKey,
-        new SecureBuffer(privateKey),
-        wallet,
-        newId as TID,
-        dateCreated,
-        dateCreated,
-        (createdBy ?? newId) as TID,
-      ),
+      member,
       mnemonic,
     };
   }

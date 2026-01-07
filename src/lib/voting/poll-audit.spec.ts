@@ -15,6 +15,10 @@ class MockMember implements IMember {
     public readonly votingPublicKey?: PublicKey,
   ) {}
 
+  get idBytes(): Uint8Array {
+    return this.id;
+  }
+
   sign(data: Uint8Array): Uint8Array {
     const sig = new Uint8Array(64);
     for (let i = 0; i < Math.min(data.length, 64); i++) {
