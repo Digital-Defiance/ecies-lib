@@ -2,6 +2,7 @@ import { ObjectId } from 'bson';
 import { IdProviderErrorType } from '../../enumerations/id-provider-error-type';
 import { IdProviderError } from '../../errors/id-provider';
 import { BaseIdProvider } from '../base-id-provider';
+import { hexToUint8Array } from '../../utils';
 
 /**
  * ID provider for MongoDB/BSON ObjectIDs (12 bytes).
@@ -11,7 +12,7 @@ import { BaseIdProvider } from '../base-id-provider';
  *
  * @see https://docs.mongodb.com/manual/reference/method/ObjectId/
  */
-export class ObjectIdProvider extends BaseIdProvider {
+export class ObjectIdProvider extends BaseIdProvider<ObjectId> {
   readonly byteLength = 12;
   readonly name = 'ObjectID';
 
@@ -109,39 +110,37 @@ export class ObjectIdProvider extends BaseIdProvider {
    * Handles Uint8Array, ObjectId instances, and falls back to String().
    */
   override idToString(id: ObjectId): string {
-    if (id instanceof ObjectId) {
-      return id.toHexString();
-    }
-    return super.idToString(id);
+    return id.toHexString();
   }
 
   /**
    * Convert a string representation of an ID back to an ID buffer.
    * Delegates to deserialize.
    */
-  override idFromString(str: string): Uint8Array {
-    return this.deserialize(str);
+  override idFromString(str: string): ObjectId {
+    return new ObjectId(hexToUint8Array(str));
   }
 
   /**
    * Convert any ID representation to canonical Uint8Array format.
    */
   override toBytes(id: ObjectId): Uint8Array {
-    if (id instanceof ObjectId) {
-      return new Uint8Array(id.id);
-    }
-    return super.toBytes(id);
+    return new Uint8Array(id.id);
   }
 
   /**
    * Convert Uint8Array to ObjectId bytes (stays as Uint8Array for consistency).
    */
-  override fromBytes(bytes: Uint8Array): Uint8Array {
+  override fromBytes(bytes: Uint8Array): ObjectId {
     this.validateLength(bytes, 'ObjectIdProvider.fromBytes');
-    return this.clone(bytes);
+    return new ObjectId(new Uint8Array(bytes));
   }
 
   equals(a: ObjectId, b: ObjectId): boolean {
     return a.equals(b);
+  }
+
+  override clone(id: ObjectId): ObjectId {
+    return new ObjectId(new Uint8Array(id.id));
   }
 }

@@ -7,6 +7,7 @@ import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
 import type { PlatformID } from '../../interfaces';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
+import type { IIdProvider } from '../../interfaces/id-provider';
 import { concatUint8Arrays } from '../../utils';
 import { AESGCMService } from '../aes-gcm';
 import { EciesCryptoCore } from './crypto-core';
@@ -23,13 +24,22 @@ const Constants = getRuntimeConfiguration();
 export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
   protected readonly cryptoCore: EciesCryptoCore;
   protected readonly eciesConsts: IECIESConstants;
+  protected readonly idProvider: IIdProvider<TID>;
 
+  /**
+   * Create a new multi-recipient ECIES instance.
+   * @param config ECIES configuration
+   * @param eciesParams ECIES constants (defaults to global Constants.ECIES)
+   * @param idProvider ID provider for recipient IDs. Defaults to Constants.idProvider.
+   */
   constructor(
     config: IECIESConfig,
     eciesParams: IECIESConstants = Constants.ECIES,
+    idProvider: IIdProvider<TID> = Constants.idProvider as IIdProvider<TID>,
   ) {
     this.cryptoCore = new EciesCryptoCore(config, eciesParams);
     this.eciesConsts = eciesParams;
+    this.idProvider = idProvider;
   }
 
   /**
@@ -239,7 +249,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
         recipient.publicKey,
         symmetricKey,
         ephemeralKeyPair.privateKey,
-        Constants.idProvider.toBytes(recipient.id),
+        this.idProvider.toBytes(recipient.id),
       );
 
       recipientIds.push(recipient.id);
@@ -308,7 +318,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
   ): Promise<Uint8Array> {
     // Find recipient's encrypted key
     const recipientIndex = encryptedData.recipientIds.findIndex((id) =>
-      Constants.idProvider.equals(id, recipientId),
+      this.idProvider.equals(id, recipientId),
     );
 
     if (recipientIndex === -1) {
@@ -339,7 +349,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
       privateKey,
       encryptedKey,
       encryptedData.ephemeralPublicKey,
-      Constants.idProvider.toBytes(recipientId),
+      this.idProvider.toBytes(recipientId),
     );
 
     // Rebuild header to use as AAD
@@ -495,7 +505,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
 
     // Recipient IDs
     const recipientIdsUint8Array = concatUint8Arrays(
-      ...data.recipientIds.map((id) => Constants.idProvider.toBytes(id)),
+      ...data.recipientIds.map((id) => this.idProvider.toBytes(id)),
     );
 
     // Encrypted keys
@@ -622,7 +632,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     const recipientIds: TID[] = [];
     for (let i = 0; i < recipientCount; i++) {
       recipientIds.push(
-        Constants.idProvider.fromBytes(
+        this.idProvider.fromBytes(
           data.slice(offset, offset + recipientIdSize),
         ) as TID,
       );
@@ -692,7 +702,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     const privateKey = recipient.privateKey?.value || new Uint8Array();
     return this.decryptMultipleForRecipient(
       encryptedData,
-      Constants.idProvider.fromBytes(recipient.idBytes) as TID,
+      this.idProvider.fromBytes(recipient.idBytes) as TID,
       privateKey,
     );
   }

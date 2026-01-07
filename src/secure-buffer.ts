@@ -1,3 +1,4 @@
+import { ObjectId } from 'bson';
 import { Constants } from './constants';
 import { SecureStorageErrorType } from './enumerations/secure-storage-error-type';
 import { DisposedError } from './errors/disposed';
@@ -6,11 +7,6 @@ import type { IIdProvider } from './interfaces/id-provider';
 import { ObjectIdProvider } from './lib/id-providers/objectid-provider';
 import { XorService } from './services/xor';
 import { uint8ArrayToHex } from './utils';
-
-/**
- * Default ID provider (singleton, no circular dependency)
- */
-const DEFAULT_ID_PROVIDER = new ObjectIdProvider();
 
 /**
  * A secure string buffer is a buffer whose intent is to prevent the raw password from being stored in memory.
@@ -27,7 +23,7 @@ const DEFAULT_ID_PROVIDER = new ObjectIdProvider();
 export class SecureBuffer implements Disposable {
   private _disposed: boolean = false;
   private readonly _id: Uint8Array;
-  private readonly _idProvider: IIdProvider;
+  private readonly _idProvider: ObjectIdProvider;
   private readonly _length: number;
   private readonly _obfuscatedValue: Uint8Array;
   private readonly _key: Uint8Array;
@@ -36,9 +32,8 @@ export class SecureBuffer implements Disposable {
 
   constructor(
     data?: Uint8Array,
-    idProvider: IIdProvider = DEFAULT_ID_PROVIDER,
   ) {
-    this._idProvider = idProvider;
+    this._idProvider = new ObjectIdProvider();
     this._id = this._idProvider.generate();
     // don't bother encrypting an empty buffer
     if (data === undefined || data.length === 0) {
@@ -75,12 +70,12 @@ export class SecureBuffer implements Disposable {
   }
 
   /**
-   * Factory method for backward compatibility that uses Constants.idProvider
+   * Factory method for backward compatibility that uses the default ObjectIdProvider
    * @param data Optional data to secure
-   * @returns A new SecureBuffer instance using the global ID provider
+   * @returns A new SecureBuffer instance using the default ID provider
    */
   static create(data?: Uint8Array): SecureBuffer {
-    return new SecureBuffer(data, Constants.idProvider);
+    return new SecureBuffer(data);
   }
 
   /**

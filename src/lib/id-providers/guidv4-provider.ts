@@ -12,7 +12,7 @@ import { GuidV4 } from '../guid';
  *
  * Serialization uses base64 for compactness (24 characters vs 36 for hex with dashes).
  */
-export class GuidV4Provider extends BaseIdProvider {
+export class GuidV4Provider extends BaseIdProvider<GuidV4> {
   readonly byteLength = 16;
   readonly name = 'GUIDv4';
 
@@ -35,7 +35,7 @@ export class GuidV4Provider extends BaseIdProvider {
 
     try {
       // Convert to GuidV4 and validate
-      const guid = new GuidV4(Buffer.from(id));
+      const guid = GuidV4.fromUint8Array(id);
       return guid.isValidV4();
     } catch {
       return false;
@@ -128,22 +128,31 @@ export class GuidV4Provider extends BaseIdProvider {
    * Convert an ID of unknown type to a string representation.
    * Handles Uint8Array, GuidV4 instances, and falls back to String().
    */
-  override idToString(id: unknown): string {
-    if (id instanceof GuidV4) {
-      return id.asBase64Guid;
-    }
-    return super.idToString(id);
+  override idToString(id: GuidV4): string {
+    return id.asFullHexGuid;
   }
 
   /**
    * Convert a string representation of an ID back to an ID buffer.
    * Delegates to deserialize.
    */
-  override idFromString(str: string): Uint8Array {
-    return this.deserialize(str);
+  override idFromString(str: string): GuidV4 {
+    return GuidV4.parse(str);
   }
 
   override equals(a: GuidV4, b: GuidV4): boolean {
     return a.equals(b);
+  }
+
+  override clone(id: GuidV4): GuidV4 {
+    return GuidV4.parse(id.asFullHexGuid);
+  }
+
+  override fromBytes(bytes: Uint8Array): GuidV4 {
+    return GuidV4.fromUint8Array(bytes);
+  }
+
+  override toBytes(id: GuidV4): Uint8Array {
+    return id.asRawGuidBuffer;
   }
 }

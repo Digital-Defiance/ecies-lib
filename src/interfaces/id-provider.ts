@@ -1,8 +1,9 @@
 /**
- * Interface for ID providers that supply recipient identifiers.
- * This allows the library to support various ID formats (ObjectID, GUID, UUID, custom).
+ * Base interface for ID providers with Uint8Array-based operations.
+ * This non-generic interface is used by IConstants and validation functions
+ * that don't need to know the native ID type.
  */
-export interface IIdProvider {
+export interface IIdProviderBase {
   /**
    * The fixed byte length of IDs produced by this provider.
    * This determines the size of recipient ID fields in encrypted messages.
@@ -48,40 +49,8 @@ export interface IIdProvider {
   deserialize(str: string): Uint8Array;
 
   /**
-   * Compare two IDs for equality.
-   * Default implementation uses constant-time comparison.
-   * @param a First ID
-   * @param b Second ID
-   * @returns True if IDs are equal, false otherwise
-   */
-  equals(a: unknown, b: unknown): boolean;
-
-  /**
-   * Clone an ID buffer.
-   * Default implementation creates a defensive copy.
-   * @param id The ID to clone
-   * @returns A new Uint8Array with the same contents
-   */
-  clone(id: Uint8Array): Uint8Array;
-
-  /**
-   * Convert an ID of unknown type to a string representation.
-   * This is useful when dealing with generic IDs that might be Uint8Array, string, or other types.
-   * @param id The ID to convert
-   * @returns A string representation of the ID
-   */
-  idToString(id: unknown): string;
-
-  /**
-   * Convert a string representation of an ID back to an ID buffer.
-   * This is an alias for `deserialize` to provide symmetry with `idToString`.
-   * @param str The string representation of the ID
-   * @returns The ID as a Uint8Array of length `byteLength`
-   */
-  idFromString(str: string): Uint8Array;
-
-  /**
    * Convert any ID representation to canonical Uint8Array format.
+   * At the base level, accepts unknown and returns Uint8Array.
    * @param id The ID in any supported format
    * @returns The ID as a Uint8Array of length `byteLength`
    */
@@ -89,8 +58,68 @@ export interface IIdProvider {
 
   /**
    * Convert Uint8Array to the provider's native representation.
+   * At the base level, returns unknown.
    * @param bytes The ID as a Uint8Array
    * @returns The ID in the provider's native format
    */
   fromBytes(bytes: Uint8Array): unknown;
+}
+
+/**
+ * Full interface for ID providers that supply recipient identifiers.
+ * This allows the library to support various ID formats (ObjectID, GUID, UUID, custom).
+ *
+ * The generic type T represents the provider's "native" ID type:
+ * - ObjectIdProvider: T = ObjectId
+ * - GuidV4Provider: T = GuidV4
+ * - UuidProvider: T = string
+ * - CustomIdProvider: T = Uint8Array
+ */
+export interface IIdProvider<T> extends IIdProviderBase {
+  /**
+   * Compare two IDs for equality.
+   * Default implementation uses constant-time comparison.
+   * @param a First ID
+   * @param b Second ID
+   * @returns True if IDs are equal, false otherwise
+   */
+  equals(a: T, b: T): boolean;
+
+  /**
+   * Clone an ID buffer.
+   * Default implementation creates a defensive copy.
+   * @param id The ID to clone
+   * @returns A new Uint8Array with the same contents
+   */
+  clone(id: T): T;
+
+  /**
+   * Convert an ID of unknown type to a string representation.
+   * This is useful when dealing with generic IDs that might be Uint8Array, string, or other types.
+   * @param id The ID to convert
+   * @returns A string representation of the ID
+   */
+  idToString(id: T): string;
+
+  /**
+   * Convert a string representation of an ID back to an ID buffer.
+   * This is an alias for `deserialize` to provide symmetry with `idToString`.
+   * @param str The string representation of the ID
+   * @returns The ID as a Uint8Array of length `byteLength`
+   */
+  idFromString(str: string): T;
+
+  /**
+   * Convert any ID representation to canonical Uint8Array format.
+   * @param id The ID in any supported format
+   * @returns The ID as a Uint8Array of length `byteLength`
+   */
+  toBytes(id: T): Uint8Array;
+
+  /**
+   * Convert Uint8Array to the provider's native representation.
+   * @param bytes The ID as a Uint8Array
+   * @returns The ID in the provider's native format
+   */
+  fromBytes(bytes: Uint8Array): T;
 }

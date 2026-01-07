@@ -6,6 +6,7 @@ export * from './ecies-consts';
 export * from './ecies-file-service';
 export * from './ecies-library';
 export * from './guid';
+export type { IIdProvider, IIdProviderBase } from './id-provider';
 export type * from './member';
 export * from './member-storage';
 export type * from './member-with-mnemonic';

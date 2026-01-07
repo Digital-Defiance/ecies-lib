@@ -27,5 +27,5 @@ export { GuidV4Provider } from './guidv4-provider';
 export { ObjectIdProvider } from './objectid-provider';
 export { UuidProvider } from './uuid-provider';
 
-export type { IIdProvider } from '../../interfaces/id-provider';
+export type { IIdProvider, IIdProviderBase } from '../../interfaces/id-provider';
 export { BaseIdProvider } from '../base-id-provider';

@@ -17,7 +17,7 @@ import { BaseIdProvider } from '../base-id-provider';
  * This is functionally similar to GuidV4Provider but uses standard UUID
  * string formatting (with dashes) instead of base64.
  */
-export class UuidProvider extends BaseIdProvider {
+export class UuidProvider extends BaseIdProvider<string> {
   readonly byteLength = 16;
   readonly name = 'UUID';
 
@@ -130,7 +130,7 @@ export class UuidProvider extends BaseIdProvider {
    * Convert an ID of unknown type to a string representation.
    * Delegates to base implementation.
    */
-  override idToString(id: unknown): string {
+  override idToString(id: string): string {
     return super.idToString(id);
   }
 
@@ -138,11 +138,23 @@ export class UuidProvider extends BaseIdProvider {
    * Convert a string representation of an ID back to an ID buffer.
    * Delegates to deserialize.
    */
-  override idFromString(str: string): Uint8Array {
-    return this.deserialize(str);
+  override idFromString(str: string): string {
+    return this.fromBytes(this.deserialize(str));
   }
 
-  override equals(a: Uint8Array, b: Uint8Array): boolean {
-    return arraysEqual(a, b);
+  override equals(a: string, b: string): boolean {
+    return a === b;
+  }
+
+  clone(id: string): string {
+    return id; // strings are immutable, no need to copy
+  }
+
+  toBytes(id: string): Uint8Array {
+    return this.deserialize(id); // UUID string → bytes
+  }
+
+  fromBytes(bytes: Uint8Array): string {
+    return this.serialize(bytes); // bytes → UUID string
   }
 }

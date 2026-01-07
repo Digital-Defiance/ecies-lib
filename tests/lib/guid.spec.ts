@@ -62,6 +62,17 @@ describe('GuidV4', () => {
         expect(Buffer.compare(guid.asRawGuidBuffer, testRawGuidBuffer)).toBe(0);
       });
 
+      it('should create from raw Uint8Array', () => {
+        // Create a raw Uint8Array (not wrapped in Buffer) to test browser compatibility
+        const uint8Array = new Uint8Array([
+          0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4, 0xa7, 0x16, 0x44,
+          0x66, 0x55, 0x44, 0x00, 0x00,
+        ]);
+        const guid = new GuidV4(uint8Array);
+        expect(guid).toBeInstanceOf(GuidV4);
+        expect(guid.asFullHexGuid).toBe(testFullHexGuid);
+      });
+
       it('should create from valid UUID v4', () => {
         const validUuid = uuid.v4();
         const guid = new GuidV4(validUuid as FullHexGuid);
@@ -1566,6 +1577,43 @@ describe('GuidV4', () => {
         expect(() => GuidV4.fromBuffer(wrongBuffer as RawGuidBuffer)).toThrow(
           GuidError,
         );
+      });
+    });
+
+    describe('fromUint8Array', () => {
+      it('should create a GUID from Uint8Array', () => {
+        // Create raw Uint8Array (not wrapped in Buffer) for browser compatibility
+        const uint8Array = new Uint8Array([
+          0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4, 0xa7, 0x16, 0x44,
+          0x66, 0x55, 0x44, 0x00, 0x00,
+        ]);
+        const guid = GuidV4.fromUint8Array(uint8Array);
+        expect(guid).toBeInstanceOf(GuidV4);
+        expect(guid.asFullHexGuid).toBe(testFullHexGuid);
+      });
+
+      it('should throw on wrong Uint8Array length', () => {
+        const wrongLength = new Uint8Array([0x01, 0x02, 0x03]);
+        expect(() => GuidV4.fromUint8Array(wrongLength)).toThrow(GuidError);
+      });
+
+      it('should handle all zeros Uint8Array', () => {
+        const zeros = new Uint8Array(16).fill(0);
+        const guid = GuidV4.fromUint8Array(zeros);
+        expect(guid.asFullHexGuid).toBe(allZerosFullHex);
+      });
+
+      it('should handle all 0xFF Uint8Array', () => {
+        const ffs = new Uint8Array(16).fill(0xff);
+        const guid = GuidV4.fromUint8Array(ffs);
+        expect(guid.asFullHexGuid).toBe(allFsFullHex);
+      });
+
+      it('should roundtrip from asUint8Array', () => {
+        const original = GuidV4.generate();
+        const uint8 = original.asUint8Array;
+        const reconstructed = GuidV4.fromUint8Array(uint8);
+        expect(reconstructed.equals(original)).toBe(true);
       });
     });
   });

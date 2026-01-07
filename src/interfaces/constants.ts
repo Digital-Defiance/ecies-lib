@@ -1,7 +1,7 @@
 import type { Pbkdf2Profiles } from '../pbkdf2-profiles';
 import type { IChecksumConsts } from './checksum-consts';
 import type { IECIESConstants } from './ecies-consts';
-import type { IIdProvider } from './id-provider';
+import type { IIdProviderBase } from './id-provider';
 import type { IPBkdf2Consts } from './pbkdf2-consts';
 import type { IVotingConsts } from './voting-consts';
 
@@ -35,6 +35,10 @@ export interface IConstants {
    *
    * Default: ObjectIdProvider (12 bytes, MongoDB compatible)
    *
+   * The base interface provides Uint8Array-based operations (generate, validate,
+   * serialize, deserialize). For typed operations with the native ID type,
+   * cast to the specific provider type or use IIdProvider<T>.
+   *
    * @example
    * ```typescript
    * import { GuidV4Provider } from './lib/id-providers';
@@ -43,9 +47,13 @@ export interface IConstants {
    * const config = createRuntimeConfiguration({
    *   idProvider: new GuidV4Provider()
    * });
+   *
+   * // For typed access:
+   * const provider = config.idProvider as GuidV4Provider;
+   * const guid = provider.fromBytes(provider.generate());
    * ```
    */
-  idProvider: IIdProvider;
+  idProvider: IIdProviderBase;
 
   CHECKSUM: IChecksumConsts;
   ECIES: IECIESConstants;

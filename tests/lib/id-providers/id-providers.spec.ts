@@ -26,8 +26,10 @@ describe('ID Providers', () => {
       expect(id1.length).toBe(12);
       expect(provider.validate(id1)).toBe(true);
 
-      // Should be unique
-      expect(provider.equals(id1, id2)).toBe(false);
+      // Should be unique - convert to native type for comparison
+      const obj1 = provider.fromBytes(id1);
+      const obj2 = provider.fromBytes(id2);
+      expect(provider.equals(obj1, obj2)).toBe(false);
     });
 
     it('should serialize to 24-character hex string', () => {
@@ -43,7 +45,9 @@ describe('ID Providers', () => {
       const serialized = provider.serialize(id);
       const deserialized = provider.deserialize(serialized);
 
-      expect(provider.equals(id, deserialized)).toBe(true);
+      const obj1 = provider.fromBytes(id);
+      const obj2 = provider.fromBytes(deserialized);
+      expect(provider.equals(obj1, obj2)).toBe(true);
     });
 
     it('should reject invalid ObjectIDs', () => {
@@ -56,29 +60,42 @@ describe('ID Providers', () => {
 
     it('should clone IDs', () => {
       const id = provider.generate();
-      const cloned = provider.clone(id);
+      const obj = provider.fromBytes(id);
+      const cloned = provider.clone(obj);
 
-      expect(provider.equals(id, cloned)).toBe(true);
-      expect(id).not.toBe(cloned); // Different objects
+      expect(provider.equals(obj, cloned)).toBe(true);
+      expect(obj).not.toBe(cloned); // Different objects
     });
 
-    it('should perform constant-time equality comparison', () => {
+    it('should perform equality comparison', () => {
       const id1 = provider.generate();
-      const id2 = provider.clone(id1);
-      const id3 = provider.generate();
+      const obj1 = provider.fromBytes(id1);
+      const obj2 = provider.clone(obj1);
+      const obj3 = provider.fromBytes(provider.generate());
 
-      expect(provider.equals(id1, id2)).toBe(true);
-      expect(provider.equals(id1, id3)).toBe(false);
+      expect(provider.equals(obj1, obj2)).toBe(true);
+      expect(provider.equals(obj1, obj3)).toBe(false);
     });
 
     it('should convert to/from bytes', () => {
       const id = provider.generate();
-      const bytes = provider.toBytes(id);
+      const obj = provider.fromBytes(id);
+      const bytes = provider.toBytes(obj);
       const restored = provider.fromBytes(bytes);
 
       expect(bytes).toBeInstanceOf(Uint8Array);
       expect(bytes.length).toBe(12);
-      expect(provider.equals(id, restored)).toBe(true);
+      expect(provider.equals(obj, restored)).toBe(true);
+    });
+
+    it('should convert to/from string', () => {
+      const id = provider.generate();
+      const obj = provider.fromBytes(id);
+      const str = provider.idToString(obj);
+      const restored = provider.idFromString(str);
+
+      expect(typeof str).toBe('string');
+      expect(provider.equals(obj, restored)).toBe(true);
     });
   });
 
@@ -102,8 +119,10 @@ describe('ID Providers', () => {
       expect(id1.length).toBe(16);
       expect(provider.validate(id1)).toBe(true);
 
-      // Should be unique
-      expect(provider.equals(id1, id2)).toBe(false);
+      // Should be unique - convert to native type for comparison
+      const guid1 = provider.fromBytes(id1);
+      const guid2 = provider.fromBytes(id2);
+      expect(provider.equals(guid1, guid2)).toBe(false);
     });
 
     it('should serialize to base64 string', () => {
@@ -119,7 +138,9 @@ describe('ID Providers', () => {
       const serialized = provider.serialize(id);
       const deserialized = provider.deserialize(serialized);
 
-      expect(provider.equals(id, deserialized)).toBe(true);
+      const guid1 = provider.fromBytes(id);
+      const guid2 = provider.fromBytes(deserialized);
+      expect(provider.equals(guid1, guid2)).toBe(true);
     });
 
     it('should validate v4 GUIDs', () => {
@@ -138,12 +159,32 @@ describe('ID Providers', () => {
 
     it('should convert to/from bytes', () => {
       const id = provider.generate();
-      const bytes = provider.toBytes(id);
+      const guid = provider.fromBytes(id);
+      const bytes = provider.toBytes(guid);
       const restored = provider.fromBytes(bytes);
 
       expect(bytes).toBeInstanceOf(Uint8Array);
       expect(bytes.length).toBe(16);
-      expect(provider.equals(id, restored)).toBe(true);
+      expect(provider.equals(guid, restored)).toBe(true);
+    });
+
+    it('should clone IDs', () => {
+      const id = provider.generate();
+      const guid = provider.fromBytes(id);
+      const cloned = provider.clone(guid);
+
+      expect(provider.equals(guid, cloned)).toBe(true);
+      expect(guid).not.toBe(cloned); // Different objects
+    });
+
+    it('should convert to/from string', () => {
+      const id = provider.generate();
+      const guid = provider.fromBytes(id);
+      const str = provider.idToString(guid);
+      const restored = provider.idFromString(str);
+
+      expect(typeof str).toBe('string');
+      expect(provider.equals(guid, restored)).toBe(true);
     });
   });
 
@@ -167,8 +208,10 @@ describe('ID Providers', () => {
       expect(id1.length).toBe(16);
       expect(provider.validate(id1)).toBe(true);
 
-      // Should be unique
-      expect(provider.equals(id1, id2)).toBe(false);
+      // Should be unique - convert to native type (string) for comparison
+      const str1 = provider.fromBytes(id1);
+      const str2 = provider.fromBytes(id2);
+      expect(provider.equals(str1, str2)).toBe(false);
     });
 
     it('should serialize to UUID format with dashes', () => {
@@ -186,7 +229,9 @@ describe('ID Providers', () => {
       const serialized = provider.serialize(id);
       const deserialized = provider.deserialize(serialized);
 
-      expect(provider.equals(id, deserialized)).toBe(true);
+      const str1 = provider.fromBytes(id);
+      const str2 = provider.fromBytes(deserialized);
+      expect(provider.equals(str1, str2)).toBe(true);
     });
 
     it('should extract version from UUID', () => {
@@ -206,12 +251,32 @@ describe('ID Providers', () => {
 
     it('should convert to/from bytes', () => {
       const id = provider.generate();
-      const bytes = provider.toBytes(id);
+      const str = provider.fromBytes(id);
+      const bytes = provider.toBytes(str);
       const restored = provider.fromBytes(bytes);
 
       expect(bytes).toBeInstanceOf(Uint8Array);
       expect(bytes.length).toBe(16);
-      expect(provider.equals(id, restored)).toBe(true);
+      expect(provider.equals(str, restored)).toBe(true);
+    });
+
+    it('should clone IDs (strings are immutable)', () => {
+      const id = provider.generate();
+      const str = provider.fromBytes(id);
+      const cloned = provider.clone(str);
+
+      expect(provider.equals(str, cloned)).toBe(true);
+      expect(str).toBe(cloned); // Strings are immutable, same reference is fine
+    });
+
+    it('should convert to/from string', () => {
+      const id = provider.generate();
+      const uuidStr = provider.fromBytes(id);
+      const str = provider.idToString(uuidStr);
+      const restored = provider.idFromString(str);
+
+      expect(typeof str).toBe('string');
+      expect(provider.equals(uuidStr, restored)).toBe(true);
     });
   });
 
@@ -246,6 +311,7 @@ describe('ID Providers', () => {
       const serialized = provider.serialize(id);
       const deserialized = provider.deserialize(serialized);
 
+      // CustomIdProvider uses Uint8Array as native type
       expect(provider.equals(id, deserialized)).toBe(true);
     });
 
@@ -261,7 +327,7 @@ describe('ID Providers', () => {
       expect(provider.name).toBe('Custom');
     });
 
-    it('should convert to/from bytes', () => {
+    it('should convert to/from bytes (pass-through for CustomIdProvider)', () => {
       const provider = new CustomIdProvider(20);
       const id = provider.generate();
       const bytes = provider.toBytes(id);
@@ -271,18 +337,64 @@ describe('ID Providers', () => {
       expect(bytes.length).toBe(20);
       expect(provider.equals(id, restored)).toBe(true);
     });
+
+    it('should clone IDs', () => {
+      const provider = new CustomIdProvider(16);
+      const id = provider.generate();
+      const cloned = provider.clone(id);
+
+      expect(provider.equals(id, cloned)).toBe(true);
+      expect(id).not.toBe(cloned); // Different Uint8Array instances
+    });
+
+    it('should convert to/from string', () => {
+      const provider = new CustomIdProvider(12);
+      const id = provider.generate();
+      const str = provider.idToString(id);
+      const restored = provider.idFromString(str);
+
+      expect(typeof str).toBe('string');
+      expect(provider.equals(id, restored)).toBe(true);
+    });
+
+    it('should use constant-time equality comparison', () => {
+      const provider = new CustomIdProvider(16);
+      const id1 = provider.generate();
+      const id2 = provider.clone(id1);
+      const id3 = provider.generate();
+
+      expect(provider.equals(id1, id2)).toBe(true);
+      expect(provider.equals(id1, id3)).toBe(false);
+    });
   });
 
   describe('Cross-provider compatibility', () => {
-    it('should not allow comparing IDs from different providers', () => {
+    it('should have different native types for different providers', () => {
       const objectIdProvider = new ObjectIdProvider();
       const guidProvider = new GuidV4Provider();
+      const uuidProvider = new UuidProvider();
+      const customProvider = new CustomIdProvider(12);
 
-      const objectId = objectIdProvider.generate();
-      const guid = guidProvider.generate();
+      const objectIdBytes = objectIdProvider.generate();
+      const guidBytes = guidProvider.generate();
+      const uuidBytes = uuidProvider.generate();
+      const customBytes = customProvider.generate();
 
-      // Different lengths should not be equal
-      expect(objectIdProvider.equals(objectId, guid)).toBe(false);
+      // ObjectIdProvider native type is ObjectId
+      const objectId = objectIdProvider.fromBytes(objectIdBytes);
+      expect(objectId.toHexString).toBeDefined();
+
+      // GuidV4Provider native type is GuidV4
+      const guid = guidProvider.fromBytes(guidBytes);
+      expect(guid.asFullHexGuid).toBeDefined();
+
+      // UuidProvider native type is string
+      const uuid = uuidProvider.fromBytes(uuidBytes);
+      expect(typeof uuid).toBe('string');
+
+      // CustomIdProvider native type is Uint8Array
+      const custom = customProvider.fromBytes(customBytes);
+      expect(custom).toBeInstanceOf(Uint8Array);
     });
 
     it('should maintain distinct serialization formats', () => {
@@ -300,6 +412,37 @@ describe('ID Providers', () => {
       expect(uuidStr.length).toBe(36);
       expect(uuidStr).toContain('-');
       expect(objectIdStr).not.toContain('-');
+    });
+
+    it('should all implement IIdProvider interface consistently', () => {
+      const providers = [
+        new ObjectIdProvider(),
+        new GuidV4Provider(),
+        new UuidProvider(),
+        new CustomIdProvider(16),
+      ];
+
+      for (const provider of providers) {
+        // All providers should have these properties/methods
+        expect(typeof provider.byteLength).toBe('number');
+        expect(typeof provider.name).toBe('string');
+        expect(typeof provider.generate).toBe('function');
+        expect(typeof provider.validate).toBe('function');
+        expect(typeof provider.serialize).toBe('function');
+        expect(typeof provider.deserialize).toBe('function');
+        expect(typeof provider.equals).toBe('function');
+        expect(typeof provider.clone).toBe('function');
+        expect(typeof provider.toBytes).toBe('function');
+        expect(typeof provider.fromBytes).toBe('function');
+        expect(typeof provider.idToString).toBe('function');
+        expect(typeof provider.idFromString).toBe('function');
+
+        // Generate should return Uint8Array of correct length
+        const bytes = provider.generate();
+        expect(bytes).toBeInstanceOf(Uint8Array);
+        expect(bytes.length).toBe(provider.byteLength);
+        expect(provider.validate(bytes)).toBe(true);
+      }
     });
   });
 });

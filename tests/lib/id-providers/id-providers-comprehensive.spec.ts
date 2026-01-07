@@ -10,9 +10,10 @@
  * 6. Format compliance (ObjectID, UUID, GUID standards)
  * 7. Performance characteristics
  * 8. Cross-provider compatibility
+ * 9. Native type conversion (toBytes/fromBytes)
+ * 10. String conversion (idToString/idFromString)
  */
 
-import { IIdProvider } from '../../../src/interfaces/id-provider';
 import {
   CustomIdProvider,
   GuidV4Provider,
@@ -160,7 +161,10 @@ describe('ID Providers - Comprehensive Tests', () => {
           const serialized = provider.serialize(original);
           const deserialized = provider.deserialize(serialized);
 
-          expect(provider.equals(original, deserialized)).toBe(true);
+          // Compare as native types
+          const obj1 = provider.fromBytes(original);
+          const obj2 = provider.fromBytes(deserialized);
+          expect(provider.equals(obj1, obj2)).toBe(true);
         }
       });
 
@@ -172,7 +176,9 @@ describe('ID Providers - Comprehensive Tests', () => {
         const fromLower = provider.deserialize(lower);
         const fromUpper = provider.deserialize(upper);
 
-        expect(provider.equals(fromLower, fromUpper)).toBe(true);
+        const obj1 = provider.fromBytes(fromLower);
+        const obj2 = provider.fromBytes(fromUpper);
+        expect(provider.equals(obj1, obj2)).toBe(true);
       });
 
       it('should reject invalid hex strings', () => {
@@ -195,7 +201,8 @@ describe('ID Providers - Comprehensive Tests', () => {
 
     describe('Equality and Comparison', () => {
       it('should correctly compare identical IDs', () => {
-        const id = provider.generate();
+        const bytes = provider.generate();
+        const id = provider.fromBytes(bytes);
         const clone = provider.clone(id);
 
         expect(provider.equals(id, clone)).toBe(true);
@@ -203,54 +210,24 @@ describe('ID Providers - Comprehensive Tests', () => {
       });
 
       it('should correctly compare different IDs', () => {
-        const id1 = provider.generate();
-        const id2 = provider.generate();
+        const id1 = provider.fromBytes(provider.generate());
+        const id2 = provider.fromBytes(provider.generate());
 
         expect(provider.equals(id1, id2)).toBe(false);
       });
 
-      it('should be constant-time for same-length inputs', () => {
-        // This test verifies timing doesn't leak equality information
-        const id1 = provider.generate();
-        const id2 = provider.generate();
-        const id3 = provider.clone(id1);
+      it('should be consistent with byte comparison', () => {
+        const bytes = provider.generate();
+        const id1 = provider.fromBytes(bytes);
+        const id2 = provider.fromBytes(new Uint8Array(bytes));
 
-        // Modify only the last byte
-        id3[11] = id3[11] ^ 0xff;
-
-        const iterations = 10000;
-
-        // Time comparison of different IDs
-        const start1 = process.hrtime.bigint();
-        for (let i = 0; i < iterations; i++) {
-          provider.equals(id1, id2);
-        }
-        const time1 = Number(process.hrtime.bigint() - start1);
-
-        // Time comparison of IDs differing only in last byte
-        const start2 = process.hrtime.bigint();
-        for (let i = 0; i < iterations; i++) {
-          provider.equals(id1, id3);
-        }
-        const time2 = Number(process.hrtime.bigint() - start2);
-
-        // Times should be similar (within reasonable margin)
-        // Note: Timing tests can be flaky, so we use a generous margin
-        const ratio = Math.max(time1, time2) / Math.min(time1, time2);
-        expect(ratio).toBeLessThan(50.0); // Increased for CI stability
-      });
-
-      it('should handle length mismatch gracefully', () => {
-        const id1 = provider.generate();
-        const id2 = new Uint8Array(16);
-
-        expect(provider.equals(id1, id2)).toBe(false);
+        expect(provider.equals(id1, id2)).toBe(true);
       });
     });
 
     describe('Cloning', () => {
       it('should create independent copies', () => {
-        const original = provider.generate();
+        const original = provider.fromBytes(provider.generate());
         const cloned = provider.clone(original);
 
         // Should be equal
@@ -258,10 +235,45 @@ describe('ID Providers - Comprehensive Tests', () => {
 
         // But not the same object
         expect(original).not.toBe(cloned);
+      });
+    });
 
-        // Modifying clone shouldn't affect original
-        cloned[0] = cloned[0] ^ 0xff;
-        expect(provider.equals(original, cloned)).toBe(false);
+    describe('Native Type Conversion', () => {
+      it('should round-trip through toBytes/fromBytes', () => {
+        const bytes = provider.generate();
+        const native = provider.fromBytes(bytes);
+        const backToBytes = provider.toBytes(native);
+
+        expect(backToBytes.length).toBe(bytes.length);
+        for (let i = 0; i < bytes.length; i++) {
+          expect(backToBytes[i]).toBe(bytes[i]);
+        }
+      });
+
+      it('should produce ObjectId instances from fromBytes', () => {
+        const bytes = provider.generate();
+        const native = provider.fromBytes(bytes);
+
+        expect(native.toHexString).toBeDefined();
+        expect(typeof native.toHexString()).toBe('string');
+      });
+    });
+
+    describe('String Conversion', () => {
+      it('should convert to string with idToString', () => {
+        const native = provider.fromBytes(provider.generate());
+        const str = provider.idToString(native);
+
+        expect(typeof str).toBe('string');
+        expect(str.length).toBe(24);
+      });
+
+      it('should round-trip through idToString/idFromString', () => {
+        const native = provider.fromBytes(provider.generate());
+        const str = provider.idToString(native);
+        const restored = provider.idFromString(str);
+
+        expect(provider.equals(native, restored)).toBe(true);
       });
     });
   });
@@ -358,8 +370,6 @@ describe('ID Providers - Comprehensive Tests', () => {
       it('should detect empty GUIDs', () => {
         const empty = new Uint8Array(16);
         expect(provider.isEmpty(empty)).toBe(true);
-        // Empty GUID is structurally valid (correct version/variant bits can be zero)
-        // but semantically empty - isEmpty() is the proper check
       });
 
       it('should reject wrong length', () => {
@@ -390,7 +400,9 @@ describe('ID Providers - Comprehensive Tests', () => {
           const serialized = provider.serialize(original);
           const deserialized = provider.deserialize(serialized);
 
-          expect(provider.equals(original, deserialized)).toBe(true);
+          const guid1 = provider.fromBytes(original);
+          const guid2 = provider.fromBytes(deserialized);
+          expect(provider.equals(guid1, guid2)).toBe(true);
         }
       });
     });
@@ -402,7 +414,9 @@ describe('ID Providers - Comprehensive Tests', () => {
 
         // Should accept base64
         const fromBase64 = provider.deserialize(base64);
-        expect(provider.equals(id, fromBase64)).toBe(true);
+        const guid1 = provider.fromBytes(id);
+        const guid2 = provider.fromBytes(fromBase64);
+        expect(provider.equals(guid1, guid2)).toBe(true);
       });
 
       it('should reject invalid strings', () => {
@@ -423,6 +437,54 @@ describe('ID Providers - Comprehensive Tests', () => {
       it('should extract version correctly', () => {
         const id = provider.generate();
         expect(provider.getVersion(id)).toBe(4);
+      });
+    });
+
+    describe('Native Type Conversion', () => {
+      it('should round-trip through toBytes/fromBytes', () => {
+        const bytes = provider.generate();
+        const native = provider.fromBytes(bytes);
+        const backToBytes = provider.toBytes(native);
+
+        expect(backToBytes.length).toBe(bytes.length);
+        for (let i = 0; i < bytes.length; i++) {
+          expect(backToBytes[i]).toBe(bytes[i]);
+        }
+      });
+
+      it('should produce GuidV4 instances from fromBytes', () => {
+        const bytes = provider.generate();
+        const native = provider.fromBytes(bytes);
+
+        expect(native.asFullHexGuid).toBeDefined();
+        expect(typeof native.asFullHexGuid).toBe('string');
+      });
+    });
+
+    describe('Cloning', () => {
+      it('should create independent copies', () => {
+        const original = provider.fromBytes(provider.generate());
+        const cloned = provider.clone(original);
+
+        expect(provider.equals(original, cloned)).toBe(true);
+        expect(original).not.toBe(cloned);
+      });
+    });
+
+    describe('String Conversion', () => {
+      it('should convert to string with idToString', () => {
+        const native = provider.fromBytes(provider.generate());
+        const str = provider.idToString(native);
+
+        expect(typeof str).toBe('string');
+      });
+
+      it('should round-trip through idToString/idFromString', () => {
+        const native = provider.fromBytes(provider.generate());
+        const str = provider.idToString(native);
+        const restored = provider.idFromString(str);
+
+        expect(provider.equals(native, restored)).toBe(true);
       });
     });
   });
@@ -470,7 +532,10 @@ describe('ID Providers - Comprehensive Tests', () => {
           const serialized = provider.serialize(original);
           const deserialized = provider.deserialize(serialized);
 
-          expect(provider.equals(original, deserialized)).toBe(true);
+          // UuidProvider native type is string
+          const str1 = provider.fromBytes(original);
+          const str2 = provider.fromBytes(deserialized);
+          expect(provider.equals(str1, str2)).toBe(true);
         }
       });
 
@@ -491,7 +556,9 @@ describe('ID Providers - Comprehensive Tests', () => {
         const str = provider.serialize(id);
         const deserialized = provider.deserialize(str);
 
-        expect(provider.equals(id, deserialized)).toBe(true);
+        const uuid1 = provider.fromBytes(id);
+        const uuid2 = provider.fromBytes(deserialized);
+        expect(provider.equals(uuid1, uuid2)).toBe(true);
       });
 
       it('should reject invalid UUID strings', () => {
@@ -514,6 +581,58 @@ describe('ID Providers - Comprehensive Tests', () => {
       it('should extract version', () => {
         const id = provider.generate();
         expect(provider.getVersion(id)).toBe(4);
+      });
+    });
+
+    describe('Native Type Conversion', () => {
+      it('should return string as native type', () => {
+        const bytes = provider.generate();
+        const native = provider.fromBytes(bytes);
+
+        expect(typeof native).toBe('string');
+        expect(native).toMatch(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+        );
+      });
+
+      it('should round-trip through toBytes/fromBytes', () => {
+        const bytes = provider.generate();
+        const native = provider.fromBytes(bytes);
+        const backToBytes = provider.toBytes(native);
+
+        expect(backToBytes.length).toBe(bytes.length);
+        for (let i = 0; i < bytes.length; i++) {
+          expect(backToBytes[i]).toBe(bytes[i]);
+        }
+      });
+    });
+
+    describe('Cloning', () => {
+      it('should clone strings (immutable, same reference is fine)', () => {
+        const native = provider.fromBytes(provider.generate());
+        const cloned = provider.clone(native);
+
+        expect(provider.equals(native, cloned)).toBe(true);
+        // Strings are immutable, same reference is acceptable
+        expect(cloned).toBe(native);
+      });
+    });
+
+    describe('String Conversion', () => {
+      it('should convert to string with idToString', () => {
+        const native = provider.fromBytes(provider.generate());
+        const str = provider.idToString(native);
+
+        expect(typeof str).toBe('string');
+        expect(str.length).toBe(36);
+      });
+
+      it('should round-trip through idToString/idFromString', () => {
+        const native = provider.fromBytes(provider.generate());
+        const str = provider.idToString(native);
+        const restored = provider.idFromString(str);
+
+        expect(provider.equals(native, restored)).toBe(true);
       });
     });
   });
@@ -597,82 +716,244 @@ describe('ID Providers - Comprehensive Tests', () => {
           const serialized = provider.serialize(original);
           const deserialized = provider.deserialize(serialized);
 
+          // CustomIdProvider native type is Uint8Array
           expect(provider.equals(original, deserialized)).toBe(true);
         }
+      });
+    });
+
+    describe('Native Type Conversion', () => {
+      it('should use Uint8Array as native type (pass-through)', () => {
+        const provider = new CustomIdProvider(16);
+        const bytes = provider.generate();
+        const native = provider.fromBytes(bytes);
+
+        expect(native).toBeInstanceOf(Uint8Array);
+        expect(native).toBe(bytes); // Pass-through, same reference
+      });
+
+      it('should round-trip through toBytes/fromBytes', () => {
+        const provider = new CustomIdProvider(20);
+        const bytes = provider.generate();
+        const native = provider.fromBytes(bytes);
+        const backToBytes = provider.toBytes(native);
+
+        expect(backToBytes).toBe(native); // Pass-through
+      });
+    });
+
+    describe('Cloning', () => {
+      it('should create independent copies', () => {
+        const provider = new CustomIdProvider(16);
+        const original = provider.generate();
+        const cloned = provider.clone(original);
+
+        expect(provider.equals(original, cloned)).toBe(true);
+        expect(original).not.toBe(cloned); // Different Uint8Array instances
+      });
+
+      it('should isolate modifications', () => {
+        const provider = new CustomIdProvider(16);
+        const original = provider.generate();
+        const cloned = provider.clone(original);
+
+        cloned[0] = cloned[0] ^ 0xff;
+        expect(provider.equals(original, cloned)).toBe(false);
+      });
+    });
+
+    describe('Equality', () => {
+      it('should use constant-time comparison', () => {
+        const provider = new CustomIdProvider(16);
+        const id1 = provider.generate();
+        const id2 = provider.clone(id1);
+        const id3 = provider.generate();
+
+        expect(provider.equals(id1, id2)).toBe(true);
+        expect(provider.equals(id1, id3)).toBe(false);
+      });
+    });
+
+    describe('String Conversion', () => {
+      it('should convert to string with idToString', () => {
+        const provider = new CustomIdProvider(12);
+        const native = provider.generate();
+        const str = provider.idToString(native);
+
+        expect(typeof str).toBe('string');
+        expect(str.length).toBe(24); // 12 bytes * 2 hex chars
+      });
+
+      it('should round-trip through idToString/idFromString', () => {
+        const provider = new CustomIdProvider(16);
+        const native = provider.generate();
+        const str = provider.idToString(native);
+        const restored = provider.idFromString(str);
+
+        expect(provider.equals(native, restored)).toBe(true);
       });
     });
   });
 
   describe('Cross-Provider Tests', () => {
-    const providers: Array<{ name: string; provider: IIdProvider }> = [
-      { name: 'ObjectID', provider: new ObjectIdProvider() },
-      { name: 'GUIDv4', provider: new GuidV4Provider() },
-      { name: 'UUID', provider: new UuidProvider() },
-      { name: 'Custom20', provider: new CustomIdProvider(20) },
-    ];
-
     describe('Interface Compliance', () => {
-      it('should all implement generate()', () => {
-        for (const { name: _name, provider } of providers) {
-          expect(() => provider.generate()).not.toThrow();
-          const id = provider.generate();
-          expect(id).toBeInstanceOf(Uint8Array);
+      it('should all implement generate() returning Uint8Array', () => {
+        const providers = [
+          new ObjectIdProvider(),
+          new GuidV4Provider(),
+          new UuidProvider(),
+          new CustomIdProvider(20),
+        ];
+
+        for (const provider of providers) {
+          const bytes = provider.generate();
+          expect(bytes).toBeInstanceOf(Uint8Array);
+          expect(bytes.length).toBe(provider.byteLength);
         }
       });
 
       it('should all implement validate()', () => {
-        for (const { provider } of providers) {
+        const providers = [
+          new ObjectIdProvider(),
+          new GuidV4Provider(),
+          new UuidProvider(),
+          new CustomIdProvider(20),
+        ];
+
+        for (const provider of providers) {
           const id = provider.generate();
           expect(provider.validate(id)).toBe(true);
         }
       });
 
       it('should all implement serialize()/deserialize()', () => {
-        for (const { provider } of providers) {
-          const id = provider.generate();
-          const str = provider.serialize(id);
+        const providers = [
+          new ObjectIdProvider(),
+          new GuidV4Provider(),
+          new UuidProvider(),
+          new CustomIdProvider(20),
+        ];
+
+        for (const provider of providers) {
+          const bytes = provider.generate();
+          const str = provider.serialize(bytes);
           const back = provider.deserialize(str);
-          expect(provider.equals(id, back)).toBe(true);
+
+          // Compare bytes
+          expect(back.length).toBe(bytes.length);
+          for (let i = 0; i < bytes.length; i++) {
+            expect(back[i]).toBe(bytes[i]);
+          }
         }
       });
 
-      it('should all implement equals()', () => {
-        for (const { provider } of providers) {
-          const id1 = provider.generate();
-          const id2 = provider.generate();
-          const clone = provider.clone(id1);
+      it('should all implement toBytes()/fromBytes()', () => {
+        const providers = [
+          new ObjectIdProvider(),
+          new GuidV4Provider(),
+          new UuidProvider(),
+          new CustomIdProvider(20),
+        ];
 
-          expect(provider.equals(id1, clone)).toBe(true);
-          expect(provider.equals(id1, id2)).toBe(false);
+        for (const provider of providers) {
+          const bytes = provider.generate();
+          const native = provider.fromBytes(bytes);
+          const backToBytes = provider.toBytes(native);
+
+          expect(backToBytes.length).toBe(bytes.length);
+          for (let i = 0; i < bytes.length; i++) {
+            expect(backToBytes[i]).toBe(bytes[i]);
+          }
+        }
+      });
+
+      it('should all implement equals() with native types', () => {
+        const providers = [
+          new ObjectIdProvider(),
+          new GuidV4Provider(),
+          new UuidProvider(),
+          new CustomIdProvider(20),
+        ];
+
+        for (const provider of providers) {
+          const bytes1 = provider.generate();
+          const bytes2 = provider.generate();
+          const native1 = provider.fromBytes(bytes1);
+          const native2 = provider.fromBytes(bytes2);
+          const clone1 = provider.clone(native1);
+
+          expect(provider.equals(native1, clone1)).toBe(true);
+          expect(provider.equals(native1, native2)).toBe(false);
         }
       });
 
       it('should all implement clone()', () => {
-        for (const { provider } of providers) {
-          const id = provider.generate();
-          const clone = provider.clone(id);
+        const providers = [
+          new ObjectIdProvider(),
+          new GuidV4Provider(),
+          new UuidProvider(),
+          new CustomIdProvider(20),
+        ];
 
-          expect(provider.equals(id, clone)).toBe(true);
-          expect(id).not.toBe(clone);
+        for (const provider of providers) {
+          const bytes = provider.generate();
+          const native = provider.fromBytes(bytes);
+          const clone = provider.clone(native);
+
+          expect(provider.equals(native, clone)).toBe(true);
+        }
+      });
+
+      it('should all implement idToString()/idFromString()', () => {
+        const providers = [
+          new ObjectIdProvider(),
+          new GuidV4Provider(),
+          new UuidProvider(),
+          new CustomIdProvider(20),
+        ];
+
+        for (const provider of providers) {
+          const bytes = provider.generate();
+          const native = provider.fromBytes(bytes);
+          const str = provider.idToString(native);
+          const restored = provider.idFromString(str);
+
+          expect(typeof str).toBe('string');
+          expect(provider.equals(native, restored)).toBe(true);
         }
       });
     });
 
     describe('Length Verification', () => {
       it('should respect declared byte lengths', () => {
-        for (const { name: _name, provider } of providers) {
+        const providers = [
+          { provider: new ObjectIdProvider(), expected: 12 },
+          { provider: new GuidV4Provider(), expected: 16 },
+          { provider: new UuidProvider(), expected: 16 },
+          { provider: new CustomIdProvider(20), expected: 20 },
+        ];
+
+        for (const { provider, expected } of providers) {
+          expect(provider.byteLength).toBe(expected);
           const id = provider.generate();
-          expect(id.length).toBe(provider.byteLength);
+          expect(id.length).toBe(expected);
         }
       });
     });
 
     describe('Serialization Format Differences', () => {
       it('should have distinct serialization formats', () => {
-        const formats = providers.map(({ provider }) => {
-          const id = provider.generate();
-          return provider.serialize(id);
-        });
+        const objectId = new ObjectIdProvider();
+        const guidV4 = new GuidV4Provider();
+        const uuid = new UuidProvider();
+        const custom = new CustomIdProvider(20);
+
+        const formats = [
+          objectId.serialize(objectId.generate()),
+          guidV4.serialize(guidV4.generate()),
+          uuid.serialize(uuid.generate()),
+          custom.serialize(custom.generate()),
+        ];
 
         // ObjectID: 24 hex
         expect(formats[0]).toMatch(/^[0-9a-f]{24}$/);
@@ -691,65 +972,66 @@ describe('ID Providers - Comprehensive Tests', () => {
       });
     });
 
-    describe('Non-Comparability', () => {
-      it('should not consider IDs from different providers equal', () => {
-        for (let i = 0; i < providers.length; i++) {
-          for (let j = i + 1; j < providers.length; j++) {
-            const id1 = providers[i].provider.generate();
-            const id2 = providers[j].provider.generate();
+    describe('Native Type Differences', () => {
+      it('should have different native types', () => {
+        const objectId = new ObjectIdProvider();
+        const guidV4 = new GuidV4Provider();
+        const uuid = new UuidProvider();
+        const custom = new CustomIdProvider(16);
 
-            expect(providers[i].provider.equals(id1, id2)).toBe(false);
-            expect(providers[j].provider.equals(id2, id1)).toBe(false);
-          }
-        }
+        // ObjectIdProvider: native type is ObjectId
+        const objNative = objectId.fromBytes(objectId.generate());
+        expect(objNative.toHexString).toBeDefined();
+
+        // GuidV4Provider: native type is GuidV4
+        const guidNative = guidV4.fromBytes(guidV4.generate());
+        expect(guidNative.asFullHexGuid).toBeDefined();
+
+        // UuidProvider: native type is string
+        const uuidNative = uuid.fromBytes(uuid.generate());
+        expect(typeof uuidNative).toBe('string');
+
+        // CustomIdProvider: native type is Uint8Array
+        const customNative = custom.fromBytes(custom.generate());
+        expect(customNative).toBeInstanceOf(Uint8Array);
       });
     });
   });
 
   describe('Security Properties', () => {
-    it('should use constant-time comparison for all providers', () => {
-      const providers = [
-        new ObjectIdProvider(),
-        new GuidV4Provider(),
-        new UuidProvider(),
-        new CustomIdProvider(16),
-      ];
+    it('should use constant-time comparison for CustomIdProvider', () => {
+      const provider = new CustomIdProvider(16);
+      const id1 = provider.generate();
+      const id2 = provider.generate();
+      const id3 = provider.clone(id1);
 
-      for (const provider of providers) {
-        const id1 = provider.generate();
-        const id2 = provider.generate();
-        const id3 = provider.clone(id1);
+      // Modify only last byte
+      id3[id3.length - 1] = id3[id3.length - 1] ^ 0xff;
 
-        // Modify only last byte
-        id3[id3.length - 1] = id3[id3.length - 1] ^ 0xff;
+      const iterations = 5000;
 
-        const iterations = 5000;
-
-        // Time comparison of completely different IDs
-        const start1 = process.hrtime.bigint();
-        for (let i = 0; i < iterations; i++) {
-          provider.equals(id1, id2);
-        }
-        const time1 = Number(process.hrtime.bigint() - start1);
-
-        // Time comparison of IDs differing only in last byte
-        const start2 = process.hrtime.bigint();
-        for (let i = 0; i < iterations; i++) {
-          provider.equals(id1, id3);
-        }
-        const time2 = Number(process.hrtime.bigint() - start2);
-
-        // Times should be similar (within reasonable margin)
-        // Note: Timing tests can be flaky, so we use a generous margin
-        const ratio = Math.max(time1, time2) / Math.min(time1, time2);
-        expect(ratio).toBeLessThan(50.0); // Increased from 15.0 to account for system variance
+      // Time comparison of completely different IDs
+      const start1 = process.hrtime.bigint();
+      for (let i = 0; i < iterations; i++) {
+        provider.equals(id1, id2);
       }
+      const time1 = Number(process.hrtime.bigint() - start1);
+
+      // Time comparison of IDs differing only in last byte
+      const start2 = process.hrtime.bigint();
+      for (let i = 0; i < iterations; i++) {
+        provider.equals(id1, id3);
+      }
+      const time2 = Number(process.hrtime.bigint() - start2);
+
+      // Times should be similar (within reasonable margin)
+      const ratio = Math.max(time1, time2) / Math.min(time1, time2);
+      expect(ratio).toBeLessThan(50.0);
     });
 
     it('should not leak information through validation timing', () => {
       const provider = new ObjectIdProvider();
       const validId = provider.generate();
-      const _invalidLength = new Uint8Array(11);
       const invalidContent = new Uint8Array(12); // All zeros
 
       const iterations = 5000;
@@ -769,9 +1051,8 @@ describe('ID Providers - Comprehensive Tests', () => {
       const time2 = Number(process.hrtime.bigint() - start2);
 
       // Times should be similar (within reasonable margin)
-      // Note: Timing tests can be flaky, so we use a generous margin
       const ratio = Math.max(time1, time2) / Math.min(time1, time2);
-      expect(ratio).toBeLessThan(100.0); // Increased for CI stability
+      expect(ratio).toBeLessThan(100.0);
     });
   });
 
