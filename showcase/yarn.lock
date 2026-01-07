@@ -209,19 +209,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digitaldefiance/ecies-lib@npm:^4.9.0":
-  version: 4.9.0
-  resolution: "@digitaldefiance/ecies-lib@npm:4.9.0"
+"@digitaldefiance/ecies-lib@npm:^4.9.1":
+  version: 4.9.1
+  resolution: "@digitaldefiance/ecies-lib@npm:4.9.1"
   dependencies:
     "@digitaldefiance/i18n-lib": "npm:3.8.16"
     "@ethereumjs/wallet": "npm:^10.0.0"
     "@noble/curves": "npm:1.9.0"
     "@noble/hashes": "npm:1.8.0"
     "@scure/bip32": "npm:1.7.0"
-    bson: "npm:^7.0.0"
+    bson: "npm:^6.10.4"
     paillier-bigint: "npm:^3.4.1"
     ts-brand: "npm:^0.2.0"
-  checksum: 10c0/1a01b58825d02f53555a54e90cba5af235716c43abc830f4d1da2d6e8371ab8ee75568273eea39ba06de63d24d5065322a1f0498094c0870365e714f47f791b6
+  checksum: 10c0/9f73200af18c1db294250311ecb8d5792f38d2a5bddaf7fa66c5f646968935c978a161199ab64987d95e6315ed02b34f81479af76e5b8add065607bf5c43c13c
   languageName: node
   linkType: hard
 
@@ -1300,13 +1300,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bson@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "bson@npm:7.0.0"
-  checksum: 10c0/6b12fb0411f4e6f4473da878c0aa615f03439040a349f4115beae336e3922265b25d833c6cc93fcb299017904b32e4ef86e284996f1103addc5918c576b57d9d
-  languageName: node
-  linkType: hard
-
 "cacache@npm:^20.0.1":
   version: 20.0.3
   resolution: "cacache@npm:20.0.3"
@@ -1452,7 +1445,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ecies-lib-showcase@workspace:."
   dependencies:
-    "@digitaldefiance/ecies-lib": "npm:^4.9.0"
+    "@digitaldefiance/ecies-lib": "npm:^4.9.1"
     "@digitaldefiance/i18n-lib": "npm:^3.8.16"
     "@eslint/js": "npm:^9.39.1"
     "@ethereumjs/wallet": "npm:^10.0.0"
