@@ -6,6 +6,7 @@
 
 import { ObjectId } from 'bson';
 import { getRuntimeConfiguration } from '../constants';
+import type { GuidV4 } from '../lib/guid';
 import { GuidV4Provider } from '../lib/id-providers/guidv4-provider';
 import {
   createObjectIdConfiguration,
