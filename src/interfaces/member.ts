@@ -6,6 +6,7 @@ import type { SecureBuffer } from '../secure-buffer';
 import type { SecureString } from '../secure-string';
 import type { IECIESConstants } from './ecies-consts';
 import type { IEncryptedChunk } from './encrypted-chunk';
+import type { IIdProvider } from './id-provider';
 import type { PlatformID } from './platform-id';
 
 /**
@@ -31,6 +32,9 @@ export interface IMember<
   readonly creatorId: TID;
   readonly dateCreated: Date;
   readonly dateUpdated: Date;
+
+  // ID provider for voting system compatibility
+  readonly idProvider: IIdProvider<TID>;
 
   // Optional private data properties
   readonly privateKey: SecureBuffer | undefined;

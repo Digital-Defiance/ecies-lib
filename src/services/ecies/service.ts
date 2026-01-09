@@ -10,6 +10,7 @@ import type { PlatformID } from '../../interfaces';
 import { IConstants } from '../../interfaces/constants';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
+import { IIdProvider } from '../../interfaces/id-provider';
 import { SecureString } from '../../secure-string';
 import { SignatureString, SignatureUint8Array } from '../../types';
 import { VotingService } from '../voting.service';
@@ -28,6 +29,29 @@ import { EciesSingleRecipient } from './single-recipient';
 /**
  * Browser-compatible ECIES service that mirrors the server-side functionality
  * Uses Web Crypto API and @scure/@noble libraries for browser compatibility
+ *
+ * ## Enhanced Type Safety (v3.8+)
+ *
+ * The service now provides stronger type guarantees and validation:
+ * - Generic TID parameter ensures type consistency between service and members
+ * - Construction-time validation verifies idProvider compatibility
+ * - Strongly typed `idProvider` getter returns `IIdProvider<TID>`
+ * - Comprehensive validation of all idProvider methods
+ *
+ * @template TID - The ID type used by the configured idProvider (e.g., ObjectId, Uint8Array)
+ *
+ * @example
+ * ```typescript
+ * // ObjectId-based service with type safety
+ * const service = new ECIESService<ObjectId>();
+ * const member = Member.newMember(service, ...);
+ * // member.id is typed as ObjectId
+ *
+ * // GUID-based service
+ * const guidConfig = createRuntimeConfiguration({ idProvider: new GuidV4Provider() });
+ * const guidService = new ECIESService<Uint8Array>(guidConfig);
+ * // guidService.idProvider is typed as IIdProvider<Uint8Array>
+ * ```
  */
 export class ECIESService<TID extends PlatformID = Uint8Array> {
   protected readonly _config: IECIESConfig;
@@ -38,6 +62,9 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
   protected readonly multiRecipient: EciesMultiRecipient<TID>;
   protected readonly eciesConsts: IECIESConstants;
   protected readonly votingService: VotingService;
+
+  // Cache validation results to avoid redundant validation
+  private static validatedProviders = new WeakSet<IIdProvider<unknown>>();
 
   constructor(
     config?: Partial<IECIESConfig> | IConstants,
@@ -89,6 +116,130 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
       this.eciesConsts,
     );
     this.votingService = VotingService.getInstance();
+
+    // Validate idProvider configuration consistency
+    this.validateIdProviderConfiguration();
+  }
+
+  /**
+   * Validates that the idProvider configuration is consistent and will work correctly
+   * with the expected TID type. This catches configuration errors early.
+   * Uses caching to avoid redundant validation of the same idProvider instance.
+   */
+  private validateIdProviderConfiguration(): void {
+    const idProvider = this._constants.idProvider;
+    const memberIdLength = this._constants.MEMBER_ID_LENGTH;
+
+    // Ensure idProvider exists
+    if (!idProvider) {
+      throw new Error(
+        'ID provider is required but not configured in service constants',
+      );
+    }
+
+    // Check if this idProvider has already been validated
+    if (
+      ECIESService.validatedProviders.has(idProvider as IIdProvider<unknown>)
+    ) {
+      // Still need to check byte length compatibility for this specific service
+      if (idProvider.byteLength !== memberIdLength) {
+        const message =
+          `ID provider byte length (${idProvider.byteLength}) does not match MEMBER_ID_LENGTH (${memberIdLength}). This will cause runtime errors in Member creation. ` +
+          `Consider updating your configuration to use an idProvider with ${memberIdLength}-byte IDs, or update MEMBER_ID_LENGTH to ${idProvider.byteLength}.`;
+        throw new Error(message);
+      }
+      return; // Skip expensive validation
+    }
+
+    // Ensure idProvider byteLength matches MEMBER_ID_LENGTH
+    if (idProvider.byteLength !== memberIdLength) {
+      const message =
+        `ID provider byte length (${idProvider.byteLength}) does not match MEMBER_ID_LENGTH (${memberIdLength}). This will cause runtime errors in Member creation. ` +
+        `Consider updating your configuration to use an idProvider with ${memberIdLength}-byte IDs, or update MEMBER_ID_LENGTH to ${idProvider.byteLength}.`;
+      throw new Error(message);
+    }
+
+    // Validate that idProvider has required methods
+    const requiredMethods = [
+      'generate',
+      'serialize',
+      'deserialize',
+      'validate',
+      'toBytes',
+      'fromBytes',
+    ];
+    for (const method of requiredMethods) {
+      if (
+        typeof (idProvider as unknown as Record<string, unknown>)[method] !==
+        'function'
+      ) {
+        throw new Error(`ID provider is missing required method: ${method}`);
+      }
+    }
+
+    // Enhanced validation: Test that idProvider can generate and process IDs correctly
+    try {
+      const testId = idProvider.generate();
+      if (testId.length !== idProvider.byteLength) {
+        throw new Error(
+          `Generated ID length (${testId.length}) does not match declared byteLength (${idProvider.byteLength})`,
+        );
+      }
+
+      // Test validation method
+      if (!idProvider.validate(testId)) {
+        throw new Error('Generated ID failed validation check');
+      }
+
+      // Test round-trip serialization
+      const serialized = idProvider.serialize(testId);
+      if (typeof serialized !== 'string') {
+        throw new Error('Serialization must return a string');
+      }
+
+      const deserialized = idProvider.deserialize(serialized);
+      if (deserialized.length !== testId.length) {
+        throw new Error(
+          `Serialization round-trip failed: expected ${testId.length} bytes, got ${deserialized.length} bytes`,
+        );
+      }
+
+      // Test byte conversion methods with proper type conversion
+      // First convert the raw bytes to the native ID type
+      const nativeId = idProvider.fromBytes(testId);
+      const idAsBytes = idProvider.toBytes(nativeId);
+      if (idAsBytes.length !== idProvider.byteLength) {
+        throw new Error(
+          `toBytes() returned incorrect length: expected ${idProvider.byteLength}, got ${idAsBytes.length}`,
+        );
+      }
+
+      // Test round-trip conversion
+      const idFromBytes = idProvider.fromBytes(idAsBytes);
+      const backToBytes = idProvider.toBytes(idFromBytes);
+      if (backToBytes.length !== idAsBytes.length) {
+        throw new Error('Byte conversion round-trip failed');
+      }
+
+      // Enhanced: Test type consistency for TID
+      // Verify that the native ID type can be used as TID
+      const typedId = nativeId as TID;
+      const reConvertedBytes = idProvider.toBytes(typedId);
+      if (reConvertedBytes.length !== idProvider.byteLength) {
+        throw new Error(
+          `TID type conversion failed: expected ${idProvider.byteLength} bytes, got ${reConvertedBytes.length}`,
+        );
+      }
+
+      // Mark this idProvider as validated to avoid redundant checks
+      ECIESService.validatedProviders.add(idProvider as IIdProvider<unknown>);
+    } catch (error) {
+      const message =
+        `ID provider validation failed: ${error instanceof Error ? error.message : String(error)}. ` +
+        `Ensure your idProvider implementation correctly handles generate(), serialize(), deserialize(), validate(), toBytes(), and fromBytes() methods, ` +
+        `and that the TID type parameter matches the idProvider's native type.`;
+      throw new Error(message);
+    }
   }
 
   /**
@@ -133,6 +284,14 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
 
   public get constants(): IConstants {
     return this._constants;
+  }
+
+  /**
+   * Get the ID provider configured for this service with strong typing.
+   * The returned provider is guaranteed to work with TID type.
+   */
+  public get idProvider(): IIdProvider<TID> {
+    return this._constants.idProvider as IIdProvider<TID>;
   }
 
   public get curveName(): string {

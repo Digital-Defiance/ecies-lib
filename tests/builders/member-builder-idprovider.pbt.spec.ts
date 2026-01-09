@@ -4,42 +4,60 @@
  * These tests validate that MemberBuilder creates Members with proper IDs.
  *
  * IMPORTANT ARCHITECTURE NOTE:
- * - Member always uses global Constants.idProvider (ObjectIdProvider) for ID generation
- * - The service's idProvider configuration does NOT affect Member ID generation
- * - member.id is a native type (ObjectId), member.idBytes is the raw Uint8Array
+ * - Member uses the service's configured idProvider for ID generation
+ * - The service's idProvider configuration DOES affect Member ID generation
+ * - member.id is a native type (ObjectId/GuidV4), member.idBytes is the raw Uint8Array
  */
 
 import { ObjectId } from 'bson';
 import * as fc from 'fast-check';
 import { MemberBuilder } from '../../src/builders/member-builder';
-import { Constants, createRuntimeConfiguration } from '../../src/constants';
+import { createRuntimeConfiguration } from '../../src/constants';
 import { EmailString } from '../../src/email-string';
 import { MemberType } from '../../src/enumerations/member-type';
+import { GuidV4 } from '../../src/lib/guid';
 import { GuidV4Provider, ObjectIdProvider } from '../../src/lib/id-providers';
 import { ECIESService } from '../../src/services/ecies/service';
 
 describe('Property-Based Tests: MemberBuilder ID Generation', () => {
   /**
-   * Test that MemberBuilder creates Members with proper ObjectId IDs.
-   * Member always uses global Constants.idProvider (ObjectIdProvider).
+   * Test that MemberBuilder creates Members with IDs matching the service's idProvider.
+   * Member uses the service's configured idProvider for ID generation.
    */
-  describe('MemberBuilder creates ObjectId IDs', () => {
-    it('should create Members with ObjectId regardless of service idProvider config', () => {
+  describe('MemberBuilder respects service idProvider config', () => {
+    it('should create Members with IDs matching service idProvider config', () => {
       fc.assert(
         fc.property(
           // Generate random idProvider configurations
           fc.constantFrom(
-            createRuntimeConfiguration({ idProvider: new GuidV4Provider() }),
-            createRuntimeConfiguration({ idProvider: new ObjectIdProvider() }),
+            {
+              config: createRuntimeConfiguration({
+                idProvider: new GuidV4Provider(),
+              }),
+              expectedType: GuidV4,
+              expectedLength: 16,
+            },
+            {
+              config: createRuntimeConfiguration({
+                idProvider: new ObjectIdProvider(),
+              }),
+              expectedType: ObjectId,
+              expectedLength: 12,
+            },
           ),
           fc.constantFrom(MemberType.User, MemberType.Admin),
           fc
             .string({ minLength: 1, maxLength: 50 })
             .filter((s) => s.trim() === s),
           fc.emailAddress(),
-          (constants, memberType, name, email) => {
+          (
+            { config, expectedType, expectedLength },
+            memberType,
+            name,
+            email,
+          ) => {
             // Create service with configured idProvider
-            const service = new ECIESService(constants);
+            const service = new ECIESService(config);
 
             // Create member using MemberBuilder
             const result = MemberBuilder.create()
@@ -49,21 +67,21 @@ describe('Property-Based Tests: MemberBuilder ID Generation', () => {
               .withEmail(new EmailString(email))
               .build();
 
-            // Member ID is always ObjectId (from global Constants.idProvider)
-            expect(result.member.id).toBeInstanceOf(ObjectId);
+            // Member ID matches service's idProvider configuration
+            expect(result.member.id).toBeInstanceOf(expectedType);
 
-            // idBytes always 12 bytes (ObjectIdProvider)
+            // idBytes length matches service's idProvider
+            expect(result.member.idBytes.length).toBe(expectedLength);
             expect(result.member.idBytes.length).toBe(
-              Constants.idProvider.byteLength,
+              service.constants.idProvider.byteLength,
             );
-            expect(result.member.idBytes.length).toBe(12);
           },
         ),
         { numRuns: 100 },
       );
     });
 
-    it('should create 12-byte idBytes with any service configuration', () => {
+    it('should create GuidV4 IDs with GuidV4Provider service configuration', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(MemberType.User, MemberType.Admin),
@@ -72,7 +90,7 @@ describe('Property-Based Tests: MemberBuilder ID Generation', () => {
             .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (memberType, name, email) => {
-            // Even with GuidV4Provider, Member uses global ObjectIdProvider
+            // Service with GuidV4Provider
             const constants = createRuntimeConfiguration({
               idProvider: new GuidV4Provider(),
             });
@@ -85,9 +103,9 @@ describe('Property-Based Tests: MemberBuilder ID Generation', () => {
               .withEmail(new EmailString(email))
               .build();
 
-            // Verify 12-byte ObjectID from global provider
-            expect(result.member.idBytes.length).toBe(12);
-            expect(result.member.id).toBeInstanceOf(ObjectId);
+            // Verify 16-byte GuidV4 from service provider
+            expect(result.member.idBytes.length).toBe(16);
+            expect(result.member.id).toBeInstanceOf(GuidV4);
           },
         ),
         { numRuns: 100 },
@@ -119,8 +137,10 @@ describe('Property-Based Tests: MemberBuilder ID Generation', () => {
             expect(result.member.idBytes.length).toBe(12);
             expect(result.member.id).toBeInstanceOf(ObjectId);
 
-            // Verify idBytes matches id
-            const idToBytes = Constants.idProvider.toBytes(result.member.id);
+            // Verify idBytes matches id using service's idProvider
+            const idToBytes = service.constants.idProvider.toBytes(
+              result.member.id,
+            );
             expect(result.member.idBytes).toEqual(idToBytes);
           },
         ),
@@ -128,7 +148,7 @@ describe('Property-Based Tests: MemberBuilder ID Generation', () => {
       );
     });
 
-    it('should use default 12-byte ObjectID when no custom idProvider configured', () => {
+    it('should use default ObjectID when no custom idProvider configured', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(MemberType.User, MemberType.Admin),
@@ -137,7 +157,7 @@ describe('Property-Based Tests: MemberBuilder ID Generation', () => {
             .filter((s) => s.trim() === s),
           fc.emailAddress(),
           (memberType, name, email) => {
-            // Create service without custom idProvider
+            // Create service without custom idProvider (uses default ObjectIdProvider)
             const service = new ECIESService();
 
             const result = MemberBuilder.create()
@@ -160,8 +180,20 @@ describe('Property-Based Tests: MemberBuilder ID Generation', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(
-            createRuntimeConfiguration({ idProvider: new GuidV4Provider() }),
-            createRuntimeConfiguration({ idProvider: new ObjectIdProvider() }),
+            {
+              config: createRuntimeConfiguration({
+                idProvider: new GuidV4Provider(),
+              }),
+              expectedType: GuidV4,
+              expectedLength: 16,
+            },
+            {
+              config: createRuntimeConfiguration({
+                idProvider: new ObjectIdProvider(),
+              }),
+              expectedType: ObjectId,
+              expectedLength: 12,
+            },
           ),
           fc.array(
             fc.record({
@@ -173,23 +205,23 @@ describe('Property-Based Tests: MemberBuilder ID Generation', () => {
             }),
             { minLength: 2, maxLength: 5 },
           ),
-          (constants, memberConfigs) => {
-            const service = new ECIESService(constants);
+          ({ config, expectedType, expectedLength }, memberConfigs) => {
+            const service = new ECIESService(config);
 
             // Create multiple members
-            const members = memberConfigs.map((config) =>
+            const members = memberConfigs.map((memberConfig) =>
               MemberBuilder.create()
                 .withEciesService(service)
-                .withType(config.type)
-                .withName(config.name)
-                .withEmail(new EmailString(config.email))
+                .withType(memberConfig.type)
+                .withName(memberConfig.name)
+                .withEmail(new EmailString(memberConfig.email))
                 .build(),
             );
 
-            // All should have 12-byte IDs (global ObjectIdProvider)
+            // All should have IDs matching service configuration
             members.forEach((result) => {
-              expect(result.member.idBytes.length).toBe(12);
-              expect(result.member.id).toBeInstanceOf(ObjectId);
+              expect(result.member.idBytes.length).toBe(expectedLength);
+              expect(result.member.id).toBeInstanceOf(expectedType);
             });
 
             // Verify IDs are unique

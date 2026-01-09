@@ -4,10 +4,10 @@
  * These tests validate MemberBuilder creates Members with proper IDs.
  *
  * IMPORTANT ARCHITECTURE NOTE:
- * - Member always uses global Constants.idProvider (ObjectIdProvider) for ID generation
- * - The service's idProvider configuration does NOT affect Member ID generation
- * - member.id is a native type (ObjectId), member.idBytes is the raw Uint8Array
- * - Service's idProvider IS used for serialization in toJson()
+ * - Member uses the service's configured idProvider for ID generation
+ * - The service's idProvider configuration DOES affect Member ID generation
+ * - member.id matches the service's idProvider type, member.idBytes is the raw Uint8Array
+ * - Service's idProvider IS used for both ID generation and serialization
  */
 
 import { ObjectId } from 'bson';
@@ -15,13 +15,14 @@ import { MemberBuilder } from '../../src/builders/member-builder';
 import { Constants, createRuntimeConfiguration } from '../../src/constants';
 import { EmailString } from '../../src/email-string';
 import { MemberType } from '../../src/enumerations/member-type';
+import { GuidV4 } from '../../src/lib/guid';
 import { GuidV4Provider, ObjectIdProvider } from '../../src/lib/id-providers';
 import { ECIESService } from '../../src/services/ecies/service';
 
 describe('Unit Tests: MemberBuilder ID Generation', () => {
-  describe('MemberBuilder creates ObjectId IDs', () => {
-    it('should create Member with ObjectId ID regardless of service idProvider', () => {
-      // Even with GuidV4Provider in service config, Member uses global ObjectIdProvider
+  describe('MemberBuilder creates IDs based on service configuration', () => {
+    it('should create Member with GuidV4 ID when service uses GuidV4Provider', () => {
+      // Member uses service's configured idProvider (GuidV4Provider)
       const constants = createRuntimeConfiguration({
         idProvider: new GuidV4Provider(),
       });
@@ -34,9 +35,9 @@ describe('Unit Tests: MemberBuilder ID Generation', () => {
         .withEmail(new EmailString('test@example.com'))
         .build();
 
-      // ID is ObjectId type (from global Constants.idProvider)
-      expect(result.member.id).toBeInstanceOf(ObjectId);
-      expect(result.member.idBytes.length).toBe(12);
+      // ID matches service's configured idProvider (GuidV4)
+      expect(result.member.id).toBeInstanceOf(GuidV4);
+      expect(result.member.idBytes.length).toBe(16);
       expect(service.constants.idProvider.byteLength).toBe(16); // Service config is 16
     });
 
@@ -58,7 +59,7 @@ describe('Unit Tests: MemberBuilder ID Generation', () => {
       expect(service.constants.idProvider.byteLength).toBe(12);
     });
 
-    it('should create Member with ObjectId using fluent API', () => {
+    it('should create Member with GuidV4 using fluent API', () => {
       const constants = createRuntimeConfiguration({
         idProvider: new GuidV4Provider(),
       });
@@ -72,8 +73,8 @@ describe('Unit Tests: MemberBuilder ID Generation', () => {
         .generateMnemonic()
         .build();
 
-      expect(result.member.id).toBeInstanceOf(ObjectId);
-      expect(result.member.idBytes.length).toBe(12);
+      expect(result.member.id).toBeInstanceOf(GuidV4);
+      expect(result.member.idBytes.length).toBe(16);
       expect(result.mnemonic).toBeDefined();
     });
   });
@@ -138,15 +139,15 @@ describe('Unit Tests: MemberBuilder ID Generation', () => {
         .withEmail(new EmailString('admin@example.com'))
         .build();
 
-      // All should have 12-byte IDs (global ObjectIdProvider)
-      expect(member1.member.idBytes.length).toBe(12);
-      expect(member2.member.idBytes.length).toBe(12);
-      expect(member3.member.idBytes.length).toBe(12);
+      // All should have 16-byte IDs (service uses GuidV4Provider)
+      expect(member1.member.idBytes.length).toBe(16);
+      expect(member2.member.idBytes.length).toBe(16);
+      expect(member3.member.idBytes.length).toBe(16);
 
-      // All should be ObjectId type
-      expect(member1.member.id).toBeInstanceOf(ObjectId);
-      expect(member2.member.id).toBeInstanceOf(ObjectId);
-      expect(member3.member.id).toBeInstanceOf(ObjectId);
+      // All should be GuidV4 type
+      expect(member1.member.id).toBeInstanceOf(GuidV4);
+      expect(member2.member.id).toBeInstanceOf(GuidV4);
+      expect(member3.member.id).toBeInstanceOf(GuidV4);
 
       // IDs should be unique
       expect(member1.member.id.toString()).not.toBe(
@@ -162,7 +163,7 @@ describe('Unit Tests: MemberBuilder ID Generation', () => {
   });
 
   describe('MemberBuilder with different service configs', () => {
-    it('should create consistent IDs regardless of service idProvider', () => {
+    it('should create IDs matching each service idProvider', () => {
       const guidService = new ECIESService(
         createRuntimeConfiguration({ idProvider: new GuidV4Provider() }),
       );
@@ -184,10 +185,10 @@ describe('Unit Tests: MemberBuilder ID Generation', () => {
         .withEmail(new EmailString('objectid@example.com'))
         .build();
 
-      // Both should have 12-byte IDs (global ObjectIdProvider)
-      expect(guidMember.member.idBytes.length).toBe(12);
+      // Each should match their service's idProvider
+      expect(guidMember.member.idBytes.length).toBe(16);
       expect(objectIdMember.member.idBytes.length).toBe(12);
-      expect(guidMember.member.id).toBeInstanceOf(ObjectId);
+      expect(guidMember.member.id).toBeInstanceOf(GuidV4);
       expect(objectIdMember.member.id).toBeInstanceOf(ObjectId);
     });
   });

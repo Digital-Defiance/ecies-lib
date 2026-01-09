@@ -2,12 +2,11 @@
  * Public Bulletin Board for Government-Grade Voting
  * Implements requirement 1.2: Append-only, publicly verifiable vote publication
  */
-import { getRuntimeConfiguration } from '../../constants';
 import type { PlatformID, IMember } from '../../interfaces';
+import { IIdProvider } from '../../interfaces/id-provider';
 import { BulletinBoard } from './interfaces/bulletin-board';
 import { BulletinBoardEntry } from './interfaces/bulletin-board-entry';
 import { TallyProof } from './interfaces/tally-proof';
-const Constants = getRuntimeConfiguration();
 
 /**
  * Append-only public bulletin board with cryptographic verification
@@ -17,11 +16,26 @@ export class PublicBulletinBoard<
 > implements BulletinBoard<TID> {
   private readonly entries: BulletinBoardEntry<TID>[] = [];
   private readonly tallyProofs = new Map<string, TallyProof<TID>>();
-  private readonly authority: IMember;
+  private readonly authority: IMember<TID>;
+  private readonly idProvider: IIdProvider<TID>;
   private sequence = 0;
 
-  constructor(authority: IMember) {
+  constructor(authority: IMember<TID>, idProvider?: IIdProvider<TID>) {
+    if (!authority) {
+      throw new Error('PublicBulletinBoard requires an authority member');
+    }
     this.authority = authority;
+    // Use provided idProvider or fall back to authority's idProvider
+    this.idProvider = idProvider || authority.idProvider;
+  }
+
+  /**
+   * Create a PublicBulletinBoard using the authority's idProvider
+   */
+  static fromAuthority<TID extends PlatformID>(
+    authority: IMember<TID>,
+  ): PublicBulletinBoard<TID> {
+    return new PublicBulletinBoard(authority);
   }
 
   publishVote(
@@ -65,7 +79,7 @@ export class PublicBulletinBoard<
     choices: string[],
     encryptedVotes: bigint[][],
   ): TallyProof<TID> {
-    const pollIdBytes = Constants.idProvider.toBytes(pollId);
+    const pollIdBytes = this.idProvider.toBytes(pollId);
     const timestamp = this.getMicrosecondTimestamp();
     const votesHash = this.hashEncryptedVotes(encryptedVotes);
     const decryptionProof = this.generateDecryptionProof(
@@ -107,9 +121,7 @@ export class PublicBulletinBoard<
   }
 
   getTallyProof(pollId: TID): TallyProof<TID> | undefined {
-    return this.tallyProofs.get(
-      this.toHex(Constants.idProvider.toBytes(pollId)),
-    );
+    return this.tallyProofs.get(this.toHex(this.idProvider.toBytes(pollId)));
   }
 
   verifyEntry(entry: BulletinBoardEntry<TID>): boolean {
@@ -234,7 +246,7 @@ export class PublicBulletinBoard<
     const parts: Uint8Array[] = [
       this.encodeNumber(data.sequence),
       this.encodeNumber(data.timestamp),
-      Constants.idProvider.toBytes(data.pollId),
+      this.idProvider.toBytes(data.pollId),
       data.voterIdHash,
       data.merkleRoot,
     ];
@@ -255,7 +267,7 @@ export class PublicBulletinBoard<
     decryptionProof: Uint8Array;
   }): Uint8Array {
     const parts: Uint8Array[] = [
-      Constants.idProvider.toBytes(data.pollId),
+      this.idProvider.toBytes(data.pollId),
       this.encodeNumber(data.timestamp),
       data.votesHash,
       data.decryptionProof,
@@ -273,7 +285,7 @@ export class PublicBulletinBoard<
   }
 
   private serializeEntry(entry: BulletinBoardEntry<TID>): Uint8Array {
-    const pollIdBytes = Constants.idProvider.toBytes(entry.pollId);
+    const pollIdBytes = this.idProvider.toBytes(entry.pollId);
     const parts: Uint8Array[] = [
       this.encodeNumber(entry.sequence),
       this.encodeNumber(entry.timestamp),
@@ -301,7 +313,7 @@ export class PublicBulletinBoard<
   }
 
   private serializeTallyProofFull(proof: TallyProof<TID>): Uint8Array {
-    const pollIdBytes = Constants.idProvider.toBytes(proof.pollId);
+    const pollIdBytes = this.idProvider.toBytes(proof.pollId);
     const parts: Uint8Array[] = [
       this.encodeNumber(pollIdBytes.length),
       pollIdBytes,
@@ -402,8 +414,8 @@ export class PublicBulletinBoard<
       return this.arraysEqual(a, b);
     }
     // For other types, convert to bytes and compare
-    const aBytes = Constants.idProvider.toBytes(a);
-    const bBytes = Constants.idProvider.toBytes(b);
+    const aBytes = this.idProvider.toBytes(a);
+    const bBytes = this.idProvider.toBytes(b);
     return this.arraysEqual(aBytes, bBytes);
   }
 

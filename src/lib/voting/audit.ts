@@ -2,7 +2,6 @@
  * Immutable Audit Log for Government-Grade Voting
  * Implements requirement 1.1: Cryptographically signed, hash-chained audit trail
  */
-import { Constants } from '../../constants';
 import { PlatformID } from '../../interfaces';
 import type { IMember } from '../../interfaces';
 import { AuditEventType } from './enumerations/audit-event-type';
@@ -240,15 +239,13 @@ export class ImmutableAuditLog<
   /**
    * Convert an ID to bytes safely.
    * If id is already Uint8Array, return it directly.
-   * Otherwise, use the idProvider to convert.
+   * Otherwise, use the authority's idProvider to convert.
    */
   private idToBytes(id: TID): Uint8Array {
     if (id instanceof Uint8Array) {
       return id;
     }
-    return (
-      Constants.idProvider as { toBytes(id: unknown): Uint8Array }
-    ).toBytes(id);
+    return this.authority.idProvider.toBytes(id);
   }
 
   private toHex(arr: Uint8Array): string {

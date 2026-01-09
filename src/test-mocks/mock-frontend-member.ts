@@ -8,6 +8,8 @@ import {
   SecureBuffer,
   SecureString,
 } from '@digitaldefiance/ecies-lib';
+import { Constants } from '../constants';
+import { IIdProvider } from '../interfaces/id-provider';
 import { SignatureUint8Array } from '../types';
 
 const hexToUint8Array = (hex: string): Uint8Array => {
@@ -132,6 +134,9 @@ export class MockFrontendMember implements IMember<ObjectId> {
   }
   get votingPrivateKey(): undefined {
     return undefined;
+  }
+  get idProvider(): IIdProvider<ObjectId> {
+    return Constants.idProvider as IIdProvider<ObjectId>;
   }
 
   unloadPrivateKey(): void {}

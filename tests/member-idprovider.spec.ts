@@ -4,24 +4,25 @@
  * These tests validate Member ID generation behavior.
  *
  * IMPORTANT ARCHITECTURE NOTE:
- * - Member always uses global Constants.idProvider (ObjectIdProvider) for ID generation
- * - The service's idProvider configuration does NOT affect Member ID generation
- * - member.id is a native type (ObjectId), member.idBytes is the raw Uint8Array
- * - Service's idProvider IS used for serialization in toJson()
+ * - Member uses the service's configured idProvider for ID generation
+ * - The service's idProvider configuration DOES affect Member ID generation
+ * - member.id is a native type (ObjectId/GuidV4), member.idBytes is the raw Uint8Array
+ * - Service's idProvider IS used for both creation and serialization
  */
 
 import { ObjectId } from 'bson';
-import { Constants, createRuntimeConfiguration } from '../src/constants';
+import { createRuntimeConfiguration } from '../src/constants';
 import { EmailString } from '../src/email-string';
 import { MemberType } from '../src/enumerations/member-type';
+import { GuidV4 } from '../src/lib/guid';
 import { GuidV4Provider, ObjectIdProvider } from '../src/lib/id-providers';
 import { Member } from '../src/member';
 import { ECIESService } from '../src/services/ecies/service';
 
 describe('Unit Tests: Member ID Generation', () => {
-  describe('Member ID uses global Constants.idProvider', () => {
-    it('should create Member with ObjectId type ID regardless of service idProvider', () => {
-      // Member always uses global Constants.idProvider (ObjectIdProvider)
+  describe('Member ID uses service idProvider', () => {
+    it('should create Member with GuidV4 type ID when service uses GuidV4Provider', () => {
+      // Member uses service's configured idProvider
       const service = new ECIESService(
         createRuntimeConfiguration({ idProvider: new GuidV4Provider() }),
       );
@@ -33,20 +34,45 @@ describe('Unit Tests: Member ID Generation', () => {
         new EmailString('test@example.com'),
       );
 
-      // ID is ObjectId type (from global Constants.idProvider)
+      // ID is GuidV4 type (from service's idProvider)
+      expect(result.member.id).toBeInstanceOf(GuidV4);
+      // idBytes is the raw bytes
+      expect(result.member.idBytes).toBeInstanceOf(Uint8Array);
+      expect(result.member.idBytes.length).toBe(
+        service.constants.idProvider.byteLength,
+      );
+      expect(result.member.idBytes.length).toBe(16);
+    });
+
+    it('should create Member with ObjectId type ID when service uses ObjectIdProvider', () => {
+      // Member uses service's configured idProvider
+      const service = new ECIESService(
+        createRuntimeConfiguration({ idProvider: new ObjectIdProvider() }),
+      );
+
+      const result = Member.newMember(
+        service,
+        MemberType.User,
+        'Test User',
+        new EmailString('test@example.com'),
+      );
+
+      // ID is ObjectId type (from service's idProvider)
       expect(result.member.id).toBeInstanceOf(ObjectId);
       // idBytes is the raw bytes
       expect(result.member.idBytes).toBeInstanceOf(Uint8Array);
       expect(result.member.idBytes.length).toBe(
-        Constants.idProvider.byteLength,
+        service.constants.idProvider.byteLength,
       );
+      expect(result.member.idBytes.length).toBe(12);
     });
 
-    it('should always generate 12-byte IDs (ObjectIdProvider is global default)', () => {
-      // Even with GuidV4Provider in service config, Member uses global ObjectIdProvider
+    it('should generate different ID lengths based on service configuration', () => {
+      // GuidV4Provider service generates 16-byte IDs
       const guidService = new ECIESService(
         createRuntimeConfiguration({ idProvider: new GuidV4Provider() }),
       );
+      // ObjectIdProvider service generates 12-byte IDs
       const objectIdService = new ECIESService(
         createRuntimeConfiguration({ idProvider: new ObjectIdProvider() }),
       );
@@ -64,10 +90,10 @@ describe('Unit Tests: Member ID Generation', () => {
         new EmailString('user2@example.com'),
       );
 
-      // Both should have 12-byte IDs (global ObjectIdProvider)
-      expect(guidMember.member.idBytes.length).toBe(12);
+      // Different ID lengths based on service configuration
+      expect(guidMember.member.idBytes.length).toBe(16);
       expect(objectIdMember.member.idBytes.length).toBe(12);
-      expect(guidMember.member.id).toBeInstanceOf(ObjectId);
+      expect(guidMember.member.id).toBeInstanceOf(GuidV4);
       expect(objectIdMember.member.id).toBeInstanceOf(ObjectId);
     });
   });
@@ -124,13 +150,34 @@ describe('Unit Tests: Member ID Generation', () => {
         new EmailString('test@example.com'),
       );
 
-      // Verify idBytes matches what we'd get from id.id (ObjectId's buffer property)
+      // Verify idBytes matches what we'd get from service's idProvider
       const member = result.member;
       expect(member.idBytes).toBeInstanceOf(Uint8Array);
-      expect(member.idBytes.length).toBe(12);
+      expect(member.idBytes.length).toBe(12); // Default ObjectIdProvider
 
-      // Convert id to bytes and compare
-      const idToBytes = Constants.idProvider.toBytes(member.id);
+      // Convert id to bytes using service's idProvider and compare
+      const idToBytes = service.constants.idProvider.toBytes(member.id);
+      expect(member.idBytes).toEqual(idToBytes);
+    });
+
+    it('should have matching id and idBytes for GuidV4Provider', () => {
+      const service = new ECIESService(
+        createRuntimeConfiguration({ idProvider: new GuidV4Provider() }),
+      );
+
+      const result = Member.newMember(
+        service,
+        MemberType.User,
+        'Test User',
+        new EmailString('test@example.com'),
+      );
+
+      const member = result.member;
+      expect(member.idBytes).toBeInstanceOf(Uint8Array);
+      expect(member.idBytes.length).toBe(16); // GuidV4Provider
+
+      // Convert id to bytes using service's idProvider and compare
+      const idToBytes = service.constants.idProvider.toBytes(member.id);
       expect(member.idBytes).toEqual(idToBytes);
     });
   });

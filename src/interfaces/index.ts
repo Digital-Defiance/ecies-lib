@@ -17,3 +17,4 @@ export * from './platform-id';
 export * from './isolated-keys';
 export * from './isolated-private-key-async';
 export * from './isolated-public-key-async';
+export type { IVotingService } from './voting-service';

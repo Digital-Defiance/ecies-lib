@@ -1,6 +1,5 @@
 import { Wallet } from '@ethereumjs/wallet';
 import type { PrivateKey, PublicKey } from 'paillier-bigint';
-import { Constants } from './constants';
 import { EmailString } from './email-string';
 import { MemberErrorType } from './enumerations/member-error-type';
 import { MemberType } from './enumerations/member-type';
@@ -8,6 +7,7 @@ import { MemberError } from './errors/member';
 import { PlatformID } from './interfaces';
 import { IECIESConstants } from './interfaces/ecies-consts';
 import { IEncryptedChunk } from './interfaces/encrypted-chunk';
+import { IIdProvider } from './interfaces/id-provider';
 import { IMember } from './interfaces/member';
 import { IMemberStorageData } from './interfaces/member-storage';
 import { SecureBuffer } from './secure-buffer';
@@ -83,20 +83,18 @@ export class Member<
     // Handle ID initialization properly:
     // - If id is provided, use it and derive bytes from it
     // - If not provided, generate bytes first, then derive native ID
-    // Always use global Constants.idProvider for Member IDs (not service config)
+    // Use the service's configured idProvider (not global Constants)
     if (id !== undefined) {
       this._id = id;
-      // For provided IDs, we need to convert to bytes using the global idProvider
-      this._idBytes = (
-        Constants.idProvider as {
-          toBytes(id: unknown): Uint8Array;
-        }
-      ).toBytes(this._id);
+      // For provided IDs, we need to convert to bytes using the service's idProvider
+      this._idBytes = this._eciesService.constants.idProvider.toBytes(this._id);
     } else {
-      // Generate raw bytes first using the global idProvider
-      this._idBytes = Constants.idProvider.generate();
+      // Generate raw bytes first using the service's configured idProvider
+      this._idBytes = this._eciesService.constants.idProvider.generate();
       // Convert to native type for storage
-      this._id = Constants.idProvider.fromBytes(this._idBytes) as TID;
+      this._id = this._eciesService.constants.idProvider.fromBytes(
+        this._idBytes,
+      ) as TID;
     }
 
     this._name = name;
@@ -126,11 +124,7 @@ export class Member<
     this._creatorIdBytes =
       this._creatorId === this._id
         ? this._idBytes
-        : (
-            Constants.idProvider as {
-              toBytes(id: unknown): Uint8Array;
-            }
-          ).toBytes(this._creatorId);
+        : this._eciesService.constants.idProvider.toBytes(this._creatorId);
   }
 
   // Required getters
@@ -163,6 +157,11 @@ export class Member<
   }
   public get dateUpdated(): Date {
     return this._dateUpdated;
+  }
+
+  // Expose the service's idProvider for voting system compatibility
+  public get idProvider(): IIdProvider<TID> {
+    return this._eciesService.constants.idProvider as IIdProvider<TID>;
   }
 
   // Optional private data getters
@@ -460,12 +459,14 @@ export class Member<
 
   public toJson(): string {
     const storage: IMemberStorageData = {
-      id: Constants.idProvider.serialize(this._idBytes),
+      id: this._eciesService.constants.idProvider.serialize(this._idBytes),
       type: this._type,
       name: this._name,
       email: this._email.toString(),
       publicKey: uint8ArrayToBase64(this._publicKey),
-      creatorId: Constants.idProvider.serialize(this._creatorIdBytes),
+      creatorId: this._eciesService.constants.idProvider.serialize(
+        this._creatorIdBytes,
+      ),
       dateCreated: this._dateCreated.toISOString(),
       dateUpdated: this._dateUpdated.toISOString(),
     };
@@ -497,15 +498,19 @@ export class Member<
     }
     const email = new EmailString(storage.email);
 
-    // Deserialize IDs using the global Constants.idProvider to remain consistent
+    // Deserialize IDs using the service's idProvider for consistency
     // deserialize returns Uint8Array, then fromBytes converts to native type
-    const idBytes = Constants.idProvider.deserialize(storage.id);
-    const id = Constants.idProvider.fromBytes(idBytes) as TID;
-    const creatorIdBytes = Constants.idProvider.deserialize(storage.creatorId);
-    const creatorId = Constants.idProvider.fromBytes(creatorIdBytes) as TID;
+    const idBytes = eciesService.constants.idProvider.deserialize(storage.id);
+    const id = eciesService.constants.idProvider.fromBytes(idBytes) as TID;
+    const creatorIdBytes = eciesService.constants.idProvider.deserialize(
+      storage.creatorId,
+    );
+    const creatorId = eciesService.constants.idProvider.fromBytes(
+      creatorIdBytes,
+    ) as TID;
 
     // Optional validation: warn if ID length doesn't match configured idProvider
-    const expectedLength = Constants.idProvider.byteLength;
+    const expectedLength = eciesService.constants.idProvider.byteLength;
     if (idBytes.length !== expectedLength) {
       console.warn(
         `Member ID length (${idBytes.length}) does not match configured idProvider length (${expectedLength}). ` +

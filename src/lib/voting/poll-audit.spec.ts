@@ -3,7 +3,11 @@
  */
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import type { PublicKey } from 'paillier-bigint';
+import { EmailString } from '../../email-string';
+import { MemberType } from '../../enumerations/member-type';
 import type { IMember } from '../../interfaces';
+import { IIdProvider } from '../../interfaces/id-provider';
+import { SecureBuffer } from '../../secure-buffer';
 import { AuditEventType } from './audit';
 import { VotingMethod } from './enumerations/voting-method';
 import type { EncryptedVote } from './interfaces/encrypted-vote';
@@ -11,13 +15,55 @@ import { Poll } from './poll-core';
 
 // Mock Member for testing
 class MockMember implements IMember {
+  public readonly type = MemberType.User;
+  public readonly name = 'Mock User';
+  public readonly email = new EmailString('mock@example.com');
+  public readonly creatorId: Uint8Array;
+  public readonly dateCreated = new Date();
+  public readonly dateUpdated = new Date();
+  public readonly privateKey: SecureBuffer | undefined = undefined;
+  public readonly hasPrivateKey = false;
+  public readonly hasVotingPrivateKey = true;
+  public readonly publicKey = new Uint8Array([1, 2, 3]);
+  public readonly votingPrivateKey: any = undefined;
+
   constructor(
     public readonly id: Uint8Array,
     public readonly votingPublicKey?: PublicKey,
-  ) {}
+  ) {
+    this.creatorId = id; // Use same ID as creator for simplicity
+  }
 
   get idBytes(): Uint8Array {
     return this.id;
+  }
+
+  get wallet(): any {
+    return undefined; // Mock wallet
+  }
+
+  get walletOptional(): any {
+    return undefined;
+  }
+
+  // Add idProvider for voting system compatibility
+  get idProvider(): IIdProvider<Uint8Array> {
+    // Return a mock ObjectIdProvider for testing
+    return {
+      byteLength: 12,
+      generate: () => new Uint8Array(12),
+      toBytes: (id: Uint8Array) => id,
+      fromBytes: (bytes: Uint8Array) => bytes,
+      serialize: (id: Uint8Array) =>
+        Array.from(id)
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join(''),
+      deserialize: (str: string) =>
+        new Uint8Array(
+          str.match(/.{2}/g)?.map((byte) => parseInt(byte, 16)) || [],
+        ),
+      validate: (id: Uint8Array) => id.length === 12,
+    };
   }
 
   sign(data: Uint8Array): Uint8Array {
@@ -28,6 +74,10 @@ class MockMember implements IMember {
     return sig;
   }
 
+  signData(data: Uint8Array): Uint8Array {
+    return this.sign(data); // Mock signature
+  }
+
   verify(signature: Uint8Array, data: Uint8Array): boolean {
     const expected = this.sign(data);
     if (signature.length !== expected.length) return false;
@@ -35,6 +85,68 @@ class MockMember implements IMember {
       if (signature[i] !== expected[i]) return false;
     }
     return true;
+  }
+
+  verifySignature(
+    data: Uint8Array,
+    signature: Uint8Array,
+    _publicKey: Uint8Array,
+  ): boolean {
+    return this.verify(signature, data); // Mock verification
+  }
+
+  // Key management methods (mock implementations)
+  unloadPrivateKey(): void {}
+  unloadWallet(): void {}
+  unloadWalletAndPrivateKey(): void {}
+  loadWallet(_mnemonic: any, _eciesParams?: any): void {}
+  loadPrivateKey(_privateKey: SecureBuffer): void {}
+
+  // Voting key management methods
+  loadVotingKeys(_votingPublicKey: any, _votingPrivateKey?: any): void {}
+  async deriveVotingKeys(_options?: Record<string, unknown>): Promise<void> {}
+  unloadVotingPrivateKey(): void {}
+
+  // Encryption/Decryption methods (mock implementations)
+  async *encryptDataStream(
+    _source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
+    _options?: any,
+  ): AsyncGenerator<any, void, unknown> {
+    // Mock implementation
+    yield { data: new Uint8Array(0), nonce: new Uint8Array(0) };
+  }
+
+  async *decryptDataStream(
+    _source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
+    _options?: any,
+  ): AsyncGenerator<Uint8Array, void, unknown> {
+    // Mock implementation
+    yield new Uint8Array(0);
+  }
+
+  async encryptData(
+    _data: string | Uint8Array,
+    _recipientPublicKey?: Uint8Array,
+  ): Promise<Uint8Array> {
+    return new Uint8Array(0); // Mock encrypted data
+  }
+
+  async decryptData(_encryptedData: Uint8Array): Promise<Uint8Array> {
+    return new Uint8Array(0); // Mock decrypted data
+  }
+
+  // Serialization methods
+  toJson(): string {
+    return JSON.stringify({
+      id: Array.from(this.id),
+      type: this.type,
+      name: this.name,
+      email: this.email.toString(),
+    });
+  }
+
+  dispose(): void {
+    // Mock cleanup
   }
 }
 

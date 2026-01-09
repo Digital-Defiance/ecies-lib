@@ -3,7 +3,6 @@
  * Sits on top of ecies-lib with proper role separation
  */
 import type { PublicKey } from 'paillier-bigint';
-import { Constants } from '../../constants';
 import { IMember, PlatformID } from '../../interfaces';
 import { ImmutableAuditLog } from './audit';
 import { VotingMethod } from './enumerations';
@@ -225,8 +224,8 @@ export class Poll<TID extends PlatformID> {
 
   private _receiptData(receipt: VoteReceipt<TID>): Uint8Array {
     const parts = [
-      Constants.idProvider.toBytes(receipt.voterId),
-      Constants.idProvider.toBytes(receipt.pollId),
+      this._authority.idProvider.toBytes(receipt.voterId),
+      this._authority.idProvider.toBytes(receipt.pollId),
       new Uint8Array(new BigUint64Array([BigInt(receipt.timestamp)]).buffer),
       receipt.nonce,
     ];

@@ -2,7 +2,6 @@
  * Poll Factory - Convenient poll creation
  * Browser compatible
  */
-import { Constants } from '../../constants';
 import type { PlatformID } from '../../interfaces';
 import { Member } from '../../member';
 import { VotingMethod } from './enumerations';
@@ -24,8 +23,8 @@ export class PollFactory {
       throw new Error('Authority must have voting public key');
     }
 
-    // Generate poll ID
-    const id = Constants.idProvider.generate() as TID;
+    // Generate poll ID using the authority's idProvider for consistency
+    const id = authority.idProvider.generate() as TID;
 
     return new Poll<TID>(
       id,

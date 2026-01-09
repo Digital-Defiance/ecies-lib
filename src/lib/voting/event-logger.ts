@@ -2,13 +2,12 @@
  * Event Logger for Government-Grade Voting
  * Implements requirement 1.3: Comprehensive event logging with microsecond timestamps
  */
-import { getRuntimeConfiguration } from '../../constants';
-import type { IMember as _IMember, PlatformID } from '../../interfaces';
+import type { IMember, PlatformID } from '../../interfaces';
+import { IIdProvider } from '../../interfaces/id-provider';
 import { EventType } from './enumerations/event-type';
 import { EventLogEntry } from './interfaces/event-log-entry';
 import { EventLogger } from './interfaces/event-logger';
 import { PollConfiguration } from './interfaces/poll-configuration';
-const Constants = getRuntimeConfiguration();
 
 /**
  * Comprehensive event logger with sequence tracking
@@ -17,7 +16,24 @@ export class PollEventLogger<
   TID extends PlatformID = Uint8Array,
 > implements EventLogger<TID> {
   private readonly events: EventLogEntry<TID>[] = [];
+  private readonly idProvider: IIdProvider<TID>;
   private sequence = 0;
+
+  constructor(idProvider: IIdProvider<TID>) {
+    if (!idProvider) {
+      throw new Error('PollEventLogger requires an idProvider');
+    }
+    this.idProvider = idProvider;
+  }
+
+  /**
+   * Create a PollEventLogger from a Member (uses the member's idProvider)
+   */
+  static fromMember<TID extends PlatformID>(
+    member: IMember<TID>,
+  ): PollEventLogger<TID> {
+    return new PollEventLogger(member.idProvider);
+  }
 
   logPollCreated(
     pollId: TID,
@@ -81,16 +97,14 @@ export class PollEventLogger<
 
   getEventsForPoll(pollId: TID): readonly EventLogEntry<TID>[] {
     const pollIdBytes =
-      pollId instanceof Uint8Array
-        ? pollId
-        : Constants.idProvider.toBytes(pollId);
+      pollId instanceof Uint8Array ? pollId : this.idProvider.toBytes(pollId);
     const pollIdStr = this.toHex(pollIdBytes);
     return Object.freeze(
       this.events.filter((e) => {
         const eventPollIdBytes =
           e.pollId instanceof Uint8Array
             ? e.pollId
-            : Constants.idProvider.toBytes(e.pollId);
+            : this.idProvider.toBytes(e.pollId);
         return this.toHex(eventPollIdBytes) === pollIdStr;
       }),
     );
@@ -135,9 +149,9 @@ export class PollEventLogger<
   }
 
   private serializeEvent(event: EventLogEntry<TID>): Uint8Array {
-    const pollIdBytes = Constants.idProvider.toBytes(event.pollId);
+    const pollIdBytes = this.idProvider.toBytes(event.pollId);
     const creatorIdBytes = event.creatorId
-      ? Constants.idProvider.toBytes(event.creatorId)
+      ? this.idProvider.toBytes(event.creatorId)
       : undefined;
     const parts: Uint8Array[] = [
       this.encodeNumber(event.sequence),

@@ -3,6 +3,7 @@
  * Government-grade event logging verification
  */
 import { describe, it, expect, beforeEach } from '@jest/globals';
+import { IIdProvider } from '../../interfaces/id-provider';
 import {
   PollEventLogger,
   EventType,
@@ -12,9 +13,26 @@ import {
 
 describe('PollEventLogger', () => {
   let logger: PollEventLogger;
+  let mockIdProvider: IIdProvider<Uint8Array>;
 
   beforeEach(() => {
-    logger = new PollEventLogger();
+    // Create a mock idProvider for testing
+    mockIdProvider = {
+      byteLength: 12,
+      generate: () => new Uint8Array(12),
+      toBytes: (id: Uint8Array) => id,
+      fromBytes: (bytes: Uint8Array) => bytes,
+      serialize: (id: Uint8Array) =>
+        Array.from(id)
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join(''),
+      deserialize: (str: string) =>
+        new Uint8Array(
+          str.match(/.{2}/g)?.map((byte) => parseInt(byte, 16)) || [],
+        ),
+      validate: (id: Uint8Array) => id.length === 12,
+    };
+    logger = new PollEventLogger(mockIdProvider);
   });
 
   describe('Poll Creation Logging', () => {
@@ -217,7 +235,7 @@ describe('PollEventLogger', () => {
 
   describe('Query Operations', () => {
     beforeEach(() => {
-      logger = new PollEventLogger(); // Create fresh logger
+      logger = new PollEventLogger(mockIdProvider); // Create fresh logger with idProvider
       const poll1 = new Uint8Array([1]);
       const poll2 = new Uint8Array([2]);
       const creator = new Uint8Array([3]);

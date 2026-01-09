@@ -4,10 +4,10 @@
  * These tests verify end-to-end workflows with Member ID generation.
  *
  * IMPORTANT ARCHITECTURE NOTE:
- * - Member always uses global Constants.idProvider (ObjectIdProvider) for ID generation
- * - The service's idProvider configuration does NOT affect Member ID generation
- * - member.id is a native type (ObjectId), member.idBytes is the raw Uint8Array
- * - Service's idProvider IS used for serialization in toJson()
+ * - Member uses the service's configured idProvider for ID generation
+ * - The service's idProvider configuration DOES affect Member ID generation
+ * - member.id matches the service's idProvider type, member.idBytes is the raw Uint8Array
+ * - Service's idProvider IS used for both ID generation and serialization
  */
 
 import { ObjectId } from 'bson';
@@ -15,14 +15,15 @@ import { MemberBuilder } from '../../src/builders/member-builder';
 import { createRuntimeConfiguration } from '../../src/constants';
 import { EmailString } from '../../src/email-string';
 import { MemberType } from '../../src/enumerations/member-type';
+import { GuidV4 } from '../../src/lib/guid';
 import { GuidV4Provider, ObjectIdProvider } from '../../src/lib/id-providers';
 import { Member } from '../../src/member';
 import { ECIESService } from '../../src/services/ecies/service';
 
 describe('Integration: Member ID Generation Workflows', () => {
   describe('Member Creation with Different Service Configurations', () => {
-    it('should create Member with ObjectId regardless of service idProvider', () => {
-      // Even with GuidV4Provider in service config, Member uses global ObjectIdProvider
+    it('should create Member with service idProvider configuration', () => {
+      // Member uses the service's configured idProvider for ID generation
       const config = createRuntimeConfiguration({
         idProvider: new GuidV4Provider(),
       });
@@ -35,10 +36,10 @@ describe('Integration: Member ID Generation Workflows', () => {
         new EmailString('test@example.com'),
       );
 
-      // Member ID is ObjectId (from global Constants.idProvider)
-      expect(result.member.id).toBeInstanceOf(ObjectId);
-      expect(result.member.idBytes.length).toBe(12);
-      // Service config is for serialization, not ID generation
+      // Member ID matches service's idProvider (GuidV4)
+      expect(result.member.id).toBeInstanceOf(GuidV4);
+      expect(result.member.idBytes.length).toBe(16);
+      // Service config determines ID generation
       expect(service.constants.idProvider.byteLength).toBe(16);
     });
 
@@ -135,7 +136,7 @@ describe('Integration: Member ID Generation Workflows', () => {
   });
 
   describe('MemberBuilder Workflows', () => {
-    it('should create Member with ObjectId using fluent API', () => {
+    it('should create Member with GuidV4 using fluent API', () => {
       const config = createRuntimeConfiguration({
         idProvider: new GuidV4Provider(),
       });
@@ -149,8 +150,8 @@ describe('Integration: Member ID Generation Workflows', () => {
         .generateMnemonic()
         .build();
 
-      expect(result.member.id).toBeInstanceOf(ObjectId);
-      expect(result.member.idBytes.length).toBe(12);
+      expect(result.member.id).toBeInstanceOf(GuidV4);
+      expect(result.member.idBytes.length).toBe(16);
       expect(result.mnemonic).toBeDefined();
     });
 
@@ -259,11 +260,18 @@ describe('Integration: Member ID Generation Workflows', () => {
         ),
       );
 
-      // All should have ObjectId regardless of service config
-      for (const member of members) {
-        expect(member.member.id).toBeInstanceOf(ObjectId);
-        expect(member.member.idBytes.length).toBe(12);
-      }
+      // Members should have IDs matching their service's idProvider
+      expect(members[0].member.id).toBeInstanceOf(GuidV4); // GuidV4Provider
+      expect(members[0].member.idBytes.length).toBe(16);
+
+      expect(members[1].member.id).toBeInstanceOf(ObjectId); // ObjectIdProvider
+      expect(members[1].member.idBytes.length).toBe(12);
+
+      expect(members[2].member.id).toBeInstanceOf(GuidV4); // GuidV4Provider
+      expect(members[2].member.idBytes.length).toBe(16);
+
+      expect(members[3].member.id).toBeInstanceOf(ObjectId); // Default (ObjectId)
+      expect(members[3].member.idBytes.length).toBe(12);
     });
   });
 
@@ -355,7 +363,7 @@ describe('Integration: Member ID Generation Workflows', () => {
       expect(objectIdService.constants.idProvider.byteLength).toBe(12);
       expect(objectIdService.constants.MEMBER_ID_LENGTH).toBe(12);
 
-      // But Member generation uses global provider
+      // Member generation uses service's configured idProvider
       const guidMember = Member.newMember(
         guidService,
         MemberType.User,
@@ -369,8 +377,11 @@ describe('Integration: Member ID Generation Workflows', () => {
         new EmailString('user@example.com'),
       );
 
-      // Both create 12-byte ObjectIds
-      expect(guidMember.member.idBytes.length).toBe(12);
+      // Members use their service's idProvider configuration
+      expect(guidMember.member.idBytes.length).toBe(16); // GuidV4
+      expect(guidMember.member.id).toBeInstanceOf(GuidV4);
+
+      expect(objectIdMember.member.idBytes.length).toBe(12); // ObjectId
       expect(objectIdMember.member.idBytes.length).toBe(12);
     });
   });
