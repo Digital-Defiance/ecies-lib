@@ -8,7 +8,7 @@ Production-ready, browser-compatible ECIES (Elliptic Curve Integrated Encryption
 
 Part of [Express Suite](https://github.com/Digital-Defiance/express-suite)
 
-**Current Version: v4.10.6**
+**Current Version: v4.10.7**
 
 This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuring HKDF key derivation, AAD binding, and optimized multi-recipient encryption. It includes a pluggable ID provider system with PlatformID support, memory-efficient streaming encryption, comprehensive internationalization, and a complete cryptographic voting system with 15+ voting methods.
 
@@ -47,6 +47,7 @@ This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuri
   - **PlatformID Type**: Generic type system supporting `Uint8Array | GuidV4 | ObjectId | string`
   - **Auto-Sync**: Configuration automatically adapts all cryptographic constants to the selected ID provider
   - **Member System**: User abstraction with cryptographic operations, fully integrated with the configured ID provider
+  - **Strong Typing**: New typed configuration system provides compile-time type safety for ID operations
 - **Key Management**:
   - **BIP39**: Mnemonic phrase generation (12-24 words).
   - **HD Wallets**: BIP32/BIP44 hierarchical deterministic derivation.
@@ -201,7 +202,8 @@ import {
   ECIESService, 
   getEciesI18nEngine, 
   createRuntimeConfiguration, 
-  ObjectIdProvider 
+  ObjectIdProvider,
+  getEnhancedIdProvider
 } from '@digitaldefiance/ecies-lib';
 
 // 1. Initialize i18n (required once)
@@ -227,6 +229,12 @@ const encrypted = await ecies.encryptSimpleOrSingle(false, publicKey, message);
 const decrypted = await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encrypted);
 
 console.log(new TextDecoder().decode(decrypted)); // "Hello, Secure World!"
+
+// 6. Strong Typing for ID Operations (NEW!)
+const idProvider = getEnhancedIdProvider<ObjectId>();
+const objectId = idProvider.generateTyped(); // Returns ObjectId - strongly typed!
+const serialized = idProvider.serializeTyped(objectId); // Accepts ObjectId directly
+const deserialized = idProvider.deserializeTyped(serialized); // Returns ObjectId
 ```
 
 ## Cryptographic Voting System
@@ -394,7 +402,55 @@ VotingSecurityValidator.validate(VotingMethod.Quadratic); // Throws error
 VotingSecurityValidator.validate(VotingMethod.Quadratic, { allowInsecure: true });
 ```
 
-### 2. Using Custom ID Providers (e.g., GUID)
+### 2. Strong Typing for ID Providers (NEW!)
+
+The library now provides strongly-typed alternatives to the weak typing pattern `Constants.idProvider.generate()`:
+
+```typescript
+import { 
+  getRuntimeConfiguration,
+  getEnhancedIdProvider,
+  getTypedIdProvider,
+  createObjectIdConfiguration
+} from '@digitaldefiance/ecies-lib';
+import { ObjectId } from 'bson';
+
+// BEFORE: Weak typing (still works for compatibility)
+const Constants = getRuntimeConfiguration();
+const rawBytes = Constants.idProvider.generate(); // Returns Uint8Array, no strong typing
+const nativeId = Constants.idProvider.fromBytes(rawBytes); // Returns unknown, requires casting
+
+// AFTER: Strong typing - Option 1 (Enhanced Provider - Recommended)
+const enhancedProvider = getEnhancedIdProvider<ObjectId>();
+
+// Original methods still work exactly the same
+const rawBytes2 = enhancedProvider.generate(); // Uint8Array (same as before)
+const isValid = enhancedProvider.validate(rawBytes2); // boolean (same as before)
+
+// Plus new strongly-typed methods
+const objectId = enhancedProvider.generateTyped(); // ObjectId - strongly typed!
+const validTyped = enhancedProvider.validateTyped(objectId); // boolean, accepts ObjectId
+const serialized = enhancedProvider.serializeTyped(objectId); // string, accepts ObjectId
+const deserialized = enhancedProvider.deserializeTyped(serialized); // ObjectId
+
+// AFTER: Strong typing - Option 2 (Simple Typed Provider)
+const typedProvider = getTypedIdProvider<ObjectId>();
+const bytes = typedProvider.generate();
+const typedId = typedProvider.fromBytes(bytes); // Returns ObjectId, not unknown!
+
+// AFTER: Strong typing - Option 3 (Configuration Wrapper)
+const config = createObjectIdConfiguration();
+const configId = config.generateId(); // ObjectId directly!
+const configValid = config.validateId(configId); // boolean, accepts ObjectId
+```
+
+**Benefits:**
+- ✅ **Full IntelliSense** - Autocomplete for native ID methods (`objectId.toHexString()`)
+- ✅ **Compile-time checking** - Prevents type mismatches at build time
+- ✅ **Zero breaking changes** - All existing code continues to work
+- ✅ **Multiple migration paths** - Choose the approach that fits your use case
+
+### 3. Using Custom ID Providers (e.g., GUID)
 
 ```typescript
 import { 
@@ -413,7 +469,7 @@ const ecies = new ECIESService(config);
 const id = config.idProvider.generate(); // Returns 16-byte Uint8Array
 ```
 
-### 3. Streaming Encryption (Large Files)
+### 4. Streaming Encryption (Large Files)
 
 Encrypt gigabytes of data with minimal memory footprint (<10MB).
 
@@ -437,7 +493,7 @@ async function processFile(fileStream: ReadableStream, publicKey: Uint8Array) {
 }
 ```
 
-### 4. Member System
+### 5. Member System
 
 The `Member` class provides a high-level user abstraction that integrates keys, IDs, and encryption.
 
@@ -973,6 +1029,27 @@ class MemberService {
   - `get(key)`: Retrieve a configuration.
 - **`createRuntimeConfiguration(overrides)`**: Creates a validated configuration object with your overrides.
 
+### Strong Typing System (NEW!)
+
+- **`getEnhancedIdProvider<T>(key?)`**: Get a strongly-typed ID provider with enhanced convenience methods
+  - Drop-in replacement for `Constants.idProvider` with both original and typed methods
+  - `generateTyped()`: Generate ID with native type (e.g., `ObjectId`)
+  - `validateTyped(id)`: Validate ID with native type
+  - `serializeTyped(id)`: Serialize ID with native type
+  - `deserializeTyped(str)`: Deserialize to native type
+- **`getTypedIdProvider<T>(key?)`**: Get a simple strongly-typed ID provider
+  - Minimal API surface with type-safe conversions
+  - `fromBytes(bytes)`: Returns native type instead of `unknown`
+- **`createObjectIdConfiguration(overrides?)`**: Create ObjectId-typed configuration
+- **`createGuidV4Configuration(overrides?)`**: Create GuidV4-typed configuration
+- **`createUint8ArrayConfiguration(overrides?)`**: Create Uint8Array-typed configuration
+- **`createUuidConfiguration(overrides?)`**: Create UUID string-typed configuration
+- **`TypedConfiguration<T>`**: Configuration wrapper with strongly-typed ID operations
+  - `generateId()`: Generate ID with native type
+  - `validateId(id)`: Validate ID with native type
+  - `serializeId(id)`: Serialize ID with native type
+  - `deserializeId(str)`: Deserialize to native type
+
 ### Secure Primitives
 
 - **`SecureString` / `SecureBuffer`**:
@@ -1180,6 +1257,59 @@ The library maintains **100% test coverage** with over 1,200 tests, including:
 - **Property-based Tests**: Fuzzing inputs for robustness.
 
 ## ChangeLog
+
+### v4.10.7 - Strong Typing for ID Providers
+
+**Major Features:**
+- **Strong Typing System**: Added comprehensive strong typing solution for ID provider operations
+  - `getEnhancedIdProvider<T>()`: Drop-in replacement for `Constants.idProvider` with typed methods
+  - `getTypedIdProvider<T>()`: Simple typed provider for minimal API surface
+  - `createObjectIdConfiguration()`: ObjectId-typed configuration factory
+  - `TypedConfiguration<T>`: Configuration wrapper with strongly-typed ID operations
+- **Enhanced Developer Experience**: 
+  - Full IntelliSense support for native ID types (`ObjectId`, `GuidV4`, `string`, etc.)
+  - Compile-time type checking prevents runtime type errors
+  - Multiple migration paths to choose from based on use case
+- **Zero Breaking Changes**: All existing code continues to work unchanged
+  - Original `Constants.idProvider` pattern still supported
+  - Enhanced providers include all original methods plus typed alternatives
+  - Backward compatibility maintained for all existing APIs
+
+**New APIs:**
+- `getEnhancedIdProvider<T>(key?)`: Enhanced provider with typed convenience methods
+- `getTypedIdProvider<T>(key?)`: Simple typed provider
+- `createObjectIdConfiguration(overrides?)`: ObjectId-typed configuration
+- `createGuidV4Configuration(overrides?)`: GuidV4-typed configuration  
+- `createUint8ArrayConfiguration(overrides?)`: Uint8Array-typed configuration
+- `createUuidConfiguration(overrides?)`: UUID string-typed configuration
+- `TypedIdProviderWrapper<T>`: Enhanced wrapper with typed methods
+
+**Migration Examples:**
+```typescript
+// BEFORE: Weak typing
+const Constants = getRuntimeConfiguration();
+const id = Constants.idProvider.generate(); // Uint8Array, no strong typing
+
+// AFTER: Strong typing (multiple options)
+const enhancedProvider = getEnhancedIdProvider<ObjectId>();
+const objectId = enhancedProvider.generateTyped(); // ObjectId - strongly typed!
+
+const typedProvider = getTypedIdProvider<ObjectId>();
+const typedId = typedProvider.fromBytes(bytes); // ObjectId, not unknown!
+
+const config = createObjectIdConfiguration();
+const configId = config.generateId(); // ObjectId directly!
+```
+
+**Documentation:**
+- Added comprehensive migration guide (`src/migration-guide.md`)
+- Updated README with strong typing examples
+- Added usage examples and real-world migration patterns
+
+**Testing:**
+- 14 new tests covering all strong typing scenarios
+- Property-based tests for type safety validation
+- Migration pattern tests for backward compatibility
 
 ### v4.10.6 - Voting System & PlatformID Integration
 

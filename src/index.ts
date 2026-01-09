@@ -45,6 +45,7 @@ export {
 // For now, import from main index.ts for backward compatibility
 
 export * from './constants';
+export * from './typed-configuration';
 export * from './email-string';
 export * from './enumerations';
 export * from './errors';

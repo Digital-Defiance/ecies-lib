@@ -1,15 +1,18 @@
+import { ObjectId } from 'bson';
 import { Constants } from '../../src/constants';
 import { getEciesI18nEngine } from '../../src/i18n-setup';
 import { MULTI_RECIPIENT_CONSTANTS } from '../../src/interfaces/multi-recipient-chunk';
 import { ECIESService } from '../../src/services/ecies/service';
 import { EncryptionStream } from '../../src/services/encryption-stream';
 import { MultiRecipientProcessor } from '../../src/services/multi-recipient-processor';
+import { getEnhancedIdProvider } from '../../src/typed-configuration';
 import { StreamTestUtils } from '../support/stream-test-utils';
 
 describe('Multi-Recipient Security', () => {
   let ecies: ECIESService;
   let stream: EncryptionStream;
   let processor: MultiRecipientProcessor;
+  let idProvider: ReturnType<typeof getEnhancedIdProvider<ObjectId>>;
 
   beforeAll(() => {
     getEciesI18nEngine();
@@ -19,6 +22,7 @@ describe('Multi-Recipient Security', () => {
     ecies = new ECIESService();
     stream = new EncryptionStream(ecies);
     processor = new MultiRecipientProcessor(ecies);
+    idProvider = getEnhancedIdProvider<ObjectId>();
   });
 
   describe('duplicate recipient validation', () => {
@@ -26,7 +30,8 @@ describe('Multi-Recipient Security', () => {
       const keyPair = ecies.mnemonicToSimpleKeyPair(
         ecies.generateNewMnemonic(),
       );
-      const duplicateId = Constants.idProvider.generate();
+      const idProvider = getEnhancedIdProvider<ObjectId>();
+      const duplicateId = idProvider.generate();
 
       const recipients = [
         { id: duplicateId, publicKey: keyPair.publicKey },
@@ -55,8 +60,8 @@ describe('Multi-Recipient Security', () => {
       );
 
       const recipients = [
-        { id: Constants.idProvider.generate(), publicKey: keyPair1.publicKey },
-        { id: Constants.idProvider.generate(), publicKey: keyPair2.publicKey },
+        { id: idProvider.generate(), publicKey: keyPair1.publicKey },
+        { id: idProvider.generate(), publicKey: keyPair2.publicKey },
       ];
 
       const data = StreamTestUtils.generateRandomData(1024);
@@ -79,7 +84,7 @@ describe('Multi-Recipient Security', () => {
       const keyPair = ecies.mnemonicToSimpleKeyPair(
         ecies.generateNewMnemonic(),
       );
-      const recipientId = Constants.idProvider.generate();
+      const recipientId = idProvider.generate();
 
       // Create a chunk with wrong version
       const data = new Uint8Array(1024);
@@ -118,8 +123,8 @@ describe('Multi-Recipient Security', () => {
       await expect(async () => {
         await processor.decryptChunk(
           chunk,
-          Constants.idProvider.generate(),
-          Constants.idProvider.generate(),
+          idProvider.generate(),
+          idProvider.generate(),
         );
       }).rejects.toThrow('Invalid recipient count');
     });
@@ -140,8 +145,8 @@ describe('Multi-Recipient Security', () => {
       await expect(async () => {
         await processor.decryptChunk(
           chunk,
-          Constants.idProvider.generate(),
-          Constants.idProvider.generate(),
+          idProvider.generate(),
+          idProvider.generate(),
         );
       }).rejects.toThrow(); // Any error is fine - point is 65535 was accepted
     });
@@ -163,8 +168,8 @@ describe('Multi-Recipient Security', () => {
       await expect(async () => {
         await processor.decryptChunk(
           chunk,
-          Constants.idProvider.generate(), // recipientId
-          Constants.idProvider.generate(),
+          idProvider.generate(), // recipientId
+          idProvider.generate(),
         );
       }).rejects.toThrow('Invalid key size');
     });
@@ -185,8 +190,8 @@ describe('Multi-Recipient Security', () => {
       await expect(async () => {
         await processor.decryptChunk(
           chunk,
-          Constants.idProvider.generate(),
-          Constants.idProvider.generate(),
+          idProvider.generate(),
+          idProvider.generate(),
         );
       }).rejects.toThrow('Invalid key size');
     });
@@ -205,8 +210,8 @@ describe('Multi-Recipient Security', () => {
       await expect(async () => {
         await processor.decryptChunk(
           chunk,
-          Constants.idProvider.generate(),
-          Constants.idProvider.generate(),
+          idProvider.generate(),
+          idProvider.generate(),
         );
       }).rejects.toThrow('Chunk too small');
     });
@@ -249,7 +254,7 @@ describe('Multi-Recipient Security', () => {
       const data = new Uint8Array(100);
       const symmetricKey = crypto.getRandomValues(new Uint8Array(32));
       const recipients = [
-        { id: Constants.idProvider.generate(), publicKey: keyPair.publicKey },
+        { id: idProvider.generate(), publicKey: keyPair.publicKey },
       ];
 
       // Generate 3 chunks and verify IVs are unique
@@ -297,7 +302,7 @@ describe('Multi-Recipient Security', () => {
         const keyPair = ecies.mnemonicToSimpleKeyPair(
           ecies.generateNewMnemonic(),
         );
-        const id = Constants.idProvider.generate();
+        const id = idProvider.generate();
         recipients.push({ id, publicKey: keyPair.publicKey });
       }
 
@@ -324,8 +329,8 @@ describe('Multi-Recipient Security', () => {
       await expect(async () => {
         await processor.decryptChunk(
           chunk,
-          Constants.idProvider.generate(),
-          Constants.idProvider.generate(),
+          idProvider.generate(),
+          idProvider.generate(),
         );
       }).rejects.toThrow('Chunk too small');
     });
@@ -339,8 +344,8 @@ describe('Multi-Recipient Security', () => {
       await expect(async () => {
         await processor.decryptChunk(
           chunk,
-          Constants.idProvider.generate(),
-          Constants.idProvider.generate(),
+          idProvider.generate(),
+          idProvider.generate(),
         );
       }).rejects.toThrow('Invalid multi-recipient chunk magic');
     });

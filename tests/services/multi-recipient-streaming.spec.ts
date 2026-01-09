@@ -1,12 +1,14 @@
-import { Constants } from '../../src/constants';
+import { ObjectId } from 'bson';
 import { getEciesI18nEngine } from '../../src/i18n-setup';
 import { ECIESService } from '../../src/services/ecies/service';
 import { EncryptionStream } from '../../src/services/encryption-stream';
+import { getEnhancedIdProvider } from '../../src/typed-configuration';
 import { StreamTestUtils } from '../support/stream-test-utils';
 
 describe('Multi-Recipient Streaming', () => {
   let ecies: ECIESService;
   let stream: EncryptionStream;
+  let idProvider: ReturnType<typeof getEnhancedIdProvider<ObjectId>>;
 
   beforeAll(() => {
     getEciesI18nEngine();
@@ -15,6 +17,7 @@ describe('Multi-Recipient Streaming', () => {
   beforeEach(() => {
     ecies = new ECIESService();
     stream = new EncryptionStream(ecies);
+    idProvider = getEnhancedIdProvider<ObjectId>();
   });
 
   describe('basic multi-recipient encryption', () => {
@@ -29,11 +32,11 @@ describe('Multi-Recipient Streaming', () => {
 
       const recipients = [
         {
-          id: Constants.idProvider.generate(),
+          id: idProvider.generate(),
           publicKey: recipient1.publicKey,
         },
         {
-          id: Constants.idProvider.generate(),
+          id: idProvider.generate(),
           publicKey: recipient2.publicKey,
         },
       ];
@@ -61,8 +64,8 @@ describe('Multi-Recipient Streaming', () => {
         ecies.generateNewMnemonic(),
       );
 
-      const recipient1Id = Constants.idProvider.generate();
-      const recipient2Id = Constants.idProvider.generate();
+      const recipient1Id = idProvider.generate();
+      const recipient2Id = idProvider.generate();
 
       const recipients = [
         { id: recipient1Id, publicKey: recipient1.publicKey },
@@ -124,7 +127,7 @@ describe('Multi-Recipient Streaming', () => {
         const keyPair = ecies.mnemonicToSimpleKeyPair(
           ecies.generateNewMnemonic(),
         );
-        const id = Constants.idProvider.generate();
+        const id = idProvider.generate();
         recipients.push({ id, publicKey: keyPair.publicKey });
         recipientKeys.push({ id, privateKey: keyPair.privateKey });
       }
@@ -177,7 +180,7 @@ describe('Multi-Recipient Streaming', () => {
 
     it('should reject invalid recipient public key', async () => {
       const recipients = [
-        { id: Constants.idProvider.generate(), publicKey: new Uint8Array(32) },
+        { id: idProvider.generate(), publicKey: new Uint8Array(32) },
       ];
 
       const data = StreamTestUtils.generateRandomData(1024);
@@ -218,8 +221,8 @@ describe('Multi-Recipient Streaming', () => {
       const recipient = ecies.mnemonicToSimpleKeyPair(
         ecies.generateNewMnemonic(),
       );
-      const recipientId = Constants.idProvider.generate();
-      const wrongId = Constants.idProvider.generate();
+      const recipientId = idProvider.generate();
+      const wrongId = idProvider.generate();
 
       const recipients = [{ id: recipientId, publicKey: recipient.publicKey }];
 
@@ -258,7 +261,7 @@ describe('Multi-Recipient Streaming', () => {
         ecies.generateNewMnemonic(),
       );
       const recipients = [
-        { id: Constants.idProvider.generate(), publicKey: recipient.publicKey },
+        { id: idProvider.generate(), publicKey: recipient.publicKey },
       ];
 
       const data = StreamTestUtils.generateRandomData(5 * 1024 * 1024);
@@ -288,7 +291,7 @@ describe('Multi-Recipient Streaming', () => {
         ecies.generateNewMnemonic(),
       );
       const recipients = [
-        { id: Constants.idProvider.generate(), publicKey: recipient.publicKey },
+        { id: idProvider.generate(), publicKey: recipient.publicKey },
       ];
 
       const data = StreamTestUtils.generateRandomData(10 * 1024 * 1024);
