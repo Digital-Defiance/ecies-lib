@@ -161,7 +161,7 @@ describe('Integration: Documented Usage Pattern (Browser)', () => {
       // Verify ECIES config was correctly extracted
       expect(ecies.config.curveName).toBe(config.ECIES.CURVE_NAME);
       expect(ecies.config.symmetricAlgorithm).toBe(
-        config.ECIES.SYMMETRIC.ALGORITHM,
+        config.ECIES.SYMMETRIC_ALGORITHM_CONFIGURATION,
       );
       expect(ecies.config.symmetricKeyBits).toBe(
         config.ECIES.SYMMETRIC.KEY_BITS,

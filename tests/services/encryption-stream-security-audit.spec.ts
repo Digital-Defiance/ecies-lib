@@ -580,8 +580,8 @@ describe('EncryptionStream - Security Audit', () => {
 
       const eciesConfig = ecies.config;
 
-      // Verify algorithm is AES
-      expect(eciesConfig.symmetricAlgorithm).toBe('aes');
+      // Verify algorithm is AES-256-GCM
+      expect(eciesConfig.symmetricAlgorithm).toBe('aes-256-gcm');
 
       // Verify mode is GCM
       expect(eciesConfig.symmetricKeyMode).toBe('gcm');

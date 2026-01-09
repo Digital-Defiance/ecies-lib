@@ -17,7 +17,9 @@ describe('ECIESService', () => {
   it('should have the correct default configuration', () => {
     const config = eciesService.config;
     expect(config.curveName).toBe(ECIES.CURVE_NAME);
-    expect(config.symmetricAlgorithm).toBe(ECIES.SYMMETRIC.ALGORITHM);
+    expect(config.symmetricAlgorithm).toBe(
+      ECIES.SYMMETRIC_ALGORITHM_CONFIGURATION,
+    );
   });
 
   describe('Key Management', () => {
@@ -161,7 +163,7 @@ describe('ECIESService', () => {
         // Verify that ECIES config was correctly extracted
         expect(service.config.curveName).toBe(config.ECIES.CURVE_NAME);
         expect(service.config.symmetricAlgorithm).toBe(
-          config.ECIES.SYMMETRIC.ALGORITHM,
+          config.ECIES.SYMMETRIC_ALGORITHM_CONFIGURATION,
         );
         expect(service.config.symmetricKeyBits).toBe(
           config.ECIES.SYMMETRIC.KEY_BITS,
@@ -196,7 +198,7 @@ describe('ECIESService', () => {
 
         expect(service.config.curveName).toBe('secp256k1');
         expect(service.config.symmetricAlgorithm).toBe(
-          ECIES.SYMMETRIC.ALGORITHM,
+          ECIES.SYMMETRIC_ALGORITHM_CONFIGURATION,
         );
       });
     });
@@ -207,7 +209,7 @@ describe('ECIESService', () => {
 
         expect(service.config.curveName).toBe(ECIES.CURVE_NAME);
         expect(service.config.symmetricAlgorithm).toBe(
-          ECIES.SYMMETRIC.ALGORITHM,
+          ECIES.SYMMETRIC_ALGORITHM_CONFIGURATION,
         );
       });
     });

@@ -88,7 +88,7 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
           curveName: config.ECIES.CURVE_NAME,
           primaryKeyDerivationPath: config.ECIES.PRIMARY_KEY_DERIVATION_PATH,
           mnemonicStrength: config.ECIES.MNEMONIC_STRENGTH,
-          symmetricAlgorithm: config.ECIES.SYMMETRIC.ALGORITHM,
+          symmetricAlgorithm: config.ECIES.SYMMETRIC_ALGORITHM_CONFIGURATION,
           symmetricKeyBits: config.ECIES.SYMMETRIC.KEY_BITS,
           symmetricKeyMode: config.ECIES.SYMMETRIC.MODE,
         }
@@ -98,7 +98,7 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
       curveName: this.eciesConsts.CURVE_NAME,
       primaryKeyDerivationPath: this.eciesConsts.PRIMARY_KEY_DERIVATION_PATH,
       mnemonicStrength: this.eciesConsts.MNEMONIC_STRENGTH,
-      symmetricAlgorithm: this.eciesConsts.SYMMETRIC.ALGORITHM,
+      symmetricAlgorithm: this.eciesConsts.SYMMETRIC_ALGORITHM_CONFIGURATION,
       symmetricKeyBits: this.eciesConsts.SYMMETRIC.KEY_BITS,
       symmetricKeyMode: this.eciesConsts.SYMMETRIC.MODE,
       ...eciesConfig,

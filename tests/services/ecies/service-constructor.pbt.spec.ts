@@ -49,7 +49,7 @@ describe('Property-Based Tests: ECIESService Constructor', () => {
             expect(service.config).toBeDefined();
             expect(service.config.curveName).toBe(config.ECIES.CURVE_NAME);
             expect(service.config.symmetricAlgorithm).toBe(
-              config.ECIES.SYMMETRIC.ALGORITHM,
+              config.ECIES.SYMMETRIC_ALGORITHM_CONFIGURATION,
             );
             expect(service.config.symmetricKeyBits).toBe(
               config.ECIES.SYMMETRIC.KEY_BITS,
@@ -181,7 +181,7 @@ describe('Property-Based Tests: ECIESService Constructor', () => {
               constants.ECIES.MNEMONIC_STRENGTH,
             );
             expect(service.config.symmetricAlgorithm).toBe(
-              constants.ECIES.SYMMETRIC.ALGORITHM,
+              constants.ECIES.SYMMETRIC_ALGORITHM_CONFIGURATION,
             );
             expect(service.config.symmetricKeyBits).toBe(
               constants.ECIES.SYMMETRIC.KEY_BITS,
@@ -222,7 +222,8 @@ describe('Property-Based Tests: ECIESService Constructor', () => {
               primaryKeyDerivationPath:
                 constants.ECIES.PRIMARY_KEY_DERIVATION_PATH,
               mnemonicStrength: constants.ECIES.MNEMONIC_STRENGTH,
-              symmetricAlgorithm: constants.ECIES.SYMMETRIC.ALGORITHM,
+              symmetricAlgorithm:
+                constants.ECIES.SYMMETRIC_ALGORITHM_CONFIGURATION,
               symmetricKeyBits: constants.ECIES.SYMMETRIC.KEY_BITS,
               symmetricKeyMode: constants.ECIES.SYMMETRIC.MODE,
             };
