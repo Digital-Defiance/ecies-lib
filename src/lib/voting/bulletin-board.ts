@@ -44,7 +44,7 @@ export class PublicBulletinBoard<
     voterIdHash: Uint8Array,
   ): BulletinBoardEntry<TID> {
     const timestamp = this.getMicrosecondTimestamp();
-    const merkleRoot = this.computeMerkleRoot([...this.entries]);
+    const merkleRoot = this.computeMerkleRootInternal([...this.entries]);
 
     const entryData = this.serializeEntryData({
       sequence: this.sequence,
@@ -158,13 +158,29 @@ export class PublicBulletinBoard<
   verifyMerkleTree(): boolean {
     for (let i = 0; i < this.entries.length; i++) {
       const entry = this.entries[i];
-      const expectedRoot = this.computeMerkleRoot(this.entries.slice(0, i));
+      const expectedRoot = this.computeMerkleRootInternal(
+        this.entries.slice(0, i),
+      );
 
       if (!this.arraysEqual(entry.merkleRoot, expectedRoot)) {
         return false;
       }
     }
     return true;
+  }
+
+  /**
+   * Get the current merkle root as a hex string
+   * Returns the merkle root of all entries currently in the bulletin board
+   */
+  computeMerkleRoot(): string {
+    if (this.entries.length === 0) {
+      return '0'.repeat(64); // 32 bytes of zeros as hex
+    }
+
+    // Get the merkle root from the latest entry
+    const latestEntry = this.entries[this.entries.length - 1];
+    return this.toHex(latestEntry.merkleRoot);
   }
 
   export(): Uint8Array {
@@ -185,7 +201,9 @@ export class PublicBulletinBoard<
     return this.concat(parts);
   }
 
-  private computeMerkleRoot(entries: BulletinBoardEntry<TID>[]): Uint8Array {
+  private computeMerkleRootInternal(
+    entries: BulletinBoardEntry<TID>[],
+  ): Uint8Array {
     if (entries.length === 0) {
       return new Uint8Array(32);
     }

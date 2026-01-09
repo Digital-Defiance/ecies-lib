@@ -269,6 +269,66 @@ describe('PublicBulletinBoard', () => {
       expect(entry1.merkleRoot).not.toEqual(entry2.merkleRoot);
       expect(entry2.merkleRoot).not.toEqual(entry3.merkleRoot);
     });
+
+    it('should compute merkle root as hex string for empty board', () => {
+      const merkleRoot = board.computeMerkleRoot();
+
+      expect(typeof merkleRoot).toBe('string');
+      expect(merkleRoot).toBe('0'.repeat(64)); // 32 bytes of zeros as hex
+      expect(merkleRoot.length).toBe(64);
+    });
+
+    it('should compute merkle root as hex string for board with entries', () => {
+      const pollId = new Uint8Array([1]);
+      const vote = [100n];
+      const hash = new Uint8Array([2]);
+
+      board.publishVote(pollId, vote, hash);
+      const merkleRoot = board.computeMerkleRoot();
+
+      expect(typeof merkleRoot).toBe('string');
+      expect(merkleRoot.length).toBe(64); // 32 bytes as hex
+      expect(/^[0-9a-f]{64}$/.test(merkleRoot)).toBe(true); // Valid hex string
+    });
+
+    it('should return different merkle roots as entries are added', () => {
+      const pollId = new Uint8Array([1]);
+      const vote = [100n];
+
+      const initialRoot = board.computeMerkleRoot();
+
+      board.publishVote(pollId, vote, new Uint8Array([1]));
+      const rootAfterFirst = board.computeMerkleRoot();
+
+      board.publishVote(pollId, vote, new Uint8Array([2]));
+      const rootAfterSecond = board.computeMerkleRoot();
+
+      // Initial root should be all zeros
+      expect(initialRoot).toBe('0'.repeat(64));
+
+      // After first entry, root should still be zeros (first entry has empty merkle root)
+      expect(rootAfterFirst).toBe('0'.repeat(64));
+
+      // After second entry, root should be different (computed from first entry)
+      expect(rootAfterSecond).not.toBe('0'.repeat(64));
+      expect(rootAfterSecond).not.toBe(rootAfterFirst);
+    });
+
+    it('should return merkle root matching latest entry', () => {
+      const pollId = new Uint8Array([1]);
+      const vote = [100n];
+      const hash = new Uint8Array([2]);
+
+      const entry = board.publishVote(pollId, vote, hash);
+      const computedRoot = board.computeMerkleRoot();
+
+      // Convert entry's merkle root to hex for comparison
+      const expectedRoot = Array.from(entry.merkleRoot)
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      expect(computedRoot).toBe(expectedRoot);
+    });
   });
 
   describe('Query Operations', () => {
