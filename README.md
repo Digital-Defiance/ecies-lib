@@ -8,9 +8,9 @@ Production-ready, browser-compatible ECIES (Elliptic Curve Integrated Encryption
 
 Part of [Express Suite](https://github.com/Digital-Defiance/express-suite)
 
-**Current Version: v4.7.14**
+**Current Version: v4.10.6**
 
-This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuring HKDF key derivation, AAD binding, and optimized multi-recipient encryption. It includes a pluggable ID provider system, memory-efficient streaming encryption, and comprehensive internationalization.
+This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuring HKDF key derivation, AAD binding, and optimized multi-recipient encryption. It includes a pluggable ID provider system with PlatformID support, memory-efficient streaming encryption, comprehensive internationalization, and a complete cryptographic voting system with 15+ voting methods.
 
 ## Features
 
@@ -30,12 +30,23 @@ This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuri
   - **Single**: Includes data length prefix.
   - **Multiple**: Efficient encryption for up to 65,535 recipients.
 
-### 🆔 Identity & Management
+### 🗳️ Cryptographic Voting System
+
+- **15+ Voting Methods**: Plurality, Approval, Weighted, Borda Count, Score, Ranked Choice (IRV), STAR, STV, Yes/No, Supermajority, and more
+- **Government-Grade Security**: Homomorphic encryption, verifiable receipts, immutable audit logs, public bulletin board
+- **Role Separation**: Poll aggregators cannot decrypt votes until closure (separate PollTallier)
+- **Multi-Round Support**: True IRV, STAR voting, STV with intermediate decryption
+- **Hierarchical Aggregation**: Precinct → County → State → National vote aggregation
+- **Event Logging**: Comprehensive audit trail with microsecond timestamps
+- **Browser Compatible**: Works in Node.js and modern browsers
+
+### 🆔 Enhanced Identity & Management
 
 - **Pluggable ID Providers**:
-  - **Flexible IDs**: Support for `ObjectId` (12 bytes), `GUID`/`UUID` (16 bytes), or custom formats (1-255 bytes).
-  - **Auto-Sync**: Configuration automatically adapts all cryptographic constants to the selected ID provider.
-  - **Member System**: User abstraction with cryptographic operations, fully integrated with the configured ID provider.
+  - **Flexible IDs**: Support for `ObjectId` (12 bytes), `GUID`/`UUID` (16 bytes), or custom formats (1-255 bytes)
+  - **PlatformID Type**: Generic type system supporting `Uint8Array | GuidV4 | ObjectId | string`
+  - **Auto-Sync**: Configuration automatically adapts all cryptographic constants to the selected ID provider
+  - **Member System**: User abstraction with cryptographic operations, fully integrated with the configured ID provider
 - **Key Management**:
   - **BIP39**: Mnemonic phrase generation (12-24 words).
   - **HD Wallets**: BIP32/BIP44 hierarchical deterministic derivation.
@@ -43,10 +54,11 @@ This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuri
 
 ### 🚀 Advanced Capabilities
 
-- **Streaming Encryption**: Memory-efficient processing for large files (<10MB RAM usage for any file size).
-- **Internationalization (i18n)**: Automatic error translation in 8 languages (en-US, en-GB, fr, es, de, zh-CN, ja, uk).
-- **Runtime Configuration**: Injectable configuration profiles via `ConstantsRegistry` for dependency injection and testing.
-- **Cross-Platform**: Fully compatible with Node.js 18+ and modern browsers (Chrome, Edge, Firefox, Safari).
+- **Streaming Encryption**: Memory-efficient processing for large files (<10MB RAM usage for any file size)
+- **Internationalization (i18n)**: Automatic error translation in 8 languages (en-US, en-GB, fr, es, de, zh-CN, ja, uk)
+- **Runtime Configuration**: Injectable configuration profiles via `ConstantsRegistry` for dependency injection and testing
+- **Cross-Platform**: Fully compatible with Node.js 18+ and modern browsers (Chrome, Edge, Firefox, Safari)
+- **Voting System**: Complete cryptographic voting implementation with government-grade security requirements
 
 ## Installation
 
@@ -160,18 +172,25 @@ The library implements a robust ECIES variant designed for security and efficien
 
 ### ID Provider System
 
-The library is agnostic to the format of unique identifiers. The `IdProvider` system drives the entire configuration:
+The library is agnostic to the format of unique identifiers. The `IdProvider` system drives the entire configuration and now supports the `PlatformID` type for enhanced cross-platform compatibility:
 
 - **ObjectIdProvider** (Default): 12-byte MongoDB-style IDs.
 - **GuidV4Provider**: 16-byte raw GUIDs.
 - **UuidProvider**: 16-byte UUIDs (string representation handles dashes).
 - **CustomIdProvider**: Define your own size (1-255 bytes).
 
+The `PlatformID` type supports multiple ID formats:
+
+```typescript
+export type PlatformID = Uint8Array | GuidV4 | ObjectId | string;
+```
+
 When you configure an ID provider, the library automatically:
 
 - Updates `MEMBER_ID_LENGTH`.
 - Updates `ECIES.MULTIPLE.RECIPIENT_ID_SIZE`.
 - Validates that all internal constants are consistent.
+- Provides seamless integration with the voting system through generic type parameters.
 
 ## Quick Start
 
@@ -208,6 +227,171 @@ const encrypted = await ecies.encryptSimpleOrSingle(false, publicKey, message);
 const decrypted = await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encrypted);
 
 console.log(new TextDecoder().decode(decrypted)); // "Hello, Secure World!"
+```
+
+## Cryptographic Voting System
+
+The library includes a complete cryptographic voting system with government-grade security features, supporting 15+ voting methods from simple plurality to complex ranked choice voting.
+
+### Quick Start - Voting
+
+```typescript
+import { 
+  ECIESService, 
+  Member, 
+  MemberType, 
+  EmailString 
+} from '@digitaldefiance/ecies-lib';
+import { 
+  PollFactory, 
+  VoteEncoder, 
+  PollTallier, 
+  VotingMethod 
+} from '@digitaldefiance/ecies-lib/voting';
+
+// 1. Create authority with voting keys
+const ecies = new ECIESService();
+const { member: authority } = Member.newMember(
+  ecies,
+  MemberType.System,
+  'Election Authority',
+  new EmailString('authority@example.com')
+);
+await authority.deriveVotingKeys();
+
+// 2. Create poll
+const poll = PollFactory.createPlurality(
+  ['Alice', 'Bob', 'Charlie'],
+  authority
+);
+
+// 3. Create voter and cast vote
+const { member: voter } = Member.newMember(
+  ecies,
+  MemberType.User,
+  'Voter',
+  new EmailString('voter@example.com')
+);
+await voter.deriveVotingKeys();
+
+const encoder = new VoteEncoder(authority.votingPublicKey!);
+const vote = encoder.encodePlurality(0, 3); // Vote for Alice
+const receipt = poll.vote(voter, vote);
+
+// 4. Close and tally
+poll.close();
+const tallier = new PollTallier(
+  authority,
+  authority.votingPrivateKey!,
+  authority.votingPublicKey!
+);
+const results = tallier.tally(poll);
+
+console.log('Winner:', results.choices[results.winner!]);
+console.log('Tallies:', results.tallies);
+```
+
+### Supported Voting Methods
+
+The system supports 15+ voting methods classified by security level:
+
+#### ✅ Fully Secure (Single-round, Privacy-preserving)
+- **Plurality** - First-past-the-post (most common) ✅ **Fully Implemented**
+- **Approval** - Vote for multiple candidates ✅ **Fully Implemented**
+- **Weighted** - Stakeholder voting with configurable limits ✅ **Fully Implemented**
+- **Borda Count** - Ranked voting with point allocation ✅ **Fully Implemented**
+- **Score Voting** - Rate candidates 0-10 ✅ **Fully Implemented**
+- **Yes/No** - Referendums and ballot measures ✅ **Fully Implemented**
+- **Yes/No/Abstain** - With abstention option ✅ **Fully Implemented**
+- **Supermajority** - Requires 2/3 or 3/4 threshold ✅ **Fully Implemented**
+
+#### ⚠️ Multi-Round (Requires intermediate decryption)
+- **Ranked Choice (IRV)** - Instant runoff with elimination ✅ **Fully Implemented**
+- **Two-Round** - Top 2 runoff election ✅ **Fully Implemented**
+- **STAR** - Score Then Automatic Runoff ✅ **Fully Implemented**
+- **STV** - Single Transferable Vote (proportional representation) ✅ **Fully Implemented**
+
+#### ❌ Insecure (No privacy - for special cases only)
+- **Quadratic** - Quadratic voting (requires non-homomorphic operations) ✅ **Fully Implemented**
+- **Consensus** - Requires 95%+ agreement ✅ **Fully Implemented**
+- **Consent-Based** - Sociocracy-style (no strong objections) ✅ **Fully Implemented**
+
+### Voting System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SECURE ARCHITECTURE                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Poll (Vote Aggregator)                                     │
+│  ├─ Paillier PUBLIC key only  ← encrypts & aggregates      │
+│  ├─ Authority's EC keys       ← signs receipts              │
+│  └─ Cannot decrypt votes                                    │
+│                                                              │
+│  PollTallier (Separate Entity)                              │
+│  ├─ Paillier PRIVATE key      ← decrypts ONLY after close  │
+│  └─ Computes results                                        │
+│                                                              │
+│  Voter (Member)                                             │
+│  ├─ EC keypair                ← verifies receipts           │
+│  └─ Voting public key         ← encrypts votes              │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Government Requirements
+
+The voting system meets government-grade requirements:
+
+- **✅ Immutable Audit Log** - Cryptographic hash chain for all operations
+- **✅ Public Bulletin Board** - Transparent, append-only vote publication with Merkle tree integrity
+- **✅ Event Logger** - Comprehensive event tracking with microsecond timestamps
+- **✅ Verifiable Receipts** - Cryptographically signed confirmations
+- **✅ Role Separation** - Poll aggregator cannot decrypt votes
+- **✅ Homomorphic Encryption** - Votes remain encrypted until tally
+
+### Example: Ranked Choice Voting
+
+```typescript
+import { PollFactory, VoteEncoder, PollTallier } from '@digitaldefiance/ecies-lib/voting';
+
+// Create ranked choice poll
+const poll = PollFactory.createRankedChoice(
+  ['Alice', 'Bob', 'Charlie', 'Diana'],
+  authority
+);
+
+const encoder = new VoteEncoder(authority.votingPublicKey!);
+
+// Voter ranks: Alice > Bob > Charlie (Diana not ranked)
+const vote = encoder.encodeRankedChoice([0, 1, 2], 4);
+const receipt = poll.vote(voter, vote);
+
+// Verify receipt
+const isValid = poll.verifyReceipt(voter, receipt);
+
+// Close and tally with IRV elimination
+poll.close();
+const results = tallier.tally(poll);
+
+console.log('Winner:', results.choices[results.winner!]);
+console.log('Elimination rounds:', results.rounds);
+```
+
+### Security Validation
+
+```typescript
+import { VotingSecurityValidator, SecurityLevel } from '@digitaldefiance/ecies-lib/voting';
+
+// Check security level
+const level = VotingSecurityValidator.getSecurityLevel(VotingMethod.Plurality);
+console.log(level); // SecurityLevel.FullyHomomorphic
+
+// Validate before use (throws if insecure)
+VotingSecurityValidator.validate(VotingMethod.Quadratic); // Throws error
+
+// Allow insecure methods explicitly
+VotingSecurityValidator.validate(VotingMethod.Quadratic, { allowInsecure: true });
 ```
 
 ### 2. Using Custom ID Providers (e.g., GUID)
@@ -713,6 +897,19 @@ class MemberService {
 - **`EciesFileService`**: Helper for chunked file encryption.
 - **`PasswordLoginService`**: Secure authentication using PBKDF2 and encrypted key bundles.
 
+### Voting System Services
+
+- **`Poll`**: Core poll with vote aggregation and receipt generation
+- **`PollTallier`**: Decrypts and tallies votes (separate from Poll for security)
+- **`VoteEncoder`**: Encrypts votes using Paillier homomorphic encryption
+- **`PollFactory`**: Convenient poll creation with method-specific configurations
+- **`VotingSecurityValidator`**: Security level validation and enforcement
+- **`ImmutableAuditLog`**: Hash-chained audit trail for government compliance
+- **`PublicBulletinBoard`**: Append-only vote publication with Merkle tree integrity
+- **`PollEventLogger`**: Event tracking with microsecond timestamps
+- **Hierarchical Aggregators**: `PrecinctAggregator`, `CountyAggregator`, `StateAggregator`, `NationalAggregator`
+- **`BatchVoteProcessor`**: Batch processing and checkpoint management
+
 ### ID Providers
 
 - **`IIdProvider`**: Interface that all ID providers implement
@@ -737,6 +934,9 @@ class MemberService {
   - `id`: Unique identifier (format determined by ID provider)
   - `publicKey`: Member's public key
   - `privateKey`: Member's private key (optional, can be loaded/unloaded)
+  - `votingPublicKey`: Paillier public key for voting (optional)
+  - `votingPrivateKey`: Paillier private key for voting (optional)
+  - `deriveVotingKeys()`: Generate Paillier keypair for voting
   - `encryptData(data, recipientPublicKey?)`: Encrypt data
   - `decryptData(encryptedData)`: Decrypt data
   - `sign(data)`: Sign data with private key
@@ -745,6 +945,25 @@ class MemberService {
   - `fromJson(json, eciesService)`: Deserialize from JSON (uses ID provider)
   - `newMember(...)`: Static factory method
   - `fromMnemonic(...)`: Create from BIP39 mnemonic
+
+### Voting System Types & Enumerations
+
+- **`VotingMethod`**: Enum with 15+ voting methods (Plurality, Approval, Weighted, Borda, Score, RankedChoice, STAR, STV, etc.)
+- **`SecurityLevel`**: Enum classifying voting methods (FullyHomomorphic, MultiRound, Insecure)
+- **`EventType`**: Enum for event logging (PollCreated, VoteCast, PollClosed, etc.)
+- **`AuditEventType`**: Enum for audit events
+- **`JurisdictionalLevel`**: Enum for hierarchical aggregation (Precinct, County, State, National)
+
+### Voting System Interfaces
+
+- **`EncryptedVote<TID extends PlatformID>`**: Encrypted vote structure with generic ID support
+- **`PollResults<TID extends PlatformID>`**: Tally results with winner(s) and generic ID support
+- **`VoteReceipt`**: Cryptographic vote receipt with signature verification
+- **`PollConfiguration`**: Poll setup parameters
+- **`SupermajorityConfig`**: Threshold configuration for supermajority voting
+- **`AuditEntry`**: Immutable audit log entry
+- **`BulletinBoardEntry`**: Public bulletin board entry
+- **`EventLogEntry`**: Event log entry with timestamps
 
 ### Configuration & Registry
 
@@ -961,6 +1180,135 @@ The library maintains **100% test coverage** with over 1,200 tests, including:
 - **Property-based Tests**: Fuzzing inputs for robustness.
 
 ## ChangeLog
+
+### v4.10.6 - Voting System & PlatformID Integration
+
+**Major Features:**
+- **Complete Cryptographic Voting System**: Added comprehensive voting system with 15+ methods
+  - Fully secure methods: Plurality, Approval, Weighted, Borda, Score, Yes/No, Supermajority
+  - Multi-round methods: Ranked Choice (IRV), STAR, STV, Two-Round
+  - Government-grade security: Immutable audit logs, public bulletin board, event logging
+  - Role separation: Poll aggregators cannot decrypt votes until closure
+- **PlatformID Type System**: Enhanced ID provider system with generic type support
+  - `PlatformID = Uint8Array | GuidV4 | ObjectId | string`
+  - Generic interfaces: `EncryptedVote<TID extends PlatformID>`, `PollResults<TID extends PlatformID>`
+  - Seamless integration between voting system and ID providers
+- **Enhanced Member System**: Added voting key derivation and management
+  - `deriveVotingKeys()`: Generate Paillier keypairs for homomorphic encryption
+  - `votingPublicKey` and `votingPrivateKey` properties for voting operations
+  - Full integration with voting system interfaces
+
+**Voting System Components:**
+- `Poll`: Core vote aggregation with receipt generation
+- `PollTallier`: Secure vote decryption and tallying (separate entity)
+- `VoteEncoder`: Paillier homomorphic encryption for all voting methods
+- `PollFactory`: Convenient poll creation with method-specific configurations
+- `VotingSecurityValidator`: Security level validation and enforcement
+- `ImmutableAuditLog`: Cryptographic hash chain for audit compliance
+- `PublicBulletinBoard`: Transparent vote publication with Merkle tree integrity
+- `PollEventLogger`: Comprehensive event tracking with microsecond timestamps
+- Hierarchical aggregators: Precinct → County → State → National
+
+**Breaking Changes:**
+- Voting interfaces now use generic `PlatformID` types
+- Member interface extended with voting key properties
+- New voting system exports in main package
+
+**Compatibility:**
+- Fully backward compatible for existing ECIES operations
+- New voting system is opt-in and doesn't affect existing functionality
+- Cross-platform compatible with `@digitaldefiance/node-ecies-lib`
+
+### v4.10.5 - Voting System Enhancements
+
+**Improvements:**
+- Enhanced voting system test coverage
+- Updated showcase application with improved voting demos
+- Bug fixes and stability improvements
+
+### v4.10.0 - Complete Voting System Implementation
+
+**Major Features:**
+- **All 15 Voting Methods Fully Implemented**: Complete implementation of all voting methods with both encoding and showcase demos
+- **Interactive Showcase Application**: React-based demos for all voting methods
+  - Plurality, Approval, Weighted, Borda Count demos
+  - Score Voting, Yes/No, Yes/No/Abstain, Supermajority demos  
+  - Ranked Choice (IRV), Two-Round, STAR, STV demos
+  - Quadratic, Consensus, Consent-Based demos (marked as insecure)
+- **Enhanced Vote Encoding**: Generic `encode()` method supports all voting methods
+- **Comprehensive Testing**: Full test coverage for all voting methods and security levels
+
+### v4.9.1 - Voting System Refinements
+
+**Improvements:**
+- Enhanced voting system test suite
+- Improved showcase application stability
+- Bug fixes in voting method implementations
+
+### v4.9.0 - Voting System Core Implementation
+
+**Major Features:**
+- **Core Voting Infrastructure**: Implemented foundational voting system components
+- **Security Classifications**: Proper security level validation for all voting methods
+- **Homomorphic Encryption**: Paillier encryption for privacy-preserving vote aggregation
+- **Government Compliance**: Audit logging, bulletin board, and event tracking systems
+
+### v4.8.7 - Showcase Application Development
+
+**Improvements:**
+- Continued development of interactive voting demos
+- Enhanced user interface for voting demonstrations
+- Improved cryptographic visualization components
+
+### v4.8.6 - Voting System Testing & Refinements
+
+**Improvements:**
+- Enhanced test coverage for voting system components
+- Bug fixes in voting method implementations
+- Improved error handling and validation
+
+### v4.8.5 - Voting System Expansion
+
+**Features:**
+- Additional voting method implementations
+- Enhanced showcase application with more interactive demos
+- Improved voting system documentation
+
+### v4.8.3 - Voting System Development
+
+**Features:**
+- Continued voting system implementation
+- Enhanced cryptographic voting components
+- Improved test coverage
+
+### v4.8.2 - Voting System Foundation
+
+**Features:**
+- Initial voting system architecture
+- Core voting method implementations
+- Basic showcase application structure
+
+### v4.8.1 - Voting System Initialization
+
+**Features:**
+- Foundation for cryptographic voting system
+- Initial voting method definitions
+- Enhanced Member system for voting key management
+
+### v4.8.0 - Voting System Introduction
+
+**Major Features:**
+- **Initial Voting System**: Introduced cryptographic voting system architecture
+- **Voting Method Enumerations**: Defined all 15+ voting methods with security classifications
+- **Enhanced Member System**: Added voting key derivation capabilities
+- **Showcase Application**: Started development of interactive voting demos
+
+### v4.7.14 - Pre-Voting System Enhancements
+
+**Improvements:**
+- Enhanced core ECIES functionality
+- Improved ID provider system
+- Bug fixes and stability improvements
 
 ### v4.7.12
 
@@ -1367,7 +1715,18 @@ tests/
   ├── e2e/               # End-to-end encryption/decryption tests
   ├── property/          # Property-based tests for cryptographic properties
   ├── compatibility/     # Cross-platform compatibility tests
-  └── vectors/           # Test vectors for protocol validation
+  ├── vectors/           # Test vectors for protocol validation
+  └── voting/            # Voting system tests
+      ├── voting.spec.ts           # Core voting functionality (900+ tests)
+      ├── voting-stress.spec.ts    # Stress tests with large datasets
+      ├── poll-core.spec.ts        # Poll core functionality
+      ├── poll-audit.spec.ts       # Audit log integration
+      ├── factory.spec.ts          # Poll factory methods
+      ├── encoder.spec.ts          # Vote encoding for all methods
+      ├── security.spec.ts         # Security validation
+      ├── audit.spec.ts            # Immutable audit log
+      ├── bulletin-board.spec.ts   # Public bulletin board
+      └── event-logger.spec.ts     # Event logging system
 ```
 
 ### Running Tests
@@ -1381,6 +1740,11 @@ npm test -- --coverage
 
 # Run specific test suite
 npm test -- ecies-service.spec.ts
+
+# Run voting system tests
+npm test -- voting.spec.ts
+npm test -- voting-stress.spec.ts
+npm test -- poll-core.spec.ts
 
 # Run compatibility tests
 npm test -- cross-platform-compatibility.spec.ts
@@ -1459,6 +1823,68 @@ describe('Multi-Recipient Encryption', () => {
 });
 ```
 
+#### Testing Voting System
+
+```typescript
+import { ECIESService, Member, MemberType, EmailString } from '@digitaldefiance/ecies-lib';
+import { PollFactory, VoteEncoder, PollTallier, VotingMethod } from '@digitaldefiance/ecies-lib/voting';
+
+describe('Voting System', () => {
+  it('should conduct a complete ranked choice election', async () => {
+    const ecies = new ECIESService();
+    
+    // Create authority
+    const { member: authority } = Member.newMember(
+      ecies,
+      MemberType.System,
+      'Authority',
+      new EmailString('authority@example.com')
+    );
+    await authority.deriveVotingKeys();
+    
+    // Create poll
+    const poll = PollFactory.createRankedChoice(
+      ['Alice', 'Bob', 'Charlie'],
+      authority
+    );
+    
+    // Create voters and cast votes
+    const { member: voter1 } = Member.newMember(ecies, MemberType.User, 'Voter1', new EmailString('v1@example.com'));
+    await voter1.deriveVotingKeys();
+    
+    const encoder = new VoteEncoder(authority.votingPublicKey!);
+    const vote = encoder.encodeRankedChoice([0, 1, 2], 3); // Alice > Bob > Charlie
+    const receipt = poll.vote(voter1, vote);
+    
+    // Verify receipt
+    expect(poll.verifyReceipt(voter1, receipt)).toBe(true);
+    
+    // Close and tally
+    poll.close();
+    const tallier = new PollTallier(
+      authority,
+      authority.votingPrivateKey!,
+      authority.votingPublicKey!
+    );
+    const results = tallier.tally(poll);
+    
+    expect(results.winner).toBeDefined();
+    expect(results.choices[results.winner!]).toBe('Alice');
+  });
+  
+  it('should prevent double voting', async () => {
+    const poll = PollFactory.createPlurality(['A', 'B'], authority);
+    const encoder = new VoteEncoder(authority.votingPublicKey!);
+    
+    poll.vote(voter, encoder.encodePlurality(0, 2));
+    
+    expect(() => {
+      poll.vote(voter, encoder.encodePlurality(1, 2));
+    }).toThrow('Already voted');
+  });
+});
+```
+
 #### Testing ID Providers
 
 ```typescript
@@ -1520,6 +1946,10 @@ describe('Cryptographic Properties', () => {
 4. **Use property-based tests** for cryptographic invariants
 5. **Test error conditions** like invalid keys, corrupted data, and wrong recipients
 6. **Verify binary compatibility** with node-ecies-lib
+7. **Test all voting methods** across security levels (fully secure, multi-round, insecure)
+8. **Verify voting security** (double-vote prevention, receipt verification, role separation)
+9. **Test government requirements** (audit logs, bulletin board, event logging)
+10. **Stress test large elections** (1000+ voters, complex elimination rounds)
 
 ### Cross-Platform Testing
 
@@ -1555,5 +1985,5 @@ MIT © Digital Defiance
 
 - **Repository:** <https://github.com/Digital-Defiance/ecies-lib>
 - **npm:** <https://www.npmjs.com/package/@digitaldefiance/ecies-lib>
-- **Companion:** @digitaldefiance/node-ecies-lib (binary compatible)
+- **Companion:** @digitaldefiance/node-ecies-lib (binary compatible, extends this library with Buffer support and Node.js-specific features)
 
