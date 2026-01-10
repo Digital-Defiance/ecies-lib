@@ -34,8 +34,6 @@ export type GuidInput =
  * Guid instances can be converted to any of these representations using the appropriate method.
  */
 export class Guid implements IGuid {
-  /** @deprecated Use Guid instead */
-  static readonly Guid = Guid;
   /**
    * GUID is stored internally as a raw 16-byte Uint8Array.
    */
