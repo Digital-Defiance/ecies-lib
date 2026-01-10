@@ -28,8 +28,8 @@ export type Base64Guid = Brand<string, 'GuidV4', GuidBrandType.Base64Guid>;
 /**
  * GUID stored as a raw buffer
  */
-export type RawGuidBuffer = Uint8Array &
-  Brand<Uint8Array, 'GuidV4', GuidBrandType.RawGuidBuffer>;
+export type RawGuidPlatformBuffer = Uint8Array &
+  Brand<Uint8Array, 'GuidV4', GuidBrandType.RawGuidPlatformBuffer>;
 
 /**
  * Extended Buffer type for data

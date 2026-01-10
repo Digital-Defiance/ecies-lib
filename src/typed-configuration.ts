@@ -6,8 +6,8 @@ import {
 } from './constants';
 import type { IConstants } from './interfaces/constants';
 import type { IIdProvider } from './interfaces/id-provider';
-import type { GuidV4 } from './lib/guid';
 import type { DeepPartial } from './types/deep-partial';
+import { GuidV4 } from './types/guid-versions';
 
 /**
  * Typed configuration wrapper that preserves ID provider type information.

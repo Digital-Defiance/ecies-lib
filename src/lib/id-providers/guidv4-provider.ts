@@ -1,13 +1,14 @@
 import { IdProviderErrorType } from '../../enumerations/id-provider-error-type';
 import { IdProviderError } from '../../errors/id-provider';
+import { GuidV4 } from '../../types/guid-versions';
 import { BaseIdProvider } from '../base-id-provider';
 import { Buffer } from '../buffer-compat';
-import { GuidV4 } from '../guid';
+import { Guid } from '../guid';
 
 /**
  * ID provider for GUIDv4 (16 bytes raw, 24 bytes base64).
  *
- * Uses the GuidV4 class which provides RFC 4122 compliant v4 GUIDs.
+ * Uses the Guid class which provides RFC 4122 compliant v4 GUIDs.
  * The raw binary representation is 16 bytes (128 bits).
  *
  * Serialization uses base64 for compactness (24 characters vs 36 for hex with dashes).
@@ -20,8 +21,8 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4> {
    * Generate a new random GUIDv4.
    */
   generate(): Uint8Array {
-    const guid = GuidV4.generate();
-    return guid.asRawGuidBufferUnsafe;
+    const guid = Guid.v4();
+    return guid.asRawGuidPlatformBufferUnsafe;
   }
 
   /**
@@ -34,8 +35,8 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4> {
     }
 
     try {
-      // Convert to GuidV4 and validate
-      const guid = GuidV4.fromUint8Array(id);
+      // Convert to Guid and validate
+      const guid = Guid.fromPlatformBuffer(id);
       return guid.isValidV4();
     } catch {
       return false;
@@ -46,10 +47,10 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4> {
    * Serialize GUID to base64 string (24 characters).
    */
   serialize(id: Uint8Array): string {
-    this.validateLength(id, 'GuidV4Provider.serialize');
+    this.validateLength(id, 'GuidProvider.serialize');
 
     try {
-      const guid = new GuidV4(Buffer.from(id));
+      const guid = new Guid(Buffer.from(id));
       return guid.asBase64Guid;
     } catch (error) {
       throw new IdProviderError(
@@ -71,8 +72,8 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4> {
     }
 
     try {
-      const guid = GuidV4.parse(str);
-      return guid.asRawGuidBufferUnsafe;
+      const guid = Guid.parse(str);
+      return guid.asRawGuidPlatformBufferUnsafe;
     } catch (error) {
       throw new IdProviderError(
         IdProviderErrorType.ParseFailed,
@@ -91,8 +92,8 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4> {
    * Useful for deterministic GUIDs.
    */
   fromNamespace(namespace: string, name: string): Uint8Array {
-    const guid = GuidV4.v5(name, namespace);
-    return guid.asRawGuidBufferUnsafe;
+    const guid = Guid.v5(name, namespace);
+    return guid.asRawGuidPlatformBufferUnsafe;
   }
 
   /**
@@ -100,10 +101,10 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4> {
    * Should return 4 for valid v4 GUIDs.
    */
   getVersion(id: Uint8Array): number | undefined {
-    this.validateLength(id, 'GuidV4Provider.getVersion');
+    this.validateLength(id, 'GuidProvider.getVersion');
 
     try {
-      const guid = new GuidV4(Buffer.from(id));
+      const guid = new Guid(Buffer.from(id));
       return guid.getVersion();
     } catch {
       return undefined;
@@ -114,10 +115,10 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4> {
    * Check if a GUID is the empty/nil GUID (all zeros).
    */
   isEmpty(id: Uint8Array): boolean {
-    this.validateLength(id, 'GuidV4Provider.isEmpty');
+    this.validateLength(id, 'GuidProvider.isEmpty');
 
     try {
-      const guid = new GuidV4(Buffer.from(id));
+      const guid = new Guid(Buffer.from(id));
       return guid.isEmpty();
     } catch {
       return false;
@@ -126,7 +127,7 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4> {
 
   /**
    * Convert an ID of unknown type to a string representation.
-   * Handles Uint8Array, GuidV4 instances, and falls back to String().
+   * Handles Uint8Array, Guid instances, and falls back to String().
    */
   override idToString(id: GuidV4): string {
     return id.asFullHexGuid;
@@ -137,7 +138,7 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4> {
    * Delegates to deserialize.
    */
   override idFromString(str: string): GuidV4 {
-    return GuidV4.parse(str);
+    return Guid.parse(str) as GuidV4;
   }
 
   override equals(a: GuidV4, b: GuidV4): boolean {
@@ -145,14 +146,15 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4> {
   }
 
   override clone(id: GuidV4): GuidV4 {
-    return GuidV4.parse(id.asFullHexGuid);
+    return Guid.parse(id.asFullHexGuid) as GuidV4;
   }
 
   override fromBytes(bytes: Uint8Array): GuidV4 {
-    return GuidV4.fromUint8Array(bytes);
+    return Guid.fromPlatformBuffer(bytes) as GuidV4;
   }
 
   override toBytes(id: GuidV4): Uint8Array {
-    return id.asRawGuidBuffer;
+    return id.asRawGuidPlatformBuffer;
   }
 }
+export { GuidV4Provider as GuidProvider };

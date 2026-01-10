@@ -6,7 +6,7 @@
  * IMPORTANT ARCHITECTURE NOTE:
  * - Member uses the service's configured idProvider for ID generation
  * - The service's idProvider configuration DOES affect Member ID generation
- * - member.id is a native type (ObjectId/GuidV4), member.idBytes is the raw Uint8Array
+ * - member.id is a native type (ObjectId/Guid), member.idBytes is the raw Uint8Array
  * - Service's idProvider IS used for both creation and serialization
  */
 
@@ -14,14 +14,14 @@ import { ObjectId } from 'bson';
 import { createRuntimeConfiguration } from '../src/constants';
 import { EmailString } from '../src/email-string';
 import { MemberType } from '../src/enumerations/member-type';
-import { GuidV4 } from '../src/lib/guid';
+import { Guid } from '../src/lib/guid';
 import { GuidV4Provider, ObjectIdProvider } from '../src/lib/id-providers';
 import { Member } from '../src/member';
 import { ECIESService } from '../src/services/ecies/service';
 
 describe('Unit Tests: Member ID Generation', () => {
   describe('Member ID uses service idProvider', () => {
-    it('should create Member with GuidV4 type ID when service uses GuidV4Provider', () => {
+    it('should create Member with Guid type ID when service uses GuidV4Provider', () => {
       // Member uses service's configured idProvider
       const service = new ECIESService(
         createRuntimeConfiguration({ idProvider: new GuidV4Provider() }),
@@ -34,8 +34,8 @@ describe('Unit Tests: Member ID Generation', () => {
         new EmailString('test@example.com'),
       );
 
-      // ID is GuidV4 type (from service's idProvider)
-      expect(result.member.id).toBeInstanceOf(GuidV4);
+      // ID is Guid type (from service's idProvider)
+      expect(result.member.id).toBeInstanceOf(Guid);
       // idBytes is the raw bytes
       expect(result.member.idBytes).toBeInstanceOf(Uint8Array);
       expect(result.member.idBytes.length).toBe(
@@ -93,7 +93,7 @@ describe('Unit Tests: Member ID Generation', () => {
       // Different ID lengths based on service configuration
       expect(guidMember.member.idBytes.length).toBe(16);
       expect(objectIdMember.member.idBytes.length).toBe(12);
-      expect(guidMember.member.id).toBeInstanceOf(GuidV4);
+      expect(guidMember.member.id).toBeInstanceOf(Guid);
       expect(objectIdMember.member.id).toBeInstanceOf(ObjectId);
     });
   });

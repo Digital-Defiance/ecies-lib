@@ -95,7 +95,7 @@ describe('ID Provider Architecture Integration', () => {
       expect(authority.idProvider).toBe(service.idProvider);
       expect(authority.idBytes.length).toBe(16);
       // GuidV4Provider returns GuidV4 instances, not Uint8Array
-      expect(authority.id.constructor.name).toBe('GuidV4');
+      expect(authority.id.constructor.name).toBe('Guid');
 
       // 5. Derive keys and create poll
       await authority.deriveVotingKeys();
@@ -112,7 +112,7 @@ describe('ID Provider Architecture Integration', () => {
       const memberJson = authority.toJson();
       const restoredMember = Member.fromJson<Uint8Array>(memberJson, service);
 
-      expect(restoredMember.id.constructor.name).toBe('GuidV4');
+      expect(restoredMember.id.constructor.name).toBe('Guid');
       expect(restoredMember.idBytes.length).toBe(16);
       expect(restoredMember.idProvider).toBe(service.idProvider);
     });

@@ -600,11 +600,11 @@ describe('GuidError', () => {
       const buffer = Buffer.from('12345678', 'hex');
       const error = new GuidError(
         GuidErrorType.InvalidGuidWithDetails,
-        GuidBrandType.RawGuidBuffer,
+        GuidBrandType.RawGuidPlatformBuffer,
         undefined,
         buffer,
       );
-      expect(error.brand).toBe(GuidBrandType.RawGuidBuffer);
+      expect(error.brand).toBe(GuidBrandType.RawGuidPlatformBuffer);
       expect(error.length).toBeUndefined();
       expect(error.guid).toBe(buffer);
     });

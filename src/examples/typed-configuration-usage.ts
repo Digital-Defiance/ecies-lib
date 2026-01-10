@@ -6,7 +6,7 @@
 
 import { ObjectId } from 'bson';
 import { getRuntimeConfiguration } from '../constants';
-import { GuidV4Provider } from '../lib/id-providers/guidv4-provider';
+import { GuidProvider } from '../lib/id-providers/guidv4-provider';
 import {
   createObjectIdConfiguration,
   createGuidV4Configuration,
@@ -68,7 +68,7 @@ function realWorldUsage() {
   const _idString = config.serializeId(newId); // string
 
   // Pattern 2: Custom provider with type inference
-  const customProvider = new GuidV4Provider();
+  const customProvider = new GuidProvider();
   const typedConfig = createTypedConfiguration({
     idProvider: customProvider,
     // Other overrides...
@@ -105,7 +105,7 @@ function serviceIntegration() {
 function typeSafetyDemo() {
   const objectIdConfig = createObjectIdConfiguration();
   const guidConfig = createGuidV4Configuration({
-    idProvider: new GuidV4Provider(),
+    idProvider: new GuidProvider(),
   });
 
   const objectId = objectIdConfig.generateId(); // ObjectId

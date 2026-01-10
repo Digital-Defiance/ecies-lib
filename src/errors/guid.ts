@@ -7,7 +7,7 @@ import { GuidBrandType } from '../enumerations/guid-brand-type';
 import { GuidErrorType } from '../enumerations/guid-error-type';
 import { EciesComponentId } from '../i18n-setup';
 import { Buffer } from '../lib/buffer-compat';
-import { RawGuidBuffer } from '../types';
+import type { RawGuidPlatformBuffer } from '../types';
 
 /**
  * Error class for handling GUID-related errors.
@@ -56,7 +56,7 @@ export class GuidError extends TypedHandleableError<
     type: GuidErrorType,
     public readonly brand?: GuidBrandType,
     public readonly length?: number,
-    public readonly guid?: RawGuidBuffer | Uint8Array,
+    public readonly guid?: RawGuidPlatformBuffer | Uint8Array,
     language?: string,
   ) {
     // Build template parameters only for the values that are provided
