@@ -1,7 +1,6 @@
 import { ObjectId } from 'bson';
 import { registerRuntimeConfiguration } from './constants';
-import type { GuidV4 } from './lib/guid';
-import { GuidProvider } from './lib/id-providers/guidv4-provider';
+import { GuidV4Provider } from './lib/id-providers/guidv4-provider';
 import { ObjectIdProvider } from './lib/id-providers/objectid-provider';
 import { UuidProvider } from './lib/id-providers/uuid-provider';
 import {
@@ -12,6 +11,7 @@ import {
   getTypedIdProvider,
   getEnhancedIdProvider,
 } from './typed-configuration';
+import { GuidV4 } from './types/guid-versions';
 
 describe('TypedConfiguration', () => {
   describe('ObjectId Configuration', () => {
@@ -49,7 +49,7 @@ describe('TypedConfiguration', () => {
   describe('GuidV4 Configuration', () => {
     it('should provide strongly typed GuidV4 operations', () => {
       const config = createGuidV4Configuration({
-        idProvider: new GuidProvider(),
+        idProvider: new GuidV4Provider(),
       });
 
       // Generate should return GuidV4
@@ -84,7 +84,7 @@ describe('TypedConfiguration', () => {
 
     it('should infer GuidV4 type from GuidV4Provider', () => {
       const config = createTypedConfiguration({
-        idProvider: new GuidProvider(),
+        idProvider: new GuidV4Provider(),
       });
 
       const id = config.generateId();
@@ -111,7 +111,7 @@ describe('TypedConfiguration', () => {
 
       // Register a configuration
       registerRuntimeConfiguration(testKey, {
-        idProvider: new GuidProvider(),
+        idProvider: new GuidV4Provider(),
       });
 
       // Get typed configuration from registry
@@ -144,7 +144,7 @@ describe('TypedConfiguration', () => {
     it('should maintain type boundaries between different providers', () => {
       const objectIdConfig = createObjectIdConfiguration();
       const guidConfig = createGuidV4Configuration({
-        idProvider: new GuidProvider(),
+        idProvider: new GuidV4Provider(),
       });
 
       const objectId = objectIdConfig.generateId();

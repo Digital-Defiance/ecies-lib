@@ -1,8 +1,8 @@
-# MongoDB ObjectId to GuidV4 Conversion
+# MongoDB ObjectId to Guid Conversion
 
 ## Overview
 
-The `GuidV4` class now supports converting MongoDB ObjectId hex strings (24 characters) into GuidV4 instances. This is useful when you need to work with MongoDB ObjectIds in a frontend context where you can't import the `bson` or `mongoose` packages.
+The `Guid` class now supports converting MongoDB ObjectId hex strings (24 characters) into Guid instances. This is useful when you need to work with MongoDB ObjectIds in a frontend context where you can't import the `bson` or `mongoose` packages.
 
 ## Type Brand
 
@@ -17,39 +17,39 @@ const objectIdHex: MongoObjectIdHexString = '507f1f77bcf86cd799439011' as MongoO
 
 ## Usage
 
-### Converting ObjectId to GuidV4
+### Converting ObjectId to Guid
 
 ```typescript
 import { ObjectId } from 'bson';
-import { GuidV4 } from '@digitaldefiance/ecies-lib';
+import { Guid } from '@digitaldefiance/ecies-lib';
 
 // Method 1: From hex string using fromMongoObjectId
 const objectIdHex = '507f1f77bcf86cd799439011';
-const guid1 = GuidV4.fromMongoObjectId(objectIdHex);
+const guid1 = Guid.fromMongoObjectId(objectIdHex);
 
 // Method 2: From hex string using constructor
-const guid2 = new GuidV4(objectIdHex);
+const guid2 = new Guid(objectIdHex);
 
 // Method 3: From BSON ObjectId using fromMongoObjectId
 const objectId = new ObjectId('507f1f77bcf86cd799439011');
-const guid3 = GuidV4.fromMongoObjectId(objectId);
+const guid3 = Guid.fromMongoObjectId(objectId);
 
 // Method 4: From BSON ObjectId using constructor
-const guid4 = new GuidV4(objectId);
+const guid4 = new Guid(objectId);
 
-// Use the GuidV4 instance
+// Use the Guid instance
 console.log(guid1.asFullHexGuid);  // '507f1f77-bcf8-6cd7-9943-901100000000'
 console.log(guid1.asShortHexGuid); // '507f1f77bcf86cd79943901100000000'
 console.log(guid1.asBase64Guid);   // Base64 encoded version
 ```
 
-### Converting GuidV4 back to ObjectId
+### Converting Guid back to ObjectId
 
 ```typescript
-import { GuidV4 } from '@digitaldefiance/ecies-lib';
+import { Guid } from '@digitaldefiance/ecies-lib';
 
 const objectIdHex = '507f1f77bcf86cd799439011';
-const guid = GuidV4.fromMongoObjectId(objectIdHex);
+const guid = Guid.fromMongoObjectId(objectIdHex);
 
 // Convert back to ObjectId
 const backToObjectId = guid.asMongoObjectId;
@@ -59,14 +59,14 @@ console.log(backToObjectId); // '507f1f77bcf86cd799439011'
 ### Round-trip Conversion
 
 ```typescript
-import { GuidV4 } from '@digitaldefiance/ecies-lib';
+import { Guid } from '@digitaldefiance/ecies-lib';
 
 const objectIdHex = '507f1f77bcf86cd799439011';
 
 // Convert to GUID and back
-const guid = GuidV4.fromMongoObjectId(objectIdHex);
+const guid = Guid.fromMongoObjectId(objectIdHex);
 const base64 = guid.asBase64Guid;
-const guid2 = new GuidV4(base64);
+const guid2 = new Guid(base64);
 const backToObjectId = guid2.asMongoObjectId;
 
 console.log(objectIdHex === backToObjectId); // true
@@ -77,7 +77,7 @@ console.log(objectIdHex === backToObjectId); // true
 The conversion works by:
 1. Validating the input is a 24-character hex string
 2. Padding the ObjectId with zeros to create a 32-character hex string
-3. Creating a GuidV4 instance from the padded hex string
+3. Creating a Guid instance from the padded hex string
 
 **Note:** The ObjectId is padded with zeros at the end, so:
 - ObjectId: `507f1f77bcf86cd799439011` (24 chars)
@@ -87,25 +87,25 @@ The conversion works by:
 
 ```typescript
 import { ObjectId } from 'bson';
-import { GuidV4, GuidBrandType } from '@digitaldefiance/ecies-lib';
+import { Guid, GuidBrandType } from '@digitaldefiance/ecies-lib';
 
 const objectIdHex = '507f1f77bcf86cd799439011';
 
 // Check if a string is a valid MongoDB ObjectId hex string
-if (GuidV4.isMongoObjectIdGuid(objectIdHex)) {
-  const guid = new GuidV4(objectIdHex);
+if (Guid.isMongoObjectIdGuid(objectIdHex)) {
+  const guid = new Guid(objectIdHex);
   // ... use guid
 }
 
 // Determine the brand of a value
-const brand = GuidV4.whichBrand(objectIdHex);
+const brand = Guid.whichBrand(objectIdHex);
 if (brand === GuidBrandType.MongoObjectId) {
   console.log('This is a MongoDB ObjectId');
 }
 
 // Works with BSON ObjectId too
 const objectId = new ObjectId();
-const brand2 = GuidV4.whichBrand(objectId);
+const brand2 = Guid.whichBrand(objectId);
 console.log(brand2); // GuidBrandType.MongoObjectId
 ```
 
@@ -117,10 +117,10 @@ The methods throw `GuidError` with type `GuidErrorType.Invalid` for:
 - Null or undefined input
 
 ```typescript
-import { GuidV4, GuidError } from '@digitaldefiance/ecies-lib';
+import { Guid, GuidError } from '@digitaldefiance/ecies-lib';
 
 try {
-  const guid = GuidV4.fromMongoObjectId(invalidObjectId);
+  const guid = Guid.fromMongoObjectId(invalidObjectId);
 } catch (error) {
   if (error instanceof GuidError) {
     console.error('Invalid ObjectId:', error.type);

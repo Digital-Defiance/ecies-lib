@@ -4,26 +4,26 @@
 
 ```typescript
 import { ObjectId } from 'bson';
-import { GuidV4, GuidBrandType } from '@digitaldefiance/ecies-lib';
+import { Guid, GuidBrandType } from '@digitaldefiance/ecies-lib';
 ```
 
 ## Create from ObjectId
 
 ```typescript
 // From hex string
-const guid = new GuidV4('507f1f77bcf86cd799439011');
-const guid = GuidV4.fromMongoObjectId('507f1f77bcf86cd799439011');
+const guid = new Guid('507f1f77bcf86cd799439011');
+const guid = Guid.fromMongoObjectId('507f1f77bcf86cd799439011');
 
 // From BSON ObjectId
 const objectId = new ObjectId();
-const guid = new GuidV4(objectId);
-const guid = GuidV4.fromMongoObjectId(objectId);
+const guid = new Guid(objectId);
+const guid = Guid.fromMongoObjectId(objectId);
 ```
 
 ## Convert to ObjectId
 
 ```typescript
-const guid = new GuidV4('507f1f77bcf86cd799439011');
+const guid = new Guid('507f1f77bcf86cd799439011');
 const objectIdHex = guid.asMongoObjectId; // '507f1f77bcf86cd799439011'
 ```
 
@@ -31,17 +31,17 @@ const objectIdHex = guid.asMongoObjectId; // '507f1f77bcf86cd799439011'
 
 ```typescript
 // Check if valid ObjectId hex
-GuidV4.isMongoObjectIdGuid('507f1f77bcf86cd799439011'); // true
-GuidV4.isMongoObjectIdGuid('invalid'); // false
+Guid.isMongoObjectIdGuid('507f1f77bcf86cd799439011'); // true
+Guid.isMongoObjectIdGuid('invalid'); // false
 
 // Check brand
-GuidV4.whichBrand('507f1f77bcf86cd799439011'); // GuidBrandType.MongoObjectId
+Guid.whichBrand('507f1f77bcf86cd799439011'); // GuidBrandType.MongoObjectId
 ```
 
 ## Format Conversions
 
 ```typescript
-const guid = new GuidV4('507f1f77bcf86cd799439011');
+const guid = new Guid('507f1f77bcf86cd799439011');
 
 guid.asMongoObjectId;      // '507f1f77bcf86cd799439011'
 guid.asShortHexGuid;       // '507f1f77bcf86cd79943901100000000'
@@ -55,9 +55,9 @@ guid.asRawGuidUint8Array;  // Uint8Array (16 bytes)
 
 ```typescript
 const original = '507f1f77bcf86cd799439011';
-const guid = new GuidV4(original);
+const guid = new Guid(original);
 const base64 = guid.asBase64Guid;
-const guid2 = new GuidV4(base64);
+const guid2 = new Guid(base64);
 const back = guid2.asMongoObjectId;
 
 console.log(original === back); // true
@@ -73,12 +73,12 @@ interface ApiResponse {
 }
 
 const response: ApiResponse = await fetch('/api/resource');
-const guid = new GuidV4(response._id);
+const guid = new Guid(response._id);
 ```
 
 ### Database Query
 ```typescript
-const guid = new GuidV4(userInput);
+const guid = new Guid(userInput);
 const objectIdHex = guid.asMongoObjectId;
 const result = await collection.findOne({ _id: new ObjectId(objectIdHex) });
 ```
@@ -91,7 +91,7 @@ function storeId(id: MongoObjectIdGuid) {
   // Type-safe ObjectId handling
 }
 
-const guid = new GuidV4('507f1f77bcf86cd799439011');
+const guid = new Guid('507f1f77bcf86cd799439011');
 storeId(guid.asMongoObjectId);
 ```
 
@@ -101,7 +101,7 @@ storeId(guid.asMongoObjectId);
 import { GuidError, GuidErrorType } from '@digitaldefiance/ecies-lib';
 
 try {
-  const guid = GuidV4.fromMongoObjectId(userInput);
+  const guid = Guid.fromMongoObjectId(userInput);
 } catch (error) {
   if (error instanceof GuidError && error.type === GuidErrorType.Invalid) {
     console.error('Invalid ObjectId format');

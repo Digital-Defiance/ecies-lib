@@ -44,7 +44,7 @@ This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuri
 
 - **Pluggable ID Providers**:
   - **Flexible IDs**: Support for `ObjectId` (12 bytes), `GUID`/`UUID` (16 bytes), or custom formats (1-255 bytes)
-  - **PlatformID Type**: Generic type system supporting `Uint8Array | GuidV4 | ObjectId | string`
+  - **PlatformID Type**: Generic type system supporting `Uint8Array | Guid | ObjectId | string`
   - **Auto-Sync**: Configuration automatically adapts all cryptographic constants to the selected ID provider
   - **Member System**: User abstraction with cryptographic operations, fully integrated with the configured ID provider
   - **Strong Typing**: New typed configuration system provides compile-time type safety for ID operations
@@ -183,7 +183,7 @@ The library is agnostic to the format of unique identifiers. The `IdProvider` sy
 The `PlatformID` type supports multiple ID formats:
 
 ```typescript
-export type PlatformID = Uint8Array | GuidV4 | ObjectId | string;
+export type PlatformID = Uint8Array | Guid | ObjectId | string;
 ```
 
 When you configure an ID provider, the library automatically:
@@ -1267,7 +1267,7 @@ The library maintains **100% test coverage** with over 1,200 tests, including:
   - `createObjectIdConfiguration()`: ObjectId-typed configuration factory
   - `TypedConfiguration<T>`: Configuration wrapper with strongly-typed ID operations
 - **Enhanced Developer Experience**: 
-  - Full IntelliSense support for native ID types (`ObjectId`, `GuidV4`, `string`, etc.)
+  - Full IntelliSense support for native ID types (`ObjectId`, `Guid`, `string`, etc.)
   - Compile-time type checking prevents runtime type errors
   - Multiple migration paths to choose from based on use case
 - **Zero Breaking Changes**: All existing code continues to work unchanged
@@ -1320,7 +1320,7 @@ const configId = config.generateId(); // ObjectId directly!
   - Government-grade security: Immutable audit logs, public bulletin board, event logging
   - Role separation: Poll aggregators cannot decrypt votes until closure
 - **PlatformID Type System**: Enhanced ID provider system with generic type support
-  - `PlatformID = Uint8Array | GuidV4 | ObjectId | string`
+  - `PlatformID = Uint8Array | Guid | ObjectId | string`
   - Generic interfaces: `EncryptedVote<TID extends PlatformID>`, `PollResults<TID extends PlatformID>`
   - Seamless integration between voting system and ID providers
 - **Enhanced Member System**: Added voting key derivation and management
