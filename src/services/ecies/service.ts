@@ -696,8 +696,6 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
   public signatureStringToSignatureBuffer(
     signatureString: SignatureString,
   ): SignatureUint8Array {
-    return this.signatureStringToSignatureUint8Array(
-      signatureString,
-    );
+    return this.signatureStringToSignatureUint8Array(signatureString);
   }
 }
