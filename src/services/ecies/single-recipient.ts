@@ -1,4 +1,4 @@
-import { Constants } from '../../constants';
+import { getRuntimeConfiguration } from '../../constants';
 import { EciesCipherSuiteEnum } from '../../enumerations/ecies-cipher-suite';
 import {
   EciesEncryptionType,
@@ -7,6 +7,7 @@ import {
 import { EciesStringKey } from '../../enumerations/ecies-string-key';
 import { EciesVersionEnum } from '../../enumerations/ecies-version';
 import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import { IConstants } from '../../interfaces';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
 import { AESGCMService } from '../aes-gcm';
@@ -17,15 +18,18 @@ import { IDecryptionResult, ISingleEncryptedParsedHeader } from './interfaces';
  * Browser-compatible single recipient ECIES encryption/decryption
  */
 export class EciesSingleRecipient {
+  protected readonly aesGcmService: AESGCMService;
   protected readonly cryptoCore: EciesCryptoCore;
   protected readonly config: IECIESConfig;
   protected readonly eciesConsts: IECIESConstants;
 
   constructor(
     config: IECIESConfig,
-    eciesParams: IECIESConstants = Constants.ECIES,
+    constants: IConstants = getRuntimeConfiguration(),
+    eciesParams: IECIESConstants = constants.ECIES,
   ) {
     this.config = config;
+    this.aesGcmService = new AESGCMService(constants);
     this.eciesConsts = eciesParams;
     this.cryptoCore = new EciesCryptoCore(config, this.eciesConsts);
   }
@@ -106,7 +110,7 @@ export class EciesSingleRecipient {
     aad.set(ephemeralPublicKey, aadOffset);
 
     // Encrypt using AES-GCM
-    const encryptResult = await AESGCMService.encrypt(
+    const encryptResult = await this.aesGcmService.encrypt(
       message,
       symKey,
       true,
@@ -564,13 +568,13 @@ export class EciesSingleRecipient {
     );
 
     // Combine encrypted data with auth tag for AES-GCM
-    const encryptedWithTag = AESGCMService.combineEncryptedDataAndTag(
+    const encryptedWithTag = this.aesGcmService.combineEncryptedDataAndTag(
       encrypted,
       authTag,
     );
 
     // Decrypt
-    return await AESGCMService.decrypt(
+    return await this.aesGcmService.decrypt(
       iv,
       encryptedWithTag,
       symKey,

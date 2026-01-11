@@ -3,6 +3,7 @@ import { EciesEncryptionTypeEnum } from '../src/enumerations/ecies-encryption-ty
 import { Pbkdf2ProfileEnum } from '../src/enumerations/pbkdf2-profile';
 import { getEciesI18nEngine } from '../src/i18n-setup';
 import { SecureString } from '../src/secure-string';
+import { AESGCMService } from '../src/services/aes-gcm';
 import { ECIESService } from '../src/services/ecies/service';
 import { PasswordLoginService } from '../src/services/password-login';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
@@ -11,15 +12,25 @@ import { hexToUint8Array, uint8ArrayToHex } from '../src/utils';
 // Mock dependencies
 jest.mock('../src/services/pbkdf2');
 jest.mock('../src/services/ecies/service');
-jest.mock('../src/services/aes-gcm', () => ({
-  AESGCMService: {
+jest.mock('../src/services/aes-gcm', () => {
+  const mockInstance = {
     encrypt: jest.fn(),
     decrypt: jest.fn(),
     splitEncryptedData: jest.fn(),
     combineIvTagAndEncryptedData: jest.fn(),
     combineEncryptedDataAndTag: jest.fn(),
-  },
-}));
+  };
+  const MockConstructor = jest.fn(() => mockInstance);
+  // Expose the instance on the constructor so tests can access it
+  MockConstructor.encrypt = mockInstance.encrypt;
+  MockConstructor.decrypt = mockInstance.decrypt;
+  MockConstructor.splitEncryptedData = mockInstance.splitEncryptedData;
+  MockConstructor.combineIvTagAndEncryptedData = mockInstance.combineIvTagAndEncryptedData;
+  MockConstructor.combineEncryptedDataAndTag = mockInstance.combineEncryptedDataAndTag;
+  return {
+    AESGCMService: MockConstructor,
+  };
+});
 jest.mock('../src/utils', () => ({
   hexToUint8Array: jest.fn(),
   uint8ArrayToHex: jest.fn(),
@@ -137,7 +148,10 @@ describe('PasswordLoginService', () => {
       getProfileConfig: jest.fn(),
     } as any;
 
+    const mockAesGcmService = 
+    new AESGCMService();
     passwordLoginService = new PasswordLoginService(
+      mockAesGcmService,
       mockEciesService,
       mockPbkdf2Service,
       getEciesI18nEngine(),

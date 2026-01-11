@@ -1,28 +1,40 @@
-import { Constants } from '../constants';
+import { II18nEngine } from '@digitaldefiance/i18n-lib';
+import { getRuntimeConfiguration } from '../constants';
 import { EciesStringKey } from '../enumerations';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { IConstants } from '../interfaces';
 import { IECIESConstants } from '../interfaces/ecies-consts';
 
-export abstract class AESGCMService {
+export class AESGCMService {
   public static readonly ALGORITHM_NAME = 'AES-GCM';
+  private readonly configuration: IConstants;
+  private readonly engine: II18nEngine;
+
+  constructor(constants?: IConstants) {
+    this.configuration = constants ?? getRuntimeConfiguration();
+    this.engine = getEciesI18nEngine();
+  }
+
   /**
    * Encrypt data using AES-GCM
    * @param data Data to encrypt
    * @param key Key to use for encryption (must be 16, 24 or 32 bytes for AES)
+   * @param authTag Whether to include an authentication tag
+   * @param eciesParams ECIES constants to use
+   * @param aad Optional additional authenticated data
    * @returns Encrypted data
    */
-  public static async encrypt(
+  public async encrypt(
     data: Uint8Array,
     key: Uint8Array,
     authTag: boolean = false,
-    eciesParams: IECIESConstants = Constants.ECIES,
+    eciesParams: IECIESConstants = this.configuration.ECIES,
     aad?: Uint8Array,
   ): Promise<{ encrypted: Uint8Array; iv: Uint8Array; tag?: Uint8Array }> {
     // Validate key length (AES supports 16, 24, or 32 bytes)
     if (!key || (key.length !== 16 && key.length !== 24 && key.length !== 32)) {
-      const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
+        this.engine.translate(
           EciesComponentId,
           EciesStringKey.Error_ECIESError_InvalidAESKeyLength,
         ),
@@ -88,7 +100,7 @@ export abstract class AESGCMService {
    * @param authTag The authentication tag
    * @returns The combined Uint8Array
    */
-  public static combineEncryptedDataAndTag(
+  public combineEncryptedDataAndTag(
     encryptedData: Uint8Array,
     authTag: Uint8Array,
   ): Uint8Array {
@@ -104,7 +116,7 @@ export abstract class AESGCMService {
    * @param encryptedDataWithTag The encrypted data with auth tag already appended (if applicable)
    * @returns The combined Uint8Array
    */
-  public static combineIvAndEncryptedData(
+  public combineIvAndEncryptedData(
     iv: Uint8Array,
     encryptedDataWithTag: Uint8Array,
   ): Uint8Array {
@@ -121,16 +133,16 @@ export abstract class AESGCMService {
    * @param authTag The authentication tag
    * @returns The combined Uint8Array
    */
-  public static combineIvTagAndEncryptedData(
+  public combineIvTagAndEncryptedData(
     iv: Uint8Array,
     encryptedData: Uint8Array,
     authTag: Uint8Array,
   ): Uint8Array {
-    const encryptedWithTag = AESGCMService.combineEncryptedDataAndTag(
+    const encryptedWithTag = this.combineEncryptedDataAndTag(
       encryptedData,
       authTag,
     );
-    return AESGCMService.combineIvAndEncryptedData(iv, encryptedWithTag);
+    return this.combineIvAndEncryptedData(iv, encryptedWithTag);
   }
 
   /**
@@ -139,10 +151,10 @@ export abstract class AESGCMService {
    * @param hasAuthTag Whether the combined data includes an authentication tag
    * @returns Object containing the split components
    */
-  public static splitEncryptedData(
+  public splitEncryptedData(
     combinedData: Uint8Array,
     hasAuthTag: boolean = true,
-    eciesParams: IECIESConstants = Constants.ECIES,
+    eciesParams: IECIESConstants = this.configuration.ECIES,
   ): { iv: Uint8Array; encryptedDataWithTag: Uint8Array } {
     const eciesConsts = eciesParams;
     const ivLength = eciesConsts.IV_SIZE;
@@ -172,12 +184,12 @@ export abstract class AESGCMService {
    * @param authTag Whether the encrypted data includes an authentication tag
    * @returns Decrypted data
    */
-  public static async decrypt(
+  public async decrypt(
     iv: Uint8Array,
     encryptedData: Uint8Array,
     key: Uint8Array,
     authTag: boolean = false,
-    eciesParams: IECIESConstants = Constants.ECIES,
+    eciesParams: IECIESConstants = this.configuration.ECIES,
     aad?: Uint8Array,
   ): Promise<Uint8Array> {
     const eciesConsts = eciesParams;
@@ -250,5 +262,58 @@ export abstract class AESGCMService {
     );
 
     return new Uint8Array(decryptedResult);
+  }
+
+  /**
+   * Encrypt the given data as JSON
+   * @param data The data to encrypt
+   * @param key The key to use for encryption
+   * @param eciesParams ECIES parameters
+   * @returns Encrypted data as Uint8Array
+   */
+  public async encryptJson<T>(
+    data: T,
+    key: Uint8Array,
+    eciesParams: IECIESConstants = this.configuration.ECIES,
+  ): Promise<Uint8Array> {
+    const jsonString = JSON.stringify(data);
+    const encodedData = new TextEncoder().encode(jsonString);
+    const { iv, encrypted, tag } = await this.encrypt(
+      encodedData,
+      key,
+      true,
+      eciesParams,
+      undefined,
+    );
+    if (!tag) {
+      throw new Error('Authentication tag missing after encryption');
+    }
+    return this.combineIvTagAndEncryptedData(iv, encrypted, tag);
+  }
+
+  /**
+   * Decrypt the given buffer with AES and parse as JSON
+   * @param encryptedData The encrypted data to decrypt
+   * @param key The key to use for decryption
+   * @returns Decrypted data parsed as type T
+   */
+  public async decryptJson<T>(
+    encryptedData: Uint8Array,
+    key: Uint8Array,
+    eciesParams: IECIESConstants = this.configuration.ECIES,
+  ): Promise<T> {
+    const iv = encryptedData.slice(0, this.configuration.ECIES.IV_SIZE);
+    const encryptedContent = encryptedData.slice(
+      this.configuration.ECIES.IV_SIZE,
+    );
+    const decrypted = await this.decrypt(
+      iv,
+      encryptedContent,
+      key,
+      true,
+      eciesParams,
+      undefined,
+    );
+    return JSON.parse(new TextDecoder().decode(decrypted)) as T;
   }
 }

@@ -109,10 +109,12 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
     this.signature = new EciesSignature(this.cryptoCore);
     this.singleRecipient = new EciesSingleRecipient(
       this._config,
+      this._constants,
       this.eciesConsts,
     );
     this.multiRecipient = new EciesMultiRecipient(
       this._config,
+      this._constants,
       this.eciesConsts,
     );
     this.votingService = VotingService.getInstance();

@@ -4,10 +4,13 @@ import { EciesEncryptionTypeEnum } from '../../enumerations/ecies-encryption-typ
 import { EciesStringKey } from '../../enumerations/ecies-string-key';
 import { EciesVersionEnum } from '../../enumerations/ecies-version';
 import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
-import type { PlatformID } from '../../interfaces';
+import type { IConstants, PlatformID } from '../../interfaces';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
-import type { IIdProvider } from '../../interfaces/id-provider';
+import {
+  getEnhancedIdProvider,
+  TypedIdProviderWrapper,
+} from '../../typed-configuration';
 import { concatUint8Arrays } from '../../utils';
 import { AESGCMService } from '../aes-gcm';
 import { EciesCryptoCore } from './crypto-core';
@@ -16,15 +19,15 @@ import {
   IMultiEncryptedParsedHeader,
   IMultiRecipient,
 } from './interfaces';
-const Constants = getRuntimeConfiguration();
 
 /**
  * Browser-compatible multi-recipient ECIES encryption/decryption
  */
 export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
+  protected readonly aesGcmService: AESGCMService;
   protected readonly cryptoCore: EciesCryptoCore;
   protected readonly eciesConsts: IECIESConstants;
-  protected readonly idProvider: IIdProvider<TID>;
+  protected readonly enhancedIdProvider: TypedIdProviderWrapper<TID>;
 
   /**
    * Create a new multi-recipient ECIES instance.
@@ -34,12 +37,14 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
    */
   constructor(
     config: IECIESConfig,
-    eciesParams: IECIESConstants = Constants.ECIES,
-    idProvider: IIdProvider<TID> = Constants.idProvider as IIdProvider<TID>,
+    constants: IConstants = getRuntimeConfiguration(),
+    eciesParams: IECIESConstants = constants.ECIES,
+    idProvider: TypedIdProviderWrapper<TID> = getEnhancedIdProvider<TID>(),
   ) {
+    this.aesGcmService = new AESGCMService(constants);
     this.cryptoCore = new EciesCryptoCore(config, eciesParams);
     this.eciesConsts = eciesParams;
-    this.idProvider = idProvider;
+    this.enhancedIdProvider = idProvider;
   }
 
   /**
@@ -85,7 +90,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
       this.eciesConsts.SYMMETRIC.KEY_SIZE,
     );
 
-    const encryptResult = await AESGCMService.encrypt(
+    const encryptResult = await this.aesGcmService.encrypt(
       messageSymmetricKey,
       symKey,
       true,
@@ -158,13 +163,13 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
       this.eciesConsts.SYMMETRIC.KEY_SIZE,
     );
 
-    const encryptedWithTag = AESGCMService.combineEncryptedDataAndTag(
+    const encryptedWithTag = this.aesGcmService.combineEncryptedDataAndTag(
       encrypted,
       authTag,
     );
 
     try {
-      const decrypted = await AESGCMService.decrypt(
+      const decrypted = await this.aesGcmService.decrypt(
         iv,
         encryptedWithTag,
         symKey,
@@ -251,7 +256,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
         ephemeralKeyPair.privateKey,
         recipient.id instanceof Uint8Array
           ? recipient.id
-          : this.idProvider.toBytes(recipient.id),
+          : this.enhancedIdProvider.toBytes(recipient.id),
       );
 
       recipientIds.push(recipient.id);
@@ -275,7 +280,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     const headerBytes = this.buildHeader(tempHeaderData);
 
     // Encrypt message with symmetric key, using Header as AAD
-    const encryptResult = await AESGCMService.encrypt(
+    const encryptResult = await this.aesGcmService.encrypt(
       messageToEncrypt,
       symmetricKey,
       true,
@@ -322,12 +327,12 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     const targetIdBytes =
       recipientId instanceof Uint8Array
         ? recipientId
-        : this.idProvider.toBytes(recipientId);
+        : this.enhancedIdProvider.toBytes(recipientId);
 
     // Find recipient's encrypted key by comparing bytes
     const recipientIndex = encryptedData.recipientIds.findIndex((id) => {
       const idBytes =
-        id instanceof Uint8Array ? id : this.idProvider.toBytes(id);
+        id instanceof Uint8Array ? id : this.enhancedIdProvider.toBytes(id);
       return this.arraysEqual(idBytes, targetIdBytes);
     });
 
@@ -384,12 +389,12 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     // AES-GCM provides authentication via auth tag (no separate CRC needed)
 
     // Decrypt with symmetric key and Header as AAD
-    const encryptedWithTag = AESGCMService.combineEncryptedDataAndTag(
+    const encryptedWithTag = this.aesGcmService.combineEncryptedDataAndTag(
       encrypted,
       authTag,
     );
 
-    const decrypted = await AESGCMService.decrypt(
+    const decrypted = await this.aesGcmService.decrypt(
       iv,
       encryptedWithTag,
       symmetricKey,
@@ -516,7 +521,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     // Recipient IDs
     const recipientIdsUint8Array = concatUint8Arrays(
       ...data.recipientIds.map((id) =>
-        id instanceof Uint8Array ? id : this.idProvider.toBytes(id),
+        id instanceof Uint8Array ? id : this.enhancedIdProvider.toBytes(id),
       ),
     );
 
@@ -644,7 +649,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     const recipientIds: TID[] = [];
     for (let i = 0; i < recipientCount; i++) {
       recipientIds.push(
-        this.idProvider.fromBytes(
+        this.enhancedIdProvider.fromBytes(
           data.slice(offset, offset + recipientIdSize),
         ) as TID,
       );
@@ -714,7 +719,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     const privateKey = recipient.privateKey?.value || new Uint8Array();
     return this.decryptMultipleForRecipient(
       encryptedData,
-      this.idProvider.fromBytes(recipient.idBytes) as TID,
+      this.enhancedIdProvider.fromBytes(recipient.idBytes) as TID,
       privateKey,
     );
   }

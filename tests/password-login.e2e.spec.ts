@@ -2,6 +2,7 @@ import { Wallet } from '@ethereumjs/wallet';
 import { Pbkdf2ProfileEnum } from '../src/enumerations/pbkdf2-profile';
 import { getEciesI18nEngine } from '../src/i18n-setup';
 import { SecureString } from '../src/secure-string';
+import { AESGCMService } from '../src/services/aes-gcm';
 import { ECIESService } from '../src/services/ecies';
 import { PasswordLoginService } from '../src/services/password-login';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
@@ -20,7 +21,9 @@ describe('PasswordLoginService E2E', () => {
     getEciesI18nEngine(); // Ensure engine is initialized for error messages
     eciesService = new ECIESService();
     pbkdf2Service = new Pbkdf2Service();
+    const aesGcmService = new AESGCMService();
     passwordLoginService = new PasswordLoginService(
+      aesGcmService,
       eciesService,
       pbkdf2Service,
     );

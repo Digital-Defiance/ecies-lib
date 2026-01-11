@@ -100,8 +100,8 @@ describe('Multi-Recipient Stress Tests', () => {
         constructor(ecies: ECIESService, config: any) {
           super(ecies, config);
           // Override the constants to have a lower max
-          (this as any).constants = {
-            ...(this as any).constants,
+          (this as any).multiRecipientConstants = {
+            ...(this as any).multiRecipientConstants,
             MAX_RECIPIENTS: 5,
           };
         }

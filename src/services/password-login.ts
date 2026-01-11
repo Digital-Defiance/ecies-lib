@@ -17,6 +17,7 @@ import { ECIESService } from './ecies/service';
 import { Pbkdf2Service } from './pbkdf2';
 
 export class PasswordLoginService {
+  protected readonly aesGcmService: AESGCMService;
   protected readonly eciesService: ECIESService;
   protected readonly pbkdf2Service: Pbkdf2Service;
   protected readonly eciesConsts: IECIESConstants;
@@ -26,10 +27,12 @@ export class PasswordLoginService {
   public static readonly profileStorageKey = 'pbkdf2Profile';
 
   constructor(
+    aesGcmService: AESGCMService,
     eciesService: ECIESService,
     pbkdf2Service: Pbkdf2Service,
     eciesParams: IECIESConstants = Constants.ECIES,
   ) {
+    this.aesGcmService = aesGcmService;
     this.eciesService = eciesService;
     this.pbkdf2Service = pbkdf2Service;
     this.eciesConsts = eciesParams;
@@ -55,7 +58,7 @@ export class PasswordLoginService {
 
     // Encrypt private key with derived key
     const privateKeyBytes = wallet.getPrivateKey();
-    const { encrypted, iv, tag } = await AESGCMService.encrypt(
+    const { encrypted, iv, tag } = await this.aesGcmService.encrypt(
       privateKeyBytes,
       derivedKey.hash,
       true,
@@ -66,7 +69,7 @@ export class PasswordLoginService {
         EciesStringKey.Error_Utils_EncryptionFailedNoAuthTag,
       );
     }
-    const encryptedPrivateKey = AESGCMService.combineIvTagAndEncryptedData(
+    const encryptedPrivateKey = this.aesGcmService.combineIvTagAndEncryptedData(
       iv,
       encrypted,
       tag,
@@ -163,12 +166,12 @@ export class PasswordLoginService {
       );
 
     // Decrypt private key with derived key
-    const { iv, encryptedDataWithTag } = AESGCMService.splitEncryptedData(
+    const { iv, encryptedDataWithTag } = this.aesGcmService.splitEncryptedData(
       encryptedPrivateKey,
       true,
       this.eciesConsts,
     );
-    const privateKeyBytes = await AESGCMService.decrypt(
+    const privateKeyBytes = await this.aesGcmService.decrypt(
       iv,
       encryptedDataWithTag,
       derivedKey.hash,
