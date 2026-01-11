@@ -2,6 +2,7 @@ import { II18nEngine } from '@digitaldefiance/i18n-lib';
 import { Constants, getRuntimeConfiguration } from '../constants';
 import { EciesStringKey } from '../enumerations';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { PlatformID } from '../interfaces';
 import { IConstants } from '../interfaces/constants';
 import {
   IMultiRecipientChunk,
@@ -19,12 +20,12 @@ import { ECIESService } from './ecies/service';
  * Processes multi-recipient chunks using symmetric encryption.
  * Supports dynamic recipient ID sizes based on the configured ID provider.
  */
-export class MultiRecipientProcessor {
+export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
   private readonly aesGcmService: AESGCMService;
   private readonly engine: II18nEngine;
   private readonly recipientIdSize: number;
   private readonly multiRecipientConstants: IMultiRecipientConstants;
-  private readonly ecies: ECIESService;
+  private readonly ecies: ECIESService<TID>;
   private readonly constants: IConstants;
 
   /**
@@ -33,7 +34,7 @@ export class MultiRecipientProcessor {
    * @param config - Configuration containing ID provider (defaults to global Constants)
    */
   constructor(
-    ecies: ECIESService,
+    ecies: ECIESService<TID>,
     constants: IConstants = getRuntimeConfiguration(),
   ) {
     this.ecies = ecies;

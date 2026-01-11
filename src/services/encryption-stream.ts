@@ -2,6 +2,7 @@ import { Constants } from '../constants';
 import { EciesEncryptionTypeEnum } from '../enumerations/ecies-encryption-type';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { PlatformID } from '../interfaces';
 import { IConstants } from '../interfaces/constants';
 import { IECIESConstants } from '../interfaces/ecies-consts';
 import { IEncryptedChunk } from '../interfaces/encrypted-chunk';
@@ -45,18 +46,18 @@ export interface IDecryptStreamOptions {
 /**
  * Streaming encryption/decryption service
  */
-export class EncryptionStream {
-  private readonly processor: ChunkProcessor;
-  private readonly multiRecipientProcessor: MultiRecipientProcessor;
+export class EncryptionStream<TID extends PlatformID = Uint8Array> {
+  private readonly processor: ChunkProcessor<TID>;
+  private readonly multiRecipientProcessor: MultiRecipientProcessor<TID>;
 
   constructor(
-    private readonly _ecies: ECIESService,
+    private readonly _ecies: ECIESService<TID>,
     private readonly config: IStreamConfig = DEFAULT_STREAM_CONFIG,
     private readonly _eciesConsts: IECIESConstants = Constants.ECIES,
     private readonly constants: IConstants = Constants,
   ) {
-    this.processor = new ChunkProcessor(_ecies, _eciesConsts);
-    this.multiRecipientProcessor = new MultiRecipientProcessor(
+    this.processor = new ChunkProcessor<TID>(_ecies, _eciesConsts);
+    this.multiRecipientProcessor = new MultiRecipientProcessor<TID>(
       _ecies,
       constants,
     );

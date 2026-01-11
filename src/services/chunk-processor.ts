@@ -2,6 +2,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { Constants } from '../constants';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { PlatformID } from '../interfaces';
 import { IECIESConstants } from '../interfaces/ecies-consts';
 import {
   CHUNK_CONSTANTS,
@@ -13,9 +14,9 @@ import { ECIESService } from './ecies/service';
 /**
  * Processes chunks for streaming encryption/decryption
  */
-export class ChunkProcessor {
+export class ChunkProcessor<TID extends PlatformID = Uint8Array> {
   constructor(
-    private readonly ecies: ECIESService,
+    private readonly ecies: ECIESService<TID>,
     private readonly _eciesConsts: IECIESConstants = Constants.ECIES,
   ) {}
 

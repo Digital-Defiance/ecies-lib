@@ -42,7 +42,7 @@ export interface IMemberWithMnemonic<TID extends PlatformID = Uint8Array> {
 export class Member<
   TID extends PlatformID = Uint8Array,
 > implements IMember<TID> {
-  private readonly _eciesService: ECIESService;
+  private readonly _eciesService: ECIESService<TID>;
   private readonly _id: TID;
   private readonly _idBytes: Uint8Array;
   private readonly _type: MemberType;
@@ -62,7 +62,7 @@ export class Member<
 
   constructor(
     // Add injected services as parameters
-    eciesService: ECIESService,
+    eciesService: ECIESService<TID>,
     // Original parameters
     type: MemberType,
     name: string,
@@ -323,7 +323,7 @@ export class Member<
     }
 
     const targetPublicKey = options?.recipientPublicKey || this._publicKey;
-    const stream = new EncryptionStream(this._eciesService);
+    const stream = new EncryptionStream<TID>(this._eciesService);
 
     // Convert ReadableStream to AsyncIterable if needed
     const asyncSource =
@@ -372,7 +372,7 @@ export class Member<
       throw new MemberError(MemberErrorType.MissingPrivateKey);
     }
 
-    const stream = new EncryptionStream(this._eciesService);
+    const stream = new EncryptionStream<TID>(this._eciesService);
 
     // Convert ReadableStream to AsyncIterable if needed
     const asyncSource =
@@ -485,10 +485,10 @@ export class Member<
   public static fromJson<TID extends PlatformID = Uint8Array>(
     json: string,
     // Add injected services as parameters
-    eciesService?: ECIESService,
+    eciesService?: ECIESService<TID>,
   ): Member<TID> {
     if (!eciesService) {
-      eciesService = new ECIESService();
+      eciesService = new ECIESService<TID>();
     }
     let storage: IMemberStorageData;
     try {
@@ -535,19 +535,19 @@ export class Member<
     );
   }
 
-  public static fromMnemonic(
+  public static fromMnemonic<TID extends PlatformID = Uint8Array>(
     mnemonic: SecureString,
-    eciesService: ECIESService,
+    eciesService: ECIESService<TID>,
     __eciesParams?: IECIESConstants,
     name = 'Test User',
     email = new EmailString('test@example.com'),
-  ): Member {
+  ): Member<TID> {
     const { wallet } = eciesService.walletAndSeedFromMnemonic(mnemonic);
     const privateKey = wallet.getPrivateKey();
     // Use service to get compressed public key
     const publicKey = eciesService.getPublicKey(privateKey);
 
-    return new Member(
+    return new Member<TID>(
       eciesService,
       MemberType.User,
       name,
@@ -560,7 +560,7 @@ export class Member<
 
   public static newMember<TID extends PlatformID = Uint8Array>(
     // Add injected services as parameters
-    eciesService: ECIESService,
+    eciesService: ECIESService<TID>,
     // Original parameters
     type: MemberType,
     name: string,
