@@ -40,7 +40,12 @@ describe('EciesMultiRecipient', () => {
     // Use CustomIdProvider for Uint8Array-based IDs in tests
     idProvider = new CustomIdProvider(ECIES.MULTIPLE.RECIPIENT_ID_SIZE);
     const constants = getRuntimeConfiguration();
-    multiRecipientService = new EciesMultiRecipient(config, constants, ECIES, idProvider);
+    multiRecipientService = new EciesMultiRecipient(
+      config,
+      constants,
+      ECIES,
+      idProvider,
+    );
     cryptoCore = new EciesCryptoCore(config);
 
     const r1Keys = await cryptoCore.generateEphemeralKeyPair();

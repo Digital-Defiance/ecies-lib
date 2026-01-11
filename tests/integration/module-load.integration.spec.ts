@@ -88,7 +88,14 @@ describe('Module Load Integration', () => {
 
       expect(() => new ECIESService()).not.toThrow();
       expect(() => new Pbkdf2Service()).not.toThrow();
-      expect(() => new PasswordLoginService(new AESGCMService(), new ECIESService(), new Pbkdf2Service())).not.toThrow();
+      expect(
+        () =>
+          new PasswordLoginService(
+            new AESGCMService(),
+            new ECIESService(),
+            new Pbkdf2Service(),
+          ),
+      ).not.toThrow();
     });
 
     it('should create secure storage instances without errors', () => {

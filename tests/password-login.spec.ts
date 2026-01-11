@@ -1,9 +1,7 @@
 import { Wallet } from '@ethereumjs/wallet';
 import { EciesEncryptionTypeEnum } from '../src/enumerations/ecies-encryption-type';
 import { Pbkdf2ProfileEnum } from '../src/enumerations/pbkdf2-profile';
-import { getEciesI18nEngine } from '../src/i18n-setup';
 import { SecureString } from '../src/secure-string';
-import { AESGCMService } from '../src/services/aes-gcm';
 import { ECIESService } from '../src/services/ecies/service';
 import { PasswordLoginService } from '../src/services/password-login';
 import { Pbkdf2Service } from '../src/services/pbkdf2';
@@ -25,8 +23,10 @@ jest.mock('../src/services/aes-gcm', () => {
   MockConstructor.encrypt = mockInstance.encrypt;
   MockConstructor.decrypt = mockInstance.decrypt;
   MockConstructor.splitEncryptedData = mockInstance.splitEncryptedData;
-  MockConstructor.combineIvTagAndEncryptedData = mockInstance.combineIvTagAndEncryptedData;
-  MockConstructor.combineEncryptedDataAndTag = mockInstance.combineEncryptedDataAndTag;
+  MockConstructor.combineIvTagAndEncryptedData =
+    mockInstance.combineIvTagAndEncryptedData;
+  MockConstructor.combineEncryptedDataAndTag =
+    mockInstance.combineEncryptedDataAndTag;
   return {
     AESGCMService: MockConstructor,
   };
@@ -148,13 +148,11 @@ describe('PasswordLoginService', () => {
       getProfileConfig: jest.fn(),
     } as any;
 
-    const mockAesGcmService = 
-    new AESGCMService();
+    const mockAesGcmService = new AESGCMService();
     passwordLoginService = new PasswordLoginService(
       mockAesGcmService,
       mockEciesService,
       mockPbkdf2Service,
-      getEciesI18nEngine(),
     );
 
     mockEciesService.walletAndSeedFromMnemonic.mockReturnValue({
