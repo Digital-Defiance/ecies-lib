@@ -14,42 +14,32 @@ describe('ChecksumTransform', () => {
     return Uint8Array.from(sha3_512.create().update(data).digest());
   };
 
-  const processStream = (
+  const processStream = async (
     transform: ChecksumTransform,
     chunks: Uint8Array[],
   ): Promise<Uint8Array> => {
-    return new Promise((resolve, reject) => {
-      let checksum: Uint8Array | undefined;
-      const transformWithCallback = new ChecksumTransform((c) => {
-        checksum = c;
-      });
-
-      const stream = new TransformStream(transformWithCallback);
-      const writer = stream.writable.getWriter();
-      const reader = stream.readable.getReader();
-
-      // Start reading in parallel
-      const readPromise = (async () => {
-        try {
-          while (!(await reader.read()).done) {
-            // drain the stream
-          }
-        } catch (err) {
-          reject(err);
-        }
-      })();
-
-      try {
-        for (const chunk of chunks) {
-          await writer.write(chunk);
-        }
-        await writer.close();
-        await readPromise;
-        resolve(checksum!);
-      } catch (err) {
-        reject(err);
-      }
+    let checksum: Uint8Array | undefined;
+    const transformWithCallback = new ChecksumTransform((c) => {
+      checksum = c;
     });
+
+    const stream = new TransformStream(transformWithCallback);
+    const writer = stream.writable.getWriter();
+    const reader = stream.readable.getReader();
+
+    // Start reading in parallel
+    const readPromise = (async () => {
+      while (!(await reader.read()).done) {
+        // drain the stream
+      }
+    })();
+
+    for (const chunk of chunks) {
+      await writer.write(chunk);
+    }
+    await writer.close();
+    await readPromise;
+    return checksum!;
   };
 
   it('should produce the same checksum for multiple chunks as for the whole buffer', async () => {
