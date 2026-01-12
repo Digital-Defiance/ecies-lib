@@ -64,6 +64,7 @@ export * from './phone-number';
 export * from './secure-buffer';
 export * from './secure-string';
 export * from './services';
+export * from './transforms';
 export * from './types';
 export * from './types/guid-versions';
 export * from './utils';
