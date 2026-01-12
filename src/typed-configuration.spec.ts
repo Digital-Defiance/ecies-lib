@@ -2,6 +2,7 @@ import { ObjectId } from 'bson';
 import { registerRuntimeConfiguration } from './constants';
 import { GuidV4Provider } from './lib/id-providers/guidv4-provider';
 import { ObjectIdProvider } from './lib/id-providers/objectid-provider';
+import { Uint8ArrayIdProvider } from './lib/id-providers/uint8array-provider';
 import { UuidProvider } from './lib/id-providers/uuid-provider';
 import {
   createObjectIdConfiguration,
@@ -10,6 +11,7 @@ import {
   getTypedConfiguration,
   getTypedIdProvider,
   getEnhancedIdProvider,
+  ensureEnhancedIdProvider,
 } from './typed-configuration';
 import { GuidV4 } from './types/guid-versions';
 
@@ -237,6 +239,109 @@ describe('TypedConfiguration', () => {
       const validId = config.generateId();
 
       expect(config.validateId(validId)).toBe(true);
+    });
+  });
+
+  describe('ensureEnhancedIdProvider', () => {
+    it('should return provider when name matches', () => {
+      const provider = ensureEnhancedIdProvider<ObjectId>('ObjectID');
+
+      expect(provider).toBeDefined();
+      expect(provider.name).toBe('ObjectID');
+
+      const id = provider.generateTyped();
+      expect(id).toBeInstanceOf(ObjectId);
+    });
+
+    it('should throw error when name does not match', () => {
+      expect(() => {
+        ensureEnhancedIdProvider<ObjectId>('GuidV4');
+      }).toThrow('Provider name mismatch. Expected GuidV4, got ObjectID');
+    });
+
+    it('should work with custom configuration keys', () => {
+      const testKey = 'test-guid-config';
+      registerRuntimeConfiguration(testKey, {
+        idProvider: new GuidV4Provider(),
+      });
+
+      const provider = ensureEnhancedIdProvider<GuidV4>('GUIDv4', testKey);
+      expect(provider.name).toBe('GUIDv4');
+
+      const id = provider.generateTyped();
+      expect(typeof id.asFullHexGuid).toBe('string');
+    });
+
+    it('should throw error for mismatched name with custom key', () => {
+      const testKey = 'test-uuid-config';
+      registerRuntimeConfiguration(testKey, {
+        idProvider: new UuidProvider(),
+      });
+
+      expect(() => {
+        ensureEnhancedIdProvider<string>('ObjectID', testKey);
+      }).toThrow('Provider name mismatch. Expected ObjectID, got UUID');
+    });
+  });
+
+  describe('Enhanced Providers - All Types', () => {
+    it('should work with ObjectIdProvider', () => {
+      const key = 'test-objectid';
+      registerRuntimeConfiguration(key, { idProvider: new ObjectIdProvider() });
+      const provider = getEnhancedIdProvider<ObjectId>(key);
+
+      const id = provider.generateTyped();
+      expect(id).toBeInstanceOf(ObjectId);
+      expect(provider.validateTyped(id)).toBe(true);
+
+      const serialized = provider.serializeTyped(id);
+      expect(serialized).toHaveLength(24);
+      expect(provider.deserializeTyped(serialized).equals(id)).toBe(true);
+    });
+
+    it('should work with GuidV4Provider', () => {
+      const key = 'test-guidv4';
+      registerRuntimeConfiguration(key, { idProvider: new GuidV4Provider() });
+      const provider = getEnhancedIdProvider<GuidV4>(key);
+
+      const id = provider.generateTyped();
+      expect(typeof id.asFullHexGuid).toBe('string');
+      expect(provider.validateTyped(id)).toBe(true);
+
+      const serialized = provider.serializeTyped(id);
+      expect(provider.deserializeTyped(serialized).equals(id)).toBe(true);
+    });
+
+    it('should work with UuidProvider', () => {
+      const key = 'test-uuid';
+      registerRuntimeConfiguration(key, { idProvider: new UuidProvider() });
+      const provider = getEnhancedIdProvider<string>(key);
+
+      const id = provider.generateTyped();
+      expect(id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      );
+      expect(provider.validateTyped(id)).toBe(true);
+
+      const serialized = provider.serializeTyped(id);
+      expect(provider.deserializeTyped(serialized)).toBe(id);
+    });
+
+    it('should work with Uint8ArrayProvider', () => {
+      const key = 'test-uint8array';
+      registerRuntimeConfiguration(key, {
+        idProvider: new Uint8ArrayIdProvider(16),
+      });
+      const provider = getEnhancedIdProvider<Uint8Array>(key);
+
+      const id = provider.generateTyped();
+      expect(id).toBeInstanceOf(Uint8Array);
+      expect(id.length).toBe(16);
+      expect(provider.validateTyped(id)).toBe(true);
+
+      const serialized = provider.serializeTyped(id);
+      const deserialized = provider.deserializeTyped(serialized);
+      expect(deserialized).toEqual(id);
     });
   });
 });

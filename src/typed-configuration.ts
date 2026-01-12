@@ -255,6 +255,35 @@ export function getEnhancedIdProvider<TID>(
 }
 
 /**
+ * Ensure that the ID provider has the expected name and returns a typed wrapper.
+ * This is useful for ensuring that the correct ID provider is being used.
+ *
+ * @example
+ * ```typescript
+ * // For ObjectId configurations
+ * const config = ensureEnhancedIdProvider<ObjectId>('ObjectId');
+ *
+ * // For GUID configurations
+ * const guidConfig = ensureEnhancedIdProvider<GuidV4>('GuidV4');
+ * ```
+ * @param name Expected provider name
+ * @param key Optional configuration key
+ * @returns TypedIdProviderWrapper<TID>
+ */
+export function ensureEnhancedIdProvider<TID>(
+  name: string,
+  key?: ConfigurationKey,
+): TypedIdProviderWrapper<TID> {
+  const provider = getTypedIdProvider<TID>(key);
+  if (provider.name !== name) {
+    throw new Error(
+      `Provider name mismatch. Expected ${name}, got ${provider.name}`,
+    );
+  }
+  return new TypedIdProviderWrapper(provider);
+}
+
+/**
  * Get a typed configuration from the registry.
  * The type parameter must match the actual ID provider type.
  *

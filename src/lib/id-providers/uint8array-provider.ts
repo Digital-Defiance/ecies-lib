@@ -1,6 +1,6 @@
 import { IdProviderErrorType } from '../../enumerations';
 import { IdProviderError } from '../../errors';
-import { arraysEqual, hexToUint8Array } from '../../utils';
+import { arraysEqual, hexToUint8Array, uint8ArrayToHex } from '../../utils';
 import { BaseIdProvider } from '../base-id-provider';
 
 /**
@@ -57,7 +57,7 @@ export class Uint8ArrayIdProvider extends BaseIdProvider<Uint8Array> {
    */
   serialize(id: Uint8Array): string {
     this.validateLength(id, `${this.name}.serialize`);
-    return id.toString('hex');
+    return uint8ArrayToHex(id);
   }
 
   /**
