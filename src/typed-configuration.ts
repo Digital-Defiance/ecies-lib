@@ -274,13 +274,13 @@ export function ensureEnhancedIdProvider<TID>(
   name: string,
   key?: ConfigurationKey,
 ): TypedIdProviderWrapper<TID> {
-  const provider = getTypedIdProvider<TID>(key);
+  const provider = getEnhancedIdProvider<TID>(key);
   if (provider.name !== name) {
     throw new Error(
       `Provider name mismatch. Expected ${name}, got ${provider.name}`,
     );
   }
-  return new TypedIdProviderWrapper(provider);
+  return provider;
 }
 
 /**
