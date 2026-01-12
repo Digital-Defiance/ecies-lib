@@ -133,6 +133,11 @@ export function getTypedIdProvider<TID>(
   key?: ConfigurationKey,
 ): IIdProvider<TID> {
   const constants = getRuntimeConfiguration(key);
+  if (!constants || !constants.idProvider) {
+    throw new Error(
+      'Runtime configuration not initialized. Ensure @digitaldefiance/ecies-lib is properly imported before calling getTypedIdProvider().',
+    );
+  }
   return constants.idProvider as IIdProvider<TID>;
 }
 
@@ -268,6 +273,11 @@ export function getTypedConfiguration<TID>(
   key?: ConfigurationKey,
 ): TypedConfiguration<TID> {
   const constants = getRuntimeConfiguration(key);
+  if (!constants || !constants.idProvider) {
+    throw new Error(
+      'Runtime configuration not initialized. Ensure @digitaldefiance/ecies-lib is properly imported before calling getTypedConfiguration().',
+    );
+  }
   return new TypedConfiguration<TID>(constants);
 }
 
