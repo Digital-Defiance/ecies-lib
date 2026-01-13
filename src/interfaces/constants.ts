@@ -1,3 +1,9 @@
+/**
+ * Main constants interface for the ECIES library.
+ * Contains all configuration constants including cryptographic parameters,
+ * ID provider configuration, and validation rules.
+ */
+
 import type { IVotingConsts } from '../lib/voting/interfaces/voting-consts';
 import type { Pbkdf2Profiles } from '../pbkdf2-profiles';
 import type { IChecksumConsts } from './checksum-consts';
@@ -6,13 +12,21 @@ import type { IIdProviderBase } from './id-provider';
 import type { IPBkdf2Consts } from './pbkdf2-consts';
 
 export interface IConstants {
+  /** Size of an 8-bit unsigned integer in bytes */
   UINT8_SIZE: number;
+  /** Size of a 16-bit unsigned integer in bytes */
   UINT16_SIZE: number;
+  /** Maximum value for a 16-bit unsigned integer */
   UINT16_MAX: number;
+  /** Size of a 32-bit unsigned integer in bytes */
   UINT32_SIZE: number;
+  /** Maximum value for a 32-bit unsigned integer */
   UINT32_MAX: number;
+  /** Size of a 64-bit unsigned integer in bytes */
   UINT64_SIZE: number;
+  /** Maximum value for a 64-bit unsigned integer */
   UINT64_MAX: bigint;
+  /** Radix for hexadecimal number conversion */
   HEX_RADIX: number;
 
   /**
@@ -55,10 +69,15 @@ export interface IConstants {
    */
   idProvider: IIdProviderBase;
 
+  /** Checksum algorithm constants */
   CHECKSUM: IChecksumConsts;
+  /** ECIES encryption constants */
   ECIES: IECIESConstants;
+  /** PBKDF2 key derivation constants */
   PBKDF2: IPBkdf2Consts;
+  /** Predefined PBKDF2 configuration profiles */
   PBKDF2_PROFILES: Pbkdf2Profiles;
+  /** Voting system constants for homomorphic encryption */
   VOTING: IVotingConsts;
 
   /**

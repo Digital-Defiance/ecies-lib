@@ -1,3 +1,7 @@
+/**
+ * Transform stream that XORs multiple input streams together.
+ * Reads from multiple sources and outputs the XOR of all inputs.
+ */
 export class XorMultipleTransform implements Transformer<
   Uint8Array,
   Uint8Array
@@ -7,6 +11,10 @@ export class XorMultipleTransform implements Transformer<
   private buffers: Uint8Array[];
   private streamEnded: boolean[];
 
+  /**
+   * Create a new XOR multiple transform.
+   * @param sources Array of readable streams to XOR together
+   */
   constructor(sources: ReadableStream<Uint8Array>[]) {
     this.sources = sources;
     this.readers = sources.map((s) => s.getReader());
@@ -16,6 +24,11 @@ export class XorMultipleTransform implements Transformer<
     this.streamEnded = new Array<boolean>(sources.length).fill(false);
   }
 
+  /**
+   * Transform method (processes data from sources).
+   * @param _chunk Unused chunk parameter
+   * @param controller The transform stream controller
+   */
   async transform(
     _chunk: Uint8Array,
     controller: TransformStreamDefaultController<Uint8Array>,
@@ -23,10 +36,18 @@ export class XorMultipleTransform implements Transformer<
     await this.processData(controller);
   }
 
+  /**
+   * Flush any remaining data.
+   * @param controller The transform stream controller
+   */
   async flush(controller: TransformStreamDefaultController<Uint8Array>) {
     await this.processData(controller);
   }
 
+  /**
+   * Process data from all sources and XOR them together.
+   * @param controller The transform stream controller
+   */
   private async processData(
     controller: TransformStreamDefaultController<Uint8Array>,
   ) {

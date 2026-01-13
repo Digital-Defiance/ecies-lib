@@ -1,3 +1,6 @@
+/**
+ * Checkpoint metadata structure for tally snapshots.
+ */
 import { JurisdictionLevel } from '../enumerations';
 
 export interface CheckpointMetadata {

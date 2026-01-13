@@ -1,3 +1,7 @@
+/**
+ * Length validation error class for ECIES library.
+ * Thrown when data length constraints are violated.
+ */
 import {
   buildReasonMap,
   HandleableErrorOptions,

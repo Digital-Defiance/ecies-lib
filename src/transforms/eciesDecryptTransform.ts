@@ -1,5 +1,9 @@
 import { ECIESService } from '../services/ecies';
 
+/**
+ * Transform stream for ECIES decryption.
+ * Buffers and decrypts data in blocks.
+ */
 export class EciesDecryptTransform implements Transformer<
   Uint8Array,
   Uint8Array
@@ -9,6 +13,12 @@ export class EciesDecryptTransform implements Transformer<
   private buffer = new Uint8Array(0);
   private readonly eciesService: ECIESService;
 
+  /**
+   * Create a new ECIES decrypt transform.
+   * @param eciesService The ECIES service instance
+   * @param privateKey The private key for decryption
+   * @param blockSize The block size for buffering
+   */
   constructor(
     eciesService: ECIESService,
     privateKey: Uint8Array,
@@ -19,6 +29,11 @@ export class EciesDecryptTransform implements Transformer<
     this.eciesService = eciesService;
   }
 
+  /**
+   * Transform a chunk of data by buffering and decrypting complete blocks.
+   * @param chunk The input chunk
+   * @param controller The transform stream controller
+   */
   async transform(
     chunk: Uint8Array,
     controller: TransformStreamDefaultController<Uint8Array>,
@@ -44,6 +59,10 @@ export class EciesDecryptTransform implements Transformer<
     }
   }
 
+  /**
+   * Flush any remaining buffered data.
+   * @param controller The transform stream controller
+   */
   async flush(controller: TransformStreamDefaultController<Uint8Array>) {
     if (this.buffer.length > 0) {
       try {

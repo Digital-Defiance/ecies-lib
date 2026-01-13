@@ -1,3 +1,6 @@
+/**
+ * Voting system enumerations export module.
+ */
 export * from './audit-event-type';
 export * from './event-type';
 export * from './jurisdictional-level';

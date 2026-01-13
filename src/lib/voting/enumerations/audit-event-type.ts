@@ -1,3 +1,6 @@
+/**
+ * Audit event types for voting system.
+ */
 export enum AuditEventType {
   PollCreated = 'poll_created',
   VoteCast = 'vote_cast',

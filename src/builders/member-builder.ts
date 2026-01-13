@@ -1,5 +1,17 @@
 /**
- * Fluent builder for Member
+ * Fluent builder for Member instances.
+ * Provides a convenient way to configure and create Member instances with all required properties.
+ *
+ * @example
+ * ```typescript
+ * const { member, mnemonic } = MemberBuilder.create()
+ *   .withEciesService(service)
+ *   .withType(MemberType.User)
+ *   .withName('Alice')
+ *   .withEmail('alice@example.com')
+ *   .generateMnemonic()
+ *   .build();
+ * ```
  */
 
 import { EmailString } from '../email-string';
@@ -19,40 +31,79 @@ export class MemberBuilder {
   private mnemonic?: SecureString;
   private createdBy?: Uint8Array; // ID of the creator
 
+  /**
+   * Creates a new MemberBuilder instance.
+   * @returns A new builder instance
+   */
   static create(): MemberBuilder {
     return new MemberBuilder();
   }
 
+  /**
+   * Sets the ECIES service to use.
+   * @param service The ECIES service instance
+   * @returns This builder for chaining
+   */
   withEciesService(service: ECIESService): this {
     this.eciesService = service;
     return this;
   }
 
+  /**
+   * Sets the member type.
+   * @param type The member type (Admin, System, User, Anonymous)
+   * @returns This builder for chaining
+   */
   withType(type: MemberType): this {
     this.type = type;
     return this;
   }
 
+  /**
+   * Sets the member name.
+   * @param name The member's display name
+   * @returns This builder for chaining
+   */
   withName(name: string): this {
     this.name = name;
     return this;
   }
 
+  /**
+   * Sets the member email.
+   * @param email The member's email address (string or EmailString)
+   * @returns This builder for chaining
+   */
   withEmail(email: string | EmailString): this {
     this.email = typeof email === 'string' ? new EmailString(email) : email;
     return this;
   }
 
+  /**
+   * Sets a specific mnemonic to use.
+   * @param mnemonic The BIP39 mnemonic phrase
+   * @returns This builder for chaining
+   */
   withMnemonic(mnemonic: SecureString): this {
     this.mnemonic = mnemonic;
     return this;
   }
 
+  /**
+   * Sets the creator ID.
+   * @param creatorId The ID of the member who created this member
+   * @returns This builder for chaining
+   */
   withCreatedBy(creatorId: Uint8Array): this {
     this.createdBy = creatorId;
     return this;
   }
 
+  /**
+   * Generates a new random mnemonic.
+   * @returns This builder for chaining
+   * @throws {Error} If ECIES service is not set
+   */
   generateMnemonic(): this {
     if (!this.eciesService) {
       const engine = getEciesI18nEngine();
@@ -67,6 +118,11 @@ export class MemberBuilder {
     return this;
   }
 
+  /**
+   * Builds and returns the configured Member instance with its mnemonic.
+   * @returns Object containing the member and mnemonic
+   * @throws {Error} If required fields are missing
+   */
   build(): IMemberWithMnemonic {
     const engine = getEciesI18nEngine();
     if (!this.eciesService) {

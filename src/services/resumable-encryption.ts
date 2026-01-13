@@ -1,3 +1,7 @@
+/**
+ * Resumable encryption service for large file encryption with state management.
+ * Supports pausing and resuming encryption operations.
+ */
 import { EciesEncryptionTypeEnum } from '../enumerations/ecies-encryption-type';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';

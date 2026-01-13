@@ -1,3 +1,7 @@
+/**
+ * Simple ECIES error class for ECIES library.
+ * General-purpose error for ECIES operations.
+ */
 import {
   buildReasonMap,
   HandleableErrorOptions,

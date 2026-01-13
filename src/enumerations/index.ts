@@ -1,3 +1,8 @@
+/**
+ * Enumeration exports for the ECIES library.
+ * Contains all enum definitions used throughout the library for type safety and validation.
+ */
+
 export * from './ecies-cipher-suite';
 export * from './ecies-encryption-type';
 export * from './ecies-error-type';

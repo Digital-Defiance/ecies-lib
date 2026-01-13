@@ -1,3 +1,7 @@
+/**
+ * Invalid email error class for ECIES library.
+ * Thrown when email validation fails.
+ */
 import {
   buildReasonMap,
   HandleableErrorOptions,

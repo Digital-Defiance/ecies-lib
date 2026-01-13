@@ -1,3 +1,6 @@
+/**
+ * ECIES service interfaces export module.
+ */
 export type * from './decryption-result';
 export type * from './encryption-result';
 export type * from './multi-encrypted-message';

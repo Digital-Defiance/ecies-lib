@@ -1,3 +1,6 @@
+/**
+ * Event logger interface for recording voting system events.
+ */
 import type { PlatformID } from '../../../interfaces';
 import { EventType } from '../enumerations/event-type';
 import { EventLogEntry } from './event-log-entry';

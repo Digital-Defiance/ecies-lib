@@ -1,3 +1,6 @@
+/**
+ * State snapshot structure for checkpoint persistence.
+ */
 import type { PlatformID } from '../../../interfaces';
 import { AggregatedTally } from './aggregated-tally';
 import { CheckpointMetadata } from './checkpoint-metadata';

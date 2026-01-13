@@ -1,3 +1,7 @@
+/**
+ * Enumeration of all i18n string keys used throughout the ECIES library.
+ * These keys map to translated error messages and other user-facing strings.
+ */
 export enum EciesStringKey {
   Error_ECIESError_InvalidECIESMultipleEncryptedKeySize = 'Error_ECIESError_InvalidECIESMultipleEncryptedKeySize',
   Error_ECIESError_InvalidECIESPublicKeyLength = 'Error_ECIESError_InvalidECIESPublicKeyLength',

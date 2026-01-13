@@ -5,9 +5,10 @@ import { LengthError } from './errors';
 import { EciesComponentId, getEciesI18nEngine } from './i18n-setup';
 
 /**
- * Encodes the length of the data in the buffer
+ * Encodes the length of the data in the buffer.
+ * Automatically selects the appropriate integer type based on data length.
  * @param buffer The buffer to encode
- * @returns The encoded buffer
+ * @returns The encoded buffer with length prefix
  */
 export function lengthEncodeData(buffer: Uint8Array): Uint8Array {
   const lengthType: LengthEncodingType = getLengthEncodingTypeForLength(
@@ -36,6 +37,13 @@ export function lengthEncodeData(buffer: Uint8Array): Uint8Array {
   return result;
 }
 
+/**
+ * Decodes length-encoded data from a buffer.
+ * Reads the length type and data length, then extracts the data.
+ * @param buffer The buffer containing length-encoded data
+ * @returns Object containing the decoded data and total length consumed
+ * @throws {LengthError} If the buffer is too short or length encoding is invalid
+ */
 export function decodeLengthEncodedData(buffer: Uint8Array): {
   data: Uint8Array;
   totalLength: number;
@@ -89,6 +97,11 @@ export function decodeLengthEncodedData(buffer: Uint8Array): {
   };
 }
 
+/**
+ * Converts a Uint8Array to a Base64 string.
+ * @param uint8Array The byte array to convert
+ * @returns Base64 encoded string
+ */
 export function uint8ArrayToBase64(uint8Array: Uint8Array): string {
   let binaryString = '';
   for (let i = 0; i < uint8Array.length; i++) {
@@ -97,6 +110,11 @@ export function uint8ArrayToBase64(uint8Array: Uint8Array): string {
   return btoa(binaryString);
 }
 
+/**
+ * Converts a Base64 string to a Uint8Array.
+ * @param base64String The Base64 string to decode
+ * @returns Decoded byte array
+ */
 export function base64ToUint8Array(base64String: string): Uint8Array {
   const binaryString = atob(base64String);
   const len = binaryString.length;
@@ -107,12 +125,23 @@ export function base64ToUint8Array(base64String: string): Uint8Array {
   return bytes;
 }
 
+/**
+ * Converts a Uint8Array to a hexadecimal string.
+ * @param uint8Array The byte array to convert
+ * @returns Hexadecimal string representation
+ */
 export function uint8ArrayToHex(uint8Array: Uint8Array): string {
   return Array.from(uint8Array)
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('');
 }
 
+/**
+ * Converts a hexadecimal string to a Uint8Array.
+ * @param hexString The hexadecimal string to convert (must have even length)
+ * @returns Decoded byte array
+ * @throws {Error} If the hex string is invalid or has odd length
+ */
 export function hexToUint8Array(hexString: string): Uint8Array {
   const engine = getEciesI18nEngine();
   if (!hexString || typeof hexString !== 'string') {
@@ -148,12 +177,10 @@ export function hexToUint8Array(hexString: string): Uint8Array {
 }
 
 /**
- * Utility functions for browser ECIES implementation
- */
-
-/**
- * CRC16-CCITT implementation for data integrity checking
- * Uses CRC16-CCITT-FALSE variant (init 0xFFFF)
+ * CRC16-CCITT implementation for data integrity checking.
+ * Uses CRC16-CCITT-FALSE variant (init 0xFFFF).
+ * @param data The data to calculate CRC for
+ * @returns 2-byte CRC checksum in big-endian format
  */
 export function crc16(data: Uint8Array): Uint8Array {
   let crc = 0xffff; // Initial value for CRC16-CCITT-FALSE
@@ -178,28 +205,38 @@ export function crc16(data: Uint8Array): Uint8Array {
 }
 
 /**
- * Convert string to Uint8Array (UTF-8 encoding)
+ * Converts a string to Uint8Array using UTF-8 encoding.
+ * @param str The string to convert
+ * @returns UTF-8 encoded byte array
  */
 export function stringToUint8Array(str: string): Uint8Array {
   return new TextEncoder().encode(str);
 }
 
 /**
- * Convert Uint8Array to string (UTF-8 decoding)
+ * Converts a Uint8Array to string using UTF-8 decoding.
+ * @param array The byte array to decode
+ * @returns Decoded UTF-8 string
  */
 export function uint8ArrayToString(array: Uint8Array): string {
   return new TextDecoder().decode(array);
 }
 
 /**
- * Secure random bytes generation
+ * Generates cryptographically secure random bytes.
+ * @param length The number of random bytes to generate
+ * @returns Array of random bytes
  */
 export function randomBytes(length: number): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(length));
 }
 
 /**
- * Compare two Uint8Arrays for equality
+ * Compares two Uint8Arrays for equality using constant-time comparison.
+ * Prevents timing attacks by always comparing all bytes.
+ * @param a First byte array
+ * @param b Second byte array
+ * @returns True if arrays are equal, false otherwise
  */
 export function arraysEqual(a: Uint8Array, b: Uint8Array): boolean {
   if (a.length !== b.length) return false;
@@ -211,7 +248,9 @@ export function arraysEqual(a: Uint8Array, b: Uint8Array): boolean {
 }
 
 /**
- * Concatenate multiple Uint8Arrays
+ * Concatenates multiple Uint8Arrays into a single array.
+ * @param arrays Variable number of byte arrays to concatenate
+ * @returns Single concatenated byte array
  */
 export function concatUint8Arrays(...arrays: Uint8Array[]): Uint8Array {
   const totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0);
@@ -225,9 +264,11 @@ export function concatUint8Arrays(...arrays: Uint8Array[]): Uint8Array {
 }
 
 /**
- * Get the length encoding type for a given length
- * @param length The length to evaluate
+ * Determines the appropriate length encoding type for a given length value.
+ * Selects the smallest integer type that can represent the length.
+ * @param length The length value to evaluate (number or bigint)
  * @returns The corresponding LengthEncodingType
+ * @throws {LengthError} If the length exceeds maximum supported value
  */
 export function getLengthEncodingTypeForLength<
   _TStringKey extends string,
@@ -263,9 +304,10 @@ export function getLengthEncodingTypeForLength<
 }
 
 /**
- * Get the length encoding type for a given value
- * @param value The value to evaluate
+ * Converts a numeric value to its corresponding LengthEncodingType.
+ * @param value The numeric value to convert
  * @returns The corresponding LengthEncodingType
+ * @throws {LengthError} If the value doesn't match any valid encoding type
  */
 export function getLengthEncodingTypeFromValue<
   _TStringKey extends string,
@@ -280,9 +322,11 @@ export function getLengthEncodingTypeFromValue<
 }
 
 /**
- * Safely converts BigInt to Number, throwing if value exceeds safe integer range
+ * Safely converts BigInt to Number, throwing if value exceeds safe integer range.
+ * JavaScript's Number.MAX_SAFE_INTEGER is 2^53 - 1.
  * @param value The BigInt value to convert
  * @returns The number value
+ * @throws {Error} If value exceeds safe integer range
  */
 export function safeBigIntToNumber(value: bigint): number {
   const engine = getEciesI18nEngine();
@@ -306,9 +350,10 @@ export function safeBigIntToNumber(value: bigint): number {
 }
 
 /**
- * Get the length in bytes for a given LengthEncodingType
+ * Returns the byte length for a given LengthEncodingType.
  * @param type The LengthEncodingType to evaluate
- * @returns The length in bytes
+ * @returns The length in bytes (1, 2, 4, or 8)
+ * @throws {LengthError} If the type is invalid
  */
 export function getLengthForLengthType<
   _TStringKey extends string,
@@ -328,6 +373,11 @@ export function getLengthForLengthType<
   }
 }
 
+/**
+ * Validates whether a string contains only valid hexadecimal characters.
+ * @param value The string to validate
+ * @returns True if the string is a valid hex string, false otherwise
+ */
 export function isHexString(value: string): boolean {
   return typeof value === 'string' && /^[0-9a-fA-F]*$/.test(value);
 }

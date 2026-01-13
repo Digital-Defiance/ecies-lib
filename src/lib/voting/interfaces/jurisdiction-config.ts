@@ -1,3 +1,6 @@
+/**
+ * Jurisdiction configuration structure for hierarchical voting.
+ */
 import type { PlatformID } from '../../../interfaces';
 import { JurisdictionLevel } from '../enumerations/jurisdictional-level';
 

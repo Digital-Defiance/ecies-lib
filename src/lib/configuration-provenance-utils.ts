@@ -6,6 +6,9 @@ import type { IConstants } from '../interfaces/constants';
 /**
  * Calculates a checksum for a configuration object.
  * Uses SHA-256 of JSON representation.
+ * @template _TID The platform ID type (unused, for type compatibility)
+ * @param config The configuration object to checksum
+ * @returns Hex string of the SHA-256 hash
  */
 export function calculateConfigChecksum<_TID extends PlatformID = Uint8Array>(
   config: IConstants,
@@ -20,7 +23,8 @@ export function calculateConfigChecksum<_TID extends PlatformID = Uint8Array>(
 }
 
 /**
- * Captures a stack trace for provenance tracking
+ * Captures a stack trace for provenance tracking.
+ * @returns Stack trace string with first two lines removed
  */
 export function captureCreationStack(): string {
   const stack = new Error().stack;

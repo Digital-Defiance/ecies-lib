@@ -1,3 +1,7 @@
+/**
+ * Secure storage error class for ECIES library.
+ * Thrown when secure storage operations fail.
+ */
 import {
   buildReasonMap,
   HandleableErrorOptions,

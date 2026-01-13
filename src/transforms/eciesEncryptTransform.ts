@@ -1,5 +1,9 @@
 import { ECIESService } from '../services/ecies';
 
+/**
+ * Transform stream for ECIES encryption.
+ * Buffers and encrypts data in blocks.
+ */
 export class EciesEncryptTransform implements Transformer<
   Uint8Array,
   Uint8Array
@@ -10,6 +14,13 @@ export class EciesEncryptTransform implements Transformer<
   private readonly capacityPerBlock: number;
   private readonly eciesService: ECIESService;
 
+  /**
+   * Create a new ECIES encrypt transform.
+   * @param eciesService The ECIES service instance
+   * @param blockSize The block size for buffering
+   * @param receiverPublicKey The receiver's public key (33 or 65 bytes)
+   * @throws Error if public key length is invalid
+   */
   constructor(
     eciesService: ECIESService,
     blockSize: number,
@@ -32,6 +43,11 @@ export class EciesEncryptTransform implements Transformer<
     this.capacityPerBlock = this.blockSize - (encryptedLength - this.blockSize);
   }
 
+  /**
+   * Transform a chunk of data by buffering and encrypting complete blocks.
+   * @param chunk The input chunk
+   * @param controller The transform stream controller
+   */
   async transform(
     chunk: Uint8Array,
     controller: TransformStreamDefaultController<Uint8Array>,
@@ -56,6 +72,10 @@ export class EciesEncryptTransform implements Transformer<
     }
   }
 
+  /**
+   * Flush any remaining buffered data.
+   * @param controller The transform stream controller
+   */
   async flush(controller: TransformStreamDefaultController<Uint8Array>) {
     if (this.buffer.length > 0) {
       const encryptedBlock = await this.eciesService.encryptSimpleOrSingle(

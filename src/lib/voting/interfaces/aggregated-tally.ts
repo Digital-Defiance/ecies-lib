@@ -1,3 +1,6 @@
+/**
+ * Aggregated tally structure for hierarchical vote counting.
+ */
 import type { PlatformID } from '../../../interfaces';
 import { JurisdictionLevel } from '../enumerations/jurisdictional-level';
 

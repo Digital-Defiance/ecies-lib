@@ -1,3 +1,7 @@
+/**
+ * AES-GCM encryption service for symmetric encryption operations.
+ * Provides encrypt/decrypt methods with authentication tag support.
+ */
 import { II18nEngine } from '@digitaldefiance/i18n-lib';
 import { getRuntimeConfiguration } from '../constants';
 import { EciesStringKey } from '../enumerations';

@@ -1,3 +1,6 @@
+/**
+ * Audit log interface for voting system audit operations.
+ */
 import type { PlatformID } from '../../../interfaces';
 import { AuditEntry } from './audit-entry';
 

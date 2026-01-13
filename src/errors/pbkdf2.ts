@@ -1,3 +1,7 @@
+/**
+ * PBKDF2 operation error class for ECIES library.
+ * Thrown when password-based key derivation fails.
+ */
 import {
   buildReasonMap,
   HandleableErrorOptions,

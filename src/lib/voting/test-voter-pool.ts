@@ -1,3 +1,7 @@
+/**
+ * Test voter pool for voting system testing.
+ * Manages a pool of pre-initialized voters and authority for performance testing.
+ */
 import { EmailString } from '../../email-string';
 import { MemberType } from '../../enumerations/member-type';
 import { Member } from '../../member';

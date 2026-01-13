@@ -1,2 +1,5 @@
-// Test utilities entry point - import from '@digitaldefiance/ecies-lib/testing'
+/**
+ * Test utilities entry point.
+ * Import test mocks and helpers from '@digitaldefiance/ecies-lib/testing'.
+ */
 export * from './test-mocks';

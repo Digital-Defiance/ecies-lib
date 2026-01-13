@@ -17,8 +17,10 @@ import { MNEMONIC_REGEX, PASSWORD_REGEX } from './regexes';
 import type { DeepPartial } from './types/deep-partial';
 
 /**
- * Calculates a checksum for a configuration object.
- * Uses SHA-256 of JSON representation.
+ * Calculates a SHA-256 checksum for a configuration object.
+ * Creates a stable JSON representation with BigInt support.
+ * @param config The configuration object to checksum
+ * @returns Hexadecimal string representation of the SHA-256 hash
  */
 function calculateConfigChecksum(config: IConstants): string {
   // Create a stable JSON representation with BigInt support
@@ -31,7 +33,9 @@ function calculateConfigChecksum(config: IConstants): string {
 }
 
 /**
- * Captures a stack trace for provenance tracking
+ * Captures a stack trace for provenance tracking.
+ * Used to track where configuration objects are created.
+ * @returns Stack trace string or 'stack unavailable' if not supported
  */
 function captureCreationStack(): string {
   const stack = new Error().stack;
@@ -42,13 +46,21 @@ function captureCreationStack(): string {
   return lines.join('\n');
 }
 
+/** Size of an 8-bit unsigned integer in bytes */
 export const UINT8_SIZE: number = 1 as const;
+/** Size of a 16-bit unsigned integer in bytes */
 export const UINT16_SIZE: number = 2 as const;
+/** Maximum value for a 16-bit unsigned integer */
 export const UINT16_MAX: number = 65535 as const;
+/** Size of a 32-bit unsigned integer in bytes */
 export const UINT32_SIZE: number = 4 as const;
+/** Maximum value for a 32-bit unsigned integer */
 export const UINT32_MAX: number = 4294967295 as const;
+/** Size of a 64-bit unsigned integer in bytes */
 export const UINT64_SIZE: number = 8 as const;
+/** Maximum value for a 64-bit unsigned integer */
 export const UINT64_MAX: bigint = 18446744073709551615n as const;
+/** Length of MongoDB ObjectID in bytes */
 export const OBJECT_ID_LENGTH: number = 12 as const;
 
 if (OBJECT_ID_LENGTH !== 12) {
@@ -293,6 +305,12 @@ const DEFAULT_CONFIGURATION_KEY: ConfigurationKey = Symbol.for(
   'digitaldefiance.ecies.constants.default',
 );
 
+/**
+ * Validates if a value is a plain JavaScript object.
+ * Excludes arrays, RegExp, Date, and other special objects.
+ * @param value The value to check
+ * @returns True if value is a plain object
+ */
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   if (value === null) {
     return false;
@@ -309,6 +327,11 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Object.getPrototypeOf(value) === Object.prototype;
 }
 
+/**
+ * Creates a deep clone of an object, handling arrays, RegExp, Date, and plain objects.
+ * @param input The value to clone
+ * @returns Deep cloned copy of the input
+ */
 function deepClone<T>(input: T): T {
   if (input === null || input === undefined) {
     return input;
@@ -341,6 +364,12 @@ function deepClone<T>(input: T): T {
   return input;
 }
 
+/**
+ * Applies partial overrides to a target object, merging nested objects recursively.
+ * @param target The target object to modify
+ * @param overrides Partial overrides to apply
+ * @returns The modified target object
+ */
 function applyOverrides<T>(target: T, overrides?: DeepPartial<T>): T {
   if (!overrides) {
     return target;
@@ -368,6 +397,11 @@ function applyOverrides<T>(target: T, overrides?: DeepPartial<T>): T {
   return target;
 }
 
+/**
+ * Recursively freezes an object and all its nested properties.
+ * @param value The value to freeze
+ * @returns The frozen value
+ */
 function deepFreeze<T>(value: T): T {
   if (value === null || typeof value !== 'object') {
     return value;
@@ -388,10 +422,21 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
+/**
+ * Computes the expected encrypted key size for multiple recipient encryption.
+ * @param ecies The ECIES constants configuration
+ * @returns The computed encrypted key size in bytes
+ */
 function computeMultipleEncryptedKeySize(ecies: IECIESConstants): number {
   return ecies.IV_SIZE + ecies.AUTH_TAG_SIZE + ecies.SYMMETRIC.KEY_SIZE;
 }
 
+/**
+ * Validates the internal consistency of constants configuration.
+ * Checks that all derived values match their expected calculations.
+ * @param config The constants configuration to validate
+ * @throws {Error} If any validation check fails
+ */
 function validateConstants(config: IConstants): void {
   const checksum = config.CHECKSUM;
   const ecies = config.ECIES;
@@ -480,6 +525,11 @@ provenanceRegistry.set(DEFAULT_CONFIGURATION_KEY, {
   description: 'Built-in default configuration',
 });
 
+/**
+ * Checks if a value is a complete IConstants configuration object.
+ * @param value The value to check
+ * @returns True if value contains all required IConstants properties
+ */
 function isFullConstantsConfig(value: unknown): value is IConstants {
   if (!isPlainObject(value)) {
     return false;
@@ -494,6 +544,13 @@ function isFullConstantsConfig(value: unknown): value is IConstants {
   );
 }
 
+/**
+ * Creates a runtime configuration by merging overrides with a base configuration.
+ * Validates the result and freezes it to prevent modification.
+ * @param overrides Partial configuration overrides
+ * @param base Base configuration to extend (defaults to Constants)
+ * @returns Frozen, validated configuration object
+ */
 export function createRuntimeConfiguration(
   overrides?: DeepPartial<IConstants>,
   base: IConstants = Constants,
@@ -526,17 +583,38 @@ export function createRuntimeConfiguration(
   return deepFreeze(merged);
 }
 
+/**
+ * Registry for managing multiple named configuration instances.
+ * Provides methods to register, retrieve, and manage configurations with provenance tracking.
+ */
 export class ConstantsRegistry {
+  /**
+   * Default configuration key symbol.
+   */
   public static readonly DEFAULT_KEY = DEFAULT_CONFIGURATION_KEY;
 
+  /**
+   * Lists all registered configuration keys.
+   * @returns Array of configuration keys
+   */
   public static listKeys(): ConfigurationKey[] {
     return Array.from(configurationRegistry.keys());
   }
 
+  /**
+   * Checks if a configuration key exists in the registry.
+   * @param key The configuration key to check
+   * @returns True if the key exists
+   */
   public static has(key: ConfigurationKey): boolean {
     return configurationRegistry.has(key);
   }
 
+  /**
+   * Retrieves a configuration by key.
+   * @param key The configuration key (defaults to DEFAULT_KEY)
+   * @returns The configuration object
+   */
   public static get(
     key: ConfigurationKey = DEFAULT_CONFIGURATION_KEY,
   ): IConstants {
@@ -547,7 +625,9 @@ export class ConstantsRegistry {
   }
 
   /**
-   * Get provenance information for a configuration
+   * Gets provenance information for a configuration.
+   * @param key The configuration key (defaults to DEFAULT_KEY)
+   * @returns Provenance information or undefined if not found
    */
   public static getProvenance(
     key: ConfigurationKey = DEFAULT_CONFIGURATION_KEY,
@@ -556,7 +636,8 @@ export class ConstantsRegistry {
   }
 
   /**
-   * List all configurations with their provenance
+   * Lists all configurations with their provenance information.
+   * @returns Array of configuration entries with keys, configs, and provenance
    */
   public static listWithProvenance(): Array<{
     key: ConfigurationKey;
@@ -570,6 +651,12 @@ export class ConstantsRegistry {
     }));
   }
 
+  /**
+   * Creates a new configuration from overrides without registering it.
+   * @param overrides Partial configuration overrides
+   * @param baseKey Key of the base configuration to extend
+   * @returns New configuration object
+   */
   public static create(
     overrides?: DeepPartial<IConstants>,
     baseKey: ConfigurationKey = DEFAULT_CONFIGURATION_KEY,
@@ -578,6 +665,14 @@ export class ConstantsRegistry {
     return createRuntimeConfiguration(overrides, baseConfig);
   }
 
+  /**
+   * Registers a new configuration in the registry.
+   * @param key Unique key for the configuration
+   * @param configOrOverrides Full configuration or partial overrides
+   * @param options Registration options (baseKey, description)
+   * @returns The registered configuration
+   * @throws {Error} If attempting to overwrite the default configuration
+   */
   public static register(
     key: ConfigurationKey,
     configOrOverrides?: DeepPartial<IConstants> | IConstants,
@@ -617,6 +712,11 @@ export class ConstantsRegistry {
     return configuration;
   }
 
+  /**
+   * Unregisters a configuration from the registry.
+   * @param key The configuration key to remove
+   * @returns True if the configuration was removed, false if it didn't exist or is the default
+   */
   public static unregister(key: ConfigurationKey): boolean {
     if (key === DEFAULT_CONFIGURATION_KEY) {
       return false;
@@ -625,6 +725,9 @@ export class ConstantsRegistry {
     return configurationRegistry.delete(key);
   }
 
+  /**
+   * Clears all configurations except the default.
+   */
   public static clear(): void {
     const defaultProvenance = provenanceRegistry.get(DEFAULT_CONFIGURATION_KEY);
     configurationRegistry.clear();
@@ -636,12 +739,26 @@ export class ConstantsRegistry {
   }
 }
 
+/**
+ * Retrieves a runtime configuration by key.
+ * Convenience function that delegates to ConstantsRegistry.get.
+ * @param key The configuration key (defaults to DEFAULT_KEY)
+ * @returns The configuration object
+ */
 export function getRuntimeConfiguration(
   key: ConfigurationKey = DEFAULT_CONFIGURATION_KEY,
 ): IConstants {
   return ConstantsRegistry.get(key);
 }
 
+/**
+ * Registers a runtime configuration.
+ * Convenience function that delegates to ConstantsRegistry.register.
+ * @param key Unique key for the configuration
+ * @param configOrOverrides Full configuration or partial overrides
+ * @param options Registration options
+ * @returns The registered configuration
+ */
 export function registerRuntimeConfiguration(
   key: ConfigurationKey,
   configOrOverrides?: DeepPartial<IConstants> | IConstants,
@@ -650,10 +767,20 @@ export function registerRuntimeConfiguration(
   return ConstantsRegistry.register(key, configOrOverrides, options);
 }
 
+/**
+ * Unregisters a runtime configuration.
+ * Convenience function that delegates to ConstantsRegistry.unregister.
+ * @param key The configuration key to remove
+ * @returns True if the configuration was removed
+ */
 export function unregisterRuntimeConfiguration(key: ConfigurationKey): boolean {
   return ConstantsRegistry.unregister(key);
 }
 
+/**
+ * Clears all runtime configurations except the default.
+ * Convenience function that delegates to ConstantsRegistry.clear.
+ */
 export function clearRuntimeConfigurations(): void {
   ConstantsRegistry.clear();
 }

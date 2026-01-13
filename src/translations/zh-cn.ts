@@ -1,3 +1,6 @@
+/**
+ * Mandarin Chinese (Simplified) translations for ECIES library error messages and strings.
+ */
 import { createPluralString, PluralString } from '@digitaldefiance/i18n-lib';
 import { EciesStringKey } from '../enumerations';
 

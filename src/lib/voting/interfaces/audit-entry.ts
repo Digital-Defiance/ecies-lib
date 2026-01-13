@@ -1,3 +1,6 @@
+/**
+ * Audit entry structure for voting system audit trail.
+ */
 import type { PlatformID } from '../../../interfaces';
 import { AuditEventType } from '../enumerations/audit-event-type';
 

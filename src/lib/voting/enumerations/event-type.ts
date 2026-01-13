@@ -1,3 +1,6 @@
+/**
+ * Event types for voting system operations.
+ */
 export enum EventType {
   PollCreated = 'poll_created',
   VoteCast = 'vote_cast',

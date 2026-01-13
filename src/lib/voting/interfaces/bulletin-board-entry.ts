@@ -1,3 +1,6 @@
+/**
+ * Bulletin board entry structure for published votes.
+ */
 import type { PlatformID } from '../../../interfaces';
 
 export interface BulletinBoardEntry<TID extends PlatformID = Uint8Array> {

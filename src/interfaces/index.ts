@@ -1,3 +1,8 @@
+/**
+ * Interface exports for the ECIES library.
+ * Contains all TypeScript interfaces and type definitions used throughout the library.
+ */
+
 export * from './checksum-config';
 export * from './checksum-consts';
 export * from './constants';

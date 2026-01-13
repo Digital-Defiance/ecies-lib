@@ -1,3 +1,6 @@
+/**
+ * Checkpoint manager interface for saving and loading vote tallies.
+ */
 import type { PlatformID } from '../../../interfaces';
 import { AggregatedTally } from './aggregated-tally';
 

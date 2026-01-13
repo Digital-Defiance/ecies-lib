@@ -1,3 +1,6 @@
+/**
+ * Parsed header structure for multi-recipient encrypted messages.
+ */
 import type { PlatformID } from '../../../interfaces';
 
 export interface IMultiEncryptedParsedHeader<

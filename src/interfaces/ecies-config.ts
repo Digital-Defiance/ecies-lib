@@ -1,3 +1,6 @@
+/**
+ * Configuration interface for ECIES encryption parameters.
+ */
 export interface IECIESConfig {
   curveName: string;
   primaryKeyDerivationPath: string;

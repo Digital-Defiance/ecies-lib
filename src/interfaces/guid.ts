@@ -1,3 +1,7 @@
+/**
+ * GUID interface defining operations for globally unique identifiers.
+ * Supports multiple representations (hex, base64, BigInt) and RFC 4122 validation.
+ */
 import type {
   Base64Guid,
   BigIntGuid,

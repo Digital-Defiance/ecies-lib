@@ -1,3 +1,6 @@
+/**
+ * Voting system interfaces export module.
+ */
 export type * from './aggregated-tally';
 export type * from './audit-entry';
 export type * from './audit-log';

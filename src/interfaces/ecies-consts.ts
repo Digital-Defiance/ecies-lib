@@ -1,6 +1,12 @@
-// Type definition for GCM cipher algorithms (from Node.js crypto module)
+/**
+ * Type definition for GCM cipher algorithms supported by Node.js crypto module.
+ */
 export type CipherGCMTypes = 'aes-128-gcm' | 'aes-192-gcm' | 'aes-256-gcm';
 
+/**
+ * ECIES (Elliptic Curve Integrated Encryption Scheme) constants interface.
+ * Defines all cryptographic parameters and message format specifications.
+ */
 export interface IECIESConstants {
   /** The elliptic curve to use for all ECDSA operations */
   CURVE_NAME: string;
@@ -26,52 +32,80 @@ export interface IECIESConstants {
 
   /** Symmetric encryption algorithm configuration */
   SYMMETRIC: {
+    /** Encryption algorithm name */
     ALGORITHM: string;
+    /** Encryption mode */
     MODE: string;
+    /** Key size in bits */
     KEY_BITS: number;
-    KEY_SIZE: number; // KEY_BITS / 8
+    /** Key size in bytes (KEY_BITS / 8) */
+    KEY_SIZE: number;
   };
 
+  /** Initialization vector size in bytes */
   IV_SIZE: number;
+  /** Authentication tag size in bytes */
   AUTH_TAG_SIZE: number;
-  MAX_RAW_DATA_SIZE: number; // 2^53 - 1 (max safe integer for JS)
+  /** Maximum raw data size (2^53 - 1, max safe integer for JavaScript) */
+  MAX_RAW_DATA_SIZE: number;
 
+  /** Protocol version field size in bytes */
   VERSION_SIZE: number;
+  /** Cipher suite field size in bytes */
   CIPHER_SUITE_SIZE: number;
+  /** Encryption type field size in bytes */
   ENCRYPTION_TYPE_SIZE: number;
 
   /**
-   * Message encrypts without data length or crc
+   * Simple encryption mode constants.
+   * Message encrypts without data length or CRC.
    */
   SIMPLE: {
-    FIXED_OVERHEAD_SIZE: number; // type (1) + public key (65) + IV (16) + auth tag (16)
+    /** Fixed overhead size: version + cipher suite + type + public key + IV + auth tag */
+    FIXED_OVERHEAD_SIZE: number;
+    /** Data length field size (0 for simple mode) */
     DATA_LENGTH_SIZE: number;
   };
 
   /**
-   * Message encrypts like single but with data Length and crc
+   * Single recipient encryption mode constants.
+   * Message encrypts with data length but no CRC (AES-GCM provides authentication).
    */
   SINGLE: {
-    FIXED_OVERHEAD_SIZE: number; // type (1) + public key (65) + IV (16) + auth tag (16) + data length (8) + crc16 (2)
+    /** Fixed overhead size: version + cipher suite + type + public key + IV + auth tag + data length */
+    FIXED_OVERHEAD_SIZE: number;
+    /** Data length field size in bytes */
     DATA_LENGTH_SIZE: number;
   };
 
   /**
-   * Message encrypts for multiple recipients
+   * Multiple recipient encryption mode constants.
+   * Message encrypts for multiple recipients with shared data.
    */
   MULTIPLE: {
+    /** Fixed overhead size for the message header */
     FIXED_OVERHEAD_SIZE: number;
+    /** Size of each encrypted key entry */
     ENCRYPTED_KEY_SIZE: number;
+    /** Maximum number of recipients supported */
     MAX_RECIPIENTS: number;
+    /** Maximum data size for multi-recipient messages */
     MAX_DATA_SIZE: number;
+    /** Size of recipient ID field in bytes */
     RECIPIENT_ID_SIZE: number;
+    /** Size of recipient count field in bytes */
     RECIPIENT_COUNT_SIZE: number;
+    /** Size of data length field in bytes */
     DATA_LENGTH_SIZE: number;
   };
 
+  /** Encryption type identifiers */
   ENCRYPTION_TYPE: {
+    /** Simple encryption type identifier */
     SIMPLE: number;
+    /** Single recipient encryption type identifier */
     SINGLE: number;
+    /** Multiple recipient encryption type identifier */
     MULTIPLE: number;
   };
 }

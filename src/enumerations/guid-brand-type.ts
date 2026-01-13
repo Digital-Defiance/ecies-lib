@@ -1,26 +1,31 @@
+/**
+ * GUID brand type enumeration.
+ * Defines the different formats in which a GUID can be represented.
+ */
 export enum GuidBrandType {
+  /** Unknown or unspecified GUID format */
   Unknown = 'Unknown',
   /**
-   * Full hex guid, 36 characters
-   * 00000000-0000-0000-0000-000000000000
+   * Full hex GUID with dashes, 36 characters.
+   * Format: 00000000-0000-0000-0000-000000000000
    */
   FullHexGuid = 'FullHexGuid',
   /**
-   * Short hex guid, 32 characters
-   * 0000000000000000000000000000000
+   * Short hex GUID without dashes, 32 characters.
+   * Format: 00000000000000000000000000000000
    */
   ShortHexGuid = 'ShortHexGuid',
   /**
-   * Base64 guid, 24 characters
-   * AAAA/AAAAAA==
+   * Base64 encoded GUID, 24 characters.
+   * Format: AAAA/AAAAAA==
    */
   Base64Guid = 'Base64Guid',
   /**
-   * BigInt, variable width
+   * GUID stored as a BigInt (variable width).
    */
   BigIntGuid = 'BigIntGuid',
   /**
-   * Raw Guid, in a buffer, 16 bytes
+   * Raw GUID stored in a buffer, 16 bytes.
    */
   RawGuidPlatformBuffer = 'RawGuidPlatformBuffer',
 }

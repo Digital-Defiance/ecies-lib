@@ -1,3 +1,7 @@
+/**
+ * Member operation error class for ECIES library.
+ * Thrown when Member class operations fail.
+ */
 import {
   buildReasonMap,
   HandleableErrorOptions,

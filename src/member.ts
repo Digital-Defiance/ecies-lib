@@ -30,14 +30,43 @@ import {
  * Defined here to avoid circular dependency with interfaces folder.
  */
 export interface IMemberWithMnemonic<TID extends PlatformID = Uint8Array> {
+  /** The member instance */
   member: Member<TID>;
+  /** The member's mnemonic phrase (secured) */
   mnemonic: SecureString;
 }
 
 /**
  * Represents a member with cryptographic capabilities.
- * This class provides methods for signing, verifying, encrypting, and decrypting data.
- * It also manages the member's keys and wallet.
+ *
+ * This class provides comprehensive cryptographic operations including:
+ * - Digital signatures (sign/verify)
+ * - Asymmetric encryption/decryption (ECIES)
+ * - Streaming encryption for large data
+ * - Homomorphic encryption voting keys (Paillier)
+ * - Secure key management with automatic disposal
+ *
+ * Members can be created from:
+ * - Mnemonic phrases (BIP39)
+ * - Existing keys
+ * - JSON serialization
+ *
+ * @example
+ * ```typescript
+ * // Create a new member
+ * const { member, mnemonic } = Member.newMember(
+ *   eciesService,
+ *   MemberType.User,
+ *   'Alice',
+ *   new EmailString('alice@example.com')
+ * );
+ *
+ * // Sign data
+ * const signature = member.sign(data);
+ *
+ * // Encrypt for another member
+ * const encrypted = await member.encryptData(data, recipientPublicKey);
+ * ```
  */
 export class Member<
   TID extends PlatformID = Uint8Array,
@@ -60,6 +89,20 @@ export class Member<
   private _votingPublicKey?: PublicKey;
   private _votingPrivateKey?: PrivateKey;
 
+  /**
+   * Creates a new Member instance.
+   * @param eciesService Injected ECIES service for cryptographic operations
+   * @param type Member type (Admin, System, User, Anonymous)
+   * @param name Member's display name
+   * @param email Member's email address
+   * @param publicKey Member's public key (compressed, 33 bytes)
+   * @param privateKey Optional private key (secured)
+   * @param wallet Optional Ethereum wallet
+   * @param id Optional member ID (generated if not provided)
+   * @param dateCreated Optional creation date
+   * @param dateUpdated Optional last update date
+   * @param creatorId Optional ID of the member who created this member
+   */
   constructor(
     // Add injected services as parameters
     eciesService: ECIESService<TID>,
@@ -127,47 +170,66 @@ export class Member<
         : this._eciesService.constants.idProvider.toBytes(this._creatorId);
   }
 
-  // Required getters
+  /** Gets the member's unique ID in native format */
   public get id(): TID {
     return this._id;
   }
+  /** Gets the member's ID as a byte array */
   public get idBytes(): Uint8Array {
     return this._idBytes;
   }
+  /** Gets the member's type */
   public get type(): MemberType {
     return this._type;
   }
+  /** Gets the member's display name */
   public get name(): string {
     return this._name;
   }
+  /** Gets the member's email address */
   public get email(): EmailString {
     return this._email;
   }
+  /** Gets the member's public key (compressed, 33 bytes) */
   public get publicKey(): Uint8Array {
     return this._publicKey;
   }
+  /** Gets the ID of the member who created this member */
   public get creatorId(): TID {
     return this._creatorId;
   }
+  /** Gets the creator's ID as a byte array */
   public get creatorIdBytes(): Uint8Array {
     return this._creatorIdBytes;
   }
+  /** Gets the date this member was created */
   public get dateCreated(): Date {
     return this._dateCreated;
   }
+  /** Gets the date this member was last updated */
   public get dateUpdated(): Date {
     return this._dateUpdated;
   }
 
-  // Expose the service's idProvider for voting system compatibility
+  /**
+   * Gets the ID provider used by this member's ECIES service.
+   * Useful for voting system compatibility.
+   */
   public get idProvider(): IIdProvider<TID> {
     return this._eciesService.constants.idProvider as IIdProvider<TID>;
   }
 
-  // Optional private data getters
+  /**
+   * Gets the member's private key if loaded.
+   * @returns The private key or undefined if not loaded
+   */
   public get privateKey(): SecureBuffer | undefined {
     return this._privateKey;
   }
+  /**
+   * Gets the member's wallet.
+   * @throws {MemberError} If wallet is not loaded
+   */
   public get wallet(): Wallet {
     if (!this._wallet) {
       throw new MemberError(MemberErrorType.NoWallet);
@@ -175,27 +237,39 @@ export class Member<
     return this._wallet;
   }
 
+  /**
+   * Gets the member's wallet if loaded.
+   * @returns The wallet or undefined if not loaded
+   */
   public get walletOptional(): Wallet | undefined {
     return this._wallet;
   }
 
-  // State getters
+  /** Checks if the member has a private key loaded */
   public get hasPrivateKey(): boolean {
     return this._privateKey !== undefined;
   }
 
+  /** Checks if the member has a voting private key loaded */
   public get hasVotingPrivateKey(): boolean {
     return this._votingPrivateKey !== undefined;
   }
 
+  /** Gets the member's voting public key for homomorphic encryption */
   public get votingPublicKey(): PublicKey | undefined {
     return this._votingPublicKey;
   }
 
+  /** Gets the member's voting private key for homomorphic encryption */
   public get votingPrivateKey(): PrivateKey | undefined {
     return this._votingPrivateKey;
   }
 
+  /**
+   * Derives Paillier voting keys from the member's ECDH keys.
+   * @param options Optional key derivation options
+   * @throws {MemberError} If private key is not loaded
+   */
   public async deriveVotingKeys(
     options?: DeriveVotingKeysOptions,
   ): Promise<void> {
@@ -213,30 +287,56 @@ export class Member<
     this._votingPrivateKey = keyPair.privateKey;
   }
 
+  /**
+   * Loads pre-generated voting keys.
+   * @param publicKey The voting public key
+   * @param privateKey Optional voting private key
+   */
   public loadVotingKeys(publicKey: PublicKey, privateKey?: PrivateKey): void {
     this._votingPublicKey = publicKey;
     this._votingPrivateKey = privateKey;
   }
 
+  /**
+   * Unloads the voting private key from memory.
+   * The public key remains loaded.
+   */
   public unloadVotingPrivateKey(): void {
     this._votingPrivateKey = undefined;
   }
 
+  /**
+   * Unloads the private key from memory without disposing it.
+   * The key can be reloaded later.
+   */
   public unloadPrivateKey(): void {
     // Do not dispose here; tests expect the same SecureBuffer instance to remain usable
     // when reloaded into another member in the same process.
     this._privateKey = undefined;
   }
 
+  /**
+   * Unloads the wallet from memory.
+   */
   public unloadWallet(): void {
     this._wallet = undefined;
   }
 
+  /**
+   * Unloads both wallet and private key from memory.
+   */
   public unloadWalletAndPrivateKey(): void {
     this.unloadWallet();
     this.unloadPrivateKey();
   }
 
+  /**
+   * Loads a wallet from a mnemonic phrase.
+   * Validates that the mnemonic matches the member's public key.
+   * @param mnemonic The BIP39 mnemonic phrase
+   * @param _eciesParams Optional ECIES parameters (deprecated)
+   * @throws {MemberError} If wallet is already loaded or mnemonic is invalid
+   */
   public loadWallet(
     mnemonic: SecureString,
     _eciesParams?: IECIESConstants,
@@ -258,15 +358,19 @@ export class Member<
   }
 
   /**
-   * Loads the private key and optionally the voting private key.
-   *
-   * @param privateKey The private key to load.
-   * @param votingPrivateKey The voting private key to load.
+   * Loads a private key into the member.
+   * @param privateKey The private key to load
    */
   public loadPrivateKey(privateKey: SecureBuffer): void {
     this._privateKey = privateKey;
   }
 
+  /**
+   * Signs data using the member's private key.
+   * @param data The data to sign
+   * @returns ECDSA signature (64 bytes)
+   * @throws {MemberError} If private key is not loaded
+   */
   public sign(data: Uint8Array): SignatureUint8Array {
     if (!this._privateKey) {
       throw new MemberError(MemberErrorType.MissingPrivateKey);
@@ -274,6 +378,13 @@ export class Member<
     return this._eciesService.signMessage(this._privateKey.value, data);
   }
 
+  /**
+   * Signs data using the member's private key.
+   * Alias for sign() method.
+   * @param data The data to sign
+   * @returns ECDSA signature (64 bytes)
+   * @throws {MemberError} If private key is not loaded
+   */
   public signData(data: Uint8Array): SignatureUint8Array {
     if (!this._privateKey) {
       throw new MemberError(MemberErrorType.MissingPrivateKey);
@@ -284,10 +395,23 @@ export class Member<
     );
   }
 
+  /**
+   * Verifies a signature against data using the member's public key.
+   * @param signature The signature to verify
+   * @param data The data that was signed
+   * @returns True if signature is valid
+   */
   public verify(signature: SignatureUint8Array, data: Uint8Array): boolean {
     return this._eciesService.verifyMessage(this._publicKey, data, signature);
   }
 
+  /**
+   * Verifies a signature against data using a specified public key.
+   * @param data The data that was signed
+   * @param signature The signature to verify
+   * @param publicKey The public key to verify against
+   * @returns True if signature is valid
+   */
   public verifySignature(
     data: Uint8Array,
     signature: Uint8Array,
@@ -300,11 +424,17 @@ export class Member<
     );
   }
 
+  /** Maximum size for encryption operations (10MB) */
   private static readonly MAX_ENCRYPTION_SIZE = 1024 * 1024 * 10; // 10MB limit
+  /** Regular expression for valid string content */
   private static readonly _VALID_STRING_REGEX = /^[\x20-\x7E\n\r\t]*$/; // Printable ASCII + common whitespace
 
   /**
-   * Encrypt data stream (for large data)
+   * Encrypts data as a stream for large files.
+   * @param source Async iterable or ReadableStream of data chunks
+   * @param options Encryption options
+   * @returns Async generator yielding encrypted chunks
+   * @throws {MemberError} If private key is not loaded and no recipient key provided
    */
   async *encryptDataStream(
     source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
@@ -356,7 +486,11 @@ export class Member<
   }
 
   /**
-   * Decrypt data stream (for large data)
+   * Decrypts a data stream.
+   * @param source Async iterable or ReadableStream of encrypted chunks
+   * @param options Decryption options
+   * @returns Async generator yielding decrypted data
+   * @throws {MemberError} If private key is not loaded
    */
   async *decryptDataStream(
     source: AsyncIterable<Uint8Array> | ReadableStream<Uint8Array>,
@@ -402,7 +536,9 @@ export class Member<
   }
 
   /**
-   * Convert ReadableStream to AsyncIterable
+   * Converts a ReadableStream to an AsyncIterable.
+   * @param stream The ReadableStream to convert
+   * @returns AsyncIterable of Uint8Array chunks
    */
   private async *readableStreamToAsyncIterable(
     stream: ReadableStream<Uint8Array>,
@@ -419,6 +555,13 @@ export class Member<
     }
   }
 
+  /**
+   * Encrypts data using ECIES.
+   * @param data The data to encrypt (string or Uint8Array)
+   * @param recipientPublicKey Optional recipient public key (defaults to self)
+   * @returns Encrypted data as Uint8Array
+   * @throws {MemberError} If data is missing, too large, or contains invalid characters
+   */
   public async encryptData(
     data: string | Uint8Array,
     recipientPublicKey?: Uint8Array,
@@ -445,6 +588,12 @@ export class Member<
     );
   }
 
+  /**
+   * Decrypts ECIES encrypted data.
+   * @param encryptedData The encrypted data to decrypt
+   * @returns Decrypted data as Uint8Array
+   * @throws {MemberError} If private key is not loaded
+   */
   public async decryptData(encryptedData: Uint8Array): Promise<Uint8Array> {
     if (!this._privateKey) {
       throw new MemberError(MemberErrorType.MissingPrivateKey);
@@ -457,6 +606,11 @@ export class Member<
     );
   }
 
+  /**
+   * Serializes the member to JSON.
+   * Only includes public data (no private keys or wallet).
+   * @returns JSON string representation
+   */
   public toJson(): string {
     const storage: IMemberStorageData = {
       id: this._eciesService.constants.idProvider.serialize(this._idBytes),
@@ -473,6 +627,9 @@ export class Member<
     return JSON.stringify(storage);
   }
 
+  /**
+   * Disposes the member, zeroing out all sensitive data.
+   */
   public dispose(): void {
     // Ensure secret material is zeroized when disposing
     try {
@@ -482,6 +639,13 @@ export class Member<
     }
   }
 
+  /**
+   * Deserializes a member from JSON.
+   * @param json JSON string representation
+   * @param eciesService Optional ECIES service (creates default if not provided)
+   * @returns Deserialized member instance
+   * @throws {MemberError} If JSON is invalid
+   */
   public static fromJson<TID extends PlatformID = Uint8Array>(
     json: string,
     // Add injected services as parameters
@@ -535,6 +699,15 @@ export class Member<
     );
   }
 
+  /**
+   * Creates a member from a BIP39 mnemonic phrase.
+   * @param mnemonic The BIP39 mnemonic phrase
+   * @param eciesService ECIES service for cryptographic operations
+   * @param __eciesParams Optional ECIES parameters (deprecated)
+   * @param name Member's display name (default: 'Test User')
+   * @param email Member's email (default: 'test@example.com')
+   * @returns New member instance with loaded wallet and keys
+   */
   public static fromMnemonic<TID extends PlatformID = Uint8Array>(
     mnemonic: SecureString,
     eciesService: ECIESService<TID>,
@@ -558,6 +731,18 @@ export class Member<
     );
   }
 
+  /**
+   * Creates a new member with a generated mnemonic.
+   * @param eciesService ECIES service for cryptographic operations
+   * @param type Member type
+   * @param name Member's display name
+   * @param email Member's email address
+   * @param forceMnemonic Optional specific mnemonic to use
+   * @param _createdBy Optional creator ID (deprecated)
+   * @param _eciesParams Optional ECIES parameters (deprecated)
+   * @returns Object containing the new member and its mnemonic
+   * @throws {MemberError} If name or email is invalid
+   */
   public static newMember<TID extends PlatformID = Uint8Array>(
     // Add injected services as parameters
     eciesService: ECIESService<TID>,

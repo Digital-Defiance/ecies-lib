@@ -6,15 +6,28 @@ import { XorService } from './services/xor';
 import { uint8ArrayToHex } from './utils';
 
 /**
- * A secure string buffer is a buffer whose intent is to prevent the raw password from being stored in memory.
- * The buffer is encrypted with a key derived from a random ID.
- * The ID is stored in the clear, but the buffer is encrypted with a key derived from the ID.
- * This allows the buffer to be decrypted, but only if the ID and salt are known.
+ * A secure buffer that prevents raw sensitive data from being stored in memory.
+ * The buffer is obfuscated with a key derived from a random ID.
  *
- * Supports explicit resource management (TC39 proposal) for automatic disposal:
+ * Features:
+ * - XOR obfuscation of sensitive data
+ * - Automatic disposal support (TC39 explicit resource management)
+ * - Checksum validation for data integrity
+ * - Stack trace capture for debugging disposed access
+ *
+ * @example
  * ```typescript
+ * // Using explicit resource management
  * using buffer = new SecureBuffer(sensitiveData);
  * // buffer automatically disposed when leaving scope
+ *
+ * // Manual disposal
+ * const buffer = new SecureBuffer(sensitiveData);
+ * try {
+ *   const data = buffer.value;
+ * } finally {
+ *   buffer.dispose();
+ * }
  * ```
  */
 export class SecureBuffer implements Disposable {
@@ -27,6 +40,10 @@ export class SecureBuffer implements Disposable {
   private readonly _obfuscatedChecksum: Uint8Array;
   private _disposedAt?: string;
 
+  /**
+   * Creates a new SecureBuffer instance.
+   * @param data Optional data to secure. If undefined or empty, creates an empty buffer.
+   */
   constructor(data?: Uint8Array) {
     this._idProvider = new ObjectIdProvider();
     this._id = this._idProvider.generate();
@@ -44,6 +61,10 @@ export class SecureBuffer implements Disposable {
     // Create a simple checksum without crypto for synchronous operation
     this._obfuscatedChecksum = this.createSimpleObfuscatedChecksum(data);
   }
+  /**
+   * Disposes the secure buffer, zeroing out all sensitive data.
+   * Captures a stack trace for debugging if the buffer is accessed after disposal.
+   */
   public dispose(): void {
     const err = new DisposedError();
     if (typeof Error.captureStackTrace === 'function') {
@@ -65,7 +86,7 @@ export class SecureBuffer implements Disposable {
   }
 
   /**
-   * Factory method for backward compatibility that uses the default ObjectIdProvider
+   * Factory method for backward compatibility that uses the default ObjectIdProvider.
    * @param data Optional data to secure
    * @returns A new SecureBuffer instance using the default ID provider
    */
@@ -74,8 +95,10 @@ export class SecureBuffer implements Disposable {
   }
 
   /**
-   * Static factory method that creates a SecureBuffer for a symmetric key
-   * Useful for managing encryption keys securely
+   * Static factory method that creates a SecureBuffer for a symmetric key.
+   * Useful for managing encryption keys securely.
+   * @param sizeBytes Size of the key in bytes (default: 32)
+   * @returns A new SecureBuffer instance for the key
    */
   static allocateKey(sizeBytes: number = 32): SecureBuffer {
     const keyData = new Uint8Array(sizeBytes);
@@ -83,6 +106,10 @@ export class SecureBuffer implements Disposable {
     return new SecureBuffer(keyData);
   }
 
+  /**
+   * Asserts that the buffer has not been disposed.
+   * @throws {DisposedError} If the buffer has been disposed
+   */
   private assertNotDisposed(): void {
     if (this._disposed) {
       const e = new DisposedError();
@@ -94,24 +121,51 @@ export class SecureBuffer implements Disposable {
       throw e;
     }
   }
+  /**
+   * Creates a SecureBuffer from a string.
+   * @param data The string to secure
+   * @returns A new SecureBuffer containing the UTF-8 encoded string
+   */
   public static fromString(data: string): SecureBuffer {
     return new SecureBuffer(new TextEncoder().encode(data));
   }
+  /**
+   * Gets the stack trace from when the buffer was disposed.
+   * Useful for debugging access-after-dispose errors.
+   */
   public get disposedAtStack(): string | undefined {
     return this._disposedAt;
   }
+  /**
+   * Gets the buffer's unique ID as a string.
+   * @throws {DisposedError} If the buffer has been disposed
+   */
   public get id(): string {
     this.assertNotDisposed();
     return this._idProvider.serialize(this._id);
   }
+  /**
+   * Gets the buffer's unique ID as a Uint8Array.
+   * @throws {DisposedError} If the buffer has been disposed
+   */
   public get idUint8Array(): Uint8Array {
     this.assertNotDisposed();
     return this._id;
   }
+  /**
+   * Gets the original length of the secured data in bytes.
+   * @throws {DisposedError} If the buffer has been disposed
+   */
   public get originalLength(): number {
     this.assertNotDisposed();
     return this._length;
   }
+  /**
+   * Gets the decrypted value as a Uint8Array.
+   * Validates the checksum to ensure data integrity.
+   * @throws {DisposedError} If the buffer has been disposed
+   * @throws {SecureStorageError} If decryption fails or checksum is invalid
+   */
   public get value(): Uint8Array {
     this.assertNotDisposed();
     if (this._length === 0) {
@@ -141,18 +195,34 @@ export class SecureBuffer implements Disposable {
       );
     }
   }
+  /**
+   * Gets the decrypted value as a UTF-8 string.
+   * @throws {DisposedError} If the buffer has been disposed
+   */
   public get valueAsString(): string {
     this.assertNotDisposed();
     return new TextDecoder().decode(this.value);
   }
+  /**
+   * Gets the decrypted value as a hexadecimal string.
+   * @throws {DisposedError} If the buffer has been disposed
+   */
   public get valueAsHexString(): string {
     this.assertNotDisposed();
     return uint8ArrayToHex(this.value);
   }
+  /**
+   * Gets the decrypted value as a Base64 string.
+   * @throws {DisposedError} If the buffer has been disposed
+   */
   public get valueAsBase64String(): string {
     this.assertNotDisposed();
     return btoa(String.fromCharCode(...this.value));
   }
+  /**
+   * Gets the checksum of the secured data.
+   * @throws {DisposedError} If the buffer has been disposed
+   */
   public get checksum(): string {
     this.assertNotDisposed();
     const deobfuscatedChecksum = new TextDecoder().decode(
@@ -160,6 +230,11 @@ export class SecureBuffer implements Disposable {
     );
     return deobfuscatedChecksum;
   }
+  /**
+   * Generates a simple checksum for data validation.
+   * @param data The data to checksum (string or Uint8Array)
+   * @returns Hexadecimal checksum string
+   */
   private generateSimpleChecksum(data: string | Uint8Array): string {
     const dataBytes =
       typeof data === 'string' ? new TextEncoder().encode(data) : data;
@@ -169,6 +244,11 @@ export class SecureBuffer implements Disposable {
     }
     return hash.toString(16);
   }
+  /**
+   * Creates an obfuscated checksum for the data.
+   * @param data The data to checksum
+   * @returns Obfuscated checksum as Uint8Array
+   */
   private createSimpleObfuscatedChecksum(
     data: string | Uint8Array,
   ): Uint8Array {
@@ -176,6 +256,12 @@ export class SecureBuffer implements Disposable {
     const result = this.obfuscateData(new TextEncoder().encode(checksum));
     return result;
   }
+  /**
+   * Validates a checksum against data using timing-safe comparison.
+   * @param data The data to validate
+   * @param checksum The expected checksum
+   * @returns True if checksum is valid
+   */
   private validateSimpleChecksum(
     data: string | Uint8Array,
     checksum: string,
@@ -186,6 +272,12 @@ export class SecureBuffer implements Disposable {
     return this.timingSafeEqual(a, b);
   }
 
+  /**
+   * Performs timing-safe equality comparison of two byte arrays.
+   * @param a First array
+   * @param b Second array
+   * @returns True if arrays are equal
+   */
   private timingSafeEqual(a: Uint8Array, b: Uint8Array): boolean {
     if (a.length !== b.length) {
       return false;
@@ -196,18 +288,37 @@ export class SecureBuffer implements Disposable {
     }
     return result === 0;
   }
+  /**
+   * Validates the obfuscated checksum against data.
+   * @param data The data to validate
+   * @returns True if checksum is valid
+   */
   private validateObfuscatedChecksum(data: string | Uint8Array): boolean {
     const deobfuscatedChecksum = new TextDecoder().decode(
       this.deobfuscateData(this._obfuscatedChecksum),
     );
     return this.validateSimpleChecksum(data, deobfuscatedChecksum);
   }
+  /**
+   * Obfuscates data using XOR with the key.
+   * @param data The data to obfuscate
+   * @returns Obfuscated data
+   */
   private obfuscateData(data: Uint8Array): Uint8Array {
     return XorService.xor(data, this._key);
   }
+  /**
+   * Deobfuscates data using XOR with the key.
+   * @param data The data to deobfuscate
+   * @returns Deobfuscated data
+   */
   private deobfuscateData(data: Uint8Array): Uint8Array {
     return XorService.xor(data, this._key);
   }
+  /**
+   * Gets the length of the secured data in bytes.
+   * @throws {DisposedError} If the buffer has been disposed
+   */
   public get length(): number {
     this.assertNotDisposed();
     return this._length;

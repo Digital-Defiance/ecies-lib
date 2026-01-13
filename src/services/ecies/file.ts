@@ -1,3 +1,7 @@
+/**
+ * File encryption service with chunked encryption support.
+ * Handles large files by splitting into manageable chunks.
+ */
 import { IEciesFileService } from '../../interfaces/ecies-file-service';
 import { ECIESService } from './service';
 

@@ -1,11 +1,14 @@
 /**
- * Unified error class for all crypto operations
+ * Unified error class for all crypto operations.
  * Consolidates ECIESError, MemberError, Pbkdf2Error, etc.
  */
 
 import { EciesStringKey } from '../../enumerations/ecies-string-key';
 import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
 
+/**
+ * Error codes for crypto operations.
+ */
 export enum CryptoErrorCode {
   // ECIES Errors
   DECRYPTION_FAILED = 'DECRYPTION_FAILED',
@@ -35,7 +38,16 @@ export enum CryptoErrorCode {
   FAILED_TO_STORE_LOGIN_DATA = 'FAILED_TO_STORE_LOGIN_DATA',
 }
 
+/**
+ * Unified error class for crypto operations with i18n support.
+ */
 export class CryptoError extends Error {
+  /**
+   * Create a new CryptoError.
+   * @param code The error code
+   * @param stringKey The i18n string key for the error message
+   * @param metadata Optional metadata for message interpolation
+   */
   constructor(
     public readonly code: CryptoErrorCode,
     public readonly stringKey: EciesStringKey,
@@ -48,6 +60,11 @@ export class CryptoError extends Error {
     Object.setPrototypeOf(this, CryptoError.prototype);
   }
 
+  /**
+   * Create a decryption failed error.
+   * @param metadata Optional metadata for message interpolation
+   * @returns A CryptoError instance
+   */
   static decryptionFailed(
     metadata?: Record<string, string | number>,
   ): CryptoError {
@@ -58,6 +75,11 @@ export class CryptoError extends Error {
     );
   }
 
+  /**
+   * Create an invalid profile error.
+   * @param metadata Optional metadata for message interpolation
+   * @returns A CryptoError instance
+   */
   static invalidProfile(
     metadata?: Record<string, string | number>,
   ): CryptoError {
@@ -68,6 +90,11 @@ export class CryptoError extends Error {
     );
   }
 
+  /**
+   * Create an invalid email error.
+   * @param metadata Optional metadata for message interpolation
+   * @returns A CryptoError instance
+   */
   static invalidEmail(metadata?: Record<string, string | number>): CryptoError {
     return new CryptoError(
       CryptoErrorCode.INVALID_EMAIL,

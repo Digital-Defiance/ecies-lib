@@ -1,3 +1,6 @@
+/**
+ * Result interface for encryption operations.
+ */
 export interface IEncryptionResult {
   encryptedData: Uint8Array;
   ephemeralPublicKey: Uint8Array;

@@ -1,3 +1,6 @@
+/**
+ * Tally proof structure for cryptographic verification of vote counts.
+ */
 import type { PlatformID } from '../../../interfaces';
 export interface TallyProof<TID extends PlatformID = Uint8Array> {
   /** Poll identifier */

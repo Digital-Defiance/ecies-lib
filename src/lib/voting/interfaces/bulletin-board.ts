@@ -1,3 +1,6 @@
+/**
+ * Bulletin board interface for public vote publication and verification.
+ */
 import type { PlatformID } from '../../../interfaces';
 import { BulletinBoardEntry } from './bulletin-board-entry';
 import { TallyProof } from './tally-proof';

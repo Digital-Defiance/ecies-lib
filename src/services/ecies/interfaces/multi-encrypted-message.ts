@@ -1,3 +1,6 @@
+/**
+ * Multi-recipient encrypted message structure.
+ */
 import type { PlatformID } from '../../../interfaces';
 
 export interface IMultiEncryptedMessage<TID extends PlatformID = Uint8Array> {

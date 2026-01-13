@@ -1,3 +1,6 @@
+/**
+ * Parsed header structure for single-recipient encrypted messages.
+ */
 import { EciesEncryptionTypeEnum } from '../../../enumerations/ecies-encryption-type';
 
 export interface ISingleEncryptedParsedHeader {

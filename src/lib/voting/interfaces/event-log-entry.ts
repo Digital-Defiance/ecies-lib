@@ -1,3 +1,6 @@
+/**
+ * Event log entry structure for voting system events.
+ */
 import type { PlatformID } from '../../../interfaces';
 import { EventType } from '../enumerations/event-type';
 import { PollConfiguration } from './poll-configuration';
