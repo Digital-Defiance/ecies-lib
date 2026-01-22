@@ -179,7 +179,7 @@ describe('Timing Attack Resistance', () => {
         const { privateKey: _privateKey, publicKey } =
           ecies.mnemonicToSimpleKeyPair(mnemonic);
         const message = crypto.getRandomValues(new Uint8Array(32));
-        await ecies.encryptSimpleOrSingle(false, publicKey, message);
+        await ecies.encryptWithLength(publicKey, message);
       }
 
       for (let i = 0; i < 30; i++) {
@@ -190,7 +190,7 @@ describe('Timing Attack Resistance', () => {
 
         const start = performance.now();
         const message = crypto.getRandomValues(new Uint8Array(32));
-        await ecies.encryptSimpleOrSingle(false, publicKey, message);
+        await ecies.encryptWithLength(publicKey, message);
         const end = performance.now();
 
         timings.push(end - start);

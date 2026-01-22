@@ -36,8 +36,8 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
    * @param idProvider ID provider for recipient IDs. Defaults to Constants.idProvider.
    */
   constructor(
-    config: IECIESConfig,
     constants: IConstants = getRuntimeConfiguration(),
+    config: IECIESConfig = constants.ECIES_CONFIG,
     eciesParams: IECIESConstants = constants.ECIES,
     idProvider: TypedIdProviderWrapper<TID> = getEnhancedIdProvider<TID>(),
   ) {

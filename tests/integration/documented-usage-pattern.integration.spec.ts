@@ -60,15 +60,10 @@ describe('Integration: Documented Usage Pattern (Browser)', () => {
 
       // Encrypt
       const message = new TextEncoder().encode('Hello, World!');
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        true,
-        keyPair.publicKey,
-        message,
-      );
+      const encrypted = await ecies.encryptBasic(keyPair.publicKey, message);
 
       // Decrypt
-      const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-        true,
+      const decrypted = await ecies.decryptBasicWithHeader(
         keyPair.privateKey,
         encrypted,
       );
@@ -136,14 +131,9 @@ describe('Integration: Documented Usage Pattern (Browser)', () => {
       expect(keyPair.publicKey).toBeInstanceOf(Uint8Array);
 
       const message = new TextEncoder().encode('Test message');
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        true,
-        keyPair.publicKey,
-        message,
-      );
+      const encrypted = await ecies.encryptBasic(keyPair.publicKey, message);
 
-      const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-        true,
+      const decrypted = await ecies.decryptBasicWithHeader(
         keyPair.privateKey,
         encrypted,
       );

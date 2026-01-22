@@ -312,16 +312,14 @@ describe('member', () => {
       const memberJson = alice.member.toJson();
       const reloadedMember = Member.fromJson(memberJson, eciesService);
       reloadedMember.loadWallet(alice.mnemonic);
-      const encrypted = await eciesService.encryptSimpleOrSingle(
-        false,
+      const encrypted = await eciesService.encryptWithLength(
         alice.member.publicKey,
         new TextEncoder().encode('hello world'),
       );
       if (!reloadedMember.privateKey) {
         throw new Error('Private key not loaded');
       }
-      const decrypted = await eciesService.decryptSimpleOrSingleWithHeader(
-        false,
+      const decrypted = await eciesService.decryptWithLengthAndHeader(
         reloadedMember.privateKey.value,
         encrypted,
       );

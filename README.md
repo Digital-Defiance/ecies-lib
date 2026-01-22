@@ -8,7 +8,7 @@ Production-ready, browser-compatible ECIES (Elliptic Curve Integrated Encryption
 
 Part of [Express Suite](https://github.com/Digital-Defiance/express-suite)
 
-**Current Version: v4.10.7**
+**Current Version: v4.13.0**
 
 This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuring HKDF key derivation, AAD binding, and optimized multi-recipient encryption. It includes a pluggable ID provider system with PlatformID support, memory-efficient streaming encryption, comprehensive internationalization, and a complete cryptographic voting system with 15+ voting methods.
 
@@ -26,8 +26,8 @@ This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuri
   - **Symmetric**: `AES-256-GCM` for authenticated symmetric encryption.
   - **Hashing**: `SHA-256` and `SHA-512`.
 - **Modes**:
-  - **Simple**: Minimal overhead (no length prefix).
-  - **Single**: Includes data length prefix.
+  - **Basic**: Minimal overhead (no length prefix).
+  - **WithLength**: Includes data length prefix.
   - **Multiple**: Efficient encryption for up to 65,535 recipients.
 
 ### 🗳️ Cryptographic Voting System
@@ -226,8 +226,8 @@ const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
 
 // 5. Encrypt & Decrypt
 const message = new TextEncoder().encode('Hello, Secure World!');
-const encrypted = await ecies.encryptSimpleOrSingle(false, publicKey, message);
-const decrypted = await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encrypted);
+const encrypted = await ecies.encryptWithLength(publicKey, message);
+const decrypted = await ecies.decryptWithLengthAndHeader(privateKey, encrypted);
 
 console.log(new TextDecoder().decode(decrypted)); // "Hello, Secure World!"
 
@@ -1277,6 +1277,55 @@ The library maintains **100% test coverage** with over 1,200 tests, including:
 
 ## ChangeLog
 
+### v4.13.0 - API Naming Improvements & Configuration Enhancements
+
+**Breaking Changes:**
+
+- **Encryption Mode Renaming**: 
+  - `SIMPLE` → `BASIC` (constant)
+  - `SINGLE` → `WITH_LENGTH` (constant)
+  - `encryptSimpleOrSingle(isSimple, ...)` → `encryptBasic(...)` / `encryptWithLength(...)`
+  - `decryptSimpleOrSingleWithHeader(isSimple, ...)` → `decryptBasicWithHeader(...)` / `decryptWithLengthAndHeader(...)`
+  
+- **Removed Constants**:
+  - `OBJECT_ID_LENGTH` removed - use `idProvider.byteLength` instead
+  
+- **Guid Class Renamed**:
+  - `Guid` → `GuidUint8Array` (browser implementation)
+  - Added `VersionedGuidUint8Array<V>` type for compile-time version tracking
+  - Methods like `generate()`, `parse()`, `hydrate()` now return `VersionedGuidUint8Array`
+
+**New Features:**
+
+- **ECIES_CONFIG**: New configuration interface and constant for ECIES parameters
+  - `curveName`, `primaryKeyDerivationPath`, `mnemonicStrength`, `symmetricAlgorithm`, etc.
+  
+- **TranslatableEciesError**: New error class with automatic i18n translation
+  ```typescript
+  throw new TranslatableEciesError('INVALID_KEY', { keyLength: 32 });
+  ```
+
+- **Enhanced Type System for GUIDs**:
+  - `VersionedGuidUint8Array<4>` for v4 UUIDs with compile-time version info
+  - `__version` property attached to parsed/generated GUIDs
+
+**Migration Guide:**
+```typescript
+// BEFORE (v4.12.x)
+const encrypted = await ecies.encryptSimpleOrSingle(false, publicKey, data);  // "single" mode
+const decrypted = await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encrypted);
+
+const encrypted2 = await ecies.encryptSimpleOrSingle(true, publicKey, data);  // "simple" mode
+const decrypted2 = await ecies.decryptSimpleOrSingleWithHeader(true, privateKey, encrypted2);
+
+// AFTER (v4.13.0+)
+const encrypted = await ecies.encryptWithLength(publicKey, data);  // WithLength mode (formerly "single")
+const decrypted = await ecies.decryptWithLengthAndHeader(privateKey, encrypted);
+
+const encrypted2 = await ecies.encryptBasic(publicKey, data);  // Basic mode (formerly "simple")
+const decrypted2 = await ecies.decryptBasicWithHeader(privateKey, encrypted2);
+```
+
 ### v4.12.0 - AESGCMService Refactoring & JSON Encryption
 
 **Breaking Changes:**
@@ -1972,8 +2021,8 @@ describe('ECIES Encryption', () => {
     const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
     
     const message = new TextEncoder().encode('Secret Message');
-    const encrypted = await ecies.encryptSimpleOrSingle(false, publicKey, message);
-    const decrypted = await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encrypted);
+    const encrypted = await ecies.encryptWithLength(publicKey, message);
+    const decrypted = await ecies.decryptWithLengthAndHeader(privateKey, encrypted);
     
     expect(new TextDecoder().decode(decrypted)).toBe('Secret Message');
   });
@@ -2122,8 +2171,8 @@ describe('Cryptographic Properties', () => {
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1, maxLength: 1000 }),
         async (message) => {
-          const encrypted = await ecies.encryptSimpleOrSingle(false, publicKey, message);
-          const decrypted = await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encrypted);
+          const encrypted = await ecies.encryptWithLength(publicKey, message);
+          const decrypted = await ecies.decryptWithLengthAndHeader(privateKey, encrypted);
           
           expect(decrypted).toEqual(message);
         }
@@ -2137,7 +2186,7 @@ describe('Cryptographic Properties', () => {
 ### Testing Best Practices
 
 1. **Initialize i18n** before running tests with `getEciesI18nEngine()`
-2. **Test all encryption modes** (Simple, Single, Multiple)
+2. **Test all encryption modes** (Basic, WithLength, Multiple)
 3. **Test with different ID providers** to ensure compatibility
 4. **Use property-based tests** for cryptographic invariants
 5. **Test error conditions** like invalid keys, corrupted data, and wrong recipients
@@ -2162,8 +2211,7 @@ describe('Cross-Platform Compatibility', () => {
     const nodeEncrypted = Buffer.from('...'); // From node-ecies-lib
     
     const browserEcies = new BrowserECIES();
-    const decrypted = await browserEcies.decryptSimpleOrSingleWithHeader(
-      false,
+    const decrypted = await browserEcies.decryptWithLengthAndHeader(
       privateKey,
       new Uint8Array(nodeEncrypted)
     );

@@ -97,7 +97,7 @@ export class ResumableEncryption {
           (this.state?.bytesProcessed ?? 0) +
           (chunk.metadata?.originalSize ?? 0),
         publicKey: publicKeyHex,
-        encryptionType: EciesEncryptionTypeEnum.Single,
+        encryptionType: EciesEncryptionTypeEnum.WithLength,
         chunkSize: options.chunkSize ?? 1024 * 1024,
         includeChecksums: options.includeChecksums ?? false,
         timestamp: Date.now(),

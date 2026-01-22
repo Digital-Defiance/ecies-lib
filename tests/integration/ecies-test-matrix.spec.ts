@@ -25,6 +25,7 @@ import {
 import { EciesCryptoCore } from '../../src/services/ecies/crypto-core';
 import { ECIESService } from '../../src/services/ecies/service';
 import { MultiRecipientProcessor } from '../../src/services/multi-recipient-processor';
+import { TypedIdProviderWrapper } from '../../src/typed-configuration';
 
 describe('ECIES Test Matrix: Modes × ID Providers', () => {
   let ecies: ECIESService;
@@ -53,13 +54,8 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
       const keyPair = ecies.mnemonicToSimpleKeyPair(mnemonic);
       const message = new Uint8Array([1, 2, 3, 4, 5]);
 
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        true,
-        keyPair.publicKey,
-        message,
-      );
-      const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-        true,
+      const encrypted = await ecies.encryptBasic(keyPair.publicKey, message);
+      const decrypted = await ecies.decryptBasicWithHeader(
         keyPair.privateKey,
         encrypted,
       );
@@ -77,13 +73,8 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
       const keyPair = ecies.mnemonicToSimpleKeyPair(mnemonic);
       const message = new Uint8Array([1, 2, 3, 4, 5]);
 
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        true,
-        keyPair.publicKey,
-        message,
-      );
-      const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-        true,
+      const encrypted = await ecies.encryptBasic(keyPair.publicKey, message);
+      const decrypted = await ecies.decryptBasicWithHeader(
         keyPair.privateKey,
         encrypted,
       );
@@ -94,7 +85,7 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
 
     it('should work with custom ID provider', async () => {
       // Custom provider with 24-byte IDs
-      class CustomIdProvider extends BaseIdProvider {
+      class CustomIdProvider extends BaseIdProvider<Uint8Array> {
         readonly byteLength = 24;
         readonly name = 'custom';
 
@@ -119,6 +110,22 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
           }
           return buffer;
         }
+
+        fromBytes(bytes: Uint8Array): Uint8Array {
+          return bytes;
+        }
+
+        toBytes(id: Uint8Array): Uint8Array {
+          return id;
+        }
+
+        equals(a: Uint8Array, b: Uint8Array): boolean {
+          return a.length === b.length && a.every((v, i) => v === b[i]);
+        }
+
+        clone(id: Uint8Array): Uint8Array {
+          return new Uint8Array(id);
+        }
       }
 
       const config = createRuntimeConfiguration({
@@ -129,13 +136,8 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
       const keyPair = ecies.mnemonicToSimpleKeyPair(mnemonic);
       const message = new Uint8Array([1, 2, 3, 4, 5]);
 
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        true,
-        keyPair.publicKey,
-        message,
-      );
-      const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-        true,
+      const encrypted = await ecies.encryptBasic(keyPair.publicKey, message);
+      const decrypted = await ecies.decryptBasicWithHeader(
         keyPair.privateKey,
         encrypted,
       );
@@ -158,13 +160,11 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
 
       expect(recipientId.length).toBe(12);
 
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        false,
+      const encrypted = await ecies.encryptWithLength(
         keyPair.publicKey,
         message,
       );
-      const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-        false,
+      const decrypted = await ecies.decryptWithLengthAndHeader(
         keyPair.privateKey,
         encrypted,
       );
@@ -184,13 +184,11 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
 
       expect(recipientId.length).toBe(16);
 
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        false,
+      const encrypted = await ecies.encryptWithLength(
         keyPair.publicKey,
         message,
       );
-      const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-        false,
+      const decrypted = await ecies.decryptWithLengthAndHeader(
         keyPair.privateKey,
         encrypted,
       );
@@ -199,7 +197,7 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
     });
 
     it('should work with custom ID provider', async () => {
-      class CustomIdProvider extends BaseIdProvider {
+      class CustomIdProvider extends BaseIdProvider<Uint8Array> {
         readonly byteLength = 20;
         readonly name = 'custom';
 
@@ -224,6 +222,22 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
           }
           return buffer;
         }
+
+        fromBytes(bytes: Uint8Array): Uint8Array {
+          return bytes;
+        }
+
+        toBytes(id: Uint8Array): Uint8Array {
+          return id;
+        }
+
+        equals(a: Uint8Array, b: Uint8Array): boolean {
+          return a.length === b.length && a.every((v, i) => v === b[i]);
+        }
+
+        clone(id: Uint8Array): Uint8Array {
+          return new Uint8Array(id);
+        }
       }
 
       const config = createRuntimeConfiguration({
@@ -237,13 +251,11 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
 
       expect(recipientId.length).toBe(20);
 
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        false,
+      const encrypted = await ecies.encryptWithLength(
         keyPair.publicKey,
         message,
       );
-      const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-        false,
+      const decrypted = await ecies.decryptWithLengthAndHeader(
         keyPair.privateKey,
         encrypted,
       );
@@ -258,7 +270,14 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
         idProvider: new ObjectIdProvider(),
       });
 
-      const processor = new MultiRecipientProcessor(ecies, config);
+      const idProvider = new TypedIdProviderWrapper(config.idProvider);
+      const processor = new MultiRecipientProcessor(
+        config,
+        config.ECIES_CONFIG,
+        ecies,
+        idProvider,
+        config.ECIES,
+      );
 
       // Create 3 recipients
       const recipients = await Promise.all(
@@ -302,7 +321,14 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
         idProvider: new GuidV4Provider(),
       });
 
-      const processor = new MultiRecipientProcessor(ecies, config);
+      const idProvider = new TypedIdProviderWrapper(config.idProvider);
+      const processor = new MultiRecipientProcessor(
+        config,
+        config.ECIES_CONFIG,
+        ecies,
+        idProvider,
+        config.ECIES,
+      );
 
       // Create 3 recipients
       const recipients = await Promise.all(
@@ -342,7 +368,7 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
     });
 
     it('should work with custom ID provider', async () => {
-      class CustomIdProvider extends BaseIdProvider {
+      class CustomIdProvider extends BaseIdProvider<Uint8Array> {
         readonly byteLength = 18;
         readonly name = 'custom';
 
@@ -367,13 +393,36 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
           }
           return buffer;
         }
+
+        fromBytes(bytes: Uint8Array): Uint8Array {
+          return bytes;
+        }
+
+        toBytes(id: Uint8Array): Uint8Array {
+          return id;
+        }
+
+        equals(a: Uint8Array, b: Uint8Array): boolean {
+          return a.length === b.length && a.every((v, i) => v === b[i]);
+        }
+
+        clone(id: Uint8Array): Uint8Array {
+          return new Uint8Array(id);
+        }
       }
 
       const config = createRuntimeConfiguration({
         idProvider: new CustomIdProvider(),
       });
 
-      const processor = new MultiRecipientProcessor(ecies, config);
+      const idProvider = new TypedIdProviderWrapper(config.idProvider);
+      const processor = new MultiRecipientProcessor(
+        config,
+        config.ECIES_CONFIG,
+        ecies,
+        idProvider,
+        config.ECIES,
+      );
 
       // Create 2 recipients
       const recipients = await Promise.all(
@@ -415,7 +464,7 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
 
   describe('Cross-mode compatibility', () => {
     it('should maintain ID provider consistency across all modes', async () => {
-      const providers: IIdProvider[] = [
+      const providers: IIdProvider<any>[] = [
         new ObjectIdProvider(),
         new GuidV4Provider(),
       ];
@@ -437,7 +486,14 @@ describe('ECIES Test Matrix: Modes × ID Providers', () => {
         idProvider: new ObjectIdProvider(), // 12 bytes
       });
 
-      const processor = new MultiRecipientProcessor(ecies, config);
+      const idProvider = new TypedIdProviderWrapper(config.idProvider);
+      const processor = new MultiRecipientProcessor(
+        config,
+        config.ECIES_CONFIG,
+        ecies,
+        idProvider,
+        config.ECIES,
+      );
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
 
       // Try to use wrong-sized ID

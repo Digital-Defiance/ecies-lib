@@ -57,21 +57,21 @@ export interface IECIESConstants {
   ENCRYPTION_TYPE_SIZE: number;
 
   /**
-   * Simple encryption mode constants.
+   * Basic encryption mode constants.
    * Message encrypts without data length or CRC.
    */
-  SIMPLE: {
+  BASIC: {
     /** Fixed overhead size: version + cipher suite + type + public key + IV + auth tag */
     FIXED_OVERHEAD_SIZE: number;
-    /** Data length field size (0 for simple mode) */
+    /** Data length field size (0 for basic mode) */
     DATA_LENGTH_SIZE: number;
   };
 
   /**
-   * Single recipient encryption mode constants.
+   * Single recipient encryption mode constants (with length).
    * Message encrypts with data length but no CRC (AES-GCM provides authentication).
    */
-  SINGLE: {
+  WITH_LENGTH: {
     /** Fixed overhead size: version + cipher suite + type + public key + IV + auth tag + data length */
     FIXED_OVERHEAD_SIZE: number;
     /** Data length field size in bytes */
@@ -102,9 +102,9 @@ export interface IECIESConstants {
   /** Encryption type identifiers */
   ENCRYPTION_TYPE: {
     /** Simple encryption type identifier */
-    SIMPLE: number;
+    BASIC: number;
     /** Single recipient encryption type identifier */
-    SINGLE: number;
+    WITH_LENGTH: number;
     /** Multiple recipient encryption type identifier */
     MULTIPLE: number;
   };

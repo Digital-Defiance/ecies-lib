@@ -13,7 +13,7 @@ import {
   getEnhancedIdProvider,
   ensureEnhancedIdProvider,
 } from './typed-configuration';
-import { GuidV4 } from './types/guid-versions';
+import { GuidV4Uint8Array } from './types/guid-versions';
 
 describe('TypedConfiguration', () => {
   describe('ObjectId Configuration', () => {
@@ -117,7 +117,7 @@ describe('TypedConfiguration', () => {
       });
 
       // Get typed configuration from registry
-      const config = getTypedConfiguration<GuidV4>(testKey);
+      const config = getTypedConfiguration<GuidV4Uint8Array>(testKey);
 
       const id = config.generateId();
       expect(id).toBeDefined();
@@ -265,7 +265,10 @@ describe('TypedConfiguration', () => {
         idProvider: new GuidV4Provider(),
       });
 
-      const provider = ensureEnhancedIdProvider<GuidV4>('GUIDv4', testKey);
+      const provider = ensureEnhancedIdProvider<GuidV4Uint8Array>(
+        'GUIDv4',
+        testKey,
+      );
       expect(provider.name).toBe('GUIDv4');
 
       const id = provider.generateTyped();
@@ -302,7 +305,7 @@ describe('TypedConfiguration', () => {
     it('should work with GuidV4Provider', () => {
       const key = 'test-guidv4';
       registerRuntimeConfiguration(key, { idProvider: new GuidV4Provider() });
-      const provider = getEnhancedIdProvider<GuidV4>(key);
+      const provider = getEnhancedIdProvider<GuidV4Uint8Array>(key);
 
       const id = provider.generateTyped();
       expect(typeof id.asFullHexGuid).toBe('string');

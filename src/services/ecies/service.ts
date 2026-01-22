@@ -113,8 +113,8 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
       this.eciesConsts,
     );
     this.multiRecipient = new EciesMultiRecipient(
-      this._config,
       this._constants,
+      this._config,
       this.eciesConsts,
     );
     this.votingService = VotingService.getInstance();
@@ -344,16 +344,31 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
   // === Core Encryption/Decryption Methods ===
 
   /**
-   * Encrypt for single recipient (simple or single mode)
+   * Encrypt for single recipient without run length encoding (simple mode)
    */
-  public async encryptSimpleOrSingle(
-    encryptSimple: boolean,
+  public async encryptBasic(
     receiverPublicKey: Uint8Array,
     message: Uint8Array,
     preamble: Uint8Array = new Uint8Array(0),
   ): Promise<Uint8Array> {
     return this.singleRecipient.encrypt(
-      encryptSimple,
+      EciesEncryptionTypeEnum.Basic,
+      receiverPublicKey,
+      message,
+      preamble,
+    );
+  }
+
+  /**
+   * Encrypt for single recipient with run length encoding (single mode)
+   */
+  public async encryptWithLength(
+    receiverPublicKey: Uint8Array,
+    message: Uint8Array,
+    preamble: Uint8Array = new Uint8Array(0),
+  ): Promise<Uint8Array> {
+    return this.singleRecipient.encrypt(
+      EciesEncryptionTypeEnum.WithLength,
       receiverPublicKey,
       message,
       preamble,
@@ -379,19 +394,34 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
   }
 
   /**
-   * Decrypt with header
+   * Decrypt basic with header
    */
-  public async decryptSimpleOrSingleWithHeader(
-    decryptSimple: boolean,
+  public async decryptBasicWithHeader(
     privateKey: Uint8Array,
     encryptedData: Uint8Array,
     preambleSize: number = 0,
     options?: { dataLength?: number },
   ): Promise<Uint8Array> {
     return await this.singleRecipient.decryptWithHeader(
-      decryptSimple
-        ? EciesEncryptionTypeEnum.Simple
-        : EciesEncryptionTypeEnum.Single,
+      EciesEncryptionTypeEnum.Basic,
+      privateKey,
+      encryptedData,
+      preambleSize,
+      options,
+    );
+  }
+
+  /**
+   * Decrypt with header
+   */
+  public async decryptWithLengthAndHeader(
+    privateKey: Uint8Array,
+    encryptedData: Uint8Array,
+    preambleSize: number = 0,
+    options?: { dataLength?: number },
+  ): Promise<Uint8Array> {
+    return await this.singleRecipient.decryptWithHeader(
+      EciesEncryptionTypeEnum.WithLength,
       privateKey,
       encryptedData,
       preambleSize,
@@ -402,15 +432,32 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
   /**
    * Extended decrypt with header
    */
-  public async decryptSimpleOrSingleWithHeaderEx(
-    encryptionType: EciesEncryptionTypeEnum,
+  public async decryptBasicWithHeaderEx(
     privateKey: Uint8Array,
     encryptedData: Uint8Array,
     preambleSize: number = 0,
     options?: { dataLength?: number },
   ) {
     return this.singleRecipient.decryptWithHeaderEx(
-      encryptionType,
+      EciesEncryptionTypeEnum.Basic,
+      privateKey,
+      encryptedData,
+      preambleSize,
+      options,
+    );
+  }
+
+  /**
+   * Extended decrypt with header
+   */
+  public async decryptWithLengthAndHeaderEx(
+    privateKey: Uint8Array,
+    encryptedData: Uint8Array,
+    preambleSize: number = 0,
+    options?: { dataLength?: number },
+  ) {
+    return this.singleRecipient.decryptWithHeaderEx(
+      EciesEncryptionTypeEnum.WithLength,
       privateKey,
       encryptedData,
       preambleSize,
@@ -421,7 +468,7 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
   /**
    * Decrypt with individual components
    */
-  public async decryptSingleWithComponents(
+  public async decryptWithLengthWithComponents(
     privateKey: Uint8Array,
     ephemeralPublicKey: Uint8Array,
     iv: Uint8Array,
@@ -501,10 +548,10 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
     }
 
     switch (encryptionMode) {
-      case 'simple':
-        return dataLength + this.eciesConsts.SIMPLE.FIXED_OVERHEAD_SIZE;
-      case 'single':
-        return dataLength + this.eciesConsts.SINGLE.FIXED_OVERHEAD_SIZE;
+      case 'basic':
+        return dataLength + this.eciesConsts.BASIC.FIXED_OVERHEAD_SIZE;
+      case 'withLength':
+        return dataLength + this.eciesConsts.WITH_LENGTH.FIXED_OVERHEAD_SIZE;
       case 'multiple':
         // Basic calculation for multiple recipients
         return (
@@ -541,7 +588,7 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
       );
     }
 
-    const overhead = this.eciesConsts.SINGLE.FIXED_OVERHEAD_SIZE;
+    const overhead = this.eciesConsts.WITH_LENGTH.FIXED_OVERHEAD_SIZE;
     const actualPadding = padding !== undefined ? padding : 0;
     const decryptedLength = encryptedDataLength - overhead - actualPadding;
 
@@ -576,7 +623,7 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
       );
     }
     return this.singleRecipient.encrypt(
-      encryptionType === EciesEncryptionTypeEnum.Simple,
+      encryptionType,
       recipientPublicKey,
       message,
       preamble,

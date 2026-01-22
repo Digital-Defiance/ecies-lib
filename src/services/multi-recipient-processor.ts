@@ -1,50 +1,79 @@
 import { II18nEngine } from '@digitaldefiance/i18n-lib';
-import { Constants, getRuntimeConfiguration } from '../constants';
+import { Constants } from '../constants';
 import { EciesStringKey } from '../enumerations';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
-import { PlatformID } from '../interfaces';
+import {
+  IECIESConfig,
+  IECIESConstants,
+  IIdProvider,
+  PlatformID,
+} from '../interfaces';
 import { IConstants } from '../interfaces/constants';
 import {
+  getMultiRecipientConstants,
   IMultiRecipientChunk,
   IMultiRecipientChunkHeader,
   IMultiRecipientConstants,
   IRecipientHeader,
-  getMultiRecipientConstants,
 } from '../interfaces/multi-recipient-chunk';
 import { Buffer } from '../lib/buffer-compat';
+import {
+  getEnhancedIdProvider,
+  TypedIdProviderWrapper,
+} from '../typed-configuration';
 import { concatUint8Arrays } from '../utils';
 import { AESGCMService } from './aes-gcm';
-import { ECIESService } from './ecies/service';
+import { ECIESService, EciesCryptoCore, EciesMultiRecipient } from './ecies';
 
 /**
  * Processes multi-recipient chunks using symmetric encryption.
  * Supports dynamic recipient ID sizes based on the configured ID provider.
  */
 export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
-  private readonly aesGcmService: AESGCMService;
-  private readonly engine: II18nEngine;
+  private readonly aesGcm: AESGCMService;
+  private readonly cryptoCore: EciesCryptoCore;
+  private readonly consts: IECIESConstants;
+  private readonly _constants: IConstants;
+  private readonly eciesMultiRecipient: EciesMultiRecipient<TID>;
+  private readonly constants: IMultiRecipientConstants;
   private readonly recipientIdSize: number;
-  private readonly multiRecipientConstants: IMultiRecipientConstants;
+  private readonly idProvider: IIdProvider<TID>;
+  private readonly engine: II18nEngine;
   private readonly ecies: ECIESService<TID>;
-  private readonly constants: IConstants;
 
   /**
    * Create a new multi-recipient processor.
-   * @param ecies - ECIES service for key encryption
-   * @param config - Configuration containing ID provider (defaults to global Constants)
    */
   constructor(
-    ecies: ECIESService<TID>,
-    constants: IConstants = getRuntimeConfiguration(),
+    constants: IConstants,
+    config: IECIESConfig,
+    cryptoCoreOrService: EciesCryptoCore | { core?: EciesCryptoCore },
+    idProvider?: TypedIdProviderWrapper<TID>,
+    consts?: IECIESConstants,
+    aesGcm?: AESGCMService,
+    eciesMultiRecipient?: EciesMultiRecipient<TID>,
   ) {
-    this.ecies = ecies;
-    this.constants = constants;
-    this.aesGcmService = new AESGCMService(this.constants);
+    this._constants = constants;
+    const core =
+      (cryptoCoreOrService as { core?: EciesCryptoCore })?.core ??
+      (cryptoCoreOrService as EciesCryptoCore);
+    this.cryptoCore = core;
+    this.consts = consts ?? core.consts;
+    const resolvedIdProvider = idProvider ?? getEnhancedIdProvider<TID>();
+    this.idProvider = resolvedIdProvider;
     this.engine = getEciesI18nEngine();
-    this.recipientIdSize = this.constants.idProvider.byteLength;
-    this.multiRecipientConstants = getMultiRecipientConstants(
-      this.recipientIdSize,
-    );
+    this.ecies = new ECIESService<TID>(constants, consts);
+
+    // Use injected dependencies or create defaults
+    // Note: aesGcm needs IConstants, but we only have IECIESConstants from core
+    // We'll let it use the default getNodeRuntimeConfiguration()
+    this.aesGcm = aesGcm ?? new AESGCMService();
+    this.eciesMultiRecipient =
+      eciesMultiRecipient ??
+      new EciesMultiRecipient<TID>(constants, config, consts, idProvider);
+    this.recipientIdSize =
+      this.consts?.MULTIPLE?.RECIPIENT_ID_SIZE ?? resolvedIdProvider.byteLength;
+    this.constants = getMultiRecipientConstants(this.recipientIdSize);
   }
 
   /**
@@ -61,7 +90,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     // Validate inputs
     if (
       recipients.length === 0 ||
-      recipients.length > this.multiRecipientConstants.MAX_RECIPIENTS
+      recipients.length > this.constants.MAX_RECIPIENTS
     ) {
       throw new Error(
         this.engine.translate(
@@ -92,7 +121,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     // Sign-then-Encrypt
     let dataToEncrypt = data;
     if (senderPrivateKey) {
-      const signature = this.ecies.core.sign(senderPrivateKey, data);
+      const signature = this.cryptoCore.sign(senderPrivateKey, data);
       dataToEncrypt = concatUint8Arrays(signature, data);
     }
 
@@ -122,7 +151,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     }
 
     // Generate ONE ephemeral key pair for all recipients
-    const ephemeralKeyPair = await this.ecies.core.generateEphemeralKeyPair();
+    const ephemeralKeyPair = await this.cryptoCore.generateEphemeralKeyPair();
 
     // Build recipient headers
     const recipientHeaders: IRecipientHeader[] = [];
@@ -152,9 +181,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     let recipientHeadersSize = 0;
     for (const h of recipientHeaders) {
       const headerSize =
-        this.recipientIdSize +
-        this.multiRecipientConstants.KEY_SIZE_BYTES +
-        h.keySize;
+        this.recipientIdSize + this.constants.KEY_SIZE_BYTES + h.keySize;
       if (recipientHeadersSize + headerSize < recipientHeadersSize) {
         throw new Error(
           this.engine.translate(
@@ -171,9 +198,9 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     const encryptedSize = dataToEncrypt.length + 16;
 
     const totalSize =
-      this.multiRecipientConstants.HEADER_SIZE +
+      this.constants.HEADER_SIZE +
       recipientHeadersSize +
-      this.constants.ECIES.IV_SIZE + // IV
+      this._constants.ECIES.IV_SIZE + // IV
       encryptedSize;
 
     // Check for integer overflow (max safe: 2^31 - 1 for Uint8Array)
@@ -192,9 +219,9 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     let offset = 0;
 
     // Write header
-    view.setUint32(offset, this.multiRecipientConstants.MAGIC, false);
+    view.setUint32(offset, this.constants.MAGIC, false);
     offset += 4;
-    view.setUint16(offset, this.multiRecipientConstants.VERSION, false);
+    view.setUint16(offset, this.constants.VERSION, false);
     offset += 2;
     view.setUint16(offset, recipients.length, false);
     offset += 2;
@@ -204,10 +231,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     offset += 4;
     view.setUint32(offset, encryptedSize, false);
     offset += 4;
-    view.setUint8(
-      offset,
-      isLast ? this.multiRecipientConstants.FLAG_IS_LAST : 0,
-    );
+    view.setUint8(offset, isLast ? this.constants.FLAG_IS_LAST : 0);
     offset += 1;
 
     // Write Ephemeral Public Key (33 bytes)
@@ -215,14 +239,14 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     offset += 33;
 
     // Padding to HEADER_SIZE (64 bytes)
-    offset = this.multiRecipientConstants.HEADER_SIZE;
+    offset = this.constants.HEADER_SIZE;
 
     // Write recipient headers
     for (const header of recipientHeaders) {
       chunk.set(header.id, offset);
       offset += this.recipientIdSize;
       view.setUint16(offset, header.keySize, false);
-      offset += this.multiRecipientConstants.KEY_SIZE_BYTES;
+      offset += this.constants.KEY_SIZE_BYTES;
       chunk.set(header.encryptedKey, offset);
       offset += header.keySize;
     }
@@ -231,7 +255,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     const headerBytes = chunk.slice(0, offset);
 
     // Encrypt data with AES-256-GCM using Header as AAD
-    const encryptResult = await this.aesGcmService.encrypt(
+    const encryptResult = await this.aesGcm.encrypt(
       dataToEncrypt,
       symmetricKey,
       true, // Return tag separately
@@ -270,7 +294,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     senderPublicKey?: Uint8Array,
   ): Promise<{ data: Uint8Array; header: IMultiRecipientChunkHeader }> {
     const engine = getEciesI18nEngine();
-    if (chunkData.length < this.multiRecipientConstants.HEADER_SIZE) {
+    if (chunkData.length < this.constants.HEADER_SIZE) {
       throw new Error(
         engine.translate(
           EciesComponentId,
@@ -285,7 +309,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     // Parse header
     const magic = view.getUint32(offset, false);
     offset += 4;
-    if (magic !== this.multiRecipientConstants.MAGIC) {
+    if (magic !== this.constants.MAGIC) {
       throw new Error(
         engine.translate(
           EciesComponentId,
@@ -296,7 +320,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
 
     const version = view.getUint16(offset, false);
     offset += 2;
-    if (version !== this.multiRecipientConstants.VERSION) {
+    if (version !== this.constants.VERSION) {
       throw new Error(
         engine.translate(
           EciesComponentId,
@@ -310,7 +334,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     offset += 2;
     if (
       recipientCount === 0 ||
-      recipientCount > this.multiRecipientConstants.MAX_RECIPIENTS
+      recipientCount > this.constants.MAX_RECIPIENTS
     ) {
       throw new Error(
         engine.translate(
@@ -333,14 +357,12 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     const ephemeralPublicKey = chunkData.slice(offset, offset + 33);
     offset += 33;
 
-    offset = this.multiRecipientConstants.HEADER_SIZE;
+    offset = this.constants.HEADER_SIZE;
 
     // Validate encryptedSize against chunk size
     // We know it must be at least HEADER + IV + EncryptedSize (which includes tag)
     const minChunkSize =
-      this.multiRecipientConstants.HEADER_SIZE +
-      Constants.ECIES.IV_SIZE +
-      encryptedSize;
+      this.constants.HEADER_SIZE + Constants.ECIES.IV_SIZE + encryptedSize;
     if (chunkData.length < minChunkSize) {
       throw new Error(
         engine.translate(
@@ -369,10 +391,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
       tempOffset += this.recipientIdSize;
 
       // Check if we have enough data for keySize field
-      if (
-        tempOffset + this.multiRecipientConstants.KEY_SIZE_BYTES >
-        chunkData.length
-      ) {
+      if (tempOffset + this.constants.KEY_SIZE_BYTES > chunkData.length) {
         throw new Error(
           engine.translate(
             EciesComponentId,
@@ -382,7 +401,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
       }
 
       const keySize = view.getUint16(tempOffset, false);
-      tempOffset += this.multiRecipientConstants.KEY_SIZE_BYTES;
+      tempOffset += this.constants.KEY_SIZE_BYTES;
 
       // Validate keySize (typical ECIES: 100-400 bytes)
       if (keySize === 0 || keySize > 1000) {
@@ -461,7 +480,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     offset += encryptedSize;
 
     // Decrypt with AAD
-    const decrypted = await this.aesGcmService.decrypt(
+    const decrypted = await this.aesGcm.decrypt(
       iv,
       encryptedWithTag,
       symmetricKey,
@@ -479,7 +498,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
       const signature = decrypted.slice(0, 64);
       const message = decrypted.slice(64);
 
-      const isValid = this.ecies.core.verify(
+      const isValid = this.cryptoCore.verify(
         senderPublicKey,
         message,
         signature,

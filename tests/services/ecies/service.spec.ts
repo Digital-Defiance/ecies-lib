@@ -1,11 +1,7 @@
 import { ECIES, createRuntimeConfiguration } from '../../../src/constants';
-import {
-  EciesEncryptionTypeEnum,
-  EciesStringKey,
-} from '../../../src/enumerations';
+import { EciesEncryptionTypeEnum } from '../../../src/enumerations';
 import { GuidV4Provider } from '../../../src/lib/id-providers';
 import { ECIESService } from '../../../src/services/ecies/service';
-import { englishTranslations } from '../../../src/translations/en-US';
 
 describe('ECIESService', () => {
   let eciesService: ECIESService;
@@ -53,19 +49,16 @@ describe('ECIESService', () => {
       );
 
       // Encrypt using the simple method (true)
-      const encryptedMessage = await eciesService.encryptSimpleOrSingle(
-        true,
+      const encryptedMessage = await eciesService.encryptBasic(
         recipientKeyPair.publicKey,
         message,
       );
 
       // Decrypt using the simple method
-      const decryptedMessage =
-        await eciesService.decryptSimpleOrSingleWithHeader(
-          true,
-          recipientKeyPair.privateKey,
-          encryptedMessage,
-        );
+      const decryptedMessage = await eciesService.decryptBasicWithHeader(
+        recipientKeyPair.privateKey,
+        encryptedMessage,
+      );
 
       expect(new TextDecoder().decode(decryptedMessage)).toBe(
         'This is a secret message for simple encryption.',
@@ -131,10 +124,7 @@ describe('ECIESService', () => {
           message,
         ),
       ).rejects.toThrow(
-        englishTranslations[
-          EciesStringKey
-            .Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode
-        ],
+        'Multiple encryption type not supported in single recipient mode',
       );
     });
   });
@@ -242,14 +232,12 @@ describe('ECIESService', () => {
           service.mnemonicToSimpleKeyPair(recipientMnemonic);
         const message = new TextEncoder().encode('Test message');
 
-        const encrypted = await service.encryptSimpleOrSingle(
-          true,
+        const encrypted = await service.encryptBasic(
           recipientKeyPair.publicKey,
           message,
         );
 
-        const decrypted = await service.decryptSimpleOrSingleWithHeader(
-          true,
+        const decrypted = await service.decryptBasicWithHeader(
           recipientKeyPair.privateKey,
           encrypted,
         );

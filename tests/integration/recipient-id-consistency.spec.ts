@@ -24,7 +24,6 @@ describe('Recipient ID Consistency Integration Tests', () => {
         config.idProvider.byteLength,
       );
       expect(config.MEMBER_ID_LENGTH).toBe(config.idProvider.byteLength);
-      expect(config.OBJECT_ID_LENGTH).toBe(12); // Hardcoded reference value
       expect(config.idProvider.byteLength).toBe(12); // Default is ObjectID
     });
 
@@ -86,7 +85,11 @@ describe('Recipient ID Consistency Integration Tests', () => {
         idProvider: new ObjectIdProvider(),
       });
 
-      const processor = new MultiRecipientProcessor(ecies, config);
+      const processor = new MultiRecipientProcessor(
+        config,
+        config.ECIES_CONFIG,
+        ecies,
+      );
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
 
       // Generate ID using the provider
@@ -119,7 +122,13 @@ describe('Recipient ID Consistency Integration Tests', () => {
         idProvider: new GuidV4Provider(),
       });
 
-      const processor = new MultiRecipientProcessor(ecies, config);
+      const processor = new MultiRecipientProcessor(
+        config,
+        config.ECIES_CONFIG,
+        ecies,
+        config.idProvider,
+        config.ECIES,
+      );
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
 
       const recipientId = config.idProvider.generate();
@@ -151,7 +160,13 @@ describe('Recipient ID Consistency Integration Tests', () => {
         idProvider: new GuidV4Provider(),
       });
 
-      const processor = new MultiRecipientProcessor(ecies, config);
+      const processor = new MultiRecipientProcessor(
+        config,
+        config.ECIES_CONFIG,
+        ecies,
+        config.idProvider,
+        config.ECIES,
+      );
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
 
       const recipientId = config.idProvider.generate();
@@ -183,7 +198,11 @@ describe('Recipient ID Consistency Integration Tests', () => {
         idProvider: new ObjectIdProvider(), // 12 bytes
       });
 
-      const processor = new MultiRecipientProcessor(ecies, config);
+      const processor = new MultiRecipientProcessor(
+        config,
+        config.ECIES_CONFIG,
+        ecies,
+      );
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
 
       // Try to use 32-byte ID with 12-byte provider
@@ -205,7 +224,11 @@ describe('Recipient ID Consistency Integration Tests', () => {
         idProvider: new GuidV4Provider(),
       });
 
-      const processor = new MultiRecipientProcessor(ecies, objectIdConfig);
+      const processor = new MultiRecipientProcessor(
+        objectIdConfig,
+        objectIdConfig.ECIES_CONFIG,
+        ecies,
+      );
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
 
       // Try to use GUID (16 bytes) with ObjectID processor (12 bytes)
@@ -285,7 +308,11 @@ describe('Recipient ID Consistency Integration Tests', () => {
 
     it('should fail if any hardcoded 32-byte ID is used with default config', async () => {
       const config = Constants; // Default: ObjectID (12 bytes)
-      const processor = new MultiRecipientProcessor(ecies, config);
+      const processor = new MultiRecipientProcessor(
+        config,
+        config.ECIES_CONFIG,
+        ecies,
+      );
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
 
       // This is what some old tests were doing - hardcoding 32 bytes

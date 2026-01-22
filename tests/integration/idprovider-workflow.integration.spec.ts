@@ -15,7 +15,7 @@ import { MemberBuilder } from '../../src/builders/member-builder';
 import { createRuntimeConfiguration } from '../../src/constants';
 import { EmailString } from '../../src/email-string';
 import { MemberType } from '../../src/enumerations/member-type';
-import { Guid } from '../../src/lib/guid';
+import { GuidUint8Array } from '../../src/lib/guid';
 import { GuidV4Provider, ObjectIdProvider } from '../../src/lib/id-providers';
 import { Member } from '../../src/member';
 import { ECIESService } from '../../src/services/ecies/service';
@@ -37,7 +37,7 @@ describe('Integration: Member ID Generation Workflows', () => {
       );
 
       // Member ID matches service's idProvider (GuidV4)
-      expect(result.member.id).toBeInstanceOf(Guid);
+      expect(result.member.id).toBeInstanceOf(GuidUint8Array);
       expect(result.member.idBytes.length).toBe(16);
       // Service config determines ID generation
       expect(service.constants.idProvider.byteLength).toBe(16);
@@ -150,7 +150,7 @@ describe('Integration: Member ID Generation Workflows', () => {
         .generateMnemonic()
         .build();
 
-      expect(result.member.id).toBeInstanceOf(Guid);
+      expect(result.member.id).toBeInstanceOf(GuidUint8Array);
       expect(result.member.idBytes.length).toBe(16);
       expect(result.mnemonic).toBeDefined();
     });
@@ -261,13 +261,13 @@ describe('Integration: Member ID Generation Workflows', () => {
       );
 
       // Members should have IDs matching their service's idProvider
-      expect(members[0].member.id).toBeInstanceOf(Guid); // GuidV4Provider
+      expect(members[0].member.id).toBeInstanceOf(GuidUint8Array); // GuidV4Provider
       expect(members[0].member.idBytes.length).toBe(16);
 
       expect(members[1].member.id).toBeInstanceOf(ObjectId); // ObjectIdProvider
       expect(members[1].member.idBytes.length).toBe(12);
 
-      expect(members[2].member.id).toBeInstanceOf(Guid); // GuidV4Provider
+      expect(members[2].member.id).toBeInstanceOf(GuidUint8Array); // GuidV4Provider
       expect(members[2].member.idBytes.length).toBe(16);
 
       expect(members[3].member.id).toBeInstanceOf(ObjectId); // Default (ObjectId)
@@ -299,8 +299,7 @@ describe('Integration: Member ID Generation Workflows', () => {
 
       // Encrypt message for recipient
       const message = new TextEncoder().encode('Secret message');
-      const encrypted = await service.encryptSimpleOrSingle(
-        true,
+      const encrypted = await service.encryptBasic(
         recipient.member.publicKey,
         message,
       );
@@ -309,8 +308,7 @@ describe('Integration: Member ID Generation Workflows', () => {
       const recipientKeyPair = service.mnemonicToSimpleKeyPair(
         recipient.mnemonic,
       );
-      const decrypted = await service.decryptSimpleOrSingleWithHeader(
-        true,
+      const decrypted = await service.decryptBasicWithHeader(
         recipientKeyPair.privateKey,
         encrypted,
       );
@@ -379,7 +377,7 @@ describe('Integration: Member ID Generation Workflows', () => {
 
       // Members use their service's idProvider configuration
       expect(guidMember.member.idBytes.length).toBe(16); // GuidV4
-      expect(guidMember.member.id).toBeInstanceOf(Guid);
+      expect(guidMember.member.id).toBeInstanceOf(GuidUint8Array);
 
       expect(objectIdMember.member.idBytes.length).toBe(12); // ObjectId
       expect(objectIdMember.member.idBytes.length).toBe(12);

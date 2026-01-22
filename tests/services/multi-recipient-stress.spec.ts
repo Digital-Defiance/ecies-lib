@@ -11,6 +11,7 @@ import { CustomIdProvider, ObjectIdProvider } from '../../src/lib/id-providers';
 import { EciesCryptoCore } from '../../src/services/ecies/crypto-core';
 import { ECIESService } from '../../src/services/ecies/service';
 import { MultiRecipientProcessor } from '../../src/services/multi-recipient-processor';
+import { TypedIdProviderWrapper } from '../../src/typed-configuration';
 
 describe('Multi-Recipient Stress Tests', () => {
   let eciesService: ECIESService;
@@ -34,7 +35,14 @@ describe('Multi-Recipient Stress Tests', () => {
     const runtimeConfig = createRuntimeConfiguration({
       idProvider: new ObjectIdProvider(),
     });
-    processor = new MultiRecipientProcessor(eciesService, runtimeConfig);
+    const idProvider = new TypedIdProviderWrapper(runtimeConfig.idProvider);
+    processor = new MultiRecipientProcessor(
+      runtimeConfig,
+      runtimeConfig.ECIES_CONFIG,
+      eciesService,
+      idProvider,
+      runtimeConfig.ECIES,
+    );
   });
 
   describe('Maximum Recipient Count Testing', () => {
@@ -98,10 +106,10 @@ describe('Multi-Recipient Stress Tests', () => {
       // Create a custom processor with a lower max recipient limit
       class TestMultiRecipientProcessor extends MultiRecipientProcessor {
         constructor(ecies: ECIESService, config: any) {
-          super(ecies, config);
+          super(config, config.ECIES_CONFIG, ecies);
           // Override the constants to have a lower max
-          (this as any).multiRecipientConstants = {
-            ...(this as any).multiRecipientConstants,
+          (this as any).constants = {
+            ...(this as any).constants,
             MAX_RECIPIENTS: 5,
           };
         }
@@ -284,7 +292,14 @@ describe('Multi-Recipient Stress Tests', () => {
         const config = createRuntimeConfiguration({
           idProvider: new CustomIdProvider(idSize),
         });
-        const testProcessor = new MultiRecipientProcessor(eciesService, config);
+        const idProvider = new TypedIdProviderWrapper(config.idProvider);
+        const testProcessor = new MultiRecipientProcessor(
+          config,
+          config.ECIES_CONFIG,
+          eciesService,
+          idProvider,
+          config.ECIES,
+        );
 
         const recipientList = [];
         const usedIds = new Set();

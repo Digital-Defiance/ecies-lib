@@ -57,10 +57,10 @@ const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
 
 // Encrypt a message
 const message = new TextEncoder().encode('Hello, World!');
-const encrypted = await ecies.encryptSimpleOrSingle(false, publicKey, message);
+const encrypted = await ecies.encryptWithLength(publicKey, message);
 
 // Decrypt the message
-const decrypted = await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encrypted);
+const decrypted = await ecies.decryptWithLengthAndHeader(privateKey, encrypted);
 const result = new TextDecoder().decode(decrypted);
 ```
 
@@ -88,16 +88,16 @@ const signature = ecies.signMessage(privateKey, message);
 const isValid = ecies.verifyMessage(publicKey, message, signature);
 ```
 
-### Simple vs Single Mode
+### Basic vs WithLength Mode
 
 ```typescript
-// Simple mode (no CRC, smaller overhead)
-const simpleEncrypted = await ecies.encryptSimpleOrSingle(true, publicKey, message);
-const simpleDecrypted = await ecies.decryptSimpleOrSingleWithHeader(true, privateKey, simpleEncrypted);
+// Basic mode (no CRC, smaller overhead)
+const basicEncrypted = await ecies.encryptBasic(publicKey, message);
+const basicDecrypted = await ecies.decryptBasicWithHeader(privateKey, basicEncrypted);
 
-// Single mode (with CRC and length validation)
-const singleEncrypted = await ecies.encryptSimpleOrSingle(false, publicKey, message);
-const singleDecrypted = await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, singleEncrypted);
+// WithLength mode (with CRC and length validation)
+const withLengthEncrypted = await ecies.encryptWithLength(publicKey, message);
+const withLengthDecrypted = await ecies.decryptWithLengthAndHeader(privateKey, withLengthEncrypted);
 ```
 
 ## Compatibility

@@ -23,6 +23,14 @@ export type GuidInput =
   | Uint8Array;
 
 /**
+ * Type representing a GuidUint8Array with its RFC 4122 version attached.
+ * The version is determined at parse time and provides compile-time information.
+ */
+export type VersionedGuidUint8Array<
+  V extends 1 | 3 | 4 | 5 | undefined = 1 | 3 | 4 | 5 | undefined,
+> = GuidUint8Array & { readonly __version: V };
+
+/**
  * Guid represents a GUID/UUID (Globally Unique Identifier) that is compliant with the RFC 4122 standard.
  * Supports all UUID versions (v1-v5), with factory methods for v3, v4, and v5.
  * Guid instances can be created from a variety of input types, including:
@@ -33,7 +41,7 @@ export type GuidInput =
  * - RawGuidUint8Array: A 16-byte Uint8Array representation of the GUID
  * Guid instances can be converted to any of these representations using the appropriate method.
  */
-export class Guid implements IGuid {
+export class GuidUint8Array implements IGuid {
   /**
    * GUID is stored internally as a raw 16-byte Uint8Array.
    */
@@ -72,6 +80,11 @@ export class Guid implements IGuid {
   private _cachedBase64?: Base64Guid;
 
   /**
+   * The RFC 4122 version of this GUID (1, 3, 4, 5, or undefined for boundary/invalid)
+   */
+  public __version?: 1 | 3 | 4 | 5 | undefined;
+
+  /**
    * Regex for validating hex strings (case insensitive)
    */
   private static readonly HEX_PATTERN = /^[0-9a-f]+$/i;
@@ -92,22 +105,24 @@ export class Guid implements IGuid {
   /**
    * Cached empty/nil GUID constant (all zeros)
    */
-  private static _empty?: Guid;
+  private static _empty?: GuidUint8Array;
 
   /**
    * Empty/nil GUID constant (all zeros)
    */
-  public static get Empty(): Guid {
-    if (!Guid._empty) {
-      Guid._empty = Object.freeze(
-        new Guid('00000000-0000-0000-0000-000000000000' as FullHexGuid),
-      ) as Guid;
+  public static get Empty(): GuidUint8Array {
+    if (!GuidUint8Array._empty) {
+      GuidUint8Array._empty = Object.freeze(
+        new GuidUint8Array(
+          '00000000-0000-0000-0000-000000000000' as FullHexGuid,
+        ),
+      ) as GuidUint8Array;
     }
-    return Guid._empty;
+    return GuidUint8Array._empty;
   }
 
   constructor(value: GuidInput) {
-    const array = Guid.validateAndConvert(value);
+    const array = GuidUint8Array.validateAndConvert(value);
     // Note: We cannot freeze a Buffer as it's an ArrayBuffer view
     // Instead, we ensure the array is never directly modified after construction
     this._value = array;
@@ -116,6 +131,7 @@ export class Guid implements IGuid {
     this._cachedFullHex = undefined;
     this._cachedShortHex = undefined;
     this._cachedBase64 = undefined;
+    this.__version = undefined;
 
     // Seal the instance to prevent property addition/deletion
     // Cache properties can still be set once since they were initialized
@@ -152,7 +168,7 @@ export class Guid implements IGuid {
         const isFullHex = value.length === 36 && value.includes('-');
         const isShortHex = value.length === 32 && !value.includes('-');
 
-        if (isFullHex && !Guid.FULL_HEX_PATTERN.test(value)) {
+        if (isFullHex && !GuidUint8Array.FULL_HEX_PATTERN.test(value)) {
           const array = new TextEncoder().encode(value);
           throw new GuidError(
             GuidErrorType.InvalidGuidWithDetails,
@@ -160,7 +176,7 @@ export class Guid implements IGuid {
             value.length,
             array,
           );
-        } else if (isShortHex && !Guid.HEX_PATTERN.test(value)) {
+        } else if (isShortHex && !GuidUint8Array.HEX_PATTERN.test(value)) {
           const array = new TextEncoder().encode(value);
           throw new GuidError(
             GuidErrorType.InvalidGuidWithDetails,
@@ -172,11 +188,11 @@ export class Guid implements IGuid {
       }
 
       // Determine and verify the brand/type
-      const expectedBrand = Guid.whichBrand(value);
-      const verifiedBrand = Guid.verifyGuid(expectedBrand, value);
+      const expectedBrand = GuidUint8Array.whichBrand(value);
+      const verifiedBrand = GuidUint8Array.verifyGuid(expectedBrand, value);
 
       if (!verifiedBrand) {
-        const valueBuffer = Guid.isUint8Array(value)
+        const valueBuffer = GuidUint8Array.isUint8Array(value)
           ? value
           : new TextEncoder().encode(strValue);
         throw new GuidError(
@@ -188,14 +204,14 @@ export class Guid implements IGuid {
       }
 
       // Convert to raw array
-      const array = Guid.toRawGuidPlatformBuffer(value);
+      const array = GuidUint8Array.toRawGuidPlatformBuffer(value);
 
       // Validate against UUID standard (skip for boundary values)
       const hexString = Array.from(array)
         .map((b: number) => b.toString(16).padStart(2, '0'))
         .join('');
-      const fullHex = Guid.toFullHexGuid(hexString);
-      const isBoundary = Guid.isBoundaryValue(fullHex);
+      const fullHex = GuidUint8Array.toFullHexGuid(hexString);
+      const isBoundary = GuidUint8Array.isBoundaryValue(fullHex);
 
       if (!isBoundary && !uuid.validate(fullHex)) {
         throw new GuidError(
@@ -218,7 +234,7 @@ export class Guid implements IGuid {
         throw new GuidError(GuidErrorType.InvalidGuid);
       }
 
-      const length = Guid.isUint8Array(value)
+      const length = GuidUint8Array.isUint8Array(value)
         ? value.length
         : String(value).length;
       throw new GuidError(
@@ -237,8 +253,8 @@ export class Guid implements IGuid {
     return this.asBase64Guid;
   }
 
-  public static hydrate(value: string): Guid {
-    return new Guid(value as Base64Guid);
+  public static hydrate(value: string): VersionedGuidUint8Array {
+    return GuidUint8Array.withVersion(new GuidUint8Array(value as Base64Guid));
   }
 
   private static readonly LengthMap: Record<GuidBrandType, number> = {
@@ -293,18 +309,31 @@ export class Guid implements IGuid {
   }
 
   /**
+   * Attaches the RFC 4122 version to a GuidUint8Array instance.
+   * @param guid The GuidUint8Array instance to attach version to
+   * @returns The same instance with __version property set
+   */
+  private static withVersion<T extends GuidUint8Array>(
+    guid: T,
+  ): VersionedGuidUint8Array {
+    const version = guid.getVersion() as 1 | 3 | 4 | 5 | undefined;
+    guid.__version = version;
+    return guid as VersionedGuidUint8Array;
+  }
+
+  /**
    * Generates a new random v4 GUID.
    * @returns A new Guid instance with a randomly generated value
    */
-  public static generate(): Guid {
+  public static generate(): VersionedGuidUint8Array<4> {
     try {
       const uuidStr = uuid.v4();
       if (!uuidStr) {
         throw new GuidError(GuidErrorType.InvalidGuid);
       }
-      return new Guid(uuidStr as FullHexGuid) as Guid & {
-        readonly __version: 4;
-      };
+      return GuidUint8Array.withVersion(
+        new GuidUint8Array(uuidStr as FullHexGuid),
+      ) as VersionedGuidUint8Array<4>;
     } catch (error) {
       if (error instanceof GuidError) {
         throw error;
@@ -317,38 +346,38 @@ export class Guid implements IGuid {
    * Alias for generate() to create a v4 GUID.
    * @returns A new Guid instance with a randomly generated v4 value
    */
-  public static v4(): Guid {
-    return Guid.generate();
+  public static v4(): VersionedGuidUint8Array<4> {
+    return GuidUint8Array.generate();
   }
 
   /**
    * Alias for generate() for backward compatibility.
    * @deprecated Use generate() instead for clearer intent
    */
-  public static new(): Guid {
-    return Guid.generate();
+  public static new(): VersionedGuidUint8Array<4> {
+    return GuidUint8Array.generate();
   }
 
   /**
    * Parses a GUID from any valid format, throwing on invalid input.
    * This is the primary parsing method for when you expect valid input.
    * @param value The value to parse
-   * @returns A new Guid instance
+   * @returns A new Guid instance with __version attached
    * @throws {GuidError} If the value is not a valid GUID
    */
-  public static parse(value: GuidInput): Guid {
-    return new Guid(value);
+  public static parse(value: GuidInput): VersionedGuidUint8Array {
+    return GuidUint8Array.withVersion(new GuidUint8Array(value));
   }
 
   /**
    * Attempts to parse a GUID, returning null on failure instead of throwing.
    * Use this when you're uncertain if the input is valid.
    * @param value The value to parse
-   * @returns A new Guid instance or null if parsing fails
+   * @returns A new Guid instance with __version attached, or null if parsing fails
    */
-  public static tryParse(value: GuidInput): Guid | null {
+  public static tryParse(value: GuidInput): VersionedGuidUint8Array | null {
     try {
-      return new Guid(value);
+      return GuidUint8Array.withVersion(new GuidUint8Array(value));
     } catch {
       return null;
     }
@@ -363,7 +392,7 @@ export class Guid implements IGuid {
   public static isValid(value: unknown): boolean {
     if (!value) return false;
     try {
-      const guid = new Guid(value as GuidInput);
+      const guid = new GuidUint8Array(value as GuidInput);
       return guid.isValidV4();
     } catch {
       return false;
@@ -373,37 +402,41 @@ export class Guid implements IGuid {
   /**
    * Factory method to create a GUID from a full hex string.
    * @param fullHex The full hex string (with dashes)
-   * @returns A new Guid instance
+   * @returns A new Guid instance with __version attached
    */
-  public static fromFullHex(fullHex: string): Guid {
-    return new Guid(fullHex as FullHexGuid);
+  public static fromFullHex(fullHex: string): VersionedGuidUint8Array {
+    return GuidUint8Array.withVersion(
+      new GuidUint8Array(fullHex as FullHexGuid),
+    );
   }
 
   /**
    * Factory method to create a GUID from a short hex string.
    * @param shortHex The short hex string (without dashes)
-   * @returns A new Guid instance
+   * @returns A new Guid instance with __version attached
    */
-  public static fromShortHex(shortHex: string): Guid {
-    return new Guid(shortHex as ShortHexGuid);
+  public static fromShortHex(shortHex: string): VersionedGuidUint8Array {
+    return GuidUint8Array.withVersion(
+      new GuidUint8Array(shortHex as ShortHexGuid),
+    );
   }
 
   /**
    * Factory method to create a GUID from a base64 string.
    * @param base64 The base64 encoded string
-   * @returns A new Guid instance
+   * @returns A new Guid instance with __version attached
    */
-  public static fromBase64(base64: string): Guid {
-    return new Guid(base64 as Base64Guid);
+  public static fromBase64(base64: string): VersionedGuidUint8Array {
+    return GuidUint8Array.withVersion(new GuidUint8Array(base64 as Base64Guid));
   }
 
   /**
    * Factory method to create a GUID from a bigint.
    * @param bigint The bigint value
-   * @returns A new Guid instance
+   * @returns A new Guid instance with __version attached
    */
-  public static fromBigInt(bigint: bigint): Guid {
-    return new Guid(bigint as BigIntGuid);
+  public static fromBigInt(bigint: bigint): VersionedGuidUint8Array {
+    return GuidUint8Array.withVersion(new GuidUint8Array(bigint as BigIntGuid));
   }
 
   /**
@@ -411,10 +444,12 @@ export class Guid implements IGuid {
    * This is an explicit alias for fromBuffer(), provided for clarity when working
    * with browser environments where Uint8Array is the native binary type.
    * @param bytes The raw 16-byte Uint8Array
-   * @returns A new Guid instance
+   * @returns A new Guid instance with __version attached
    */
-  public static fromPlatformBuffer(bytes: Uint8Array): Guid {
-    return new Guid(bytes as RawGuidPlatformBuffer);
+  public static fromPlatformBuffer(bytes: Uint8Array): VersionedGuidUint8Array {
+    return GuidUint8Array.withVersion(
+      new GuidUint8Array(bytes as RawGuidPlatformBuffer),
+    );
   }
 
   /**
@@ -422,20 +457,23 @@ export class Guid implements IGuid {
    * Use this for deterministic GUIDs based on a namespace and name.
    * @param name The name to hash within the namespace
    * @param namespace The namespace GUID (e.g., Guid.Namespaces.DNS)
-   * @returns A new Guid instance containing the v3 GUID
+   * @returns A new Guid instance containing the v3 GUID with __version attached
    * @example
    * const guid = Guid.v3('example.com', Guid.Namespaces.DNS);
    */
-  public static v3(name: string, namespace: string | Uint8Array): Guid {
+  public static v3(
+    name: string,
+    namespace: string | Uint8Array,
+  ): VersionedGuidUint8Array<3> {
     try {
       const namespaceStr =
         typeof namespace === 'string'
           ? namespace
-          : Guid.toFullHexGuid(namespace as RawGuidPlatformBuffer);
+          : GuidUint8Array.toFullHexGuid(namespace as RawGuidPlatformBuffer);
       const v3Guid = uuid.v3(name, namespaceStr);
-      return new Guid(v3Guid as FullHexGuid) as Guid & {
-        readonly __version: 3;
-      };
+      return GuidUint8Array.withVersion(
+        new GuidUint8Array(v3Guid as FullHexGuid),
+      ) as VersionedGuidUint8Array<3>;
     } catch (error) {
       if (error instanceof GuidError) {
         throw error;
@@ -450,20 +488,23 @@ export class Guid implements IGuid {
    * Preferred over v3 as SHA-1 is stronger than MD5.
    * @param name The name to hash within the namespace
    * @param namespace The namespace GUID (e.g., Guid.Namespaces.DNS)
-   * @returns A new Guid instance containing the v5 GUID
+   * @returns A new Guid instance containing the v5 GUID with __version attached
    * @example
    * const guid = Guid.v5('example.com', Guid.Namespaces.DNS);
    */
-  public static v5(name: string, namespace: string | Uint8Array): Guid {
+  public static v5(
+    name: string,
+    namespace: string | Uint8Array,
+  ): VersionedGuidUint8Array<5> {
     try {
       const namespaceStr =
         typeof namespace === 'string'
           ? namespace
-          : Guid.toFullHexGuid(namespace as RawGuidPlatformBuffer);
+          : GuidUint8Array.toFullHexGuid(namespace as RawGuidPlatformBuffer);
       const v5Guid = uuid.v5(name, namespaceStr);
-      return new Guid(v5Guid as FullHexGuid) as Guid & {
-        readonly __version: 5;
-      };
+      return GuidUint8Array.withVersion(
+        new GuidUint8Array(v5Guid as FullHexGuid),
+      ) as VersionedGuidUint8Array<5>;
     } catch (error) {
       if (error instanceof GuidError) {
         throw error;
@@ -492,7 +533,7 @@ export class Guid implements IGuid {
       const hexString = Array.from(this._value)
         .map((b: number) => b.toString(16).padStart(2, '0'))
         .join('');
-      this._cachedFullHex = Guid.toFullHexGuid(hexString);
+      this._cachedFullHex = GuidUint8Array.toFullHexGuid(hexString);
     }
     return this._cachedFullHex;
   }
@@ -508,7 +549,7 @@ export class Guid implements IGuid {
    */
   public get asShortHexGuid(): ShortHexGuid {
     if (!this._cachedShortHex) {
-      this._cachedShortHex = Guid.toShortHexGuid(this.asFullHexGuid);
+      this._cachedShortHex = GuidUint8Array.toShortHexGuid(this.asFullHexGuid);
     }
     return this._cachedShortHex;
   }
@@ -554,10 +595,10 @@ export class Guid implements IGuid {
    */
   private static isBoundaryValue(value: string): boolean {
     return (
-      value === Guid.BOUNDARY_VALUES.ALL_ZEROS_FULL ||
-      value === Guid.BOUNDARY_VALUES.ALL_ZEROS_SHORT ||
-      value === Guid.BOUNDARY_VALUES.ALL_FS_FULL ||
-      value === Guid.BOUNDARY_VALUES.ALL_FS_SHORT
+      value === GuidUint8Array.BOUNDARY_VALUES.ALL_ZEROS_FULL ||
+      value === GuidUint8Array.BOUNDARY_VALUES.ALL_ZEROS_SHORT ||
+      value === GuidUint8Array.BOUNDARY_VALUES.ALL_FS_FULL ||
+      value === GuidUint8Array.BOUNDARY_VALUES.ALL_FS_SHORT
     );
   }
 
@@ -572,7 +613,7 @@ export class Guid implements IGuid {
       return false;
     }
     try {
-      const verifyFunc = Guid.VerifyFunctions[guidBrand];
+      const verifyFunc = GuidUint8Array.VerifyFunctions[guidBrand];
       return verifyFunc(guid);
     } catch {
       return false;
@@ -585,7 +626,7 @@ export class Guid implements IGuid {
    * @returns The length of the GUID for the given brand.
    */
   public static guidBrandToLength(guidBrand: GuidBrandType): number {
-    const length = Guid.LengthMap[guidBrand];
+    const length = GuidUint8Array.LengthMap[guidBrand];
     if (length <= 0) {
       throw new GuidError(GuidErrorType.InvalidGuidUnknownBrand, guidBrand);
     }
@@ -610,7 +651,7 @@ export class Guid implements IGuid {
       );
     }
 
-    const brand = Guid.ReverseLengthMap[length];
+    const brand = GuidUint8Array.ReverseLengthMap[length];
 
     if (!brand || brand === GuidBrandType.Unknown) {
       throw new GuidError(
@@ -643,7 +684,9 @@ export class Guid implements IGuid {
       if (fullHexGuidValue === null || fullHexGuidValue === undefined) {
         return false;
       }
-      const expectedLength = Guid.guidBrandToLength(GuidBrandType.FullHexGuid);
+      const expectedLength = GuidUint8Array.guidBrandToLength(
+        GuidBrandType.FullHexGuid,
+      );
       const strValue = String(fullHexGuidValue);
 
       if (strValue.length !== expectedLength) {
@@ -651,11 +694,11 @@ export class Guid implements IGuid {
       }
 
       // Boundary values are always valid
-      if (Guid.isBoundaryValue(strValue)) {
+      if (GuidUint8Array.isBoundaryValue(strValue)) {
         return true;
       }
 
-      return Guid.validateUuid(strValue);
+      return GuidUint8Array.validateUuid(strValue);
     } catch {
       return false;
     }
@@ -671,7 +714,9 @@ export class Guid implements IGuid {
       if (shortHexGuidValue === null || shortHexGuidValue === undefined) {
         return false;
       }
-      const expectedLength = Guid.guidBrandToLength(GuidBrandType.ShortHexGuid);
+      const expectedLength = GuidUint8Array.guidBrandToLength(
+        GuidBrandType.ShortHexGuid,
+      );
       const strValue = String(shortHexGuidValue);
 
       if (strValue.length !== expectedLength) {
@@ -679,9 +724,9 @@ export class Guid implements IGuid {
       }
 
       try {
-        const fullHexGuid = Guid.toFullHexGuid(strValue);
+        const fullHexGuid = GuidUint8Array.toFullHexGuid(strValue);
         // Boundary values are always valid
-        if (Guid.isBoundaryValue(fullHexGuid)) {
+        if (GuidUint8Array.isBoundaryValue(fullHexGuid)) {
           return true;
         }
         return uuid.validate(fullHexGuid);
@@ -706,24 +751,26 @@ export class Guid implements IGuid {
       let valueLength: number;
       if (typeof value === 'bigint') {
         valueLength = value.toString(16).length;
-      } else if (Guid.isUint8Array(value)) {
+      } else if (GuidUint8Array.isUint8Array(value)) {
         valueLength = value.length;
       } else {
         valueLength = String(value).length;
       }
 
       const result =
-        valueLength === Guid.guidBrandToLength(GuidBrandType.Base64Guid);
+        valueLength ===
+        GuidUint8Array.guidBrandToLength(GuidBrandType.Base64Guid);
 
       if (result) {
         try {
-          const fromBase64: Uint8Array = Guid.toRawGuidPlatformBuffer(value);
+          const fromBase64: Uint8Array =
+            GuidUint8Array.toRawGuidPlatformBuffer(value);
           const hexString = Array.from(fromBase64)
             .map((b: number) => b.toString(16).padStart(2, '0'))
             .join('');
-          const fullHexGuid = Guid.toFullHexGuid(hexString);
+          const fullHexGuid = GuidUint8Array.toFullHexGuid(hexString);
           // Boundary values are always valid
-          if (Guid.isBoundaryValue(fullHexGuid)) {
+          if (GuidUint8Array.isBoundaryValue(fullHexGuid)) {
             return true;
           }
           return uuid.validate(fullHexGuid);
@@ -747,13 +794,13 @@ export class Guid implements IGuid {
       if (value === null || value === undefined) {
         return false;
       }
-      const expectedLength = Guid.guidBrandToLength(
+      const expectedLength = GuidUint8Array.guidBrandToLength(
         GuidBrandType.RawGuidPlatformBuffer,
       );
       let valueLength: number;
       if (typeof value === 'bigint') {
         valueLength = value.toString(16).length;
-      } else if (Guid.isUint8Array(value)) {
+      } else if (GuidUint8Array.isUint8Array(value)) {
         valueLength = value.length;
       } else {
         valueLength = String(value).length;
@@ -764,18 +811,18 @@ export class Guid implements IGuid {
       }
 
       try {
-        if (!Guid.isUint8Array(value)) {
+        if (!GuidUint8Array.isUint8Array(value)) {
           return false;
         }
         const hexString = Array.from(value as Uint8Array)
           .map((b: number) => b.toString(16).padStart(2, '0'))
           .join('');
-        const fullHexGuid = Guid.toFullHexGuid(hexString);
+        const fullHexGuid = GuidUint8Array.toFullHexGuid(hexString);
         // Boundary values are always valid
-        if (Guid.isBoundaryValue(fullHexGuid)) {
+        if (GuidUint8Array.isBoundaryValue(fullHexGuid)) {
           return true;
         }
-        return Guid.validateUuid(fullHexGuid);
+        return GuidUint8Array.validateUuid(fullHexGuid);
       } catch {
         return false;
       }
@@ -797,14 +844,14 @@ export class Guid implements IGuid {
       if (typeof value !== 'bigint') {
         return false;
       }
-      if (value < 0n || value > Guid.MAX_BIGINT_VALUE) {
+      if (value < 0n || value > GuidUint8Array.MAX_BIGINT_VALUE) {
         return false;
       }
 
       try {
-        const fromBigInt = Guid.toFullHexFromBigInt(value);
+        const fromBigInt = GuidUint8Array.toFullHexFromBigInt(value);
         // Boundary values are always valid
-        if (Guid.isBoundaryValue(fromBigInt)) {
+        if (GuidUint8Array.isBoundaryValue(fromBigInt)) {
           return true;
         }
         return uuid.validate(fromBigInt);
@@ -830,12 +877,12 @@ export class Guid implements IGuid {
       return GuidBrandType.BigIntGuid;
     }
 
-    const isBuffer = Guid.isUint8Array(value);
+    const isBuffer = GuidUint8Array.isUint8Array(value);
     const expectedLength = isBuffer
       ? (value as Buffer | Uint8Array).length
       : String(value).length;
 
-    return Guid.lengthToGuidBrand(expectedLength, isBuffer);
+    return GuidUint8Array.lengthToGuidBrand(expectedLength, isBuffer);
   }
 
   /**
@@ -871,34 +918,37 @@ export class Guid implements IGuid {
     }
 
     if (typeof guid === 'bigint') {
-      return Guid.toFullHexFromBigInt(guid);
+      return GuidUint8Array.toFullHexFromBigInt(guid);
     } else if (
-      Guid.isUint8Array(guid) &&
+      GuidUint8Array.isUint8Array(guid) &&
       guid.length ===
-        Guid.guidBrandToLength(GuidBrandType.RawGuidPlatformBuffer)
+        GuidUint8Array.guidBrandToLength(GuidBrandType.RawGuidPlatformBuffer)
     ) {
       const hexString = Array.from(guid as Uint8Array)
         .map((b: number) => b.toString(16).padStart(2, '0'))
         .join('');
       const shortHex = hexString as ShortHexGuid;
-      return Guid.shortGuidToFullGuid(shortHex);
-    } else if (Guid.isUint8Array(guid)) {
+      return GuidUint8Array.shortGuidToFullGuid(shortHex);
+    } else if (GuidUint8Array.isUint8Array(guid)) {
       throw new GuidError(GuidErrorType.InvalidGuid);
     }
     // all remaining cases are string types
     const strValue = String(guid);
     if (
-      strValue.length === Guid.guidBrandToLength(GuidBrandType.ShortHexGuid)
+      strValue.length ===
+      GuidUint8Array.guidBrandToLength(GuidBrandType.ShortHexGuid)
     ) {
       // short hex guid
-      return Guid.shortGuidToFullGuid(strValue);
+      return GuidUint8Array.shortGuidToFullGuid(strValue);
     } else if (
-      strValue.length === Guid.guidBrandToLength(GuidBrandType.FullHexGuid)
+      strValue.length ===
+      GuidUint8Array.guidBrandToLength(GuidBrandType.FullHexGuid)
     ) {
       // already a full hex guid
       return strValue as FullHexGuid;
     } else if (
-      strValue.length === Guid.guidBrandToLength(GuidBrandType.Base64Guid)
+      strValue.length ===
+      GuidUint8Array.guidBrandToLength(GuidBrandType.Base64Guid)
     ) {
       // base64 guid
       // base64 guid
@@ -910,7 +960,7 @@ export class Guid implements IGuid {
       const shortGuid = Array.from(bytes)
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('');
-      return Guid.shortGuidToFullGuid(shortGuid);
+      return GuidUint8Array.shortGuidToFullGuid(shortGuid);
     } else {
       throw new GuidError(GuidErrorType.InvalidGuid);
     }
@@ -930,34 +980,37 @@ export class Guid implements IGuid {
     }
 
     if (typeof guid === 'bigint') {
-      const fullHex = Guid.toFullHexFromBigInt(guid);
+      const fullHex = GuidUint8Array.toFullHexFromBigInt(guid);
       return fullHex.replace(/-/g, '') as ShortHexGuid;
     } else if (
-      Guid.isUint8Array(guid) &&
+      GuidUint8Array.isUint8Array(guid) &&
       guid.length ===
-        Guid.guidBrandToLength(GuidBrandType.RawGuidPlatformBuffer)
+        GuidUint8Array.guidBrandToLength(GuidBrandType.RawGuidPlatformBuffer)
     ) {
       return Array.from(guid as Uint8Array)
         .map((b: number) => b.toString(16).padStart(2, '0'))
         .join('') as ShortHexGuid;
-    } else if (Guid.isUint8Array(guid)) {
+    } else if (GuidUint8Array.isUint8Array(guid)) {
       throw new GuidError(GuidErrorType.InvalidGuid);
     }
     // all remaining cases are string types
     const strValue = String(guid);
 
     if (
-      strValue.length === Guid.guidBrandToLength(GuidBrandType.ShortHexGuid)
+      strValue.length ===
+      GuidUint8Array.guidBrandToLength(GuidBrandType.ShortHexGuid)
     ) {
       // already a short hex guid
       return strValue as ShortHexGuid;
     } else if (
-      strValue.length === Guid.guidBrandToLength(GuidBrandType.FullHexGuid)
+      strValue.length ===
+      GuidUint8Array.guidBrandToLength(GuidBrandType.FullHexGuid)
     ) {
       // full hex guid
       return strValue.replace(/-/g, '') as ShortHexGuid;
     } else if (
-      strValue.length === Guid.guidBrandToLength(GuidBrandType.Base64Guid)
+      strValue.length ===
+      GuidUint8Array.guidBrandToLength(GuidBrandType.Base64Guid)
     ) {
       // base64 guid
       const binary = atob(strValue);
@@ -979,7 +1032,7 @@ export class Guid implements IGuid {
    * @returns The bigint as a full hex GUID.
    */
   public static toFullHexFromBigInt(bigInt: bigint): FullHexGuid {
-    if (bigInt < 0n || bigInt > Guid.MAX_BIGINT_VALUE) {
+    if (bigInt < 0n || bigInt > GuidUint8Array.MAX_BIGINT_VALUE) {
       throw new GuidError(GuidErrorType.InvalidGuid);
     }
     const uuidBigInt = bigInt.toString(16).padStart(32, '0');
@@ -1008,13 +1061,13 @@ export class Guid implements IGuid {
   public static toRawGuidPlatformBuffer(
     value: GuidInput,
   ): RawGuidPlatformBuffer {
-    const expectedBrand = Guid.whichBrand(value);
+    const expectedBrand = GuidUint8Array.whichBrand(value);
     let rawGuidBufferResult: RawGuidPlatformBuffer = new Uint8Array(
       0,
     ) as RawGuidPlatformBuffer;
     switch (expectedBrand) {
       case GuidBrandType.FullHexGuid: {
-        const hex1 = Guid.toShortHexGuid(value as FullHexGuid);
+        const hex1 = GuidUint8Array.toShortHexGuid(value as FullHexGuid);
         rawGuidBufferResult = new Uint8Array(
           hex1.length / 2,
         ) as RawGuidPlatformBuffer;
@@ -1024,7 +1077,7 @@ export class Guid implements IGuid {
         break;
       }
       case GuidBrandType.ShortHexGuid: {
-        const hex2 = Guid.toShortHexGuid(value as ShortHexGuid);
+        const hex2 = GuidUint8Array.toShortHexGuid(value as ShortHexGuid);
         rawGuidBufferResult = new Uint8Array(
           hex2.length / 2,
         ) as RawGuidPlatformBuffer;
@@ -1034,7 +1087,7 @@ export class Guid implements IGuid {
         break;
       }
       case GuidBrandType.Base64Guid:
-        if (typeof value === 'string' || Guid.isUint8Array(value)) {
+        if (typeof value === 'string' || GuidUint8Array.isUint8Array(value)) {
           const b64 = value.toString();
           const binary = atob(b64);
           rawGuidBufferResult = new Uint8Array(
@@ -1051,8 +1104,8 @@ export class Guid implements IGuid {
         rawGuidBufferResult = value as RawGuidPlatformBuffer;
         break;
       case GuidBrandType.BigIntGuid: {
-        const hex3 = Guid.toShortHexGuid(
-          Guid.toFullHexFromBigInt(value as bigint),
+        const hex3 = GuidUint8Array.toShortHexGuid(
+          GuidUint8Array.toFullHexFromBigInt(value as bigint),
         );
         rawGuidBufferResult = new Uint8Array(
           hex3.length / 2,
@@ -1067,7 +1120,7 @@ export class Guid implements IGuid {
     }
     if (
       rawGuidBufferResult.length !==
-      Guid.guidBrandToLength(GuidBrandType.RawGuidPlatformBuffer)
+      GuidUint8Array.guidBrandToLength(GuidBrandType.RawGuidPlatformBuffer)
     ) {
       throw new GuidError(
         GuidErrorType.InvalidGuidUnknownLength,
@@ -1130,15 +1183,17 @@ export class Guid implements IGuid {
    * @returns True if the GUID is null, undefined, or empty
    */
   public static isNilOrEmpty(guid: IGuid | null | undefined): boolean {
-    return !guid || (guid instanceof Guid && guid.isEmpty());
+    return !guid || (guid instanceof GuidUint8Array && guid.isEmpty());
   }
 
   /**
    * Creates a new Guid instance with the same value as this one.
-   * @returns A new Guid instance with identical value
+   * @returns A new Guid instance with identical value and __version attached
    */
-  public clone(): Guid {
-    return new Guid(Uint8Array.from(this._value) as RawGuidPlatformBuffer);
+  public clone(): VersionedGuidUint8Array {
+    return GuidUint8Array.withVersion(
+      new GuidUint8Array(Uint8Array.from(this._value) as RawGuidPlatformBuffer),
+    );
   }
 
   /**
@@ -1162,7 +1217,7 @@ export class Guid implements IGuid {
    */
   public getVersion(): number | undefined {
     // Skip boundary values
-    if (Guid.isBoundaryValue(this.asFullHexGuid)) {
+    if (GuidUint8Array.isBoundaryValue(this.asFullHexGuid)) {
       return undefined;
     }
 
@@ -1189,7 +1244,7 @@ export class Guid implements IGuid {
    */
   public isValidV4(): boolean {
     // Boundary values are considered valid
-    if (Guid.isBoundaryValue(this.asFullHexGuid)) {
+    if (GuidUint8Array.isBoundaryValue(this.asFullHexGuid)) {
       return true;
     }
 
@@ -1264,14 +1319,14 @@ export class Guid implements IGuid {
 
   /**
    * Creates a v1 GUID (time-based).
-   * @returns A new Guid instance containing a v1 GUID
+   * @returns A new Guid instance containing a v1 GUID with __version attached
    */
-  public static v1(): Guid {
+  public static v1(): VersionedGuidUint8Array<1> {
     try {
       const v1Guid = uuid.v1();
-      return new Guid(v1Guid as FullHexGuid) as Guid & {
-        readonly __version: 1;
-      };
+      return GuidUint8Array.withVersion(
+        new GuidUint8Array(v1Guid as FullHexGuid),
+      ) as VersionedGuidUint8Array<1>;
     } catch (error) {
       if (error instanceof GuidError) throw error;
       throw new GuidError(GuidErrorType.InvalidGuid);
@@ -1296,12 +1351,13 @@ export class Guid implements IGuid {
 
   /**
    * Creates a GUID from URL-safe base64.
+   * @returns A new Guid instance with __version attached
    */
-  public static fromUrlSafeBase64(urlSafe: string): Guid {
+  public static fromUrlSafeBase64(urlSafe: string): VersionedGuidUint8Array {
     const base64 = urlSafe
       .replace(/-/g, '+')
       .replace(/_/g, '/')
       .padEnd(24, '=');
-    return new Guid(base64 as Base64Guid);
+    return GuidUint8Array.withVersion(new GuidUint8Array(base64 as Base64Guid));
   }
 }

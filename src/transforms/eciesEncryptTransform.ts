@@ -38,7 +38,7 @@ export class EciesEncryptTransform implements Transformer<
     const encryptedLength =
       this.eciesService.computeEncryptedLengthFromDataLength(
         this.blockSize,
-        'simple',
+        'basic',
       );
     this.capacityPerBlock = this.blockSize - (encryptedLength - this.blockSize);
   }
@@ -63,8 +63,7 @@ export class EciesEncryptTransform implements Transformer<
       const blockData = this.buffer.subarray(0, this.capacityPerBlock);
       this.buffer = this.buffer.subarray(this.capacityPerBlock);
 
-      const encryptedBlock = await this.eciesService.encryptSimpleOrSingle(
-        true,
+      const encryptedBlock = await this.eciesService.encryptBasic(
         this.receiverPublicKey,
         blockData,
       );
@@ -78,8 +77,7 @@ export class EciesEncryptTransform implements Transformer<
    */
   async flush(controller: TransformStreamDefaultController<Uint8Array>) {
     if (this.buffer.length > 0) {
-      const encryptedBlock = await this.eciesService.encryptSimpleOrSingle(
-        true,
+      const encryptedBlock = await this.eciesService.encryptBasic(
         this.receiverPublicKey,
         this.buffer,
       );

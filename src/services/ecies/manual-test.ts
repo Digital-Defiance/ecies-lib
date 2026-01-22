@@ -21,13 +21,8 @@ export async function testBasicEncryption(): Promise<boolean> {
     const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
 
     const message = stringToUint8Array('Test message');
-    const encrypted = await ecies.encryptSimpleOrSingle(
-      false,
-      publicKey,
-      message,
-    );
-    const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-      false,
+    const encrypted = await ecies.encryptWithLength(publicKey, message);
+    const decrypted = await ecies.decryptWithLengthAndHeader(
       privateKey,
       encrypted,
     );
@@ -49,16 +44,8 @@ export async function testSimpleEncryption(): Promise<boolean> {
     const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
 
     const message = stringToUint8Array('Simple test message');
-    const encrypted = await ecies.encryptSimpleOrSingle(
-      true,
-      publicKey,
-      message,
-    );
-    const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-      true,
-      privateKey,
-      encrypted,
-    );
+    const encrypted = await ecies.encryptBasic(publicKey, message);
+    const decrypted = await ecies.decryptBasicWithHeader(privateKey, encrypted);
 
     return uint8ArrayToString(message) === uint8ArrayToString(decrypted);
   } catch (error) {
@@ -142,26 +129,17 @@ export async function testCrossPartyEncryption(): Promise<boolean> {
 
     // Alice encrypts a message for Bob
     const message = stringToUint8Array('Secret message from Alice to Bob');
-    const encrypted = await ecies.encryptSimpleOrSingle(
-      false,
-      bobKeys.publicKey,
-      message,
-    );
+    const encrypted = await ecies.encryptWithLength(bobKeys.publicKey, message);
 
     // Bob decrypts the message
-    const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-      false,
+    const decrypted = await ecies.decryptWithLengthAndHeader(
       bobKeys.privateKey,
       encrypted,
     );
 
     // Alice should not be able to decrypt (wrong private key)
     try {
-      await ecies.decryptSimpleOrSingleWithHeader(
-        false,
-        aliceKeys.privateKey,
-        encrypted,
-      );
+      await ecies.decryptWithLengthAndHeader(aliceKeys.privateKey, encrypted);
       return false; // Should have failed
     } catch {
       // Expected to fail

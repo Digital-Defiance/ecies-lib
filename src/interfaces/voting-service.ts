@@ -1,6 +1,5 @@
 import type { KeyPair, PrivateKey, PublicKey } from 'paillier-bigint';
-import type { IsolatedPrivateKey } from '../isolated-private';
-import type { IsolatedPublicKey } from '../isolated-public';
+import type { IIsolatedPrivateKey, IIsolatedPublicKey } from './isolated-keys';
 import type { PlatformBuffer } from './platform-buffer';
 
 /**
@@ -16,13 +15,15 @@ export interface IVotingService {
     buffer: PlatformBuffer,
     publicKey: PublicKey,
   ): Promise<PrivateKey>;
-  isolatedPublicKeyToBuffer(publicKey: IsolatedPublicKey): PlatformBuffer;
-  bufferToIsolatedPublicKey(buffer: PlatformBuffer): Promise<IsolatedPublicKey>;
-  isolatedPrivateKeyToBuffer(privateKey: IsolatedPrivateKey): PlatformBuffer;
+  isolatedPublicKeyToBuffer(publicKey: IIsolatedPublicKey): PlatformBuffer;
+  bufferToIsolatedPublicKey(
+    buffer: PlatformBuffer,
+  ): Promise<IIsolatedPublicKey>;
+  isolatedPrivateKeyToBuffer(privateKey: IIsolatedPrivateKey): PlatformBuffer;
   bufferToIsolatedPrivateKey(
     buffer: PlatformBuffer,
-    publicKey: IsolatedPublicKey,
-  ): Promise<IsolatedPrivateKey>;
+    publicKey: IIsolatedPublicKey,
+  ): Promise<IIsolatedPrivateKey>;
   deriveVotingKeysFromECDH(
     ecdhPrivateKey: PlatformBuffer,
     ecdhPublicKey: PlatformBuffer,

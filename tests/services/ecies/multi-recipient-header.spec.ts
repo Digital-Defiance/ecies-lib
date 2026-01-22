@@ -24,7 +24,7 @@ describe('EciesMultiRecipient Header MSB Logic', () => {
       symmetricKeyBits: ECIES.SYMMETRIC.KEY_BITS,
       symmetricKeyMode: ECIES.SYMMETRIC.MODE,
     } as const;
-    multiRecipientService = new EciesMultiRecipient(config);
+    multiRecipientService = new EciesMultiRecipient(undefined, config);
     cryptoCore = new EciesCryptoCore(config);
 
     const r1Keys = await cryptoCore.generateEphemeralKeyPair();

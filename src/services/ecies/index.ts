@@ -21,8 +21,10 @@
  * const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
  *
  * const message = new TextEncoder().encode('Hello, World!');
- * const encrypted = await ecies.encryptSimpleOrSingle(false, publicKey, message);
- * const decrypted = await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encrypted);
+ * const encrypted = await ecies.encryptWithLength(publicKey, message);
+ * const decrypted = await ecies.decryptWithLengthAndHeader(privateKey, encrypted);
+ * const encrypted = await ecies.encryptBasic(publicKey, message);
+ * const decrypted = await ecies.decryptBasic(privateKey, encrypted);
  * ```
  */
 

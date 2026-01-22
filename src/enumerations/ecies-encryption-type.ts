@@ -2,7 +2,7 @@
  * String literal type for ECIES encryption types.
  * Represents the three supported encryption modes.
  */
-export type EciesEncryptionType = 'simple' | 'single' | 'multiple';
+export type EciesEncryptionType = 'basic' | 'withLength' | 'multiple';
 
 /**
  * Enumeration of ECIES encryption type values.
@@ -10,9 +10,9 @@ export type EciesEncryptionType = 'simple' | 'single' | 'multiple';
  */
 export enum EciesEncryptionTypeEnum {
   /** Simple encryption without data length or CRC */
-  Simple = 33,
+  Basic = 33,
   /** Single recipient encryption with data length */
-  Single = 66,
+  WithLength = 66,
   /** Multiple recipient encryption */
   Multiple = 99,
 }
@@ -24,8 +24,8 @@ export const EciesEncryptionTypeMap: Record<
   EciesEncryptionType,
   EciesEncryptionTypeEnum
 > = {
-  simple: EciesEncryptionTypeEnum.Simple,
-  single: EciesEncryptionTypeEnum.Single,
+  basic: EciesEncryptionTypeEnum.Basic,
+  withLength: EciesEncryptionTypeEnum.WithLength,
   multiple: EciesEncryptionTypeEnum.Multiple,
 };
 
@@ -34,8 +34,8 @@ export const EciesEncryptionTypeMap: Record<
  */
 export const EciesEncryptionTypeStringMap: Record<EciesEncryptionType, string> =
   {
-    simple: 'simple',
-    single: 'single',
+    basic: 'basic',
+    withLength: 'withLength',
     multiple: 'multiple',
   };
 
@@ -46,8 +46,8 @@ export const EciesEncryptionTypeEnumTypeMap: Record<
   EciesEncryptionTypeEnum,
   EciesEncryptionType
 > = {
-  33: 'simple',
-  66: 'single',
+  33: 'basic',
+  66: 'withLength',
   99: 'multiple',
 };
 
@@ -58,7 +58,7 @@ export const EciesEncryptionTypeEnumStringMap: Record<
   EciesEncryptionTypeEnum,
   string
 > = {
-  33: 'simple',
-  66: 'single',
+  33: 'basic',
+  66: 'withLength',
   99: 'multiple',
 };

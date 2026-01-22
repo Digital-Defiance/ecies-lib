@@ -30,13 +30,13 @@ describe('EciesSingleRecipient', () => {
     );
 
     const encrypted = await singleRecipientService.encrypt(
-      true, // simple mode
+      EciesEncryptionTypeEnum.Basic, // simple mode
       recipientKeyPair.publicKey,
       message,
     );
 
     const decrypted = await singleRecipientService.decryptWithHeader(
-      EciesEncryptionTypeEnum.Simple,
+      EciesEncryptionTypeEnum.Basic,
       recipientKeyPair.privateKey,
       encrypted,
     );
@@ -52,13 +52,13 @@ describe('EciesSingleRecipient', () => {
     );
 
     const encrypted = await singleRecipientService.encrypt(
-      false, // single mode
+      EciesEncryptionTypeEnum.WithLength, // single mode
       recipientKeyPair.publicKey,
       message,
     );
 
     const decrypted = await singleRecipientService.decryptWithHeader(
-      EciesEncryptionTypeEnum.Single,
+      EciesEncryptionTypeEnum.WithLength,
       recipientKeyPair.privateKey,
       encrypted,
     );
@@ -74,17 +74,17 @@ describe('EciesSingleRecipient', () => {
     // We need to create an encrypted message first to parse its header
     singleRecipientService
       .encrypt(
-        false, // single mode
+        EciesEncryptionTypeEnum.WithLength, // single mode
         recipientKeyPair.publicKey,
         message,
       )
       .then((encrypted) => {
         const { header } = singleRecipientService.parseEncryptedMessage(
-          EciesEncryptionTypeEnum.Single,
+          EciesEncryptionTypeEnum.WithLength,
           encrypted,
         );
 
-        expect(header.encryptionType).toBe(EciesEncryptionTypeEnum.Single);
+        expect(header.encryptionType).toBe(EciesEncryptionTypeEnum.WithLength);
         expect(header.ephemeralPublicKey.length).toBe(ECIES.PUBLIC_KEY_LENGTH);
         expect(header.iv.length).toBe(ECIES.IV_SIZE);
         expect(header.authTag.length).toBe(ECIES.AUTH_TAG_SIZE);

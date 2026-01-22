@@ -19,6 +19,7 @@ import {
 import { EciesCryptoCore } from '../../src/services/ecies/crypto-core';
 import { ECIESService } from '../../src/services/ecies/service';
 import { MultiRecipientProcessor } from '../../src/services/multi-recipient-processor';
+import { TypedIdProviderWrapper } from '../../src/typed-configuration';
 
 describe('Encrypted Message Structure Validation', () => {
   let eciesService: ECIESService;
@@ -52,7 +53,14 @@ describe('Encrypted Message Structure Validation', () => {
       config: ReturnType<typeof createRuntimeConfiguration>,
       recipientCount: number,
     ): Promise<EncryptedStructure> {
-      const processor = new MultiRecipientProcessor(eciesService, config);
+      const idProvider = new TypedIdProviderWrapper(config.idProvider);
+      const processor = new MultiRecipientProcessor(
+        config,
+        config.ECIES_CONFIG,
+        eciesService,
+        idProvider,
+        config.ECIES,
+      );
       const mrConstants = getMultiRecipientConstants(
         config.idProvider.byteLength,
       );
@@ -68,8 +76,7 @@ describe('Encrypted Message Structure Validation', () => {
         // Measure the encrypted key size from the first recipient
         if (i === 0) {
           const symmetricKey = cryptoCore.generatePrivateKey(); // 32 bytes
-          const encryptedKey = await eciesService.encryptSimpleOrSingle(
-            false, // SINGLE mode
+          const encryptedKey = await eciesService.encryptWithLength(
             keyPair.publicKey,
             symmetricKey,
           );
@@ -146,12 +153,11 @@ describe('Encrypted Message Structure Validation', () => {
       // Measure actual encrypted key size
       const symmetricKey = cryptoCore.generatePrivateKey();
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
-      const _encryptedKey = await eciesService.encryptSimpleOrSingle(
-        false,
+      const _encryptedKey = await eciesService.encryptWithLength(
         keyPair.publicKey,
         symmetricKey,
       );
-      // Note: encryptSimpleOrSingle returns full ECIES message, but MultiRecipient uses encryptKey which returns 64 bytes
+      // Note: encryptWithLength returns full ECIES message, but MultiRecipient uses encryptKey which returns 64 bytes
       // We use fixed 64 bytes for calculation as per new architecture
 
       // Expected structure:
@@ -269,9 +275,8 @@ describe('Encrypted Message Structure Validation', () => {
       for (const provider of providers) {
         const _config = createRuntimeConfiguration({ idProvider: provider });
 
-        // SIMPLE encryption: encryptSimpleOrSingle(true, publicKey, message)
-        const encrypted = await eciesService.encryptSimpleOrSingle(
-          true, // encryptSimple = true
+        // SIMPLE encryption: encryptBasic(publicKey, message)
+        const encrypted = await eciesService.encryptBasic(
           keyPair.publicKey,
           testData,
         );
@@ -300,9 +305,8 @@ describe('Encrypted Message Structure Validation', () => {
       for (const provider of providers) {
         const _config = createRuntimeConfiguration({ idProvider: provider });
 
-        // SINGLE encryption: encryptSimpleOrSingle(false, publicKey, message)
-        const encrypted = await eciesService.encryptSimpleOrSingle(
-          false, // encryptSimple = false (so SINGLE mode)
+        // SINGLE encryption: encryptWithLength(false, publicKey, message)
+        const encrypted = await eciesService.encryptWithLength(
           keyPair.publicKey,
           testData,
         );
@@ -337,37 +341,44 @@ describe('Encrypted Message Structure Validation', () => {
       const recipientId2 = guidIdProvider.generate();
 
       // SIMPLE: Should be identical
-      const simple1 = await eciesService.encryptSimpleOrSingle(
-        true,
+      const simple1 = await eciesService.encryptBasic(
         keyPair.publicKey,
         testData,
       );
-      const simple2 = await eciesService.encryptSimpleOrSingle(
-        true,
+      const simple2 = await eciesService.encryptBasic(
         keyPair.publicKey,
         testData,
       );
       expect(simple1.length).toBe(simple2.length);
 
       // SINGLE: Should be identical
-      const single1 = await eciesService.encryptSimpleOrSingle(
-        false,
+      const single1 = await eciesService.encryptWithLength(
         keyPair.publicKey,
         testData,
       );
-      const single2 = await eciesService.encryptSimpleOrSingle(
-        false,
+      const single2 = await eciesService.encryptWithLength(
         keyPair.publicKey,
         testData,
       );
       expect(single1.length).toBe(single2.length);
 
       // MULTIPLE: Should be different
+      const idProvider1 = new TypedIdProviderWrapper(objectIdConfig.idProvider);
       const processor1 = new MultiRecipientProcessor(
-        eciesService,
         objectIdConfig,
+        objectIdConfig.ECIES_CONFIG,
+        eciesService,
+        idProvider1,
+        objectIdConfig.ECIES,
       );
-      const processor2 = new MultiRecipientProcessor(eciesService, guidConfig);
+      const idProvider2 = new TypedIdProviderWrapper(guidConfig.idProvider);
+      const processor2 = new MultiRecipientProcessor(
+        guidConfig,
+        guidConfig.ECIES_CONFIG,
+        eciesService,
+        idProvider2,
+        guidConfig.ECIES,
+      );
 
       const symmetricKey = cryptoCore.generatePrivateKey();
 
@@ -404,7 +415,14 @@ describe('Encrypted Message Structure Validation', () => {
 
       for (const { provider, idSize, name: _name } of providers) {
         const config = createRuntimeConfiguration({ idProvider: provider });
-        const processor = new MultiRecipientProcessor(eciesService, config);
+        const wrappedIdProvider = new TypedIdProviderWrapper(config.idProvider);
+        const processor = new MultiRecipientProcessor(
+          config,
+          config.ECIES_CONFIG,
+          eciesService,
+          wrappedIdProvider,
+          config.ECIES,
+        );
 
         const keyPair = await cryptoCore.generateEphemeralKeyPair();
         const recipientId = provider.generate();
@@ -460,7 +478,14 @@ describe('Encrypted Message Structure Validation', () => {
 
       for (const { provider, idSize } of providers) {
         const config = createRuntimeConfiguration({ idProvider: provider });
-        const processor = new MultiRecipientProcessor(eciesService, config);
+        const wrappedIdProvider = new TypedIdProviderWrapper(config.idProvider);
+        const processor = new MultiRecipientProcessor(
+          config,
+          config.ECIES_CONFIG,
+          eciesService,
+          wrappedIdProvider,
+          config.ECIES,
+        );
 
         const recipients = [];
         for (let i = 0; i < testRecipientCount; i++) {

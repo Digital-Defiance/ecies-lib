@@ -1,4 +1,5 @@
 import { withConsoleMocks } from '@digitaldefiance/express-suite-test-utils';
+import { TypedIdProviderWrapper } from '@digitaldefiance/ecies-lib';
 import { ECIES, getRuntimeConfiguration } from '../../../src/constants';
 import { getEciesI18nEngine } from '../../../src/i18n-setup';
 import { IECIESConfig } from '../../../src/interfaces/ecies-config';
@@ -39,12 +40,13 @@ describe('EciesMultiRecipient', () => {
 
     // Use CustomIdProvider for Uint8Array-based IDs in tests
     idProvider = new CustomIdProvider(ECIES.MULTIPLE.RECIPIENT_ID_SIZE);
+    const wrappedProvider = new TypedIdProviderWrapper(idProvider);
     const constants = getRuntimeConfiguration();
-    multiRecipientService = new EciesMultiRecipient(
-      config,
+    multiRecipientService = new EciesMultiRecipient<Uint8Array>(
       constants,
+      config,
       ECIES,
-      idProvider,
+      wrappedProvider,
     );
     cryptoCore = new EciesCryptoCore(config);
 

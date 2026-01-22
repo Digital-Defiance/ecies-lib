@@ -52,15 +52,13 @@ export class EnhancedWebCryptoService {
 
       // Try to decrypt using single mode first (most common)
       try {
-        return await this.ecies.decryptSimpleOrSingleWithHeader(
-          false,
+        return await this.ecies.decryptWithLengthAndHeader(
           privateKey,
           encryptedData,
         );
       } catch {
         // Fallback to simple mode
-        return await this.ecies.decryptSimpleOrSingleWithHeader(
-          true,
+        return await this.ecies.decryptBasicWithHeader(
           privateKey,
           encryptedData,
         );
@@ -85,12 +83,16 @@ export class EnhancedWebCryptoService {
     data: Uint8Array,
     useSimpleMode: boolean = false,
   ): Promise<string> {
-    const encrypted = await this.ecies.encryptSimpleOrSingle(
-      !useSimpleMode,
-      recipientPublicKey,
-      data,
-    );
-    return uint8ArrayToHex(encrypted);
+    if (useSimpleMode) {
+      const encrypted = await this.ecies.encryptBasic(recipientPublicKey, data);
+      return uint8ArrayToHex(encrypted);
+    } else {
+      const encrypted = await this.ecies.encryptWithLength(
+        recipientPublicKey,
+        data,
+      );
+      return uint8ArrayToHex(encrypted);
+    }
   }
 
   /**

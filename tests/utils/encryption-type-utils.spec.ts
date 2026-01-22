@@ -16,11 +16,11 @@ import {
 describe('Encryption Type Utils - Complete Coverage', () => {
   describe('encryptionTypeToString', () => {
     it('should convert valid enum values to strings', () => {
-      expect(encryptionTypeToString(EciesEncryptionTypeEnum.Simple)).toBe(
-        'simple',
+      expect(encryptionTypeToString(EciesEncryptionTypeEnum.Basic)).toBe(
+        'basic',
       );
-      expect(encryptionTypeToString(EciesEncryptionTypeEnum.Single)).toBe(
-        'single',
+      expect(encryptionTypeToString(EciesEncryptionTypeEnum.WithLength)).toBe(
+        'withLength',
       );
       expect(encryptionTypeToString(EciesEncryptionTypeEnum.Multiple)).toBe(
         'multiple',
@@ -28,8 +28,8 @@ describe('Encryption Type Utils - Complete Coverage', () => {
     });
 
     it('should convert valid string types to strings', () => {
-      expect(encryptionTypeToString('simple')).toBe('simple');
-      expect(encryptionTypeToString('single')).toBe('single');
+      expect(encryptionTypeToString('basic')).toBe('basic');
+      expect(encryptionTypeToString('withLength')).toBe('withLength');
       expect(encryptionTypeToString('multiple')).toBe('multiple');
     });
 
@@ -64,11 +64,11 @@ describe('Encryption Type Utils - Complete Coverage', () => {
 
   describe('encryptionTypeEnumToType', () => {
     it('should convert valid enum values to type strings', () => {
-      expect(encryptionTypeEnumToType(EciesEncryptionTypeEnum.Simple)).toBe(
-        'simple',
+      expect(encryptionTypeEnumToType(EciesEncryptionTypeEnum.Basic)).toBe(
+        'basic',
       );
-      expect(encryptionTypeEnumToType(EciesEncryptionTypeEnum.Single)).toBe(
-        'single',
+      expect(encryptionTypeEnumToType(EciesEncryptionTypeEnum.WithLength)).toBe(
+        'withLength',
       );
       expect(encryptionTypeEnumToType(EciesEncryptionTypeEnum.Multiple)).toBe(
         'multiple',
@@ -103,10 +103,10 @@ describe('Encryption Type Utils - Complete Coverage', () => {
   describe('validateEciesEncryptionTypeEnum', () => {
     it('should return true for valid enum values', () => {
       expect(
-        validateEciesEncryptionTypeEnum(EciesEncryptionTypeEnum.Simple),
+        validateEciesEncryptionTypeEnum(EciesEncryptionTypeEnum.Basic),
       ).toBe(true);
       expect(
-        validateEciesEncryptionTypeEnum(EciesEncryptionTypeEnum.Single),
+        validateEciesEncryptionTypeEnum(EciesEncryptionTypeEnum.WithLength),
       ).toBe(true);
       expect(
         validateEciesEncryptionTypeEnum(EciesEncryptionTypeEnum.Multiple),
@@ -134,12 +134,12 @@ describe('Encryption Type Utils - Complete Coverage', () => {
 
   describe('ensureEciesEncryptionTypeEnum', () => {
     it('should return valid enum values unchanged', () => {
+      expect(ensureEciesEncryptionTypeEnum(EciesEncryptionTypeEnum.Basic)).toBe(
+        EciesEncryptionTypeEnum.Basic,
+      );
       expect(
-        ensureEciesEncryptionTypeEnum(EciesEncryptionTypeEnum.Simple),
-      ).toBe(EciesEncryptionTypeEnum.Simple);
-      expect(
-        ensureEciesEncryptionTypeEnum(EciesEncryptionTypeEnum.Single),
-      ).toBe(EciesEncryptionTypeEnum.Single);
+        ensureEciesEncryptionTypeEnum(EciesEncryptionTypeEnum.WithLength),
+      ).toBe(EciesEncryptionTypeEnum.WithLength);
       expect(
         ensureEciesEncryptionTypeEnum(EciesEncryptionTypeEnum.Multiple),
       ).toBe(EciesEncryptionTypeEnum.Multiple);

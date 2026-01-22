@@ -7,6 +7,7 @@ import { EciesComponentId, getEciesI18nEngine } from './i18n-setup';
 import type { IChecksumConsts } from './interfaces/checksum-consts';
 import type { IConfigurationProvenance } from './interfaces/configuration-provenance';
 import type { IConstants } from './interfaces/constants';
+import type { IECIESConfig } from './interfaces/ecies-config';
 import type { IECIESConstants } from './interfaces/ecies-consts';
 import type { IPBkdf2Consts } from './interfaces/pbkdf2-consts';
 import { ObjectIdProvider } from './lib/id-providers/objectid-provider';
@@ -60,15 +61,6 @@ export const UINT32_MAX: number = 4294967295 as const;
 export const UINT64_SIZE: number = 8 as const;
 /** Maximum value for a 64-bit unsigned integer */
 export const UINT64_MAX: bigint = 18446744073709551615n as const;
-/** Length of MongoDB ObjectID in bytes */
-export const OBJECT_ID_LENGTH: number = 12 as const;
-
-if (OBJECT_ID_LENGTH !== 12) {
-  console.warn(
-    'ObjectID length may have changed, breaking encryption',
-    OBJECT_ID_LENGTH,
-  );
-}
 
 /**
  * Constants for checksum operations
@@ -130,8 +122,8 @@ const ECIES_MULTIPLE_MAX_DATA_SIZE = 1048576 as const; //1024 * 1024 as const; /
 const ECIES_VERSION_SIZE = 1 as const;
 const ECIES_CIPHER_SUITE_SIZE = 1 as const;
 
-// Define the expected value for SIMPLE.FIXED_OVERHEAD_SIZE
-const expectedSimpleOverhead =
+// Define the expected value for BASIC.FIXED_OVERHEAD_SIZE
+const expectedBasicOverhead =
   ECIES_VERSION_SIZE +
   ECIES_CIPHER_SUITE_SIZE +
   UINT8_SIZE +
@@ -196,16 +188,16 @@ export const ECIES: IECIESConstants = Object.freeze({
   /**
    * Message encrypts without data length or crc
    */
-  SIMPLE: Object.freeze({
-    FIXED_OVERHEAD_SIZE: expectedSimpleOverhead, // version (1) + cipher suite (1) + type (1) + public key (33) + IV (16) + auth tag (16)
+  BASIC: Object.freeze({
+    FIXED_OVERHEAD_SIZE: expectedBasicOverhead, // version (1) + cipher suite (1) + type (1) + public key (33) + IV (16) + auth tag (16)
     DATA_LENGTH_SIZE: 0 as const,
   } as const),
 
   /**
    * Message encrypts with data length but no CRC (AES-GCM provides authentication)
    */
-  SINGLE: Object.freeze({
-    FIXED_OVERHEAD_SIZE: expectedSimpleOverhead + 8, // version (1) + cipher suite (1) + type (1) + public key (33) + IV (16) + auth tag (16) + data length (8)
+  WITH_LENGTH: Object.freeze({
+    FIXED_OVERHEAD_SIZE: expectedBasicOverhead + 8, // version (1) + cipher suite (1) + type (1) + public key (33) + IV (16) + auth tag (16) + data length (8)
     DATA_LENGTH_SIZE: 8,
   } as const),
 
@@ -223,11 +215,20 @@ export const ECIES: IECIESConstants = Object.freeze({
   } as const),
 
   ENCRYPTION_TYPE: Object.freeze({
-    SIMPLE: 33 as const,
-    SINGLE: 66 as const,
+    BASIC: 33 as const,
+    WITH_LENGTH: 66 as const,
     MULTIPLE: 99 as const,
   } as const),
 });
+
+export const ECIES_CONFIG: IECIESConfig = {
+  curveName: ECIES.CURVE_NAME,
+  primaryKeyDerivationPath: ECIES.PRIMARY_KEY_DERIVATION_PATH,
+  mnemonicStrength: ECIES.MNEMONIC_STRENGTH,
+  symmetricAlgorithm: ECIES.SYMMETRIC_ALGORITHM_CONFIGURATION,
+  symmetricKeyBits: ECIES.SYMMETRIC.KEY_BITS,
+  symmetricKeyMode: ECIES.SYMMETRIC.MODE,
+};
 
 /**
  * Constants for voting operations using Paillier homomorphic encryption.
@@ -269,10 +270,10 @@ export const Constants: IConstants = Object.freeze({
   UINT64_MAX: UINT64_MAX,
   HEX_RADIX: 16 as const,
   MEMBER_ID_LENGTH: DEFAULT_ID_PROVIDER.byteLength,
-  OBJECT_ID_LENGTH: OBJECT_ID_LENGTH,
   idProvider: DEFAULT_ID_PROVIDER,
   CHECKSUM: CHECKSUM,
   ECIES: ECIES,
+  ECIES_CONFIG: ECIES_CONFIG,
   PBKDF2: PBKDF2,
   PBKDF2_PROFILES: PBKDF2_PROFILES,
   VOTING: VOTING,
@@ -497,7 +498,6 @@ function validateConstants(config: IConstants): void {
     );
   }
 
-  // NOTE: We now validate against idProvider.byteLength instead of OBJECT_ID_LENGTH
   // This allows for flexible ID sizes (12 bytes for ObjectID, 16 for GUID, 32 for legacy, etc.)
   if (ecies.MULTIPLE.RECIPIENT_ID_SIZE !== config.idProvider.byteLength) {
     throw new ECIESError(
@@ -572,6 +572,22 @@ export function createRuntimeConfiguration(
         RECIPIENT_ID_SIZE: merged.idProvider.byteLength,
       },
     };
+  }
+
+  // Auto-sync ENCRYPTION.RECIPIENT_ID_SIZE with idProvider.byteLength if provider changed (Node.js-specific)
+  if (
+    merged.idProvider &&
+    merged.idProvider !== base.idProvider &&
+    'ENCRYPTION' in merged &&
+    merged.ENCRYPTION
+  ) {
+    const encryption = merged.ENCRYPTION as { RECIPIENT_ID_SIZE?: number };
+    if ('RECIPIENT_ID_SIZE' in encryption) {
+      (merged as Record<string, unknown>).ENCRYPTION = {
+        ...merged.ENCRYPTION,
+        RECIPIENT_ID_SIZE: merged.idProvider.byteLength,
+      };
+    }
   }
 
   // Validate individual properties
@@ -673,11 +689,11 @@ export class ConstantsRegistry {
    * @returns The registered configuration
    * @throws {Error} If attempting to overwrite the default configuration
    */
-  public static register(
+  public static register<T extends IConstants = IConstants>(
     key: ConfigurationKey,
-    configOrOverrides?: DeepPartial<IConstants> | IConstants,
+    configOrOverrides?: DeepPartial<T> | T,
     options?: { baseKey?: ConfigurationKey; description?: string },
-  ): IConstants {
+  ): T {
     if (key === DEFAULT_CONFIGURATION_KEY) {
       const engine = getEciesI18nEngine();
       throw new Error(
@@ -709,7 +725,7 @@ export class ConstantsRegistry {
 
     configurationRegistry.set(key, configuration);
     provenanceRegistry.set(key, provenance);
-    return configuration;
+    return configuration as T;
   }
 
   /**
@@ -759,12 +775,12 @@ export function getRuntimeConfiguration(
  * @param options Registration options
  * @returns The registered configuration
  */
-export function registerRuntimeConfiguration(
+export function registerRuntimeConfiguration<T extends IConstants = IConstants>(
   key: ConfigurationKey,
-  configOrOverrides?: DeepPartial<IConstants> | IConstants,
+  configOrOverrides?: DeepPartial<T> | T,
   options?: { baseKey?: ConfigurationKey },
-): IConstants {
-  return ConstantsRegistry.register(key, configOrOverrides, options);
+): T {
+  return ConstantsRegistry.register<T>(key, configOrOverrides, options);
 }
 
 /**

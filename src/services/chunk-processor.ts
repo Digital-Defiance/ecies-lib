@@ -95,11 +95,7 @@ export class ChunkProcessor<TID extends PlatformID = Uint8Array> {
     includeChecksum: boolean,
   ): Promise<IEncryptedChunk> {
     // Encrypt data
-    const encrypted = await this.ecies.encryptSimpleOrSingle(
-      false,
-      publicKey,
-      data,
-    );
+    const encrypted = await this.ecies.encryptWithLength(publicKey, data);
 
     // Calculate checksum if requested
     const checksum = includeChecksum ? sha256(data) : undefined;
@@ -178,8 +174,7 @@ export class ChunkProcessor<TID extends PlatformID = Uint8Array> {
     }
 
     // Decrypt
-    const decrypted = await this.ecies.decryptSimpleOrSingleWithHeader(
-      false,
+    const decrypted = await this.ecies.decryptWithLengthAndHeader(
       privateKey,
       encrypted,
     );

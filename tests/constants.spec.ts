@@ -2,7 +2,6 @@ import * as fc from 'fast-check';
 import {
   Constants,
   ECIES,
-  OBJECT_ID_LENGTH,
   PBKDF2,
   PBKDF2_PROFILES,
   UINT16_SIZE,
@@ -42,11 +41,9 @@ describe('constants module', () => {
   });
 
   it('should aggregate values on the Constants object', () => {
-    expect(Constants.OBJECT_ID_LENGTH).toBe(12);
     expect(Constants.UINT16_SIZE).toBe(UINT16_SIZE);
     expect(Constants.UINT32_SIZE).toBe(UINT32_SIZE);
     expect(Constants.UINT64_SIZE).toBe(UINT64_SIZE);
-    expect(Constants.OBJECT_ID_LENGTH).toBe(OBJECT_ID_LENGTH);
     expect(Constants.PasswordRegex.test('Passw0rd!')).toBe(true);
     expect(Constants.PasswordRegex.test('short1!')).toBe(false);
     expect(Constants.MnemonicRegex.test(sampleMnemonic)).toBe(true);

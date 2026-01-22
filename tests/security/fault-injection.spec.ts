@@ -26,17 +26,13 @@ describe('Fault Injection and Error Handling', () => {
       const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
 
       const message = new TextEncoder().encode('Secret');
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        false,
-        publicKey,
-        message,
-      );
+      const encrypted = await ecies.encryptWithLength(publicKey, message);
 
       // Corrupt random byte
       encrypted[Math.floor(encrypted.length / 2)] ^= 0xff;
 
       await expect(
-        ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encrypted),
+        ecies.decryptWithLengthAndHeader(privateKey, encrypted),
       ).rejects.toThrow();
     });
 
@@ -45,17 +41,13 @@ describe('Fault Injection and Error Handling', () => {
       const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
 
       const message = new TextEncoder().encode('Secret');
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        false,
-        publicKey,
-        message,
-      );
+      const encrypted = await ecies.encryptWithLength(publicKey, message);
 
       // Corrupt header
       encrypted[0] ^= 0xff;
 
       await expect(
-        ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encrypted),
+        ecies.decryptWithLengthAndHeader(privateKey, encrypted),
       ).rejects.toThrow();
     });
 
@@ -64,17 +56,13 @@ describe('Fault Injection and Error Handling', () => {
       const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
 
       const message = new TextEncoder().encode('Secret');
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        false,
-        publicKey,
-        message,
-      );
+      const encrypted = await ecies.encryptWithLength(publicKey, message);
 
       // Truncate
       const truncated = encrypted.slice(0, encrypted.length - 10);
 
       await expect(
-        ecies.decryptSimpleOrSingleWithHeader(false, privateKey, truncated),
+        ecies.decryptWithLengthAndHeader(privateKey, truncated),
       ).rejects.toThrow();
     });
 
@@ -83,11 +71,7 @@ describe('Fault Injection and Error Handling', () => {
       const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
 
       const message = new TextEncoder().encode('Secret');
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        false,
-        publicKey,
-        message,
-      );
+      const encrypted = await ecies.encryptWithLength(publicKey, message);
 
       // Extend with garbage
       const extended = new Uint8Array(encrypted.length + 100);
@@ -95,7 +79,7 @@ describe('Fault Injection and Error Handling', () => {
       crypto.getRandomValues(extended.subarray(encrypted.length));
 
       await expect(
-        ecies.decryptSimpleOrSingleWithHeader(false, privateKey, extended),
+        ecies.decryptWithLengthAndHeader(privateKey, extended),
       ).rejects.toThrow();
     });
   });
@@ -141,14 +125,10 @@ describe('Fault Injection and Error Handling', () => {
       const { publicKey: pubKey2 } = ecies.mnemonicToSimpleKeyPair(mnemonic2);
 
       const message = new TextEncoder().encode('Secret');
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        false,
-        pubKey2,
-        message,
-      );
+      const encrypted = await ecies.encryptWithLength(pubKey2, message);
 
       await expect(
-        ecies.decryptSimpleOrSingleWithHeader(false, privKey1, encrypted),
+        ecies.decryptWithLengthAndHeader(privKey1, encrypted),
       ).rejects.toThrow();
     });
   });
@@ -285,7 +265,7 @@ describe('Fault Injection and Error Handling', () => {
       const empty = new Uint8Array(0);
 
       // Empty plaintext is actually allowed, so this test should pass
-      const result = await ecies.encryptSimpleOrSingle(false, publicKey, empty);
+      const result = await ecies.encryptWithLength(publicKey, empty);
       expect(result.length).toBeGreaterThan(0);
     });
 
@@ -298,7 +278,7 @@ describe('Fault Injection and Error Handling', () => {
 
       // Should handle or reject gracefully
       try {
-        await ecies.encryptSimpleOrSingle(false, new Uint8Array(33), large);
+        await ecies.encryptWithLength(new Uint8Array(33), large);
       } catch (error) {
         expect(error).toBeDefined();
       }
@@ -354,21 +334,13 @@ describe('Fault Injection and Error Handling', () => {
       const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
 
       const message = new TextEncoder().encode('Secret');
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        false,
-        publicKey,
-        message,
-      );
+      const encrypted = await ecies.encryptWithLength(publicKey, message);
 
       // Corrupt and try to decrypt
       encrypted[10] ^= 0xff;
 
       try {
-        await ecies.decryptSimpleOrSingleWithHeader(
-          false,
-          privateKey,
-          encrypted,
-        );
+        await ecies.decryptWithLengthAndHeader(privateKey, encrypted);
         fail('Should have thrown');
       } catch (error: any) {
         const errorMsg = error.message.toLowerCase();
@@ -388,7 +360,7 @@ describe('Fault Injection and Error Handling', () => {
 
       try {
         // Force an error by using invalid parameters
-        await ecies.encryptSimpleOrSingle(false, new Uint8Array(33), message);
+        await ecies.encryptWithLength(new Uint8Array(33), message);
         fail('Should have thrown');
       } catch (error: any) {
         const errorMsg = error.message;
@@ -406,14 +378,10 @@ describe('Fault Injection and Error Handling', () => {
       const { publicKey: pubKey2 } = ecies.mnemonicToSimpleKeyPair(mnemonic2);
 
       const message = new TextEncoder().encode('Secret');
-      const encrypted = await ecies.encryptSimpleOrSingle(
-        false,
-        pubKey2,
-        message,
-      );
+      const encrypted = await ecies.encryptWithLength(pubKey2, message);
 
       try {
-        await ecies.decryptSimpleOrSingleWithHeader(false, privKey1, encrypted);
+        await ecies.decryptWithLengthAndHeader(privKey1, encrypted);
         fail('Should have thrown');
       } catch (error: any) {
         const errorMsg = error.message.toLowerCase();
@@ -445,7 +413,7 @@ describe('Fault Injection and Error Handling', () => {
 
       const promises = Array(50)
         .fill(null)
-        .map(() => ecies.encryptSimpleOrSingle(false, publicKey, message));
+        .map(() => ecies.encryptWithLength(publicKey, message));
 
       const results = await Promise.all(promises);
 

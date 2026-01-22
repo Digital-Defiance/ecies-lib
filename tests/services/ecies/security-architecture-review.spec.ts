@@ -11,7 +11,7 @@ describe('Security and Architecture Review', () => {
 
   beforeEach(() => {
     cryptoCore = new EciesCryptoCore();
-    multiRecipient = new EciesMultiRecipient(cryptoCore);
+    multiRecipient = new EciesMultiRecipient();
     eciesService = new ECIESService();
   });
 
@@ -94,11 +94,18 @@ describe('Security and Architecture Review', () => {
           deserialize: () => new Uint8Array(12),
           equals: () => false,
           clone: (id: Uint8Array) => id,
+          toBytes: (_id: Uint8Array) => new Uint8Array(12),
+          fromBytes: (bytes: Uint8Array) => bytes,
           name: 'Mock',
         },
       } as any;
 
-      const processor = new MultiRecipientProcessor(eciesService, mockConfig);
+      const processor = new MultiRecipientProcessor(
+        mockConfig,
+        mockConfig.ECIES_CONFIG,
+        eciesService,
+        mockConfig.idProvider,
+      );
 
       const chunkData = new Uint8Array(100).fill(0xaa);
 
@@ -145,11 +152,18 @@ describe('Security and Architecture Review', () => {
           deserialize: () => new Uint8Array(12),
           equals: () => false,
           clone: (id: Uint8Array) => id,
+          toBytes: (_id: Uint8Array) => new Uint8Array(12),
+          fromBytes: (bytes: Uint8Array) => bytes,
           name: 'Mock',
         },
       } as any;
 
-      const processor = new MultiRecipientProcessor(eciesService, mockConfig);
+      const processor = new MultiRecipientProcessor(
+        mockConfig,
+        mockConfig.ECIES_CONFIG,
+        eciesService,
+        mockConfig.idProvider,
+      );
       const recipient = await cryptoCore.generateEphemeralKeyPair();
       const recipientId = new Uint8Array(12).fill(1);
       const sender = await cryptoCore.generateEphemeralKeyPair();

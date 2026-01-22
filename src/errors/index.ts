@@ -12,4 +12,5 @@ export * from './length';
 export * from './member';
 export * from './pbkdf2';
 export * from './secure-storage';
+export * from './translatable';
 export * from './voting';

@@ -8,9 +8,7 @@ import { EciesEncryptionTypeEnum } from '../src/enumerations/ecies-encryption-ty
 
 describe('Test Fixes Validation', () => {
   it('should validate utils fix works', () => {
-    expect(encryptionTypeToString(EciesEncryptionTypeEnum.Simple)).toBe(
-      'simple',
-    );
+    expect(encryptionTypeToString(EciesEncryptionTypeEnum.Basic)).toBe('basic');
   });
 
   it('should validate ObjectId provider works', () => {

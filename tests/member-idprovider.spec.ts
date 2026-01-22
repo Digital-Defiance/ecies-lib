@@ -14,7 +14,7 @@ import { ObjectId } from 'bson';
 import { createRuntimeConfiguration } from '../src/constants';
 import { EmailString } from '../src/email-string';
 import { MemberType } from '../src/enumerations/member-type';
-import { Guid } from '../src/lib/guid';
+import { GuidUint8Array } from '../src/lib/guid';
 import { GuidV4Provider, ObjectIdProvider } from '../src/lib/id-providers';
 import { Member } from '../src/member';
 import { ECIESService } from '../src/services/ecies/service';
@@ -35,7 +35,7 @@ describe('Unit Tests: Member ID Generation', () => {
       );
 
       // ID is Guid type (from service's idProvider)
-      expect(result.member.id).toBeInstanceOf(Guid);
+      expect(result.member.id).toBeInstanceOf(GuidUint8Array);
       // idBytes is the raw bytes
       expect(result.member.idBytes).toBeInstanceOf(Uint8Array);
       expect(result.member.idBytes.length).toBe(
@@ -93,7 +93,7 @@ describe('Unit Tests: Member ID Generation', () => {
       // Different ID lengths based on service configuration
       expect(guidMember.member.idBytes.length).toBe(16);
       expect(objectIdMember.member.idBytes.length).toBe(12);
-      expect(guidMember.member.id).toBeInstanceOf(Guid);
+      expect(guidMember.member.id).toBeInstanceOf(GuidUint8Array);
       expect(objectIdMember.member.id).toBeInstanceOf(ObjectId);
     });
   });

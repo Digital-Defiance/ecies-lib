@@ -42,8 +42,7 @@ describe('Large Message and Streaming Tests', () => {
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       const startTime = Date.now();
 
-      const encrypted = await eciesService.encryptSimpleOrSingle(
-        true,
+      const encrypted = await eciesService.encryptBasic(
         keyPair.publicKey,
         message,
       );
@@ -52,8 +51,7 @@ describe('Large Message and Streaming Tests', () => {
       console.log(`256KB encryption time: ${encryptTime}ms`);
 
       const decryptStart = Date.now();
-      const decrypted = await eciesService.decryptSimpleOrSingleWithHeader(
-        true,
+      const decrypted = await eciesService.decryptBasicWithHeader(
         keyPair.privateKey,
         encrypted,
       );
@@ -87,8 +85,7 @@ describe('Large Message and Streaming Tests', () => {
       const initialMemory = process.memoryUsage().heapUsed;
 
       const startTime = Date.now();
-      const encrypted = await eciesService.encryptSimpleOrSingle(
-        true,
+      const encrypted = await eciesService.encryptBasic(
         keyPair.publicKey,
         message,
       );
@@ -96,8 +93,7 @@ describe('Large Message and Streaming Tests', () => {
       const encryptTime = Date.now() - startTime;
 
       const decryptStart = Date.now();
-      const decrypted = await eciesService.decryptSimpleOrSingleWithHeader(
-        true,
+      const decrypted = await eciesService.decryptBasicWithHeader(
         keyPair.privateKey,
         encrypted,
       );
@@ -141,14 +137,12 @@ describe('Large Message and Streaming Tests', () => {
           message[i] = (i + size) % 256;
         }
 
-        const encrypted = await eciesService.encryptSimpleOrSingle(
-          true,
+        const encrypted = await eciesService.encryptBasic(
           keyPair.publicKey,
           message,
         );
 
-        const decrypted = await eciesService.decryptSimpleOrSingleWithHeader(
-          true,
+        const decrypted = await eciesService.decryptBasicWithHeader(
           keyPair.privateKey,
           encrypted,
         );
@@ -414,8 +408,7 @@ describe('Large Message and Streaming Tests', () => {
       message.fill(0xaa);
 
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
-      const encrypted = await eciesService.encryptSimpleOrSingle(
-        true,
+      const encrypted = await eciesService.encryptBasic(
         keyPair.publicKey,
         message,
       );
@@ -432,8 +425,7 @@ describe('Large Message and Streaming Tests', () => {
         corruptedMessage[Math.floor(test.position)] ^= 0xff;
 
         await expect(
-          eciesService.decryptSimpleOrSingleWithHeader(
-            true,
+          eciesService.decryptBasicWithHeader(
             keyPair.privateKey,
             corruptedMessage,
           ),

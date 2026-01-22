@@ -7,7 +7,7 @@ import {
 import type { IConstants } from './interfaces/constants';
 import type { IIdProvider } from './interfaces/id-provider';
 import type { DeepPartial } from './types/deep-partial';
-import { GuidV4 } from './types/guid-versions';
+import { GuidV4Uint8Array } from './types/guid-versions';
 
 /**
  * Typed configuration wrapper that preserves ID provider type information.
@@ -89,9 +89,9 @@ export function createObjectIdConfiguration(
  */
 export function createGuidV4Configuration(
   overrides?: DeepPartial<IConstants>,
-): TypedConfiguration<GuidV4> {
+): TypedConfiguration<GuidV4Uint8Array> {
   const constants = createRuntimeConfiguration(overrides);
-  return new TypedConfiguration<GuidV4>(constants);
+  return new TypedConfiguration<GuidV4Uint8Array>(constants);
 }
 
 /**

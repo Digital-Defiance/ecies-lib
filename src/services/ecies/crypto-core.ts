@@ -26,7 +26,7 @@ export class EciesCryptoCore {
   protected readonly _eciesConsts: IECIESConstants;
 
   constructor(
-    config: IECIESConfig,
+    config: IECIESConfig = Constants.ECIES_CONFIG,
     eciesParams: IECIESConstants = Constants.ECIES,
   ) {
     this._config = config;
@@ -35,6 +35,10 @@ export class EciesCryptoCore {
 
   public get config(): IECIESConfig {
     return this._config;
+  }
+
+  public get consts(): IECIESConstants {
+    return this._eciesConsts;
   }
 
   /**

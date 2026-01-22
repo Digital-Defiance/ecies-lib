@@ -34,8 +34,7 @@ export class EciesFileService implements IEciesFileService {
     };
 
     const headerBytes = this.serializeHeader(header);
-    const encryptedHeader = await this.eciesService.encryptSimpleOrSingle(
-      false,
+    const encryptedHeader = await this.eciesService.encryptWithLength(
       recipientPublicKey,
       headerBytes,
     );
@@ -46,8 +45,7 @@ export class EciesFileService implements IEciesFileService {
       const offset = i * EciesFileService.CHUNK_SIZE;
       const chunk = file.slice(offset, offset + EciesFileService.CHUNK_SIZE);
       const chunkData = new Uint8Array(await chunk.arrayBuffer());
-      const encryptedChunk = await this.eciesService.encryptSimpleOrSingle(
-        false,
+      const encryptedChunk = await this.eciesService.encryptWithLength(
         recipientPublicKey,
         chunkData,
       );
@@ -69,8 +67,7 @@ export class EciesFileService implements IEciesFileService {
     const decryptedChunks: Uint8Array[] = [];
 
     for (const chunk of chunks) {
-      const decrypted = await this.eciesService.decryptSimpleOrSingleWithHeader(
-        false,
+      const decrypted = await this.eciesService.decryptWithLengthAndHeader(
         this.userPrivateKey,
         chunk,
       );
@@ -126,13 +123,12 @@ export class EciesFileService implements IEciesFileService {
     // First, decrypt the header to get metadata
     const headerLength = this.eciesService.computeEncryptedLengthFromDataLength(
       EciesFileService.HEADER_SIZE,
-      'single',
+      'withLength',
     );
 
     const encryptedHeader = encryptedData.subarray(0, headerLength);
     const decryptedHeaderBytes =
-      await this.eciesService.decryptSimpleOrSingleWithHeader(
-        false,
+      await this.eciesService.decryptWithLengthAndHeader(
         this.userPrivateKey,
         encryptedHeader,
       );
@@ -147,7 +143,7 @@ export class EciesFileService implements IEciesFileService {
           i === header.totalChunks - 1
             ? header.originalSize % header.chunkSize || header.chunkSize
             : header.chunkSize,
-          'single',
+          'withLength',
         );
 
       chunks.push(encryptedData.subarray(offset, offset + chunkLength));

@@ -58,8 +58,11 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
   ) {
     this.processor = new ChunkProcessor<TID>(_ecies, _eciesConsts);
     this.multiRecipientProcessor = new MultiRecipientProcessor<TID>(
-      _ecies,
       constants,
+      constants.ECIES_CONFIG,
+      _ecies,
+      undefined,
+      _eciesConsts,
     );
   }
 

@@ -49,12 +49,10 @@ export class EciesDecryptTransform implements Transformer<
       const encryptedBlock = this.buffer.subarray(0, this.blockSize);
       this.buffer = this.buffer.subarray(this.blockSize);
 
-      const decryptedBlock =
-        await this.eciesService.decryptSimpleOrSingleWithHeader(
-          true,
-          this.privateKey,
-          encryptedBlock,
-        );
+      const decryptedBlock = await this.eciesService.decryptBasicWithHeader(
+        this.privateKey,
+        encryptedBlock,
+      );
       controller.enqueue(decryptedBlock);
     }
   }
@@ -66,12 +64,10 @@ export class EciesDecryptTransform implements Transformer<
   async flush(controller: TransformStreamDefaultController<Uint8Array>) {
     if (this.buffer.length > 0) {
       try {
-        const decryptedBlock =
-          await this.eciesService.decryptSimpleOrSingleWithHeader(
-            true,
-            this.privateKey,
-            this.buffer,
-          );
+        const decryptedBlock = await this.eciesService.decryptBasicWithHeader(
+          this.privateKey,
+          this.buffer,
+        );
         controller.enqueue(decryptedBlock);
       } catch (err) {
         controller.error(err);

@@ -43,7 +43,7 @@ describe('Enhanced ID Provider Validation', () => {
       const id = idProvider.generate();
       const guidId = idProvider.fromBytes(id);
       // GuidV4Provider returns GuidV4 instances
-      expect(guidId.constructor.name).toBe('Guid');
+      expect(guidId.constructor.name).toBe('GuidUint8Array');
 
       // But we can convert back to bytes
       const backToBytes = idProvider.toBytes(guidId);

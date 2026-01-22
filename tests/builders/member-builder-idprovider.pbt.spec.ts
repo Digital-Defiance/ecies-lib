@@ -15,7 +15,7 @@ import { MemberBuilder } from '../../src/builders/member-builder';
 import { createRuntimeConfiguration } from '../../src/constants';
 import { EmailString } from '../../src/email-string';
 import { MemberType } from '../../src/enumerations/member-type';
-import { Guid } from '../../src/lib/guid';
+import { GuidUint8Array } from '../../src/lib/guid';
 import { GuidV4Provider, ObjectIdProvider } from '../../src/lib/id-providers';
 import { ECIESService } from '../../src/services/ecies/service';
 
@@ -34,7 +34,7 @@ describe('Property-Based Tests: MemberBuilder ID Generation', () => {
               config: createRuntimeConfiguration({
                 idProvider: new GuidV4Provider(),
               }),
-              expectedType: Guid,
+              expectedType: GuidUint8Array,
               expectedLength: 16,
             },
             {
@@ -105,7 +105,7 @@ describe('Property-Based Tests: MemberBuilder ID Generation', () => {
 
             // Verify 16-byte GuidV4 from service provider
             expect(result.member.idBytes.length).toBe(16);
-            expect(result.member.id).toBeInstanceOf(Guid);
+            expect(result.member.id).toBeInstanceOf(GuidUint8Array);
           },
         ),
         { numRuns: 100 },
@@ -184,7 +184,7 @@ describe('Property-Based Tests: MemberBuilder ID Generation', () => {
               config: createRuntimeConfiguration({
                 idProvider: new GuidV4Provider(),
               }),
-              expectedType: Guid,
+              expectedType: GuidUint8Array,
               expectedLength: 16,
             },
             {

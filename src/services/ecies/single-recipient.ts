@@ -1,4 +1,4 @@
-import { getRuntimeConfiguration } from '../../constants';
+import { getRuntimeConfiguration, UINT64_SIZE } from '../../constants';
 import { EciesCipherSuiteEnum } from '../../enumerations/ecies-cipher-suite';
 import {
   EciesEncryptionType,
@@ -6,6 +6,7 @@ import {
 } from '../../enumerations/ecies-encryption-type';
 import { EciesStringKey } from '../../enumerations/ecies-string-key';
 import { EciesVersionEnum } from '../../enumerations/ecies-version';
+import { TranslatableEciesError } from '../../errors/translatable';
 import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
 import { IConstants } from '../../interfaces';
 import { IECIESConfig } from '../../interfaces/ecies-config';
@@ -16,6 +17,7 @@ import { IDecryptionResult, ISingleEncryptedParsedHeader } from './interfaces';
 
 /**
  * Browser-compatible single recipient ECIES encryption/decryption
+ * basic mode is not run-length encoded, while single mode includes length prefix
  */
 export class EciesSingleRecipient {
   protected readonly aesGcmService: AESGCMService;
@@ -38,18 +40,22 @@ export class EciesSingleRecipient {
    * Encrypt a message for a single recipient
    */
   public async encrypt(
-    encryptSimple: boolean,
+    encryptionMode: EciesEncryptionTypeEnum,
     receiverPublicKey: Uint8Array,
     message: Uint8Array,
     preamble: Uint8Array = new Uint8Array(0),
   ): Promise<Uint8Array> {
-    const encryptionType: EciesEncryptionType = encryptSimple
-      ? 'simple'
-      : 'single';
+    if (encryptionMode === EciesEncryptionTypeEnum.Multiple) {
+      throw new TranslatableEciesError(
+        EciesStringKey.Error_ECIESError_InvalidEncryptionType,
+      );
+    }
+    const encryptionType: EciesEncryptionType =
+      encryptionMode === EciesEncryptionTypeEnum.Basic ? 'basic' : 'withLength';
     const encryptionTypeArray = new Uint8Array([
-      encryptionType === 'simple'
-        ? this.eciesConsts.ENCRYPTION_TYPE.SIMPLE
-        : this.eciesConsts.ENCRYPTION_TYPE.SINGLE,
+      encryptionType === 'basic'
+        ? this.eciesConsts.ENCRYPTION_TYPE.BASIC
+        : this.eciesConsts.ENCRYPTION_TYPE.WITH_LENGTH,
     ]);
 
     const versionArray = new Uint8Array([EciesVersionEnum.V1]);
@@ -144,9 +150,11 @@ export class EciesSingleRecipient {
 
     // Add length prefix for single mode
     const lengthArray =
-      encryptionType === 'simple' ? new Uint8Array(0) : new Uint8Array(8);
+      encryptionMode === EciesEncryptionTypeEnum.Basic
+        ? new Uint8Array(0)
+        : new Uint8Array(UINT64_SIZE);
 
-    if (encryptionType === 'single') {
+    if (encryptionMode === EciesEncryptionTypeEnum.WithLength) {
       const view = new DataView(lengthArray.buffer);
       view.setBigUint64(0, BigInt(message.length), false); // big-endian
     }
@@ -234,11 +242,11 @@ export class EciesSingleRecipient {
     let actualEncryptionType: EciesEncryptionTypeEnum;
 
     switch (actualEncryptionTypeByte) {
-      case this.eciesConsts.ENCRYPTION_TYPE.SIMPLE:
-        actualEncryptionType = EciesEncryptionTypeEnum.Simple;
+      case this.eciesConsts.ENCRYPTION_TYPE.BASIC:
+        actualEncryptionType = EciesEncryptionTypeEnum.Basic;
         break;
-      case this.eciesConsts.ENCRYPTION_TYPE.SINGLE:
-        actualEncryptionType = EciesEncryptionTypeEnum.Single;
+      case this.eciesConsts.ENCRYPTION_TYPE.WITH_LENGTH:
+        actualEncryptionType = EciesEncryptionTypeEnum.WithLength;
         break;
       case this.eciesConsts.ENCRYPTION_TYPE.MULTIPLE:
         throw new Error(
@@ -276,10 +284,10 @@ export class EciesSingleRecipient {
     }
 
     const includeLengthAndCrc =
-      actualEncryptionType === EciesEncryptionTypeEnum.Single;
+      actualEncryptionType === EciesEncryptionTypeEnum.WithLength;
     const requiredSize = includeLengthAndCrc
-      ? this.eciesConsts.SINGLE.FIXED_OVERHEAD_SIZE
-      : this.eciesConsts.SIMPLE.FIXED_OVERHEAD_SIZE;
+      ? this.eciesConsts.WITH_LENGTH.FIXED_OVERHEAD_SIZE
+      : this.eciesConsts.BASIC.FIXED_OVERHEAD_SIZE;
 
     if (data.length < requiredSize) {
       throw new Error(
@@ -311,11 +319,14 @@ export class EciesSingleRecipient {
     offset += this.eciesConsts.AUTH_TAG_SIZE;
     // Extract length for single mode
     const dataLengthArray = includeLengthAndCrc
-      ? data.slice(offset, offset + this.eciesConsts.SINGLE.DATA_LENGTH_SIZE)
+      ? data.slice(
+          offset,
+          offset + this.eciesConsts.WITH_LENGTH.DATA_LENGTH_SIZE,
+        )
       : new Uint8Array(0);
 
     if (includeLengthAndCrc) {
-      offset += this.eciesConsts.SINGLE.DATA_LENGTH_SIZE;
+      offset += this.eciesConsts.WITH_LENGTH.DATA_LENGTH_SIZE;
     }
 
     const dataLength = includeLengthAndCrc
@@ -377,8 +388,8 @@ export class EciesSingleRecipient {
         authTag,
         dataLength,
         headerSize: includeLengthAndCrc
-          ? this.eciesConsts.SINGLE.FIXED_OVERHEAD_SIZE
-          : this.eciesConsts.SIMPLE.FIXED_OVERHEAD_SIZE,
+          ? this.eciesConsts.WITH_LENGTH.FIXED_OVERHEAD_SIZE
+          : this.eciesConsts.BASIC.FIXED_OVERHEAD_SIZE,
       },
       data: encryptedData,
       remainder,
@@ -428,9 +439,9 @@ export class EciesSingleRecipient {
       EciesCipherSuiteEnum.Secp256k1_Aes256Gcm_Sha256,
     ]);
     const encryptionTypeArray = new Uint8Array([
-      header.encryptionType === EciesEncryptionTypeEnum.Simple
-        ? this.eciesConsts.ENCRYPTION_TYPE.SIMPLE
-        : this.eciesConsts.ENCRYPTION_TYPE.SINGLE,
+      header.encryptionType === EciesEncryptionTypeEnum.Basic
+        ? this.eciesConsts.ENCRYPTION_TYPE.BASIC
+        : this.eciesConsts.ENCRYPTION_TYPE.WITH_LENGTH,
     ]);
 
     const preamble = header.preamble ?? new Uint8Array(preambleSize);
@@ -582,16 +593,5 @@ export class EciesSingleRecipient {
       this.eciesConsts,
       aad,
     );
-  }
-
-  private _arraysEqual(a: Uint8Array, b: Uint8Array): boolean {
-    if (a.length !== b.length) return false;
-
-    // Constant-time comparison to prevent timing attacks
-    let diff = 0;
-    for (let i = 0; i < a.length; i++) {
-      diff |= a[i] ^ b[i];
-    }
-    return diff === 0;
   }
 }

@@ -4,10 +4,12 @@
  */
 
 import { createRuntimeConfiguration } from '../../src/constants';
+import { PlatformID } from '../../src/interfaces/platform-id';
 import { CustomIdProvider, ObjectIdProvider } from '../../src/lib/id-providers';
 import { EciesCryptoCore } from '../../src/services/ecies/crypto-core';
 import { ECIESService } from '../../src/services/ecies/service';
 import { MultiRecipientProcessor } from '../../src/services/multi-recipient-processor';
+import { TypedIdProviderWrapper } from '../../src/typed-configuration';
 
 describe('Byte Order and Assembly Tests', () => {
   let eciesService: ECIESService;
@@ -23,8 +25,7 @@ describe('Byte Order and Assembly Tests', () => {
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       const message = new Uint8Array(0x12345678 % 65536); // Use modulo to keep size reasonable
 
-      const encrypted = await eciesService.encryptSimpleOrSingle(
-        false, // Single mode has length field
+      const encrypted = await eciesService.encryptWithLength(
         keyPair.publicKey,
         message,
       );
@@ -48,10 +49,18 @@ describe('Byte Order and Assembly Tests', () => {
     });
 
     it('should use big-endian for multi-recipient headers', async () => {
+      const p = new ObjectIdProvider();
       const config = createRuntimeConfiguration({
-        idProvider: new ObjectIdProvider(),
+        idProvider: p,
       });
-      const processor = new MultiRecipientProcessor(eciesService, config);
+      const idProvider = new TypedIdProviderWrapper<PlatformID>(p);
+      const processor = new MultiRecipientProcessor(
+        config,
+        config.ECIES_CONFIG,
+        eciesService,
+        idProvider,
+        config.ECIES,
+      );
 
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       const message = new Uint8Array(0x1234); // Specific length to test
@@ -85,8 +94,7 @@ describe('Byte Order and Assembly Tests', () => {
 
       for (const length of testLengths) {
         const message = new Uint8Array(length % 65536); // Keep reasonable size
-        const encrypted = await eciesService.encryptSimpleOrSingle(
-          false,
+        const encrypted = await eciesService.encryptWithLength(
           keyPair.publicKey,
           message,
         );
@@ -107,10 +115,18 @@ describe('Byte Order and Assembly Tests', () => {
 
   describe('Alignment and Padding', () => {
     it('should properly align multi-recipient header fields', async () => {
+      const p = new ObjectIdProvider();
       const config = createRuntimeConfiguration({
-        idProvider: new ObjectIdProvider(),
+        idProvider: p,
       });
-      const processor = new MultiRecipientProcessor(eciesService, config);
+      const idProvider = new TypedIdProviderWrapper<PlatformID>(p);
+      const processor = new MultiRecipientProcessor(
+        config,
+        config.ECIES_CONFIG,
+        eciesService,
+        idProvider,
+        config.ECIES,
+      );
 
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       const message = new Uint8Array([1, 2, 3]);
@@ -159,10 +175,18 @@ describe('Byte Order and Assembly Tests', () => {
       const idSizes = [1, 4, 12, 16, 20, 32];
 
       for (const idSize of idSizes) {
+        const p = new CustomIdProvider(idSize);
         const config = createRuntimeConfiguration({
-          idProvider: new CustomIdProvider(idSize),
+          idProvider: p,
         });
-        const processor = new MultiRecipientProcessor(eciesService, config);
+        const idProvider = new TypedIdProviderWrapper<PlatformID>(p);
+        const processor = new MultiRecipientProcessor(
+          config,
+          config.ECIES_CONFIG,
+          eciesService,
+          idProvider,
+          config.ECIES,
+        );
 
         const keyPair = await cryptoCore.generateEphemeralKeyPair();
         const message = new Uint8Array([1, 2, 3]);
@@ -190,10 +214,18 @@ describe('Byte Order and Assembly Tests', () => {
     });
 
     it('should maintain 8-byte alignment for critical fields', async () => {
+      const p = new ObjectIdProvider();
       const config = createRuntimeConfiguration({
-        idProvider: new ObjectIdProvider(),
+        idProvider: p,
       });
-      const processor = new MultiRecipientProcessor(eciesService, config);
+      const idProvider = new TypedIdProviderWrapper<PlatformID>(p);
+      const processor = new MultiRecipientProcessor(
+        config,
+        config.ECIES_CONFIG,
+        eciesService,
+        idProvider,
+        config.ECIES,
+      );
 
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       const message = new Uint8Array([1, 2, 3]);
@@ -230,8 +262,7 @@ describe('Byte Order and Assembly Tests', () => {
         const message = new Uint8Array(size);
         message.fill(size % 256);
 
-        const encrypted = await eciesService.encryptSimpleOrSingle(
-          false, // Single mode
+        const encrypted = await eciesService.encryptWithLength(
           keyPair.publicKey,
           message,
         );
@@ -265,10 +296,18 @@ describe('Byte Order and Assembly Tests', () => {
     });
 
     it('should handle boundary conditions in header parsing', async () => {
+      const p = new ObjectIdProvider();
       const config = createRuntimeConfiguration({
-        idProvider: new ObjectIdProvider(),
+        idProvider: p,
       });
-      const processor = new MultiRecipientProcessor(eciesService, config);
+      const idProvider = new TypedIdProviderWrapper<PlatformID>(p);
+      const processor = new MultiRecipientProcessor(
+        config,
+        config.ECIES_CONFIG,
+        eciesService,
+        idProvider,
+        config.ECIES,
+      );
 
       // Test with maximum practical recipient count
       const maxRecipients = 10; // Reduced for test performance
@@ -313,8 +352,7 @@ describe('Byte Order and Assembly Tests', () => {
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       const message = new Uint8Array([0x12, 0x34, 0x56, 0x78]);
 
-      const encrypted = await eciesService.encryptSimpleOrSingle(
-        false,
+      const encrypted = await eciesService.encryptWithLength(
         keyPair.publicKey,
         message,
       );
@@ -330,8 +368,7 @@ describe('Byte Order and Assembly Tests', () => {
       expect(lengthBytes).toEqual(expectedBytes);
 
       // Verify decryption works
-      const decrypted = await eciesService.decryptSimpleOrSingleWithHeader(
-        false,
+      const decrypted = await eciesService.decryptWithLengthAndHeader(
         keyPair.privateKey,
         encrypted,
       );
@@ -347,8 +384,7 @@ describe('Byte Order and Assembly Tests', () => {
       const keyPair = await cryptoCore.generateEphemeralKeyPair();
       const message = new Uint8Array([1, 2, 3, 4, 5]);
 
-      const encrypted = await eciesService.encryptSimpleOrSingle(
-        false,
+      const encrypted = await eciesService.encryptWithLength(
         keyPair.publicKey,
         message,
       );
@@ -358,8 +394,7 @@ describe('Byte Order and Assembly Tests', () => {
       unalignedEncrypted.set(encrypted);
 
       // Should still decrypt correctly despite unaligned access
-      const decrypted = await eciesService.decryptSimpleOrSingleWithHeader(
-        false,
+      const decrypted = await eciesService.decryptWithLengthAndHeader(
         keyPair.privateKey,
         unalignedEncrypted,
       );
@@ -378,14 +413,12 @@ describe('Byte Order and Assembly Tests', () => {
         message[i] = i;
       }
 
-      const encrypted = await eciesService.encryptSimpleOrSingle(
-        true,
+      const encrypted = await eciesService.encryptBasic(
         keyPair.publicKey,
         message,
       );
 
-      const decrypted = await eciesService.decryptSimpleOrSingleWithHeader(
-        true,
+      const decrypted = await eciesService.decryptBasicWithHeader(
         keyPair.privateKey,
         encrypted,
       );
@@ -411,14 +444,12 @@ describe('Byte Order and Assembly Tests', () => {
       ];
 
       for (const pattern of problematicPatterns) {
-        const encrypted = await eciesService.encryptSimpleOrSingle(
-          true,
+        const encrypted = await eciesService.encryptBasic(
           keyPair.publicKey,
           pattern,
         );
 
-        const decrypted = await eciesService.decryptSimpleOrSingleWithHeader(
-          true,
+        const decrypted = await eciesService.decryptBasicWithHeader(
           keyPair.privateKey,
           encrypted,
         );

@@ -113,7 +113,8 @@ describe('PasswordLoginService', () => {
     mockEciesService = {
       walletAndSeedFromMnemonic: jest.fn(),
       encrypt: jest.fn(),
-      decryptSimpleOrSingleWithHeader: jest.fn(),
+      decryptBasicWithHeader: jest.fn(),
+      decryptWithLengthAndHeader: jest.fn(),
     } as any;
 
     mockMnemonic = {
@@ -235,7 +236,7 @@ describe('PasswordLoginService', () => {
 
       // Verify mnemonic encryption
       expect(mockEciesService.encrypt).toHaveBeenCalledWith(
-        EciesEncryptionTypeEnum.Simple,
+        EciesEncryptionTypeEnum.Basic,
         mockWallet.getPublicKey(),
         mockMnemonic.valueAsUint8Array,
       );
@@ -322,7 +323,7 @@ describe('PasswordLoginService', () => {
       const mockEncryptedMnemonic = new Uint8Array([5, 6, 7, 8]);
 
       (Wallet as any).fromPrivateKey = jest.fn().mockReturnValue(mockWallet);
-      mockEciesService.decryptSimpleOrSingleWithHeader.mockResolvedValue(
+      mockEciesService.decryptBasicWithHeader.mockResolvedValue(
         new Uint8Array([109, 110, 101, 109, 111, 110, 105, 99]),
       );
 
@@ -366,7 +367,7 @@ describe('PasswordLoginService', () => {
         }
       });
 
-      mockEciesService.decryptSimpleOrSingleWithHeader.mockResolvedValue(
+      mockEciesService.decryptBasicWithHeader.mockResolvedValue(
         mockDecryptedMnemonic,
       );
 
@@ -411,10 +412,7 @@ describe('PasswordLoginService', () => {
       );
 
       // Verify ECIES decryption
-      expect(
-        mockEciesService.decryptSimpleOrSingleWithHeader,
-      ).toHaveBeenCalledWith(
-        true,
+      expect(mockEciesService.decryptBasicWithHeader).toHaveBeenCalledWith(
         mockWallet.getPrivateKey(),
         expect.any(Uint8Array),
       );
@@ -501,7 +499,7 @@ describe('PasswordLoginService', () => {
     });
 
     it('should handle ECIES decryption failure', async () => {
-      mockEciesService.decryptSimpleOrSingleWithHeader.mockRejectedValue(
+      mockEciesService.decryptBasicWithHeader.mockRejectedValue(
         new Error('Invalid initialization vector (IV)'),
       );
 
@@ -540,7 +538,7 @@ describe('PasswordLoginService', () => {
 
       // Mock Wallet.fromPrivateKey for recovery
       (Wallet as any).fromPrivateKey = jest.fn().mockReturnValue(mockWallet);
-      mockEciesService.decryptSimpleOrSingleWithHeader.mockResolvedValue(
+      mockEciesService.decryptBasicWithHeader.mockResolvedValue(
         new Uint8Array([109, 110, 101, 109, 111, 110, 105, 99]),
       );
 

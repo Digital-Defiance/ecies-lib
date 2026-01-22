@@ -68,8 +68,7 @@ describe('EciesEncryptTransform Unit Tests', () => {
     expect(chunks.length).toBe(1);
     const encryptedData = chunks[0];
 
-    const decryptedData = await eciesService.decryptSimpleOrSingleWithHeader(
-      true,
+    const decryptedData = await eciesService.decryptBasicWithHeader(
       keypair.privateKey,
       encryptedData,
     );
@@ -95,11 +94,7 @@ describe('EciesEncryptTransform Unit Tests', () => {
 
     const decryptedChunks = await Promise.all(
       chunks.map((encryptedBlock) =>
-        eciesService.decryptSimpleOrSingleWithHeader(
-          true,
-          keypair.privateKey,
-          encryptedBlock,
-        ),
+        eciesService.decryptBasicWithHeader(keypair.privateKey, encryptedBlock),
       ),
     );
     const decryptedData = new Uint8Array([

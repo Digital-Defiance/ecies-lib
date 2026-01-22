@@ -21,7 +21,11 @@ describe('Multi-Recipient Security', () => {
   beforeEach(() => {
     ecies = new ECIESService();
     stream = new EncryptionStream(ecies);
-    processor = new MultiRecipientProcessor(ecies);
+    processor = new MultiRecipientProcessor(
+      Constants,
+      Constants.ECIES_CONFIG,
+      ecies,
+    );
     idProvider = getEnhancedIdProvider<ObjectId>();
   });
 
@@ -232,7 +236,11 @@ describe('Multi-Recipient Security', () => {
     it('should use constant-time comparison (implementation check)', () => {
       // This test verifies the implementation uses XOR-based comparison
       // Actual timing tests are unreliable in test environments
-      const processor = new MultiRecipientProcessor(ecies);
+      const processor = new MultiRecipientProcessor(
+        Constants,
+        Constants.ECIES_CONFIG,
+        ecies,
+      );
 
       // Access private method via any cast for testing
       const arraysEqual = (processor as any).arraysEqual.bind(processor);

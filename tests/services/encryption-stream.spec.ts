@@ -29,7 +29,7 @@ describe('EncryptionStream', () => {
       const header = stream.buildStreamHeader({
         magic: STREAM_HEADER_CONSTANTS.MAGIC,
         version: STREAM_HEADER_CONSTANTS.VERSION,
-        encryptionType: EciesEncryptionTypeEnum.Single,
+        encryptionType: EciesEncryptionTypeEnum.WithLength,
         chunkSize: 1024 * 1024,
         totalChunks: 10,
         totalBytes: 10 * 1024 * 1024,
@@ -45,7 +45,7 @@ describe('EncryptionStream', () => {
       const original = {
         magic: STREAM_HEADER_CONSTANTS.MAGIC,
         version: STREAM_HEADER_CONSTANTS.VERSION,
-        encryptionType: EciesEncryptionTypeEnum.Single,
+        encryptionType: EciesEncryptionTypeEnum.WithLength,
         chunkSize: 1024 * 1024,
         totalChunks: 5,
         totalBytes: 5000000,
@@ -161,7 +161,7 @@ describe('EncryptionStream', () => {
         }
         fail('Should have thrown AbortError');
       } catch (error: unknown) {
-        expect(error.name).toBe('AbortError');
+        expect((error as Error).name).toBe('AbortError');
         expect(chunkCount).toBe(2);
       }
     });
@@ -173,7 +173,7 @@ describe('EncryptionStream', () => {
       const source = StreamTestUtils.createAsyncIterable(original, 1024);
 
       // Encrypt
-      const encryptedChunks = [];
+      const encryptedChunks: Uint8Array[] = [];
       for await (const chunk of stream.encryptStream(source, publicKey)) {
         encryptedChunks.push(chunk.data);
       }
@@ -198,7 +198,7 @@ describe('EncryptionStream', () => {
       const source = StreamTestUtils.createAsyncIterable(original, 512 * 1024);
 
       // Encrypt
-      const encryptedChunks = [];
+      const encryptedChunks: Uint8Array[] = [];
       for await (const chunk of stream.encryptStream(source, publicKey, {
         chunkSize: 1024 * 1024,
       })) {
@@ -206,7 +206,7 @@ describe('EncryptionStream', () => {
       }
 
       // Decrypt
-      const decryptedChunks = [];
+      const decryptedChunks: Uint8Array[] = [];
       for await (const chunk of stream.decryptStream(
         (async function* () {
           for (const encrypted of encryptedChunks) {
@@ -227,14 +227,14 @@ describe('EncryptionStream', () => {
       const source = StreamTestUtils.createAsyncIterable(original, 1024 * 1024);
 
       // Encrypt
-      const encryptedChunks = [];
+      const encryptedChunks: Uint8Array[] = [];
       for await (const chunk of stream.encryptStream(source, publicKey)) {
         encryptedChunks.push(chunk.data);
       }
 
       // Try to decrypt in wrong order (swap chunks 0 and 1)
       await expect(async () => {
-        const decrypted = [];
+        const decrypted: Uint8Array[] = [];
         for await (const chunk of stream.decryptStream(
           (async function* () {
             yield encryptedChunks[1]; // Wrong! Should be 0
@@ -253,7 +253,7 @@ describe('EncryptionStream', () => {
       const source = StreamTestUtils.createAsyncIterable(original, 1024 * 1024);
 
       // Encrypt
-      const encryptedChunks = [];
+      const encryptedChunks: Uint8Array[] = [];
       for await (const chunk of stream.encryptStream(source, publicKey)) {
         encryptedChunks.push(chunk.data);
       }
@@ -279,7 +279,7 @@ describe('EncryptionStream', () => {
         }
         fail('Should have thrown AbortError');
       } catch (error: unknown) {
-        expect(error.name).toBe('AbortError');
+        expect((error as Error).name).toBe('AbortError');
         expect(chunkCount).toBe(2);
       }
     });

@@ -15,7 +15,7 @@ import { MemberBuilder } from '../../src/builders/member-builder';
 import { Constants, createRuntimeConfiguration } from '../../src/constants';
 import { EmailString } from '../../src/email-string';
 import { MemberType } from '../../src/enumerations/member-type';
-import { Guid } from '../../src/lib/guid';
+import { GuidUint8Array } from '../../src/lib/guid';
 import { GuidV4Provider, ObjectIdProvider } from '../../src/lib/id-providers';
 import { ECIESService } from '../../src/services/ecies/service';
 
@@ -36,7 +36,7 @@ describe('Unit Tests: MemberBuilder ID Generation', () => {
         .build();
 
       // ID matches service's configured idProvider (GuidV4)
-      expect(result.member.id).toBeInstanceOf(Guid);
+      expect(result.member.id).toBeInstanceOf(GuidUint8Array);
       expect(result.member.idBytes.length).toBe(16);
       expect(service.constants.idProvider.byteLength).toBe(16); // Service config is 16
     });
@@ -73,7 +73,7 @@ describe('Unit Tests: MemberBuilder ID Generation', () => {
         .generateMnemonic()
         .build();
 
-      expect(result.member.id).toBeInstanceOf(Guid);
+      expect(result.member.id).toBeInstanceOf(GuidUint8Array);
       expect(result.member.idBytes.length).toBe(16);
       expect(result.mnemonic).toBeDefined();
     });
@@ -145,9 +145,9 @@ describe('Unit Tests: MemberBuilder ID Generation', () => {
       expect(member3.member.idBytes.length).toBe(16);
 
       // All should be GuidV4 type
-      expect(member1.member.id).toBeInstanceOf(Guid);
-      expect(member2.member.id).toBeInstanceOf(Guid);
-      expect(member3.member.id).toBeInstanceOf(Guid);
+      expect(member1.member.id).toBeInstanceOf(GuidUint8Array);
+      expect(member2.member.id).toBeInstanceOf(GuidUint8Array);
+      expect(member3.member.id).toBeInstanceOf(GuidUint8Array);
 
       // IDs should be unique
       expect(member1.member.id.toString()).not.toBe(
@@ -188,7 +188,7 @@ describe('Unit Tests: MemberBuilder ID Generation', () => {
       // Each should match their service's idProvider
       expect(guidMember.member.idBytes.length).toBe(16);
       expect(objectIdMember.member.idBytes.length).toBe(12);
-      expect(guidMember.member.id).toBeInstanceOf(Guid);
+      expect(guidMember.member.id).toBeInstanceOf(GuidUint8Array);
       expect(objectIdMember.member.id).toBeInstanceOf(ObjectId);
     });
   });

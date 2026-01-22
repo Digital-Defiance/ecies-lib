@@ -99,7 +99,7 @@ export class PasswordLoginService {
 
     // now use the public key to encrypt the mnemonic and store it
     const encryptedMnemonic = await this.eciesService.encrypt(
-      EciesEncryptionTypeEnum.Simple,
+      EciesEncryptionTypeEnum.Basic,
       wallet.getPublicKey(),
       mnemonic.valueAsUint8Array,
     );
@@ -217,12 +217,10 @@ export class PasswordLoginService {
     const wallet = Wallet.fromPrivateKey(privateKeyBytes);
 
     // now decrypt the mnemonic
-    const decryptedMnemonic =
-      await this.eciesService.decryptSimpleOrSingleWithHeader(
-        true,
-        wallet.getPrivateKey(),
-        encryptedMnemonic,
-      );
+    const decryptedMnemonic = await this.eciesService.decryptBasicWithHeader(
+      wallet.getPrivateKey(),
+      encryptedMnemonic,
+    );
 
     return { wallet, mnemonic: new SecureString(decryptedMnemonic) };
   }

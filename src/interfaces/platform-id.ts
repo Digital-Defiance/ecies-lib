@@ -8,6 +8,6 @@
  */
 
 import type { ObjectId } from 'bson';
-import type { GuidV4 } from '../types/guid-versions';
+import type { GuidV4Uint8Array } from '../types/guid-versions';
 
-export type PlatformID = Uint8Array | GuidV4 | ObjectId | string;
+export type PlatformID = Uint8Array | GuidV4Uint8Array | ObjectId | string;

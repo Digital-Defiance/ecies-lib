@@ -69,8 +69,7 @@ describe('EciesDecryptTransform Unit Tests', () => {
 
   it('should decrypt input data', async () => {
     const inputData = crypto.getRandomValues(new Uint8Array(100));
-    const encryptedData = await eciesService.encryptSimpleOrSingle(
-      true,
+    const encryptedData = await eciesService.encryptBasic(
       keypair.publicKey,
       inputData,
     );
@@ -90,13 +89,11 @@ describe('EciesDecryptTransform Unit Tests', () => {
   it('should handle streaming input', async () => {
     const inputData1 = crypto.getRandomValues(new Uint8Array(500));
     const inputData2 = crypto.getRandomValues(new Uint8Array(500));
-    const encryptedBlock1 = await eciesService.encryptSimpleOrSingle(
-      true,
+    const encryptedBlock1 = await eciesService.encryptBasic(
       keypair.publicKey,
       inputData1,
     );
-    const encryptedBlock2 = await eciesService.encryptSimpleOrSingle(
-      true,
+    const encryptedBlock2 = await eciesService.encryptBasic(
       keypair.publicKey,
       inputData2,
     );
@@ -126,8 +123,7 @@ describe('EciesDecryptTransform Unit Tests', () => {
   it('should throw error with invalid private key', async () => {
     const invalidPrivateKey = crypto.getRandomValues(new Uint8Array(32));
     const inputData = crypto.getRandomValues(new Uint8Array(100));
-    const encryptedData = await eciesService.encryptSimpleOrSingle(
-      true,
+    const encryptedData = await eciesService.encryptBasic(
       keypair.publicKey,
       inputData,
     );

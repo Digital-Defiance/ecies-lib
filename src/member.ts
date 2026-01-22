@@ -581,11 +581,7 @@ export class Member<
     // Use recipient public key or self public key
     const targetPublicKey = recipientPublicKey || this._publicKey;
 
-    return await this._eciesService.encryptSimpleOrSingle(
-      false,
-      targetPublicKey,
-      arr,
-    );
+    return await this._eciesService.encryptWithLength(targetPublicKey, arr);
   }
 
   /**
@@ -599,8 +595,7 @@ export class Member<
       throw new MemberError(MemberErrorType.MissingPrivateKey);
     }
     // decryptSingleWithHeader now returns the Uint8Array directly
-    return await this._eciesService.decryptSimpleOrSingleWithHeader(
-      false,
+    return await this._eciesService.decryptWithLengthAndHeader(
       new Uint8Array(this._privateKey.value),
       encryptedData,
     );

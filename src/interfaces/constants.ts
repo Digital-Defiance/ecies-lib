@@ -7,6 +7,7 @@
 import type { IVotingConsts } from '../lib/voting/interfaces/voting-consts';
 import type { Pbkdf2Profiles } from '../pbkdf2-profiles';
 import type { IChecksumConsts } from './checksum-consts';
+import type { IECIESConfig } from './ecies-config';
 import type { IECIESConstants } from './ecies-consts';
 import type { IIdProviderBase } from './id-provider';
 import type { IPBkdf2Consts } from './pbkdf2-consts';
@@ -35,13 +36,6 @@ export interface IConstants {
    * @deprecated Use idProvider.byteLength instead for direct access
    */
   MEMBER_ID_LENGTH: number;
-
-  /**
-   * The length of a raw object ID (not the hex string representation).
-   * Standard MongoDB ObjectID is 12 bytes.
-   * @deprecated Use idProvider.byteLength instead for direct access
-   */
-  OBJECT_ID_LENGTH: number;
 
   /**
    * ID provider for recipient identification in multi-recipient encryption.
@@ -73,6 +67,8 @@ export interface IConstants {
   CHECKSUM: IChecksumConsts;
   /** ECIES encryption constants */
   ECIES: IECIESConstants;
+  /** ECIES configuration parameters */
+  ECIES_CONFIG: IECIESConfig;
   /** PBKDF2 key derivation constants */
   PBKDF2: IPBkdf2Consts;
   /** Predefined PBKDF2 configuration profiles */

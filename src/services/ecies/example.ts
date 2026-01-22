@@ -38,17 +38,12 @@ export async function basicEncryptionExample(): Promise<void> {
   console.log('Original message:', uint8ArrayToString(message));
 
   // Encrypt using single mode (with CRC and length)
-  const encrypted = await ecies.encryptSimpleOrSingle(
-    false,
-    publicKey,
-    message,
-  );
+  const encrypted = await ecies.encryptWithLength(publicKey, message);
   console.log('Encrypted data length:', encrypted.length);
   console.log('Encrypted data (hex):', uint8ArrayToHex(encrypted));
 
   // Decrypt the message
-  const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-    false,
+  const decrypted = await ecies.decryptWithLengthAndHeader(
     privateKey,
     encrypted,
   );
@@ -82,16 +77,11 @@ export async function simpleEncryptionExample(): Promise<void> {
   console.log('Original message:', uint8ArrayToString(message));
 
   // Encrypt using simple mode (no CRC, no length prefix)
-  const encrypted = await ecies.encryptSimpleOrSingle(
-    true,
-    receiverKeys.publicKey,
-    message,
-  );
+  const encrypted = await ecies.encryptBasic(receiverKeys.publicKey, message);
   console.log('Encrypted data length:', encrypted.length);
 
   // Decrypt the message
-  const decrypted = await ecies.decryptSimpleOrSingleWithHeader(
-    true,
+  const decrypted = await ecies.decryptBasicWithHeader(
     receiverKeys.privateKey,
     encrypted,
   );

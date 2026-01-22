@@ -131,14 +131,12 @@ describe('Property-Based Tests: ECIESService Constructor', () => {
             const keyPair = service.mnemonicToSimpleKeyPair(mnemonic);
             const message = new TextEncoder().encode('Test message');
 
-            const encrypted = await service.encryptSimpleOrSingle(
-              true,
+            const encrypted = await service.encryptBasic(
               keyPair.publicKey,
               message,
             );
 
-            const decrypted = await service.decryptSimpleOrSingleWithHeader(
-              true,
+            const decrypted = await service.decryptBasicWithHeader(
               keyPair.privateKey,
               encrypted,
             );
