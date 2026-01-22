@@ -1,17 +1,14 @@
+import { EmailString } from '../src/email-string';
+import { EciesCipherSuiteEnum } from '../src/enumerations/ecies-cipher-suite';
 import { EciesEncryptionTypeEnum } from '../src/enumerations/ecies-encryption-type';
 import { EciesVersionEnum } from '../src/enumerations/ecies-version';
-import { EciesCipherSuiteEnum } from '../src/enumerations/ecies-cipher-suite';
 import { MemberType } from '../src/enumerations/member-type';
-import { EmailString } from '../src/email-string';
-
 import { Member } from '../src/member';
 import { ECIESService } from '../src/services/ecies/service';
 
 describe('ECIESService - Coverage Tests', () => {
   let service: ECIESService;
   let member1: Member;
-  let member2: Member;
-
   beforeEach(() => {
     service = new ECIESService();
     member1 = Member.newMember(
@@ -19,12 +16,6 @@ describe('ECIESService - Coverage Tests', () => {
       MemberType.User,
       'user1',
       new EmailString('user1@test.com'),
-    ).member;
-    member2 = Member.newMember(
-      service,
-      MemberType.User,
-      'user2',
-      new EmailString('user2@test.com'),
     ).member;
   });
 
@@ -80,7 +71,10 @@ describe('ECIESService - Coverage Tests', () => {
       if (!member1.privateKey) throw new Error('Private key required');
 
       const message = Buffer.from('test message');
-      const encrypted = await service.encryptWithLength(member1.publicKey, message);
+      const encrypted = await service.encryptWithLength(
+        member1.publicKey,
+        message,
+      );
       const header = service.parseSingleEncryptedHeader(
         EciesEncryptionTypeEnum.WithLength,
         encrypted,
