@@ -468,12 +468,13 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
   /**
    * Decrypt with individual components
    */
-  public async decryptWithLengthWithComponents(
+  public async decryptWithComponents(
     privateKey: Uint8Array,
     ephemeralPublicKey: Uint8Array,
     iv: Uint8Array,
     authTag: Uint8Array,
     encrypted: Uint8Array,
+    aad?: Uint8Array,
   ): Promise<{ decrypted: Uint8Array; ciphertextLength?: number }> {
     const decrypted = await this.singleRecipient.decryptWithComponents(
       privateKey,
@@ -481,6 +482,7 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
       iv,
       authTag,
       encrypted,
+      aad,
     );
 
     return { decrypted, ciphertextLength: encrypted.length };
