@@ -65,8 +65,8 @@ export * from './secure-buffer';
 export * from './secure-string';
 export * from './services';
 export * from './transforms';
+export * from './ecies_types';
 export * from './types';
-export * from './types/guid-versions';
 export * from './utils';
 
 // Voting system exports (IMember already exported from ./interfaces)

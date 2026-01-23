@@ -1,15 +1,15 @@
 import * as uuid from 'uuid';
-import { GuidBrandType } from '../enumerations/guid-brand-type';
-import { GuidErrorType } from '../enumerations/guid-error-type';
-import { GuidError } from '../errors/guid';
-import type { IGuid } from '../interfaces/guid';
 import type {
   Base64Guid,
   BigIntGuid,
   FullHexGuid,
   RawGuidPlatformBuffer,
   ShortHexGuid,
-} from '../types';
+} from '../ecies_types';
+import { GuidBrandType } from '../enumerations/guid-brand-type';
+import { GuidErrorType } from '../enumerations/guid-error-type';
+import { GuidError } from '../errors/guid';
+import type { IGuid } from '../interfaces/guid';
 
 // Define a type that can handle all GUID variants
 export type GuidInput =

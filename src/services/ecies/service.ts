@@ -1,4 +1,5 @@
 import { Constants } from '../../constants';
+import { SignatureString, SignatureUint8Array } from '../../ecies_types';
 import {
   EciesEncryptionType,
   EciesEncryptionTypeEnum,
@@ -12,7 +13,6 @@ import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
 import { IIdProvider } from '../../interfaces/id-provider';
 import { SecureString } from '../../secure-string';
-import { SignatureString, SignatureUint8Array } from '../../types';
 import { VotingService } from '../voting.service';
 import { EciesCryptoCore } from './crypto-core';
 import {

@@ -1,5 +1,6 @@
 import { Wallet } from '@ethereumjs/wallet';
 import type { PrivateKey, PublicKey } from 'paillier-bigint';
+import { SignatureUint8Array } from './ecies_types';
 import { EmailString } from './email-string';
 import { MemberErrorType } from './enumerations/member-error-type';
 import { MemberType } from './enumerations/member-type';
@@ -18,7 +19,6 @@ import {
   deriveVotingKeysFromECDH,
   DeriveVotingKeysOptions,
 } from './services/voting.service';
-import { SignatureUint8Array } from './types';
 import {
   base64ToUint8Array,
   uint8ArrayToBase64,

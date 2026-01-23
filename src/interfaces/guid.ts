@@ -9,7 +9,7 @@ import type {
   FullHexGuid,
   RawGuidPlatformBuffer,
   ShortHexGuid,
-} from '../types';
+} from '../ecies_types';
 import type { PlatformBuffer } from './platform-buffer';
 
 export interface IGuid {

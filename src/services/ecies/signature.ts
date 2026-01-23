@@ -1,6 +1,6 @@
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { sha256 } from '@noble/hashes/sha2.js';
-import { SignatureString, SignatureUint8Array } from '../../types';
+import { SignatureString, SignatureUint8Array } from '../../ecies_types';
 import { uint8ArrayToHex } from '../../utils';
 import { EciesCryptoCore } from './crypto-core';
 

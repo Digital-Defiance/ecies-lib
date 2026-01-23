@@ -2,10 +2,10 @@
  * Integration helpers for using the browser ECIES service with existing web-crypto functionality
  */
 
+import { SignatureUint8Array } from '../../ecies_types';
 import { EciesStringKey } from '../../enumerations';
 import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
 import { SecureString } from '../../secure-string';
-import { SignatureUint8Array } from '../../types';
 import {
   hexToUint8Array,
   stringToUint8Array,

@@ -9,8 +9,8 @@ import {
   SecureString,
 } from '@digitaldefiance/ecies-lib';
 import { Constants } from '../constants';
+import { SignatureUint8Array } from '../ecies_types';
 import { IIdProvider } from '../interfaces/id-provider';
-import { SignatureUint8Array } from '../types';
 
 const hexToUint8Array = (hex: string): Uint8Array => {
   const clean = hex.replace(/^0x/, '');
