@@ -27,7 +27,14 @@ export type GuidInput =
  * The version is determined at parse time and provides compile-time information.
  */
 export type VersionedGuidUint8Array<
-  V extends 1 | 3 | 4 | 5 | undefined = 1 | 3 | 4 | 5 | undefined,
+  V extends 1 | 3 | 4 | 5 | 6 | 7 | undefined =
+    | 1
+    | 3
+    | 4
+    | 5
+    | 6
+    | 7
+    | undefined,
 > = GuidUint8Array & { readonly __version: V };
 
 /**
@@ -45,7 +52,7 @@ export class GuidUint8Array implements IGuid {
   /**
    * GUID is stored internally as a raw 16-byte Uint8Array.
    */
-  private readonly _value: RawGuidPlatformBuffer;
+  protected readonly _value: RawGuidPlatformBuffer;
 
   /**
    * Boundary value constants for special GUID validation
@@ -67,22 +74,22 @@ export class GuidUint8Array implements IGuid {
   /**
    * Cached full hex representation for performance
    */
-  private _cachedFullHex?: FullHexGuid;
+  protected _cachedFullHex?: FullHexGuid;
 
   /**
    * Cached short hex representation for performance
    */
-  private _cachedShortHex?: ShortHexGuid;
+  protected _cachedShortHex?: ShortHexGuid;
 
   /**
    * Cached base64 representation for performance
    */
-  private _cachedBase64?: Base64Guid;
+  protected _cachedBase64?: Base64Guid;
 
   /**
    * The RFC 4122 version of this GUID (1, 3, 4, 5, or undefined for boundary/invalid)
    */
-  public __version?: 1 | 3 | 4 | 5 | undefined;
+  public __version?: 1 | 3 | 4 | 5 | 6 | 7 | undefined;
 
   /**
    * Regex for validating hex strings (case insensitive)
@@ -505,6 +512,34 @@ export class GuidUint8Array implements IGuid {
       return GuidUint8Array.withVersion(
         new GuidUint8Array(v5Guid as FullHexGuid),
       ) as VersionedGuidUint8Array<5>;
+    } catch (error) {
+      if (error instanceof GuidError) {
+        throw error;
+      }
+      throw new GuidError(GuidErrorType.InvalidGuid);
+    }
+  }
+
+  public static v6(options?: uuid.Version6Options): VersionedGuidUint8Array<6> {
+    try {
+      const v6Guid = uuid.v6(options);
+      return GuidUint8Array.withVersion(
+        new GuidUint8Array(v6Guid as FullHexGuid),
+      ) as VersionedGuidUint8Array<6>;
+    } catch (error) {
+      if (error instanceof GuidError) {
+        throw error;
+      }
+      throw new GuidError(GuidErrorType.InvalidGuid);
+    }
+  }
+
+  public static v7(options?: uuid.Version7Options): VersionedGuidUint8Array<7> {
+    try {
+      const v7Guid = uuid.v7(options);
+      return GuidUint8Array.withVersion(
+        new GuidUint8Array(v7Guid as FullHexGuid),
+      ) as VersionedGuidUint8Array<7>;
     } catch (error) {
       if (error instanceof GuidError) {
         throw error;
@@ -1321,9 +1356,9 @@ export class GuidUint8Array implements IGuid {
    * Creates a v1 GUID (time-based).
    * @returns A new Guid instance containing a v1 GUID with __version attached
    */
-  public static v1(): VersionedGuidUint8Array<1> {
+  public static v1(options?: uuid.Version1Options): VersionedGuidUint8Array<1> {
     try {
-      const v1Guid = uuid.v1();
+      const v1Guid = uuid.v1(options);
       return GuidUint8Array.withVersion(
         new GuidUint8Array(v1Guid as FullHexGuid),
       ) as VersionedGuidUint8Array<1>;
