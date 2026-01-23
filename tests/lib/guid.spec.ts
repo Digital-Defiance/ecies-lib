@@ -2539,6 +2539,54 @@ describe('Guid', () => {
     });
   });
 
+  describe('V6 GUID Support', () => {
+    it('should create v6 GUID', () => {
+      const v6Guid = GuidUint8Array.v6();
+      expect(v6Guid).toBeInstanceOf(GuidUint8Array);
+      expect(v6Guid.getVersion()).toBe(6);
+    });
+
+    it('should create unique v6 GUIDs', () => {
+      const guid1 = GuidUint8Array.v6();
+      const guid2 = GuidUint8Array.v6();
+      expect(guid1.equals(guid2)).toBe(false);
+    });
+
+    it('should validate as v6', () => {
+      const v6Guid = GuidUint8Array.v6();
+      expect(v6Guid.isValidV6()).toBe(true);
+      expect(v6Guid.isValidV1()).toBe(false);
+      expect(v6Guid.isValidV3()).toBe(false);
+      expect(v6Guid.isValidV4()).toBe(false);
+      expect(v6Guid.isValidV5()).toBe(false);
+      expect(v6Guid.isValidV7()).toBe(false);
+    });
+  });
+
+  describe('V7 GUID Support', () => {
+    it('should create v7 GUID', () => {
+      const v7Guid = GuidUint8Array.v7();
+      expect(v7Guid).toBeInstanceOf(GuidUint8Array);
+      expect(v7Guid.getVersion()).toBe(7);
+    });
+
+    it('should create unique v7 GUIDs', () => {
+      const guid1 = GuidUint8Array.v7();
+      const guid2 = GuidUint8Array.v7();
+      expect(guid1.equals(guid2)).toBe(false);
+    });
+
+    it('should validate as v7', () => {
+      const v7Guid = GuidUint8Array.v7();
+      expect(v7Guid.isValidV7()).toBe(true);
+      expect(v7Guid.isValidV1()).toBe(false);
+      expect(v7Guid.isValidV3()).toBe(false);
+      expect(v7Guid.isValidV4()).toBe(false);
+      expect(v7Guid.isValidV5()).toBe(false);
+      expect(v7Guid.isValidV6()).toBe(false);
+    });
+  });
+
   describe('Variant Detection', () => {
     describe('getVariant', () => {
       it('should detect RFC 4122 variant for v4 GUID', () => {
@@ -2559,6 +2607,16 @@ describe('Guid', () => {
       it('should detect RFC 4122 variant for v5 GUID', () => {
         const v5Guid = GuidUint8Array.v5('test', GuidUint8Array.Namespaces.DNS);
         expect(v5Guid.getVariant()).toBe(1);
+      });
+
+      it('should detect RFC 4122 variant for v6 GUID', () => {
+        const v6Guid = GuidUint8Array.v6();
+        expect(v6Guid.getVariant()).toBe(1);
+      });
+
+      it('should detect RFC 4122 variant for v7 GUID', () => {
+        const v7Guid = GuidUint8Array.v7();
+        expect(v7Guid.getVariant()).toBe(1);
       });
     });
   });

@@ -1260,8 +1260,8 @@ export class GuidUint8Array implements IGuid {
     const versionByte = this._value[6];
     const version = (versionByte >> 4) & 0x0f;
 
-    // Valid RFC 4122 versions are 1-5
-    return version >= 1 && version <= 5 ? version : undefined;
+    // Valid RFC 4122 versions are 1-7
+    return version >= 1 && version <= 7 ? version : undefined;
   }
 
   /**
@@ -1293,6 +1293,22 @@ export class GuidUint8Array implements IGuid {
    */
   public isValidV5(): boolean {
     return this.getVersion() === 5;
+  }
+
+  /**
+   * Validates that this GUID is a proper v6 GUID according to RFC 4122.
+   * @returns True if valid v6 GUID, false otherwise
+   */
+  public isValidV6(): boolean {
+    return this.getVersion() === 6;
+  }
+
+  /**
+   * Validates that this GUID is a proper v7 GUID according to RFC 4122.
+   * @returns True if valid v7 GUID, false otherwise
+   */
+  public isValidV7(): boolean {
+    return this.getVersion() === 7;
   }
 
   /**
