@@ -25,6 +25,7 @@
   },
   "scripts": {
     "build": "npx nx build digitaldefiance-ecies-lib",
+    "build:prod": "NODE_ENV=production npx nx build digitaldefiance-ecies-lib --configuration=production",
     "build:stream": "npx nx build --outputStyle=stream digitaldefiance-ecies-lib",
     "build:logged": "npx nx build --outputStyle=stream digitaldefiance-ecies-lib 2>&1 | ansifilter -o build.log",
     "test": "npx nx test digitaldefiance-ecies-lib",
