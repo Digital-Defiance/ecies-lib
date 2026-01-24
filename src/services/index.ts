@@ -5,6 +5,7 @@
 
 export * from './aes-gcm';
 export * from './chunk-processor';
+export * from './crc';
 export * from './ecies';
 export * from './encryption-stream';
 export * from './multi-recipient-processor';
