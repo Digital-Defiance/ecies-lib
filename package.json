@@ -1,17 +1,11 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "4.15.0",
+  "version": "4.15.1",
   "description": "Digital Defiance ECIES Library",
   "homepage": "https://github.com/Digital-Defiance/ecies-lib",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Digital-Defiance/ecies-lib.git"
-  },
-  "resolutions": {
-    "@noble/curves": "2.0.1",
-    "@noble/hashes": "2.0.1",
-    "@scure/bip32": "2.0.1",
-    "@scure/base": "2.0.0"
   },
   "main": "src/index.js",
   "types": "src/index.d.ts",

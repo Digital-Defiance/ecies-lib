@@ -5,6 +5,7 @@ import { VoteEncoder, PollFactory, PollTallier, Member, MemberType, EmailString,
 import type { Poll, PollResults, PollConfiguration } from '@digitaldefiance/ecies-lib';
 
 export const ApprovalDemo = () => {
+  const [eciesService, _setEciesService] = useState<ECIESService<Uint8Array>>(new ECIESService<Uint8Array>());
   const [poll, setPoll] = useState<Poll<Uint8Array> | null>(null);
   const [authority, setAuthority] = useState<Member<Uint8Array> | null>(null);
   const [eventLogger, setEventLogger] = useState<PollEventLogger | null>(null);
@@ -27,7 +28,6 @@ export const ApprovalDemo = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const eciesService = new ECIESService<Uint8Array>();
         const { member } = Member.newMember<Uint8Array>(eciesService, MemberType.System, 'Election Authority', new EmailString('authority@example.com'));
         
         // Generate voting keys for the authority
@@ -35,7 +35,7 @@ export const ApprovalDemo = () => {
         
         setAuthority(member as Member<Uint8Array>);
         
-        const logger = new PollEventLogger();
+        const logger = new PollEventLogger(eciesService.idProvider);
         setEventLogger(logger);
         
         const newPoll = PollFactory.createApproval<Uint8Array>(candidates.map(c => c.name), member as Member<Uint8Array>);
@@ -112,7 +112,7 @@ export const ApprovalDemo = () => {
     setSubmittedVoters(new Set());
     setResults(null);
     
-    const logger = new PollEventLogger();
+    const logger = new PollEventLogger(eciesService.idProvider);
     setEventLogger(logger);
     const config: PollConfiguration = {
       method: 'approval',
