@@ -6,6 +6,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { resetRegistry } from '@digitaldefiance/branded-enum';
 
 describe('Interface Type-Only Imports', () => {
   describe('10.2 All interface files use only type imports', () => {
@@ -66,6 +67,7 @@ describe('Interface Type-Only Imports', () => {
     it('should verify interfaces do not execute runtime code', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       // Track if any runtime code executes
       let runtimeCodeExecuted = false;
@@ -121,6 +123,7 @@ describe('Interface Type-Only Imports', () => {
     it('should verify interfaces can be imported without side effects', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       // Track module loads
       const loadedModules = new Set<string>();
@@ -216,6 +219,7 @@ describe('Interface Type-Only Imports', () => {
     it('should verify interface imports are eliminated at runtime', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       // Import an interface
       const memberInterface = require('../../src/interfaces/member');

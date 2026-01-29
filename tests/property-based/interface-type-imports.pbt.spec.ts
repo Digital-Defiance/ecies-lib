@@ -12,6 +12,7 @@
 import * as fc from 'fast-check';
 import * as fs from 'fs';
 import * as path from 'path';
+import { resetRegistry } from '@digitaldefiance/branded-enum';
 /* eslint-enable import/order */
 
 describe('Property-Based Test: Interface Type-Only Imports', () => {
@@ -160,6 +161,7 @@ describe('Property-Based Test: Interface Type-Only Imports', () => {
       fc.property(fc.constantFrom(...interfaceFiles), (filename) => {
         // Clear module cache
         jest.resetModules();
+        resetRegistry();
 
         // Track module loads
         const loadedModules = new Set<string>();

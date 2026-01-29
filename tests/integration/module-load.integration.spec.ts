@@ -6,6 +6,8 @@
  * Validates Requirements 1.3, 3.5, 4.5
  */
 
+import { resetRegistry } from '@digitaldefiance/branded-enum';
+
 describe('Module Load Integration', () => {
   describe('12.1 Full module load test', () => {
     it('should import main index.ts without errors', () => {
@@ -136,6 +138,7 @@ describe('Module Load Integration', () => {
     it('should verify no circular dependency errors during initialization', () => {
       // Clear module cache to test fresh initialization
       jest.resetModules();
+      resetRegistry();
 
       // Track any errors during module loading
       const errors: Error[] = [];
