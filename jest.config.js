@@ -55,7 +55,7 @@ module.exports = {
     ],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(@faker-js|@noble|@scure|@ethereumjs))',
+    'node_modules/(?!(@faker-js|@noble|@scure|@ethereumjs|uuid))',
   ],
   moduleNameMapper: {
     '^@noble/hashes/(.*)\\.js$':

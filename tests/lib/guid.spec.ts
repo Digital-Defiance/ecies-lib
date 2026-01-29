@@ -11,7 +11,36 @@ import {
   ShortHexGuid,
 } from '../../src/types';
 
+// Mock uuid module for error handling tests
+jest.mock('uuid', () => ({
+  ...jest.requireActual('uuid'),
+  v1: jest.fn(),
+  v3: jest.fn(),
+  v4: jest.fn(),
+  v5: jest.fn(),
+}));
+
+const mockedUuid = uuid as jest.Mocked<typeof uuid>;
+
+// Store original implementations
+const originalV1 = jest.requireActual<typeof uuid>('uuid').v1;
+const originalV3 = jest.requireActual<typeof uuid>('uuid').v3;
+const originalV4 = jest.requireActual<typeof uuid>('uuid').v4;
+const originalV5 = jest.requireActual<typeof uuid>('uuid').v5;
+
 describe('Guid', () => {
+  // Reset mocks to use real implementations before each test
+  beforeEach(() => {
+    mockedUuid.v1.mockImplementation(originalV1);
+    mockedUuid.v3.mockImplementation(originalV3);
+    mockedUuid.v4.mockImplementation(originalV4);
+    mockedUuid.v5.mockImplementation(originalV5);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   // Test GUIDs in various formats
   const testFullHexGuid = '550e8400-e29b-41d4-a716-446655440000' as FullHexGuid;
   const testShortHexGuid = '550e8400e29b41d4a716446655440000' as ShortHexGuid;
@@ -2964,14 +2993,14 @@ describe('Guid', () => {
 
   describe('Error Handling Coverage', () => {
     it('should handle v1 generation errors', () => {
-      jest.spyOn(uuid, 'v1').mockImplementationOnce(() => {
+      mockedUuid.v1.mockImplementationOnce(() => {
         throw new Error('v1 error');
       });
       expect(() => GuidUint8Array.v1()).toThrow(GuidError);
     });
 
     it('should handle v3 generation errors', () => {
-      jest.spyOn(uuid, 'v3').mockImplementationOnce(() => {
+      mockedUuid.v3.mockImplementationOnce(() => {
         throw new Error('v3 error');
       });
       expect(() =>
@@ -2980,12 +3009,12 @@ describe('Guid', () => {
     });
 
     it('should handle v4 generation returning null', () => {
-      jest.spyOn(uuid, 'v4').mockImplementationOnce(() => null as any);
+      mockedUuid.v4.mockImplementationOnce(() => null as unknown as string);
       expect(() => GuidUint8Array.generate()).toThrow(GuidError);
     });
 
     it('should handle v5 generation errors', () => {
-      jest.spyOn(uuid, 'v5').mockImplementationOnce(() => {
+      mockedUuid.v5.mockImplementationOnce(() => {
         throw new Error('v5 error');
       });
       expect(() =>
@@ -3003,12 +3032,12 @@ describe('Guid', () => {
 
     it('should handle invalid toRawGuidPlatformBuffer input', () => {
       expect(() =>
-        GuidUint8Array.toRawGuidPlatformBuffer('invalid' as any),
+        GuidUint8Array.toRawGuidPlatformBuffer('invalid' as unknown as FullHexGuid),
       ).toThrow(GuidError);
     });
 
     it('should handle invalid brand in toRawGuidPlatformBuffer', () => {
-      const invalidInput = { length: 99 } as any;
+      const invalidInput = { length: 99 } as unknown as FullHexGuid;
       expect(() =>
         GuidUint8Array.toRawGuidPlatformBuffer(invalidInput),
       ).toThrow(GuidError);
@@ -3019,7 +3048,7 @@ describe('Guid', () => {
         toString: () => {
           throw new Error('test');
         },
-      } as any;
+      } as unknown as string;
       expect(GuidUint8Array.isBase64Guid(invalidValue)).toBe(false);
       expect(GuidUint8Array.isRawGuidUint8Array(invalidValue)).toBe(false);
       expect(GuidUint8Array.isBigIntGuid(invalidValue)).toBe(false);
@@ -3027,11 +3056,11 @@ describe('Guid', () => {
 
     it('should handle invalid length in toRawGuidPlatformBuffer result', () => {
       const shortArray = new Uint8Array(8);
-      expect(() => new GuidUint8Array(shortArray as any)).toThrow(GuidError);
+      expect(() => new GuidUint8Array(shortArray as unknown as RawGuidPlatformBuffer)).toThrow(GuidError);
     });
 
     it('should handle GuidError re-throw in v3', () => {
-      jest.spyOn(uuid, 'v3').mockImplementationOnce(() => {
+      mockedUuid.v3.mockImplementationOnce(() => {
         throw new GuidError(GuidErrorType.InvalidGuid);
       });
       expect(() =>
@@ -3040,7 +3069,7 @@ describe('Guid', () => {
     });
 
     it('should handle GuidError re-throw in v5', () => {
-      jest.spyOn(uuid, 'v5').mockImplementationOnce(() => {
+      mockedUuid.v5.mockImplementationOnce(() => {
         throw new GuidError(GuidErrorType.InvalidGuid);
       });
       expect(() =>
@@ -3049,7 +3078,7 @@ describe('Guid', () => {
     });
 
     it('should handle GuidError re-throw in v1', () => {
-      jest.spyOn(uuid, 'v1').mockImplementationOnce(() => {
+      mockedUuid.v1.mockImplementationOnce(() => {
         throw new GuidError(GuidErrorType.InvalidGuid);
       });
       expect(() => GuidUint8Array.v1()).toThrow(GuidError);
@@ -3060,7 +3089,7 @@ describe('Guid', () => {
       const mockValue = {
         length: 24,
         toString: () => 'VQ6EAOKbQdSnFkRmVUQAAA==',
-      } as any;
+      } as unknown as FullHexGuid;
       // This should hit the else branch and throw
       expect(() => GuidUint8Array.toRawGuidPlatformBuffer(mockValue)).toThrow(
         GuidError,
