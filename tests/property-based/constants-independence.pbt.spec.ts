@@ -8,8 +8,8 @@
  * of Member, SecureBuffer, SecureString, or any service classes.
  */
 
-import * as fc from 'fast-check';
 import { resetRegistry } from '@digitaldefiance/branded-enum';
+import * as fc from 'fast-check';
 
 describe('Property-Based Test: Constants Module Independence', () => {
   /**

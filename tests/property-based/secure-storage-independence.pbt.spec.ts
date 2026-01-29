@@ -8,8 +8,8 @@
  * without requiring the constants module to be fully initialized.
  */
 
-import * as fc from 'fast-check';
 import { resetRegistry } from '@digitaldefiance/branded-enum';
+import * as fc from 'fast-check';
 
 describe('Property-Based Test: Secure Storage Independence', () => {
   /**
