@@ -3,6 +3,7 @@
  * Validates Requirements 3.1, 3.2, 3.3, 3.4, 3.5
  */
 
+import { resetRegistry } from '@digitaldefiance/branded-enum';
 import { ObjectIdProvider } from '../src/lib/id-providers/objectid-provider';
 import { SecureBuffer } from '../src/secure-buffer';
 import { SecureString } from '../src/secure-string';
@@ -52,6 +53,7 @@ describe('Secure Storage with ID Provider Injection', () => {
 
       // Clear module cache to ensure fresh import
       jest.resetModules();
+      resetRegistry();
 
       const buffer = new SecureBuffer(data, customProvider);
 
@@ -106,6 +108,7 @@ describe('Secure Storage with ID Provider Injection', () => {
 
       // Clear module cache to ensure fresh import
       jest.resetModules();
+      resetRegistry();
 
       const secureStr = new SecureString(data, customProvider);
 

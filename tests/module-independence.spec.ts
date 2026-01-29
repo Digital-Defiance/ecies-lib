@@ -6,6 +6,8 @@
  * Requirements: 2.1, 2.3, 3.1, 3.2, 4.1, 4.2, 4.3, 5.1, 5.2, 5.4
  */
 
+import { resetRegistry } from '@digitaldefiance/branded-enum';
+
 describe('Module Independence Tests', () => {
   describe('9.1 Enumeration Import Test', () => {
     /**
@@ -15,6 +17,7 @@ describe('Module Independence Tests', () => {
     it('should import EciesStringKey without loading translations, i18n, errors, or constants', () => {
       // Clear module cache to start fresh
       jest.resetModules();
+      resetRegistry();
 
       // Track which modules get loaded
       const loadedModules = new Set<string>();
@@ -55,6 +58,7 @@ describe('Module Independence Tests', () => {
     it('should import EciesEncryptionType without loading errors or i18n', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       // Track loaded modules
       const loadedModules = new Set<string>();
@@ -88,6 +92,7 @@ describe('Module Independence Tests', () => {
     it('should import EciesErrorType without loading i18n or constants', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       // Track loaded modules
       const loadedModules = new Set<string>();
@@ -121,6 +126,7 @@ describe('Module Independence Tests', () => {
     it('should verify all enum values are defined after import', () => {
       // Import fresh
       jest.resetModules();
+      resetRegistry();
       const {
         EciesStringKey,
       } = require('../src/enumerations/ecies-string-key');
@@ -145,6 +151,7 @@ describe('Module Independence Tests', () => {
     it('should import translations without loading i18n or error modules', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       // Track loaded modules
       const loadedModules = new Set<string>();
@@ -179,6 +186,7 @@ describe('Module Independence Tests', () => {
     it('should verify translation keys correspond to defined enum values', () => {
       // Import fresh
       jest.resetModules();
+      resetRegistry();
       const {
         EciesStringKey,
       } = require('../src/enumerations/ecies-string-key');
@@ -203,6 +211,7 @@ describe('Module Independence Tests', () => {
     it('should verify enum values are not undefined when used in translations', () => {
       // Import fresh
       jest.resetModules();
+      resetRegistry();
       const {
         EciesStringKey,
       } = require('../src/enumerations/ecies-string-key');
@@ -219,8 +228,9 @@ describe('Module Independence Tests', () => {
     });
 
     it('should import all translation files without errors', () => {
-      // Clear module cache
+      // Clear module cache and reset branded-enum registry
       jest.resetModules();
+      resetRegistry();
 
       // Import all translation files
       const translationFiles = [
@@ -246,8 +256,9 @@ describe('Module Independence Tests', () => {
      * Requirements: 4.1, 4.2, 4.3
      */
     it('should create ECIESError without triggering circular dependencies', () => {
-      // Clear module cache
+      // Clear module cache and reset branded-enum registry
       jest.resetModules();
+      resetRegistry();
 
       // Import error class
       const { ECIESError } = require('../src/errors/ecies');
@@ -266,8 +277,9 @@ describe('Module Independence Tests', () => {
     });
 
     it('should access error message without circular dependency issues', () => {
-      // Clear module cache
+      // Clear module cache and reset branded-enum registry
       jest.resetModules();
+      resetRegistry();
 
       // Import error class
       const { ECIESError } = require('../src/errors/ecies');
@@ -308,8 +320,9 @@ describe('Module Independence Tests', () => {
     });
 
     it('should create errors with context information', () => {
-      // Clear module cache
+      // Clear module cache and reset branded-enum registry
       jest.resetModules();
+      resetRegistry();
 
       // Import error class
       const { ECIESError } = require('../src/errors/ecies');
@@ -340,8 +353,9 @@ describe('Module Independence Tests', () => {
     });
 
     it('should serialize error to JSON without circular references', () => {
-      // Clear module cache
+      // Clear module cache and reset branded-enum registry
       jest.resetModules();
+      resetRegistry();
 
       // Import error class
       const { ECIESError } = require('../src/errors/ecies');
@@ -362,8 +376,9 @@ describe('Module Independence Tests', () => {
     });
 
     it('should get detailed error report', () => {
-      // Clear module cache
+      // Clear module cache and reset branded-enum registry
       jest.resetModules();
+      resetRegistry();
 
       // Import error class
       const { ECIESError } = require('../src/errors/ecies');
@@ -401,6 +416,12 @@ describe('Module Independence Tests', () => {
      * Test that validation works during module initialization
      * Requirements: 5.1, 5.2, 5.4
      */
+    beforeEach(() => {
+      // Ensure clean module cache and registry before each test
+      jest.resetModules();
+      resetRegistry();
+    });
+
     it('should load constants without circular dependencies', () => {
       // Import constants - should not throw
       expect(() => require('../src/constants')).not.toThrow();

@@ -4,11 +4,14 @@
  * Validates Requirements 1.1, 1.2, 1.3
  */
 
+import { resetRegistry } from '@digitaldefiance/branded-enum';
+
 describe('Constants Module Independence', () => {
   describe('10.1 Constants module has no runtime dependencies on Member or services', () => {
     it('should import constants without triggering Member imports', () => {
       // Clear module cache to start fresh
       jest.resetModules();
+      resetRegistry();
 
       // Track which modules get loaded
       const loadedModules = new Set<string>();
@@ -41,6 +44,7 @@ describe('Constants Module Independence', () => {
     it('should import constants without triggering SecureBuffer imports', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       // Track loaded modules
       const loadedModules = new Set<string>();
@@ -76,6 +80,7 @@ describe('Constants Module Independence', () => {
     it('should import constants without triggering SecureString imports', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       // Track loaded modules
       const loadedModules = new Set<string>();
@@ -111,6 +116,7 @@ describe('Constants Module Independence', () => {
     it('should import constants without triggering service imports', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       // Track loaded modules
       const loadedModules = new Set<string>();
@@ -147,6 +153,7 @@ describe('Constants Module Independence', () => {
     it('should verify constants are fully initialized after import', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       // Import constants
       const { Constants } = require('../../src/constants');
@@ -167,6 +174,7 @@ describe('Constants Module Independence', () => {
     it('should validate constants without requiring Member class', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       // Import constants - validation happens during import
       const { Constants } = require('../../src/constants');
@@ -181,6 +189,7 @@ describe('Constants Module Independence', () => {
     it('should create runtime configuration without Member dependencies', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       const { createRuntimeConfiguration } = require('../../src/constants');
 
@@ -197,6 +206,7 @@ describe('Constants Module Independence', () => {
     it('should register configuration without triggering Member imports', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       // Track loaded modules
       const loadedModules = new Set<string>();

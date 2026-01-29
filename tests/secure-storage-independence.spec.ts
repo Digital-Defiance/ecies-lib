@@ -3,10 +3,13 @@
  * Validates Requirements 3.1, 3.2, 3.3
  */
 
+import { resetRegistry } from '@digitaldefiance/branded-enum';
+
 describe('Secure Storage Independence from Constants', () => {
   it('should import SecureBuffer without loading Constants module', () => {
     // Clear module cache
     jest.resetModules();
+    resetRegistry();
 
     // Track which modules get loaded
     const loadedModules = new Set<string>();
@@ -47,6 +50,7 @@ describe('Secure Storage Independence from Constants', () => {
   it('should import SecureString without loading Constants module', () => {
     // Clear module cache
     jest.resetModules();
+    resetRegistry();
 
     // Track which modules get loaded
     const loadedModules = new Set<string>();
@@ -87,6 +91,7 @@ describe('Secure Storage Independence from Constants', () => {
   it('should create SecureBuffer with default provider without Constants', () => {
     // Clear module cache
     jest.resetModules();
+    resetRegistry();
 
     const { SecureBuffer } = require('../src/secure-buffer');
     const {
@@ -106,6 +111,7 @@ describe('Secure Storage Independence from Constants', () => {
   it('should create SecureString with default provider without Constants', () => {
     // Clear module cache
     jest.resetModules();
+    resetRegistry();
 
     const { SecureString } = require('../src/secure-string');
     const {

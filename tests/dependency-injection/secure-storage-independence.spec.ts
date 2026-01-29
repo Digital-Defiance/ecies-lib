@@ -4,11 +4,14 @@
  * Validates Requirements 3.1, 3.2, 3.3
  */
 
+import { resetRegistry } from '@digitaldefiance/branded-enum';
+
 describe('Secure Storage Independence', () => {
   describe('10.3 SecureBuffer and SecureString are independent of constants', () => {
     it('should create SecureBuffer without loading Constants module', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       // Track which modules get loaded
       const loadedModules = new Set<string>();
@@ -58,6 +61,7 @@ describe('Secure Storage Independence', () => {
     it('should create SecureString without loading Constants module', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       // Track which modules get loaded
       const loadedModules = new Set<string>();
@@ -107,6 +111,7 @@ describe('Secure Storage Independence', () => {
     it('should create SecureBuffer with default provider without Constants', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       const { SecureBuffer } = require('../../src/secure-buffer');
 
@@ -127,6 +132,7 @@ describe('Secure Storage Independence', () => {
     it('should create SecureString with default provider without Constants', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       const { SecureString } = require('../../src/secure-string');
 
@@ -146,6 +152,7 @@ describe('Secure Storage Independence', () => {
     it('should verify SecureBuffer factory method uses Constants', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       const { SecureBuffer } = require('../../src/secure-buffer');
 
@@ -164,6 +171,7 @@ describe('Secure Storage Independence', () => {
     it('should verify SecureString factory method uses Constants', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       const { SecureString } = require('../../src/secure-string');
 
@@ -182,6 +190,7 @@ describe('Secure Storage Independence', () => {
     it('should create multiple SecureBuffers with different providers', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       const { SecureBuffer } = require('../../src/secure-buffer');
       const {
@@ -208,6 +217,7 @@ describe('Secure Storage Independence', () => {
     it('should create multiple SecureStrings with different providers', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       const { SecureString } = require('../../src/secure-string');
       const {
@@ -234,6 +244,7 @@ describe('Secure Storage Independence', () => {
     it('should verify SecureBuffer operations work without Constants', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       const { SecureBuffer } = require('../../src/secure-buffer');
       const {
@@ -258,6 +269,7 @@ describe('Secure Storage Independence', () => {
     it('should verify SecureString operations work without Constants', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       const { SecureString } = require('../../src/secure-string');
       const {
@@ -284,6 +296,7 @@ describe('Secure Storage Independence', () => {
     it('should verify empty SecureBuffer works without Constants', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       const { SecureBuffer } = require('../../src/secure-buffer');
       const {
@@ -302,6 +315,7 @@ describe('Secure Storage Independence', () => {
     it('should verify null SecureString works without Constants', () => {
       // Clear module cache
       jest.resetModules();
+      resetRegistry();
 
       const { SecureString } = require('../../src/secure-string');
       const {

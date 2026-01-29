@@ -9,6 +9,7 @@
  */
 
 import * as fc from 'fast-check';
+import { resetRegistry } from '@digitaldefiance/branded-enum';
 
 describe('Property-Based Test: Secure Storage Independence', () => {
   /**
@@ -25,6 +26,7 @@ describe('Property-Based Test: Secure Storage Independence', () => {
         (data) => {
           // Clear module cache to start fresh
           jest.resetModules();
+          resetRegistry();
 
           // Track which modules get loaded
           const loadedModules = new Set<string>();
@@ -104,6 +106,7 @@ describe('Property-Based Test: Secure Storage Independence', () => {
         (str) => {
           // Clear module cache
           jest.resetModules();
+          resetRegistry();
 
           // Track module loads
           const loadedModules = new Set<string>();
@@ -166,6 +169,7 @@ describe('Property-Based Test: Secure Storage Independence', () => {
         (bufferData, stringData) => {
           // Clear module cache
           jest.resetModules();
+          resetRegistry();
 
           // Track module loads
           const loadedModules = new Set<string>();
@@ -230,6 +234,7 @@ describe('Property-Based Test: Secure Storage Independence', () => {
       fc.property(fc.integer({ min: 1, max: 100 }), (_iteration) => {
         // Clear module cache
         jest.resetModules();
+        resetRegistry();
 
         // Track module loads
         const loadedModules = new Set<string>();
