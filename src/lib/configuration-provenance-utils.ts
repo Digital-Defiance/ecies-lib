@@ -1,5 +1,5 @@
-import { sha256 } from '@noble/hashes/sha2.js';
-import { bytesToHex } from '@noble/hashes/utils.js';
+import { sha256 } from '@noble/hashes/sha2';
+import { bytesToHex } from '@noble/hashes/utils';
 import type { PlatformID } from '../interfaces';
 import type { IConstants } from '../interfaces/constants';
 

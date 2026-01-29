@@ -2,7 +2,7 @@
  * Tests for VotingService (Web Crypto API version) - ECIES to Paillier key bridge
  */
 
-import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { secp256k1 } from '@noble/curves/secp256k1';
 import type { KeyPair, PrivateKey, PublicKey } from 'paillier-bigint';
 import {
   VotingService,

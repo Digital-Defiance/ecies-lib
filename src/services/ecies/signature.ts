@@ -1,5 +1,5 @@
-import { secp256k1 } from '@noble/curves/secp256k1.js';
-import { sha256 } from '@noble/hashes/sha2.js';
+import { secp256k1 } from '@noble/curves/secp256k1';
+import { sha256 } from '@noble/hashes/sha2';
 import { SignatureString, SignatureUint8Array } from '../../ecies_types';
 import { uint8ArrayToHex } from '../../utils';
 import { EciesCryptoCore } from './crypto-core';
@@ -24,12 +24,13 @@ export class EciesSignature {
   ): SignatureUint8Array {
     const hash = sha256(data);
     // Use deterministic signatures (RFC 6979) for consistency
-    // In v1.9.x, sign() returns a Signature object
-    const signature = secp256k1.sign(hash, privateKey, {
-      extraEntropy: false,
-    });
-    // Get compact format (64 bytes: r || s)
-    return signature.toCompactRawBytes() as SignatureUint8Array;
+    // sign() returns a RecoveredSignature object with toCompactRawBytes() for 64-byte output
+    return secp256k1
+      .sign(hash, privateKey, {
+        extraEntropy: false,
+        prehash: false,
+      })
+      .toCompactRawBytes() as SignatureUint8Array;
   }
 
   /**
@@ -51,6 +52,7 @@ export class EciesSignature {
           signature,
           hash,
           normalizedPublicKey,
+          { prehash: false },
         );
         if (directResult) return true;
       } catch {

@@ -1,4 +1,4 @@
-import { sha256 } from '@noble/hashes/sha2.js';
+import { sha256 } from '@noble/hashes/sha2';
 import { Constants } from '../constants';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
 import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';

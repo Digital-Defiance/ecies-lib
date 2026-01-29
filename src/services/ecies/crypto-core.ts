@@ -1,7 +1,7 @@
 import { Wallet } from '@ethereumjs/wallet';
-import { secp256k1 } from '@noble/curves/secp256k1.js';
-import { hkdf } from '@noble/hashes/hkdf.js';
-import { sha256 } from '@noble/hashes/sha2.js';
+import { secp256k1 } from '@noble/curves/secp256k1';
+import { hkdf } from '@noble/hashes/hkdf';
+import { sha256 } from '@noble/hashes/sha2';
 import { HDKey } from '@scure/bip32';
 import {
   generateMnemonic,
@@ -304,23 +304,12 @@ export class EciesCryptoCore {
    */
   public sign(privateKey: Uint8Array, message: Uint8Array): Uint8Array {
     const hash = sha256(message);
-    const signature = secp256k1.sign(hash, privateKey);
-    if (signature instanceof Uint8Array) {
-      return signature;
-    }
-    // Check if signature has toCompactRawBytes method
-    if (
-      signature &&
-      typeof signature === 'object' &&
-      'toCompactRawBytes' in signature
-    ) {
-      const sig = signature as { toCompactRawBytes: () => Uint8Array };
-      if (typeof sig.toCompactRawBytes === 'function') {
-        return sig.toCompactRawBytes();
-      }
-    }
-    // Fallback or error
-    throw new Error('Unknown signature format');
+    // sign() returns a RecoveredSignature object with toCompactRawBytes() for 64-byte output
+    return secp256k1
+      .sign(hash, privateKey, {
+        prehash: false,
+      })
+      .toCompactRawBytes();
   }
 
   /**
@@ -336,7 +325,7 @@ export class EciesCryptoCore {
   ): boolean {
     const hash = sha256(message);
     try {
-      return secp256k1.verify(signature, hash, publicKey);
+      return secp256k1.verify(signature, hash, publicKey, { prehash: false });
     } catch (_e) {
       return false;
     }
