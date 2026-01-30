@@ -375,22 +375,12 @@ export async function generateDeterministicPrime(
   drbg: SecureDeterministicDRBG,
   numBits: number,
   primeTestIterations: number = 256,
-  maxAttempts: number = 10000, // Reduced and enforced for timing attack mitigation
+  maxAttempts: number = 10000,
 ): Promise<bigint> {
   const numBytes = Math.ceil(numBits / 8);
   const topBitMask = 1 << ((numBits - 1) % 8);
 
-  // Always perform exactly maxAttempts iterations for timing attack mitigation
-  let foundPrime: bigint | null = null;
-
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    // Continue checking even after finding prime to maintain constant timing
-    if (foundPrime !== null) {
-      // Perform dummy operations to maintain timing consistency
-      await drbg.generate(numBytes);
-      continue;
-    }
-
     // Generate random bytes
     const bytes = await drbg.generate(numBytes);
 
@@ -423,15 +413,11 @@ export async function generateDeterministicPrime(
 
     // Miller-Rabin primality test
     if (millerRabinTest(candidate, primeTestIterations)) {
-      foundPrime = candidate;
+      return candidate;
     }
   }
 
-  if (foundPrime === null) {
-    throw new Error(`Failed to generate prime after ${maxAttempts} attempts`);
-  }
-
-  return foundPrime;
+  throw new Error(`Failed to generate prime after ${maxAttempts} attempts`);
 }
 
 /**

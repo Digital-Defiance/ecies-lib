@@ -1,6 +1,6 @@
 {
   "name": "@digitaldefiance/ecies-lib",
-  "version": "4.16.0",
+  "version": "4.16.1",
   "description": "Digital Defiance ECIES Library",
   "homepage": "https://github.com/Digital-Defiance/ecies-lib",
   "repository": {
