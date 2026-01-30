@@ -18,14 +18,27 @@ export default defineConfig({
       'tslib',
       '@digitaldefiance/ecies-lib',
       '@digitaldefiance/i18n-lib',
+      '@ethereumjs/wallet',
       '@noble/hashes',
       '@noble/curves',
+      '@scure/bip32',
+      '@scure/bip39',
+      'ethereum-cryptography',
       'bson',
       'uuid',
     ],
+    esbuildOptions: {
+      mainFields: ['module', 'main'],
+    },
   },
   resolve: {
-    dedupe: ['@noble/hashes', '@noble/curves'],
+    dedupe: [
+      '@noble/hashes',
+      '@noble/curves',
+      '@scure/bip32',
+      '@scure/bip39',
+      'ethereum-cryptography',
+    ],
   },
   define: {
     // Required for some packages that check for Node.js environment
