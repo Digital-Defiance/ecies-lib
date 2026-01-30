@@ -19,8 +19,13 @@ export default defineConfig({
       '@digitaldefiance/ecies-lib',
       '@digitaldefiance/i18n-lib',
       '@ethereumjs/wallet',
+      '@ethereumjs/util',
       '@noble/hashes',
+      '@noble/hashes/sha256',
+      '@noble/hashes/sha512',
+      '@noble/hashes/hmac',
       '@noble/curves',
+      '@noble/curves/secp256k1',
       '@scure/bip32',
       '@scure/bip39',
       'ethereum-cryptography',
@@ -30,6 +35,7 @@ export default defineConfig({
     esbuildOptions: {
       mainFields: ['module', 'main'],
     },
+    force: true,
   },
   resolve: {
     dedupe: [
@@ -38,6 +44,7 @@ export default defineConfig({
       '@scure/bip32',
       '@scure/bip39',
       'ethereum-cryptography',
+      '@ethereumjs/util',
     ],
   },
   define: {
