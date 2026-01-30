@@ -216,21 +216,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digitaldefiance/ecies-lib@npm:^4.15.2":
-  version: 4.15.2
-  resolution: "@digitaldefiance/ecies-lib@npm:4.15.2"
+"@digitaldefiance/ecies-lib@npm:^4.15.3":
+  version: 4.15.3
+  resolution: "@digitaldefiance/ecies-lib@npm:4.15.3"
   dependencies:
     "@digitaldefiance/i18n-lib": "npm:4.0.4"
-    "@ethereumjs/wallet": "npm:^2.0.4"
-    "@noble/curves": "npm:^1.4.2"
-    "@noble/hashes": "npm:^1.4.0"
-    "@scure/bip32": "npm:^1.4.0"
+    "@ethereumjs/wallet": "npm:^10.0.0"
+    "@noble/curves": "npm:^1.9.0"
+    "@noble/hashes": "npm:^1.8.0"
+    "@scure/bip32": "npm:^1.7.0"
     bson: "npm:^6.10.4"
     crc-32: "npm:^1.2.2"
     js-sha3: "npm:^0.9.3"
     paillier-bigint: "npm:^3.4.1"
     ts-brand: "npm:^0.2.0"
-  checksum: 10c0/ef26ad5870571f4d0bb20a7427aa16d7eb10c2d906c74cbf1fafe17ef4fa5fa7cdb7604b78b03ed2dd6d814b031f005f4a25071df31fb0fa48679d46514098e6
+  checksum: 10c0/a3c52b10a67446d0fad537bc8a4e90e53ab611e0a67c2210338dc9a7521227f735382e9716492bf0f4d578fb623220f557f40ed513274c29d7669bad42037d5e
   languageName: node
   linkType: hard
 
@@ -527,15 +527,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethereumjs/rlp@npm:^5.0.2":
-  version: 5.0.2
-  resolution: "@ethereumjs/rlp@npm:5.0.2"
-  bin:
-    rlp: bin/rlp.cjs
-  checksum: 10c0/56162eaee96dd429f0528a9e51b453398546d57f26057b3e188f2aa09efe8bd430502971c54238ca9cc42af41b0a3f137cf67b9e020d52bc83caca043d64911b
-  languageName: node
-  linkType: hard
-
 "@ethereumjs/util@npm:^10.0.0":
   version: 10.1.1
   resolution: "@ethereumjs/util@npm:10.1.1"
@@ -544,16 +535,6 @@ __metadata:
     "@noble/curves": "npm:^2.0.1"
     "@noble/hashes": "npm:^2.0.1"
   checksum: 10c0/d9f927b0031ff8c50f7fb2402016ceabde796c286f0d1cfbc21f5157cd0cabad87c28140800301f6e3b57e80405f4cd062d4a9f92f2ff2f8c50227547261d6db
-  languageName: node
-  linkType: hard
-
-"@ethereumjs/util@npm:^9.1.0":
-  version: 9.1.0
-  resolution: "@ethereumjs/util@npm:9.1.0"
-  dependencies:
-    "@ethereumjs/rlp": "npm:^5.0.2"
-    ethereum-cryptography: "npm:^2.2.1"
-  checksum: 10c0/7b55c79d90e55da873037b8283c37b61164f1712b194e2783bdb0a3401ff0999dc9d1404c7051589f71fb79e8aeb6952ec43ede21dd0028d7d9b1c07abcfff27
   languageName: node
   linkType: hard
 
@@ -567,19 +548,6 @@ __metadata:
     js-md5: "npm:^0.8.3"
     uuid: "npm:^11.1.0"
   checksum: 10c0/3ff2807437b1ab57137983ebb641adcc8745775ad7be46d9c658f7bc526a99cd56deee2e06a2718ba028029300791c6fedb93dffbcb7462bbc24fb50f75c1e31
-  languageName: node
-  linkType: hard
-
-"@ethereumjs/wallet@npm:^2.0.4":
-  version: 2.0.4
-  resolution: "@ethereumjs/wallet@npm:2.0.4"
-  dependencies:
-    "@ethereumjs/util": "npm:^9.1.0"
-    "@scure/base": "npm:^1.1.7"
-    ethereum-cryptography: "npm:^2.2.1"
-    js-md5: "npm:^0.8.3"
-    uuid: "npm:^9.0.1"
-  checksum: 10c0/9f3d9df3d11810fdb83275652d865cb6ee4ffd36efcddf3205ccd2423986c697d2c530e67ff2317e9fce679aab2766c35d28699540ccc062a837edd7fbe1b536
   languageName: node
   linkType: hard
 
@@ -964,7 +932,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@scure/base@npm:^1.1.7, @scure/base@npm:^1.2.4, @scure/base@npm:~1.2.5":
+"@scure/base@npm:^1.2.4, @scure/base@npm:~1.2.5":
   version: 1.2.6
   resolution: "@scure/base@npm:1.2.6"
   checksum: 10c0/49bd5293371c4e062cb6ba689c8fe3ea3981b7bb9c000400dc4eafa29f56814cdcdd27c04311c2fec34de26bc373c593a1d6ca6d754398a488d587943b7c128a
@@ -1510,7 +1478,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ecies-lib-showcase@workspace:."
   dependencies:
-    "@digitaldefiance/ecies-lib": "npm:^4.15.2"
+    "@digitaldefiance/ecies-lib": "npm:^4.15.3"
     "@digitaldefiance/i18n-lib": "npm:^4.0.4"
     "@eslint/js": "npm:^9.39.1"
     "@ethereumjs/wallet": "npm:^10.0.0"
@@ -3132,15 +3100,6 @@ __metadata:
   bin:
     uuid: dist/esm/bin/uuid
   checksum: 10c0/34aa51b9874ae398c2b799c88a127701408cd581ee89ec3baa53509dd8728cbb25826f2a038f9465f8b7be446f0fbf11558862965b18d21c993684297628d4d3
-  languageName: node
-  linkType: hard
-
-"uuid@npm:^9.0.1":
-  version: 9.0.1
-  resolution: "uuid@npm:9.0.1"
-  bin:
-    uuid: dist/bin/uuid
-  checksum: 10c0/1607dd32ac7fc22f2d8f77051e6a64845c9bce5cd3dd8aa0070c074ec73e666a1f63c7b4e0f4bf2bc8b9d59dc85a15e17807446d9d2b17c8485fbc2147b27f9b
   languageName: node
   linkType: hard
 
