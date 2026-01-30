@@ -5,10 +5,14 @@ import {
 } from '@digitaldefiance/i18n-lib';
 import { Wallet } from '@ethereumjs/wallet';
 import { Constants } from '../constants';
-import { EciesStringKey, PasswordLoginErrorTypeEnum } from '../enumerations';
 import { EciesEncryptionTypeEnum } from '../enumerations/ecies-encryption-type';
+import {
+  EciesStringKey,
+  EciesStringKeyValue,
+  EciesComponentId,
+} from '../enumerations/ecies-string-key';
+import { PasswordLoginErrorTypeEnum } from '../enumerations/password-login-error-type';
 import { Pbkdf2ProfileEnum } from '../enumerations/pbkdf2-profile';
-import { EciesComponentId } from '../i18n-setup';
 import { IECIESConstants } from '../interfaces/ecies-consts';
 import { SecureString } from '../secure-string';
 import { hexToUint8Array, uint8ArrayToHex } from '../utils';
@@ -146,11 +150,11 @@ export class PasswordLoginService {
     } catch (error) {
       throw new TypedHandleableError<
         typeof PasswordLoginErrorTypeEnum,
-        EciesStringKey
+        EciesStringKeyValue
       >(
         EciesComponentId,
         PasswordLoginErrorTypeEnum.FailedToStoreLoginData,
-        buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(
+        buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKeyValue>(
           PasswordLoginErrorTypeEnum,
           ['Error', 'PasswordLoginError'],
         ),
@@ -181,11 +185,11 @@ export class PasswordLoginService {
     if (!salt || !encryptedPrivateKey || !encryptedMnemonic) {
       throw new TypedHandleableError<
         typeof PasswordLoginErrorTypeEnum,
-        EciesStringKey
+        EciesStringKeyValue
       >(
         EciesComponentId,
         PasswordLoginErrorTypeEnum.PasswordLoginNotSetUp,
-        buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(
+        buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKeyValue>(
           PasswordLoginErrorTypeEnum,
           ['Error', 'PasswordLoginError'],
         ),
@@ -255,11 +259,11 @@ export class PasswordLoginService {
     ) {
       throw new TypedHandleableError<
         typeof PasswordLoginErrorTypeEnum,
-        EciesStringKey
+        EciesStringKeyValue
       >(
         EciesComponentId,
         PasswordLoginErrorTypeEnum.PasswordLoginNotSetUp,
-        buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKey>(
+        buildReasonMap<typeof PasswordLoginErrorTypeEnum, EciesStringKeyValue>(
           PasswordLoginErrorTypeEnum,
           ['Error', 'PasswordLoginError'],
         ),

@@ -7,13 +7,15 @@ import {
   HandleableErrorOptions,
   TypedHandleableError,
 } from '@digitaldefiance/i18n-lib';
-import { EciesStringKey } from '../enumerations/ecies-string-key';
+import {
+  EciesStringKeyValue,
+  EciesComponentId,
+} from '../enumerations/ecies-string-key';
 import { Pbkdf2ErrorType } from '../enumerations/pbkdf2-error-type';
-import { EciesComponentId } from '../i18n-setup';
 
 export class Pbkdf2Error extends TypedHandleableError<
   typeof Pbkdf2ErrorType,
-  EciesStringKey
+  EciesStringKeyValue
 > {
   constructor(
     type: Pbkdf2ErrorType,
@@ -25,10 +27,10 @@ export class Pbkdf2Error extends TypedHandleableError<
     super(
       EciesComponentId,
       type,
-      buildReasonMap<typeof Pbkdf2ErrorType, EciesStringKey>(Pbkdf2ErrorType, [
-        'Error',
-        'Pbkdf2Error',
-      ]),
+      buildReasonMap<typeof Pbkdf2ErrorType, EciesStringKeyValue>(
+        Pbkdf2ErrorType,
+        ['Error', 'Pbkdf2Error'],
+      ),
       source,
       options,
       language,

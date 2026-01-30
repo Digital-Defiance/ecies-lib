@@ -1,6 +1,10 @@
 import { TranslatableGenericError } from '@digitaldefiance/i18n-lib';
-import { EciesStringKey } from '../enumerations/ecies-string-key';
-import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import {
+  EciesStringKey,
+  EciesStringKeyValue,
+  EciesComponentId,
+} from '../enumerations/ecies-string-key';
+import { getEciesI18nEngine } from '../i18n-setup';
 import { IConstants } from '../interfaces/constants';
 import { IInvariant } from '../interfaces/invariant';
 import {
@@ -74,7 +78,7 @@ export class InvariantValidator {
 
     if (failures.length > 0) {
       const engine = getEciesI18nEngine();
-      throw TranslatableGenericError.withEngine<EciesStringKey>(
+      throw TranslatableGenericError.withEngine<EciesStringKeyValue>(
         engine,
         EciesComponentId,
         EciesStringKey.Error_Invariant_ConfigurationValidationFailedMultipleTemplate,
@@ -98,7 +102,7 @@ export class InvariantValidator {
     );
     if (!invariant) {
       const engine = getEciesI18nEngine();
-      throw TranslatableGenericError.withEngine<EciesStringKey>(
+      throw TranslatableGenericError.withEngine<EciesStringKeyValue>(
         engine,
         EciesComponentId,
         EciesStringKey.Error_Invariant_UnknownInvariantTemplate,
@@ -126,7 +130,7 @@ export class InvariantValidator {
     );
     if (!invariant) {
       const engine = getEciesI18nEngine();
-      throw TranslatableGenericError.withEngine<EciesStringKey>(
+      throw TranslatableGenericError.withEngine<EciesStringKeyValue>(
         engine,
         EciesComponentId,
         EciesStringKey.Error_Invariant_UnknownInvariantTemplate,

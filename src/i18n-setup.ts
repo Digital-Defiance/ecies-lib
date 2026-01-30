@@ -10,7 +10,10 @@ import {
   createCoreComponentRegistration,
   createDefaultLanguages,
 } from '@digitaldefiance/i18n-lib';
-import { EciesStringKey } from './enumerations/ecies-string-key';
+import {
+  EciesComponentId,
+  EciesStringKeyValue,
+} from './enumerations/ecies-string-key';
 import { germanTranslations } from './translations/de';
 import { englishTranslations } from './translations/en-US';
 import { spanishTranslations } from './translations/es';
@@ -20,7 +23,7 @@ import { ukrainianTranslations } from './translations/uk';
 import { mandarinChineseTranslations } from './translations/zh-cn';
 
 export const EciesI18nEngineKey = 'DigitalDefiance.Ecies.I18nEngine' as const;
-export const EciesComponentId = 'ecies' as const;
+export { EciesComponentId };
 
 /**
  * Create ECIES component configuration with all translations
@@ -111,7 +114,7 @@ export function resetEciesI18nEngine(): void {
  * Helper to translate ECIES strings
  */
 export function getEciesTranslation(
-  stringKey: EciesStringKey,
+  stringKey: EciesStringKeyValue,
   variables?: Record<string, string | number>,
   language?: string,
 ): string {
@@ -127,7 +130,7 @@ export function getEciesTranslation(
  * Safe translation with fallback
  */
 export function safeEciesTranslation(
-  stringKey: EciesStringKey,
+  stringKey: EciesStringKeyValue,
   variables?: Record<string, string | number>,
   language?: string,
 ): string {

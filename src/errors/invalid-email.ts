@@ -7,13 +7,15 @@ import {
   HandleableErrorOptions,
   TypedHandleableError,
 } from '@digitaldefiance/i18n-lib';
-import { EciesStringKey } from '../enumerations/ecies-string-key';
+import {
+  EciesStringKeyValue,
+  EciesComponentId,
+} from '../enumerations/ecies-string-key';
 import { InvalidEmailErrorType } from '../enumerations/invalid-email-type';
-import { EciesComponentId } from '../i18n-setup';
 
 export class InvalidEmailError extends TypedHandleableError<
   typeof InvalidEmailErrorType,
-  EciesStringKey
+  EciesStringKeyValue
 > {
   public readonly email?: string;
   constructor(
@@ -27,7 +29,7 @@ export class InvalidEmailError extends TypedHandleableError<
     super(
       EciesComponentId,
       type,
-      buildReasonMap<typeof InvalidEmailErrorType, EciesStringKey>(
+      buildReasonMap<typeof InvalidEmailErrorType, EciesStringKeyValue>(
         InvalidEmailErrorType,
         ['Error', 'InvalidEmailError'],
       ),

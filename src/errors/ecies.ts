@@ -4,8 +4,10 @@ import {
   TypedHandleableError,
 } from '@digitaldefiance/i18n-lib';
 import { ECIESErrorTypeEnum } from '../enumerations/ecies-error-type';
-import { EciesStringKey } from '../enumerations/ecies-string-key';
-import { EciesComponentId } from '../i18n-setup';
+import {
+  EciesStringKeyValue,
+  EciesComponentId,
+} from '../enumerations/ecies-string-key';
 
 /**
  * Context information captured when an error occurs.
@@ -47,7 +49,7 @@ export interface IErrorContext {
 
 export class ECIESError extends TypedHandleableError<
   typeof ECIESErrorTypeEnum,
-  EciesStringKey
+  EciesStringKeyValue
 > {
   /**
    * Rich context information for debugging
@@ -75,7 +77,7 @@ export class ECIESError extends TypedHandleableError<
     super(
       EciesComponentId,
       type,
-      buildReasonMap<typeof ECIESErrorTypeEnum, EciesStringKey>(
+      buildReasonMap<typeof ECIESErrorTypeEnum, EciesStringKeyValue>(
         ECIESErrorTypeEnum,
         ['Error', 'ECIESError'],
       ),

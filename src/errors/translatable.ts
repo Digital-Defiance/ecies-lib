@@ -1,9 +1,9 @@
-import { EciesStringKey } from '../enumerations';
+import { EciesStringKeyValue } from '../enumerations/ecies-string-key';
 import { getEciesTranslation } from '../i18n-setup';
 
 export class TranslatableEciesError extends Error {
   constructor(
-    public readonly error: EciesStringKey,
+    public readonly error: EciesStringKeyValue,
     public readonly params?: Record<string, string | number>,
     public readonly language?: string,
   ) {

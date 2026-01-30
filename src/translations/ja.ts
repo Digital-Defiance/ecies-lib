@@ -2,10 +2,13 @@
  * Japanese translations for ECIES library error messages and strings.
  */
 import { createPluralString, PluralString } from '@digitaldefiance/i18n-lib';
-import { EciesStringKey } from '../enumerations';
+import {
+  EciesStringKey,
+  EciesStringKeyValue,
+} from '../enumerations/ecies-string-key';
 
 export const japaneseTranslations: Record<
-  EciesStringKey,
+  EciesStringKeyValue,
   string | PluralString
 > = {
   // ECIES Error Types - buildReasonMap(ECIESErrorTypeEnum, 'Error', 'ECIESError')

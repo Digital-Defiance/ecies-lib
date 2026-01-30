@@ -7,13 +7,15 @@ import {
   HandleableErrorOptions,
   TypedHandleableError,
 } from '@digitaldefiance/i18n-lib';
-import { EciesStringKey } from '../enumerations/ecies-string-key';
+import {
+  EciesStringKeyValue,
+  EciesComponentId,
+} from '../enumerations/ecies-string-key';
 import { LengthErrorType } from '../enumerations/length-error-type';
-import { EciesComponentId } from '../i18n-setup';
 
 export class LengthError extends TypedHandleableError<
   typeof LengthErrorType,
-  EciesStringKey
+  EciesStringKeyValue
 > {
   constructor(
     type: LengthErrorType,
@@ -25,10 +27,10 @@ export class LengthError extends TypedHandleableError<
     super(
       EciesComponentId,
       type,
-      buildReasonMap<typeof LengthErrorType, EciesStringKey>(LengthErrorType, [
-        'Error',
-        'LengthError',
-      ]),
+      buildReasonMap<typeof LengthErrorType, EciesStringKeyValue>(
+        LengthErrorType,
+        ['Error', 'LengthError'],
+      ),
       source,
       options,
       language,

@@ -1,6 +1,9 @@
 import { TranslatableGenericError } from '@digitaldefiance/i18n-lib';
-import { EciesStringKey } from '../enumerations';
-import { EciesComponentId } from '../i18n-setup';
+import {
+  EciesStringKey,
+  EciesStringKeyValue,
+  EciesComponentId,
+} from '../enumerations/ecies-string-key';
 
 /**
  * Error thrown when operations are attempted on disposed objects.
@@ -12,7 +15,7 @@ import { EciesComponentId } from '../i18n-setup';
  * throw new DisposedError('fr'); // French
  * ```
  */
-export class DisposedError extends TranslatableGenericError<EciesStringKey> {
+export class DisposedError extends TranslatableGenericError<EciesStringKeyValue> {
   /**
    * Optional timestamp when the object was disposed
    */

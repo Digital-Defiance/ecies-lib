@@ -3,10 +3,12 @@ import {
   TypedHandleableError,
 } from '@digitaldefiance/i18n-lib';
 import type { RawGuidPlatformBuffer } from '../ecies_types';
-import { EciesStringKey } from '../enumerations';
+import {
+  EciesStringKeyValue,
+  EciesComponentId,
+} from '../enumerations/ecies-string-key';
 import { GuidBrandType } from '../enumerations/guid-brand-type';
 import { GuidErrorType } from '../enumerations/guid-error-type';
-import { EciesComponentId } from '../i18n-setup';
 import { Buffer } from '../lib/buffer-compat';
 
 /**
@@ -22,7 +24,7 @@ import { Buffer } from '../lib/buffer-compat';
  */
 export class GuidError extends TypedHandleableError<
   typeof GuidErrorType,
-  EciesStringKey
+  EciesStringKeyValue
 > {
   /**
    * Reason map cache to avoid rebuilding on every error instantiation.
@@ -30,7 +32,7 @@ export class GuidError extends TypedHandleableError<
    */
   private static readonly REASON_MAP = buildReasonMap<
     typeof GuidErrorType,
-    EciesStringKey
+    EciesStringKeyValue
   >(
     GuidErrorType,
     ['Error', 'GuidError'],

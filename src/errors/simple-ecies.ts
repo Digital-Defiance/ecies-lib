@@ -7,12 +7,15 @@ import {
   HandleableErrorOptions,
   TypedHandleableError,
 } from '@digitaldefiance/i18n-lib';
-import { ECIESErrorTypeEnum, EciesStringKey } from '../enumerations';
-import { EciesComponentId } from '../i18n-setup';
+import { ECIESErrorTypeEnum } from '../enumerations/ecies-error-type';
+import {
+  EciesStringKeyValue,
+  EciesComponentId,
+} from '../enumerations/ecies-string-key';
 
 export class SimpleECIESError extends TypedHandleableError<
   typeof ECIESErrorTypeEnum,
-  EciesStringKey
+  EciesStringKeyValue
 > {
   constructor(
     type: ECIESErrorTypeEnum,
@@ -22,10 +25,10 @@ export class SimpleECIESError extends TypedHandleableError<
   ) {
     const source =
       options?.cause instanceof Error ? options.cause : new Error();
-    const reasonMap = buildReasonMap<typeof ECIESErrorTypeEnum, EciesStringKey>(
-      ECIESErrorTypeEnum,
-      ['Error', 'ECIESError'],
-    );
+    const reasonMap = buildReasonMap<
+      typeof ECIESErrorTypeEnum,
+      EciesStringKeyValue
+    >(ECIESErrorTypeEnum, ['Error', 'ECIESError']);
 
     super(
       EciesComponentId,

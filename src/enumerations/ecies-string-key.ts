@@ -1,209 +1,351 @@
 /**
- * Enumeration of all i18n string keys used throughout the ECIES library.
+ * String keys for internationalization (i18n) in the ECIES library.
  * These keys map to translated error messages and other user-facing strings.
  */
-export enum EciesStringKey {
-  Error_ECIESError_InvalidECIESMultipleEncryptedKeySize = 'Error_ECIESError_InvalidECIESMultipleEncryptedKeySize',
-  Error_ECIESError_InvalidECIESPublicKeyLength = 'Error_ECIESError_InvalidECIESPublicKeyLength',
-  Error_ECIESError_InvalidECIESMultipleRecipientCountSize = 'Error_ECIESError_InvalidECIESMultipleRecipientCountSize',
-  Error_ECIESError_InvalidECIESMultipleDataLengthSize = 'Error_ECIESError_InvalidECIESMultipleDataLengthSize',
-  Error_ECIESError_InvalidECIESMultipleRecipientIdSize = 'Error_ECIESError_InvalidECIESMultipleRecipientIdSize',
-  Error_ECIESError_CRCError = 'Error_ECIESError_CRCError',
-  Error_ECIESError_InvalidEncryptionType = 'Error_ECIESError_InvalidEncryptionType',
-  Error_ECIESError_InvalidEncryptionTypeTemplate = 'Error_ECIESError_InvalidEncryptionTypeTemplate',
-  Error_ECIESError_InvalidIVLength = 'Error_ECIESError_InvalidIVLength',
-  Error_ECIESError_InvalidAuthTagLength = 'Error_ECIESError_InvalidAuthTagLength',
-  Error_ECIESError_InvalidHeaderLength = 'Error_ECIESError_InvalidHeaderLength',
-  Error_ECIESError_InvalidDataLength = 'Error_ECIESError_InvalidDataLength',
-  Error_ECIESError_InvalidPrivateKey = 'Error_ECIESError_InvalidPrivateKey',
-  Error_ECIESError_InvalidIV = 'Error_ECIESError_InvalidIV',
-  Error_ECIESError_InvalidAuthTag = 'Error_ECIESError_InvalidAuthTag',
-  Error_ECIESError_InvalidSharedSecret = 'Error_ECIESError_InvalidSharedSecret',
-  Error_ECIESError_InvalidPublicKeyNotOnCurve = 'Error_ECIESError_InvalidPublicKeyNotOnCurve',
-  Error_ECIESError_InvalidEncryptedDataLength = 'Error_ECIESError_InvalidEncryptedDataLength',
-  Error_ECIESError_InvalidMessageCrc = 'Error_ECIESError_InvalidMessageCrc',
-  Error_ECIESError_InvalidMnemonic = 'Error_ECIESError_InvalidMnemonic',
-  Error_ECIESError_InvalidOperation = 'Error_ECIESError_InvalidOperation',
-  Error_ECIESError_MessageLengthMismatch = 'Error_ECIESError_MessageLengthMismatch',
-  Error_ECIESError_InvalidEncryptedKeyLength = 'Error_ECIESError_InvalidEncryptedKeyLength',
-  Error_ECIESError_InvalidEphemeralPublicKey = 'Error_ECIESError_InvalidEphemeralPublicKey',
-  Error_ECIESError_MissingEphemeralPublicKey = 'Error_ECIESError_MissingEphemeralPublicKey',
-  Error_ECIESError_RecipientNotFound = 'Error_ECIESError_RecipientNotFound',
-  Error_ECIESError_InvalidSignature = 'Error_ECIESError_InvalidSignature',
-  Error_ECIESError_InvalidSenderPublicKey = 'Error_ECIESError_InvalidSenderPublicKey',
-  Error_ECIESError_TooManyRecipients = 'Error_ECIESError_TooManyRecipients',
-  Error_ECIESError_PrivateKeyNotLoaded = 'Error_ECIESError_PrivateKeyNotLoaded',
-  Error_ECIESError_RecipientKeyCountMismatch = 'Error_ECIESError_RecipientKeyCountMismatch',
-  Error_ECIESError_InvalidRecipientCount = 'Error_ECIESError_InvalidRecipientCount',
-  Error_ECIESError_FileSizeTooLarge = 'Error_ECIESError_FileSizeTooLarge',
-  Error_ECIESError_DecryptionFailed = 'Error_ECIESError_DecryptionFailed',
-  Error_ECIESError_InvalidRecipientPublicKey = 'Error_ECIESError_InvalidRecipientPublicKey',
-  Error_ECIESError_SecretComputationFailed = 'Error_ECIESError_SecretComputationFailed',
-  Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption = 'Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption',
-  Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption = 'Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption',
-  Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption = 'Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption',
-  Error_ECIESError_InvalidEncryptedKeyLengthTemplate = 'Error_ECIESError_InvalidEncryptedKeyLengthTemplate',
-  Error_ECIESError_FailedToDecryptKey = 'Error_ECIESError_FailedToDecryptKey',
-  Error_ECIESError_TooManyRecipientsTemplate = 'Error_ECIESError_TooManyRecipientsTemplate',
-  Error_ECIESError_MessageTooLarge = 'Error_ECIESError_MessageTooLarge',
-  Error_ECIESError_MessageTooLargeTemplate = 'Error_ECIESError_MessageTooLargeTemplate',
-  Error_ECIESError_DecryptedDataLengthMismatch = 'Error_ECIESError_DecryptedDataLengthMismatch',
-  Error_ECIESError_RecipientCountMismatch = 'Error_ECIESError_RecipientCountMismatch',
-  Error_ECIESError_DataTooShortForMultiRecipientHeader = 'Error_ECIESError_DataTooShortForMultiRecipientHeader',
-  Error_ECIESError_FailedToDecryptChallengeTemplate = 'Error_ECIESError_FailedToDecryptChallengeTemplate',
-  Error_ECIESError_InvalidChallengeSignature = 'Error_ECIESError_InvalidChallengeSignature',
-  Error_ECIESError_FailedToDervivePrivateKey = 'Error_ECIESError_FailedToDervivePrivateKey',
-  Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate = 'Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate',
-  Error_ECIESError_ReceivedNullOrUndefinedPublicKey = 'Error_ECIESError_ReceivedNullOrUndefinedPublicKey',
-  Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate = 'Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate',
-  Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode = 'Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode',
-  Error_ECIESError_EncryptionTypeMismatchTemplate = 'Error_ECIESError_EncryptionTypeMismatchTemplate',
-  Error_ECIESError_DataTooShortTemplate = 'Error_ECIESError_DataTooShortTemplate',
-  Error_ECIESError_DataLengthMismatchTemplate = 'Error_ECIESError_DataLengthMismatchTemplate',
-  Error_ECIESError_CombinedDataTooShortForComponents = 'Error_ECIESError_CombinedDataTooShortForComponents',
-  Error_ECIESError_InvalidChecksumConstants = 'Error_ECIESError_InvalidChecksumConstants',
-  Error_ECIESError_CannotOverwriteDefaultConfiguration = 'Error_ECIESError_CannotOverwriteDefaultConfiguration',
-  Error_ECIESError_InvalidAESKeyLength = 'Error_ECIESError_InvalidAESKeyLength',
-  Error_ECIESError_CannotEncryptEmptyData = 'Error_ECIESError_CannotEncryptEmptyData',
-  Error_ECIESError_CannotDecryptEmptyData = 'Error_ECIESError_CannotDecryptEmptyData',
-  Error_ECIESError_EncryptedSizeExceedsExpected = 'Error_ECIESError_EncryptedSizeExceedsExpected',
+import {
+  createI18nStringKeys,
+  BrandedStringKeyValue,
+} from '@digitaldefiance/i18n-lib';
 
-  // Member Error Types - buildReasonMap(MemberErrorType, 'Error', 'MemberError')
-  Error_MemberError_MissingMemberName = 'Error_MemberError_MissingMemberName',
-  Error_MemberError_InvalidMemberNameWhitespace = 'Error_MemberError_InvalidMemberNameWhitespace',
-  Error_MemberError_InvalidEmail = 'Error_MemberError_InvalidEmail',
-  Error_MemberError_InvalidMemberName = 'Error_MemberError_InvalidMemberName',
-  Error_MemberError_MissingEmail = 'Error_MemberError_MissingEmail',
-  Error_MemberError_InvalidEmailWhitespace = 'Error_MemberError_InvalidEmailWhitespace',
-  Error_MemberError_MissingPrivateKey = 'Error_MemberError_MissingPrivateKey',
-  Error_MemberError_NoWallet = 'Error_MemberError_NoWallet',
-  Error_MemberError_WalletAlreadyLoaded = 'Error_MemberError_WalletAlreadyLoaded',
-  Error_MemberError_InvalidMnemonic = 'Error_MemberError_InvalidMnemonic',
-  Error_MemberError_IncorrectOrInvalidPrivateKey = 'Error_MemberError_IncorrectOrInvalidPrivateKey',
-  Error_MemberError_MemberNotFound = 'Error_MemberError_MemberNotFound',
-  Error_MemberError_MemberAlreadyExists = 'Error_MemberError_MemberAlreadyExists',
-  Error_MemberError_InvalidMemberStatus = 'Error_MemberError_InvalidMemberStatus',
-  Error_MemberError_FailedToHydrateMember = 'Error_MemberError_FailedToHydrateMember',
-  Error_MemberError_InvalidMemberData = 'Error_MemberError_InvalidMemberData',
-  Error_MemberError_FailedToConvertMemberData = 'Error_MemberError_FailedToConvertMemberData',
-  Error_MemberError_MissingEncryptionData = 'Error_MemberError_MissingEncryptionData',
-  Error_MemberError_EncryptionDataTooLarge = 'Error_MemberError_EncryptionDataTooLarge',
-  Error_MemberError_InvalidEncryptionData = 'Error_MemberError_InvalidEncryptionData',
+/**
+ * Unique component identifier for the ECIES library.
+ * Used for namespacing i18n keys and collision detection.
+ */
+export const EciesComponentId = 'ecies';
 
-  // Length Error Types - buildReasonMap(LengthErrorType, 'Error', 'LengthError')
-  Error_LengthError_LengthIsTooShort = 'Error_LengthError_LengthIsTooShort',
-  Error_LengthError_LengthIsTooLong = 'Error_LengthError_LengthIsTooLong',
-  Error_LengthError_LengthIsInvalidType = 'Error_LengthError_LengthIsInvalidType',
+/**
+ * Branded string keys for ECIES library internationalization.
+ * Provides runtime identification and collision detection for i18n operations.
+ */
+export const EciesStringKey = createI18nStringKeys(EciesComponentId, {
+  // ECIES Error Types
+  Error_ECIESError_InvalidECIESMultipleEncryptedKeySize:
+    'Error_ECIESError_InvalidECIESMultipleEncryptedKeySize',
+  Error_ECIESError_InvalidECIESPublicKeyLength:
+    'Error_ECIESError_InvalidECIESPublicKeyLength',
+  Error_ECIESError_InvalidECIESMultipleRecipientCountSize:
+    'Error_ECIESError_InvalidECIESMultipleRecipientCountSize',
+  Error_ECIESError_InvalidECIESMultipleDataLengthSize:
+    'Error_ECIESError_InvalidECIESMultipleDataLengthSize',
+  Error_ECIESError_InvalidECIESMultipleRecipientIdSize:
+    'Error_ECIESError_InvalidECIESMultipleRecipientIdSize',
+  Error_ECIESError_CRCError: 'Error_ECIESError_CRCError',
+  Error_ECIESError_InvalidEncryptionType:
+    'Error_ECIESError_InvalidEncryptionType',
+  Error_ECIESError_InvalidEncryptionTypeTemplate:
+    'Error_ECIESError_InvalidEncryptionTypeTemplate',
+  Error_ECIESError_InvalidIVLength: 'Error_ECIESError_InvalidIVLength',
+  Error_ECIESError_InvalidAuthTagLength:
+    'Error_ECIESError_InvalidAuthTagLength',
+  Error_ECIESError_InvalidHeaderLength: 'Error_ECIESError_InvalidHeaderLength',
+  Error_ECIESError_InvalidDataLength: 'Error_ECIESError_InvalidDataLength',
+  Error_ECIESError_InvalidPrivateKey: 'Error_ECIESError_InvalidPrivateKey',
+  Error_ECIESError_InvalidIV: 'Error_ECIESError_InvalidIV',
+  Error_ECIESError_InvalidAuthTag: 'Error_ECIESError_InvalidAuthTag',
+  Error_ECIESError_InvalidSharedSecret: 'Error_ECIESError_InvalidSharedSecret',
+  Error_ECIESError_InvalidPublicKeyNotOnCurve:
+    'Error_ECIESError_InvalidPublicKeyNotOnCurve',
+  Error_ECIESError_InvalidEncryptedDataLength:
+    'Error_ECIESError_InvalidEncryptedDataLength',
+  Error_ECIESError_InvalidMessageCrc: 'Error_ECIESError_InvalidMessageCrc',
+  Error_ECIESError_InvalidMnemonic: 'Error_ECIESError_InvalidMnemonic',
+  Error_ECIESError_InvalidOperation: 'Error_ECIESError_InvalidOperation',
+  Error_ECIESError_MessageLengthMismatch:
+    'Error_ECIESError_MessageLengthMismatch',
+  Error_ECIESError_InvalidEncryptedKeyLength:
+    'Error_ECIESError_InvalidEncryptedKeyLength',
+  Error_ECIESError_InvalidEphemeralPublicKey:
+    'Error_ECIESError_InvalidEphemeralPublicKey',
+  Error_ECIESError_MissingEphemeralPublicKey:
+    'Error_ECIESError_MissingEphemeralPublicKey',
+  Error_ECIESError_RecipientNotFound: 'Error_ECIESError_RecipientNotFound',
+  Error_ECIESError_InvalidSignature: 'Error_ECIESError_InvalidSignature',
+  Error_ECIESError_InvalidSenderPublicKey:
+    'Error_ECIESError_InvalidSenderPublicKey',
+  Error_ECIESError_TooManyRecipients: 'Error_ECIESError_TooManyRecipients',
+  Error_ECIESError_PrivateKeyNotLoaded: 'Error_ECIESError_PrivateKeyNotLoaded',
+  Error_ECIESError_RecipientKeyCountMismatch:
+    'Error_ECIESError_RecipientKeyCountMismatch',
+  Error_ECIESError_InvalidRecipientCount:
+    'Error_ECIESError_InvalidRecipientCount',
+  Error_ECIESError_FileSizeTooLarge: 'Error_ECIESError_FileSizeTooLarge',
+  Error_ECIESError_DecryptionFailed: 'Error_ECIESError_DecryptionFailed',
+  Error_ECIESError_InvalidRecipientPublicKey:
+    'Error_ECIESError_InvalidRecipientPublicKey',
+  Error_ECIESError_SecretComputationFailed:
+    'Error_ECIESError_SecretComputationFailed',
+  Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption:
+    'Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption',
+  Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption:
+    'Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption',
+  Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption:
+    'Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption',
+  Error_ECIESError_InvalidEncryptedKeyLengthTemplate:
+    'Error_ECIESError_InvalidEncryptedKeyLengthTemplate',
+  Error_ECIESError_FailedToDecryptKey: 'Error_ECIESError_FailedToDecryptKey',
+  Error_ECIESError_TooManyRecipientsTemplate:
+    'Error_ECIESError_TooManyRecipientsTemplate',
+  Error_ECIESError_MessageTooLarge: 'Error_ECIESError_MessageTooLarge',
+  Error_ECIESError_MessageTooLargeTemplate:
+    'Error_ECIESError_MessageTooLargeTemplate',
+  Error_ECIESError_DecryptedDataLengthMismatch:
+    'Error_ECIESError_DecryptedDataLengthMismatch',
+  Error_ECIESError_RecipientCountMismatch:
+    'Error_ECIESError_RecipientCountMismatch',
+  Error_ECIESError_DataTooShortForMultiRecipientHeader:
+    'Error_ECIESError_DataTooShortForMultiRecipientHeader',
+  Error_ECIESError_FailedToDecryptChallengeTemplate:
+    'Error_ECIESError_FailedToDecryptChallengeTemplate',
+  Error_ECIESError_InvalidChallengeSignature:
+    'Error_ECIESError_InvalidChallengeSignature',
+  Error_ECIESError_FailedToDervivePrivateKey:
+    'Error_ECIESError_FailedToDervivePrivateKey',
+  Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate:
+    'Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate',
+  Error_ECIESError_ReceivedNullOrUndefinedPublicKey:
+    'Error_ECIESError_ReceivedNullOrUndefinedPublicKey',
+  Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate:
+    'Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate',
+  Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode:
+    'Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode',
+  Error_ECIESError_EncryptionTypeMismatchTemplate:
+    'Error_ECIESError_EncryptionTypeMismatchTemplate',
+  Error_ECIESError_DataTooShortTemplate:
+    'Error_ECIESError_DataTooShortTemplate',
+  Error_ECIESError_DataLengthMismatchTemplate:
+    'Error_ECIESError_DataLengthMismatchTemplate',
+  Error_ECIESError_CombinedDataTooShortForComponents:
+    'Error_ECIESError_CombinedDataTooShortForComponents',
+  Error_ECIESError_InvalidChecksumConstants:
+    'Error_ECIESError_InvalidChecksumConstants',
+  Error_ECIESError_CannotOverwriteDefaultConfiguration:
+    'Error_ECIESError_CannotOverwriteDefaultConfiguration',
+  Error_ECIESError_InvalidAESKeyLength: 'Error_ECIESError_InvalidAESKeyLength',
+  Error_ECIESError_CannotEncryptEmptyData:
+    'Error_ECIESError_CannotEncryptEmptyData',
+  Error_ECIESError_CannotDecryptEmptyData:
+    'Error_ECIESError_CannotDecryptEmptyData',
+  Error_ECIESError_EncryptedSizeExceedsExpected:
+    'Error_ECIESError_EncryptedSizeExceedsExpected',
 
-  // PBKDF2 Error Types - buildReasonMap(Pbkdf2ErrorType, 'Error', 'Pbkdf2Error')
-  Error_Pbkdf2Error_InvalidProfile = 'Error_Pbkdf2Error_InvalidProfile',
-  Error_Pbkdf2Error_InvalidSaltLength = 'Error_Pbkdf2Error_InvalidSaltLength',
-  Error_Pbkdf2Error_InvalidHashLength = 'Error_Pbkdf2Error_InvalidHashLength',
+  // Member Error Types
+  Error_MemberError_MissingMemberName: 'Error_MemberError_MissingMemberName',
+  Error_MemberError_InvalidMemberNameWhitespace:
+    'Error_MemberError_InvalidMemberNameWhitespace',
+  Error_MemberError_InvalidEmail: 'Error_MemberError_InvalidEmail',
+  Error_MemberError_InvalidMemberName: 'Error_MemberError_InvalidMemberName',
+  Error_MemberError_MissingEmail: 'Error_MemberError_MissingEmail',
+  Error_MemberError_InvalidEmailWhitespace:
+    'Error_MemberError_InvalidEmailWhitespace',
+  Error_MemberError_MissingPrivateKey: 'Error_MemberError_MissingPrivateKey',
+  Error_MemberError_NoWallet: 'Error_MemberError_NoWallet',
+  Error_MemberError_WalletAlreadyLoaded:
+    'Error_MemberError_WalletAlreadyLoaded',
+  Error_MemberError_InvalidMnemonic: 'Error_MemberError_InvalidMnemonic',
+  Error_MemberError_IncorrectOrInvalidPrivateKey:
+    'Error_MemberError_IncorrectOrInvalidPrivateKey',
+  Error_MemberError_MemberNotFound: 'Error_MemberError_MemberNotFound',
+  Error_MemberError_MemberAlreadyExists:
+    'Error_MemberError_MemberAlreadyExists',
+  Error_MemberError_InvalidMemberStatus:
+    'Error_MemberError_InvalidMemberStatus',
+  Error_MemberError_FailedToHydrateMember:
+    'Error_MemberError_FailedToHydrateMember',
+  Error_MemberError_InvalidMemberData: 'Error_MemberError_InvalidMemberData',
+  Error_MemberError_FailedToConvertMemberData:
+    'Error_MemberError_FailedToConvertMemberData',
+  Error_MemberError_MissingEncryptionData:
+    'Error_MemberError_MissingEncryptionData',
+  Error_MemberError_EncryptionDataTooLarge:
+    'Error_MemberError_EncryptionDataTooLarge',
+  Error_MemberError_InvalidEncryptionData:
+    'Error_MemberError_InvalidEncryptionData',
 
-  // Secure Storage Error Types - buildReasonMap(SecureStorageErrorType, 'Error', 'SecureStorageError')
-  Error_SecureStorageError_DecryptedValueLengthMismatch = 'Error_SecureStorageError_DecryptedValueLengthMismatch',
-  Error_SecureStorageError_DecryptedValueChecksumMismatch = 'Error_SecureStorageError_DecryptedValueChecksumMismatch',
-  Error_SecureStorageError_ValueIsNull = 'Error_SecureStorageError_ValueIsNull',
+  // Length Error Types
+  Error_LengthError_LengthIsTooShort: 'Error_LengthError_LengthIsTooShort',
+  Error_LengthError_LengthIsTooLong: 'Error_LengthError_LengthIsTooLong',
+  Error_LengthError_LengthIsInvalidType:
+    'Error_LengthError_LengthIsInvalidType',
 
-  Error_InvalidEmailError_Invalid = 'Error_InvalidEmailError_Invalid',
-  Error_InvalidEmailError_Missing = 'Error_InvalidEmailError_Missing',
-  Error_InvalidEmailError_Whitespace = 'Error_InvalidEmailError_Whitespace',
-  Error_Utils_EncryptionFailedNoAuthTag = 'Error_Utils_EncryptionFailedNoAuthTag',
-  Error_PasswordLoginError_FailedToStoreLoginData = 'Error_PasswordLoginError_FailedToStoreLoginData',
-  Error_PasswordLoginError_PasswordLoginNotSetUp = 'Error_PasswordLoginError_PasswordLoginNotSetUp',
+  // PBKDF2 Error Types
+  Error_Pbkdf2Error_InvalidProfile: 'Error_Pbkdf2Error_InvalidProfile',
+  Error_Pbkdf2Error_InvalidSaltLength: 'Error_Pbkdf2Error_InvalidSaltLength',
+  Error_Pbkdf2Error_InvalidHashLength: 'Error_Pbkdf2Error_InvalidHashLength',
 
-  Error_PhoneNumber_InvalidTemplate = 'Error_PhoneNumber_InvalidTemplate',
+  // Secure Storage Error Types
+  Error_SecureStorageError_DecryptedValueLengthMismatch:
+    'Error_SecureStorageError_DecryptedValueLengthMismatch',
+  Error_SecureStorageError_DecryptedValueChecksumMismatch:
+    'Error_SecureStorageError_DecryptedValueChecksumMismatch',
+  Error_SecureStorageError_ValueIsNull: 'Error_SecureStorageError_ValueIsNull',
+
+  Error_InvalidEmailError_Invalid: 'Error_InvalidEmailError_Invalid',
+  Error_InvalidEmailError_Missing: 'Error_InvalidEmailError_Missing',
+  Error_InvalidEmailError_Whitespace: 'Error_InvalidEmailError_Whitespace',
+  Error_Utils_EncryptionFailedNoAuthTag:
+    'Error_Utils_EncryptionFailedNoAuthTag',
+  Error_PasswordLoginError_FailedToStoreLoginData:
+    'Error_PasswordLoginError_FailedToStoreLoginData',
+  Error_PasswordLoginError_PasswordLoginNotSetUp:
+    'Error_PasswordLoginError_PasswordLoginNotSetUp',
+
+  Error_PhoneNumber_InvalidTemplate: 'Error_PhoneNumber_InvalidTemplate',
 
   // Multi-recipient and Streaming Error Types
-  Error_MultiRecipient_InvalidRecipientCountTemplate = 'Error_MultiRecipient_InvalidRecipientCountTemplate',
-  Error_MultiRecipient_SymmetricKeyMust32Bytes = 'Error_MultiRecipient_SymmetricKeyMust32Bytes',
-  Error_MultiRecipient_InvalidChunkIndexTemplate = 'Error_MultiRecipient_InvalidChunkIndexTemplate',
-  Error_MultiRecipient_DataSizeExceedsMaximumTemplate = 'Error_MultiRecipient_DataSizeExceedsMaximumTemplate',
-  Error_MultiRecipient_DuplicateRecipientId = 'Error_MultiRecipient_DuplicateRecipientId',
-  Error_MultiRecipient_RecipientIdMust32Bytes = 'Error_MultiRecipient_RecipientIdMust32Bytes',
-  Error_MultiRecipient_RecipientHeadersSizeOverflow = 'Error_MultiRecipient_RecipientHeadersSizeOverflow',
-  Error_MultiRecipient_ChunkSizeOverflow = 'Error_MultiRecipient_ChunkSizeOverflow',
-  Error_MultiRecipient_ChunkTooSmall = 'Error_MultiRecipient_ChunkTooSmall',
-  Error_MultiRecipient_InvalidChunkMagic = 'Error_MultiRecipient_InvalidChunkMagic',
-  Error_MultiRecipient_UnsupportedVersionTemplate = 'Error_MultiRecipient_UnsupportedVersionTemplate',
-  Error_MultiRecipient_ChunkTooSmallForEncryptedSize = 'Error_MultiRecipient_ChunkTooSmallForEncryptedSize',
-  Error_MultiRecipient_ChunkTruncatedRecipientId = 'Error_MultiRecipient_ChunkTruncatedRecipientId',
-  Error_MultiRecipient_ChunkTruncatedKeySize = 'Error_MultiRecipient_ChunkTruncatedKeySize',
-  Error_MultiRecipient_InvalidKeySizeTemplate = 'Error_MultiRecipient_InvalidKeySizeTemplate',
-  Error_MultiRecipient_ChunkTruncatedEncryptedKey = 'Error_MultiRecipient_ChunkTruncatedEncryptedKey',
-  Error_MultiRecipient_RecipientNotFoundInChunk = 'Error_MultiRecipient_RecipientNotFoundInChunk',
-  Error_Stream_DataTooShortForHeader = 'Error_Stream_DataTooShortForHeader',
-  Error_Stream_InvalidMagicBytes = 'Error_Stream_InvalidMagicBytes',
-  Error_Stream_UnsupportedVersion = 'Error_Stream_UnsupportedVersion',
-  Error_Stream_InvalidPublicKeyLength = 'Error_Stream_InvalidPublicKeyLength',
-  Error_Stream_BufferOverflowTemplate = 'Error_Stream_BufferOverflowTemplate',
-  Error_Stream_EncryptionCancelled = 'Error_Stream_EncryptionCancelled',
-  Error_Stream_AtLeastOneRecipientRequired = 'Error_Stream_AtLeastOneRecipientRequired',
-  Error_Stream_MaxRecipientsExceeded = 'Error_Stream_MaxRecipientsExceeded',
-  Error_Stream_InvalidRecipientPublicKeyLength = 'Error_Stream_InvalidRecipientPublicKeyLength',
-  Error_Stream_InvalidRecipientIdLength = 'Error_Stream_InvalidRecipientIdLength',
-  Error_Stream_InvalidRecipientIdLengthTemplate = 'Error_Stream_InvalidRecipientIdLengthTemplate',
-  Error_Stream_InvalidRecipientIdMust32Bytes = 'Error_Stream_InvalidRecipientIdMust32Bytes',
-  Error_Stream_InvalidPrivateKeyMust32Bytes = 'Error_Stream_InvalidPrivateKeyMust32Bytes',
-  Error_Stream_ChunkSequenceErrorTemplate = 'Error_Stream_ChunkSequenceErrorTemplate',
-  Error_Stream_DecryptionCancelled = 'Error_Stream_DecryptionCancelled',
-  Error_Chunk_DataTooShortForHeader = 'Error_Chunk_DataTooShortForHeader',
-  Error_Chunk_InvalidMagicBytes = 'Error_Chunk_InvalidMagicBytes',
-  Error_Chunk_UnsupportedVersion = 'Error_Chunk_UnsupportedVersion',
-  Error_Chunk_EncryptedSizeMismatchTemplate = 'Error_Chunk_EncryptedSizeMismatchTemplate',
-  Error_Chunk_ChecksumMismatch = 'Error_Chunk_ChecksumMismatch',
-  Error_Chunk_DecryptedSizeMismatch = 'Error_Chunk_DecryptedSizeMismatch',
-  Error_Progress_ChunkBytesCannotBeNegative = 'Error_Progress_ChunkBytesCannotBeNegative',
-  Error_Resumable_AutoSaveIntervalMustBePositive = 'Error_Resumable_AutoSaveIntervalMustBePositive',
-  Error_Resumable_PublicKeyMismatch = 'Error_Resumable_PublicKeyMismatch',
-  Error_Resumable_ChunkSizeMismatch = 'Error_Resumable_ChunkSizeMismatch',
-  Error_Resumable_IncludeChecksumsMismatch = 'Error_Resumable_IncludeChecksumsMismatch',
-  Error_Resumable_NoStateToSave = 'Error_Resumable_NoStateToSave',
-  Error_Resumable_UnsupportedStateVersionTemplate = 'Error_Resumable_UnsupportedStateVersionTemplate',
-  Error_Resumable_InvalidChunkIndex = 'Error_Resumable_InvalidChunkIndex',
-  Error_Resumable_StateTooOld = 'Error_Resumable_StateTooOld',
-  Error_Resumable_InvalidPublicKeyInState = 'Error_Resumable_InvalidPublicKeyInState',
-  Error_Resumable_StateIntegrityCheckFailed = 'Error_Resumable_StateIntegrityCheckFailed',
-  Error_Builder_MnemonicGenerationNotImplemented = 'Error_Builder_MnemonicGenerationNotImplemented',
-  Error_Builder_MemberNotMigrated = 'Error_Builder_MemberNotMigrated',
-  Error_Builder_ECIESServiceNotMigrated = 'Error_Builder_ECIESServiceNotMigrated',
-  Error_Service_InvalidDataLength = 'Error_Service_InvalidDataLength',
-  Error_Service_InvalidEncryptionType = 'Error_Service_InvalidEncryptionType',
-  Error_Service_InvalidEncryptedDataLength = 'Error_Service_InvalidEncryptedDataLength',
-  Error_Service_ComputedDecryptedLengthNegative = 'Error_Service_ComputedDecryptedLengthNegative',
-  Error_Service_MultiRecipientNotImplemented = 'Error_Service_MultiRecipientNotImplemented',
-  Error_Service_InvalidEncryptionTypeOrRecipientCountTemplate = 'Error_Service_InvalidEncryptionTypeOrRecipientCountTemplate',
-  Error_Container_ServiceNotFoundTemplate = 'Error_Container_ServiceNotFoundTemplate',
-  Error_Utils_InvalidHexString = 'Error_Utils_InvalidHexString',
-  Error_Utils_HexStringMustHaveEvenLength = 'Error_Utils_HexStringMustHaveEvenLength',
-  Error_Utils_HexStringContainsInvalidCharacters = 'Error_Utils_HexStringContainsInvalidCharacters',
-  Error_Utils_ValueExceedsSafeIntegerRange = 'Error_Utils_ValueExceedsSafeIntegerRange',
-  Error_Utils_ValueBelowSafeIntegerRange = 'Error_Utils_ValueBelowSafeIntegerRange',
-  Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic = 'Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic',
-  Error_Builder_ECIESServiceIsRequired = 'Error_Builder_ECIESServiceIsRequired',
-  Error_Builder_TypeNameAndEmailAreRequired = 'Error_Builder_TypeNameAndEmailAreRequired',
-  Error_DisposedError_ObjectDisposed = 'Error_DisposedError_ObjectDisposed',
-  Error_GuidError_InvalidGuid = 'Error_GuidError_InvalidGuid',
-  Error_GuidError_InvalidGuidWithDetailsTemplate = 'Error_GuidError_InvalidGuidWithDetailsTemplate',
-  Error_GuidError_InvalidGuidUnknownBrandTemplate = 'Error_GuidError_InvalidGuidUnknownBrandTemplate',
-  Error_GuidError_InvalidGuidUnknownLengthTemplate = 'Error_GuidError_InvalidGuidUnknownLengthTemplate',
-  Error_IdProviderError_InvalidLength = 'Error_IdProviderError_InvalidLength',
-  Error_IdProviderError_InputMustBeString = 'Error_IdProviderError_InputMustBeString',
-  Error_IdProviderError_InvalidStringLength = 'Error_IdProviderError_InvalidStringLength',
-  Error_IdProviderError_InvalidCharacters = 'Error_IdProviderError_InvalidCharacters',
-  Error_IdProviderError_InvalidDeserializedId = 'Error_IdProviderError_InvalidDeserializedId',
-  Error_IdProviderError_InvalidByteLengthParameter = 'Error_IdProviderError_InvalidByteLengthParameter',
-  Error_IdProviderError_ParseFailed = 'Error_IdProviderError_ParseFailed',
-  Error_IdProviderError_InvalidGuidBuffer = 'Error_IdProviderError_InvalidGuidBuffer',
-  Error_IdProviderError_InvalidUuidFormat = 'Error_IdProviderError_InvalidUuidFormat',
+  Error_MultiRecipient_InvalidRecipientCountTemplate:
+    'Error_MultiRecipient_InvalidRecipientCountTemplate',
+  Error_MultiRecipient_SymmetricKeyMust32Bytes:
+    'Error_MultiRecipient_SymmetricKeyMust32Bytes',
+  Error_MultiRecipient_InvalidChunkIndexTemplate:
+    'Error_MultiRecipient_InvalidChunkIndexTemplate',
+  Error_MultiRecipient_DataSizeExceedsMaximumTemplate:
+    'Error_MultiRecipient_DataSizeExceedsMaximumTemplate',
+  Error_MultiRecipient_DuplicateRecipientId:
+    'Error_MultiRecipient_DuplicateRecipientId',
+  Error_MultiRecipient_RecipientIdMust32Bytes:
+    'Error_MultiRecipient_RecipientIdMust32Bytes',
+  Error_MultiRecipient_RecipientHeadersSizeOverflow:
+    'Error_MultiRecipient_RecipientHeadersSizeOverflow',
+  Error_MultiRecipient_ChunkSizeOverflow:
+    'Error_MultiRecipient_ChunkSizeOverflow',
+  Error_MultiRecipient_ChunkTooSmall: 'Error_MultiRecipient_ChunkTooSmall',
+  Error_MultiRecipient_InvalidChunkMagic:
+    'Error_MultiRecipient_InvalidChunkMagic',
+  Error_MultiRecipient_UnsupportedVersionTemplate:
+    'Error_MultiRecipient_UnsupportedVersionTemplate',
+  Error_MultiRecipient_ChunkTooSmallForEncryptedSize:
+    'Error_MultiRecipient_ChunkTooSmallForEncryptedSize',
+  Error_MultiRecipient_ChunkTruncatedRecipientId:
+    'Error_MultiRecipient_ChunkTruncatedRecipientId',
+  Error_MultiRecipient_ChunkTruncatedKeySize:
+    'Error_MultiRecipient_ChunkTruncatedKeySize',
+  Error_MultiRecipient_InvalidKeySizeTemplate:
+    'Error_MultiRecipient_InvalidKeySizeTemplate',
+  Error_MultiRecipient_ChunkTruncatedEncryptedKey:
+    'Error_MultiRecipient_ChunkTruncatedEncryptedKey',
+  Error_MultiRecipient_RecipientNotFoundInChunk:
+    'Error_MultiRecipient_RecipientNotFoundInChunk',
+  Error_Stream_DataTooShortForHeader: 'Error_Stream_DataTooShortForHeader',
+  Error_Stream_InvalidMagicBytes: 'Error_Stream_InvalidMagicBytes',
+  Error_Stream_UnsupportedVersion: 'Error_Stream_UnsupportedVersion',
+  Error_Stream_InvalidPublicKeyLength: 'Error_Stream_InvalidPublicKeyLength',
+  Error_Stream_BufferOverflowTemplate: 'Error_Stream_BufferOverflowTemplate',
+  Error_Stream_EncryptionCancelled: 'Error_Stream_EncryptionCancelled',
+  Error_Stream_AtLeastOneRecipientRequired:
+    'Error_Stream_AtLeastOneRecipientRequired',
+  Error_Stream_MaxRecipientsExceeded: 'Error_Stream_MaxRecipientsExceeded',
+  Error_Stream_InvalidRecipientPublicKeyLength:
+    'Error_Stream_InvalidRecipientPublicKeyLength',
+  Error_Stream_InvalidRecipientIdLength:
+    'Error_Stream_InvalidRecipientIdLength',
+  Error_Stream_InvalidRecipientIdLengthTemplate:
+    'Error_Stream_InvalidRecipientIdLengthTemplate',
+  Error_Stream_InvalidRecipientIdMust32Bytes:
+    'Error_Stream_InvalidRecipientIdMust32Bytes',
+  Error_Stream_InvalidPrivateKeyMust32Bytes:
+    'Error_Stream_InvalidPrivateKeyMust32Bytes',
+  Error_Stream_ChunkSequenceErrorTemplate:
+    'Error_Stream_ChunkSequenceErrorTemplate',
+  Error_Stream_DecryptionCancelled: 'Error_Stream_DecryptionCancelled',
+  Error_Chunk_DataTooShortForHeader: 'Error_Chunk_DataTooShortForHeader',
+  Error_Chunk_InvalidMagicBytes: 'Error_Chunk_InvalidMagicBytes',
+  Error_Chunk_UnsupportedVersion: 'Error_Chunk_UnsupportedVersion',
+  Error_Chunk_EncryptedSizeMismatchTemplate:
+    'Error_Chunk_EncryptedSizeMismatchTemplate',
+  Error_Chunk_ChecksumMismatch: 'Error_Chunk_ChecksumMismatch',
+  Error_Chunk_DecryptedSizeMismatch: 'Error_Chunk_DecryptedSizeMismatch',
+  Error_Progress_ChunkBytesCannotBeNegative:
+    'Error_Progress_ChunkBytesCannotBeNegative',
+  Error_Resumable_AutoSaveIntervalMustBePositive:
+    'Error_Resumable_AutoSaveIntervalMustBePositive',
+  Error_Resumable_PublicKeyMismatch: 'Error_Resumable_PublicKeyMismatch',
+  Error_Resumable_ChunkSizeMismatch: 'Error_Resumable_ChunkSizeMismatch',
+  Error_Resumable_IncludeChecksumsMismatch:
+    'Error_Resumable_IncludeChecksumsMismatch',
+  Error_Resumable_NoStateToSave: 'Error_Resumable_NoStateToSave',
+  Error_Resumable_UnsupportedStateVersionTemplate:
+    'Error_Resumable_UnsupportedStateVersionTemplate',
+  Error_Resumable_InvalidChunkIndex: 'Error_Resumable_InvalidChunkIndex',
+  Error_Resumable_StateTooOld: 'Error_Resumable_StateTooOld',
+  Error_Resumable_InvalidPublicKeyInState:
+    'Error_Resumable_InvalidPublicKeyInState',
+  Error_Resumable_StateIntegrityCheckFailed:
+    'Error_Resumable_StateIntegrityCheckFailed',
+  Error_Builder_MnemonicGenerationNotImplemented:
+    'Error_Builder_MnemonicGenerationNotImplemented',
+  Error_Builder_MemberNotMigrated: 'Error_Builder_MemberNotMigrated',
+  Error_Builder_ECIESServiceNotMigrated:
+    'Error_Builder_ECIESServiceNotMigrated',
+  Error_Service_InvalidDataLength: 'Error_Service_InvalidDataLength',
+  Error_Service_InvalidEncryptionType: 'Error_Service_InvalidEncryptionType',
+  Error_Service_InvalidEncryptedDataLength:
+    'Error_Service_InvalidEncryptedDataLength',
+  Error_Service_ComputedDecryptedLengthNegative:
+    'Error_Service_ComputedDecryptedLengthNegative',
+  Error_Service_MultiRecipientNotImplemented:
+    'Error_Service_MultiRecipientNotImplemented',
+  Error_Service_InvalidEncryptionTypeOrRecipientCountTemplate:
+    'Error_Service_InvalidEncryptionTypeOrRecipientCountTemplate',
+  Error_Container_ServiceNotFoundTemplate:
+    'Error_Container_ServiceNotFoundTemplate',
+  Error_Utils_InvalidHexString: 'Error_Utils_InvalidHexString',
+  Error_Utils_HexStringMustHaveEvenLength:
+    'Error_Utils_HexStringMustHaveEvenLength',
+  Error_Utils_HexStringContainsInvalidCharacters:
+    'Error_Utils_HexStringContainsInvalidCharacters',
+  Error_Utils_ValueExceedsSafeIntegerRange:
+    'Error_Utils_ValueExceedsSafeIntegerRange',
+  Error_Utils_ValueBelowSafeIntegerRange:
+    'Error_Utils_ValueBelowSafeIntegerRange',
+  Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic:
+    'Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic',
+  Error_Builder_ECIESServiceIsRequired: 'Error_Builder_ECIESServiceIsRequired',
+  Error_Builder_TypeNameAndEmailAreRequired:
+    'Error_Builder_TypeNameAndEmailAreRequired',
+  Error_DisposedError_ObjectDisposed: 'Error_DisposedError_ObjectDisposed',
+  Error_GuidError_InvalidGuid: 'Error_GuidError_InvalidGuid',
+  Error_GuidError_InvalidGuidWithDetailsTemplate:
+    'Error_GuidError_InvalidGuidWithDetailsTemplate',
+  Error_GuidError_InvalidGuidUnknownBrandTemplate:
+    'Error_GuidError_InvalidGuidUnknownBrandTemplate',
+  Error_GuidError_InvalidGuidUnknownLengthTemplate:
+    'Error_GuidError_InvalidGuidUnknownLengthTemplate',
+  Error_IdProviderError_InvalidLength: 'Error_IdProviderError_InvalidLength',
+  Error_IdProviderError_InputMustBeString:
+    'Error_IdProviderError_InputMustBeString',
+  Error_IdProviderError_InvalidStringLength:
+    'Error_IdProviderError_InvalidStringLength',
+  Error_IdProviderError_InvalidCharacters:
+    'Error_IdProviderError_InvalidCharacters',
+  Error_IdProviderError_InvalidDeserializedId:
+    'Error_IdProviderError_InvalidDeserializedId',
+  Error_IdProviderError_InvalidByteLengthParameter:
+    'Error_IdProviderError_InvalidByteLengthParameter',
+  Error_IdProviderError_ParseFailed: 'Error_IdProviderError_ParseFailed',
+  Error_IdProviderError_InvalidGuidBuffer:
+    'Error_IdProviderError_InvalidGuidBuffer',
+  Error_IdProviderError_InvalidUuidFormat:
+    'Error_IdProviderError_InvalidUuidFormat',
 
   // Invariant Validation Errors
-  Error_Invariant_ValidationFailedTemplate = 'Error_Invariant_ValidationFailedTemplate',
-  Error_Invariant_UnknownInvariantTemplate = 'Error_Invariant_UnknownInvariantTemplate',
-  Error_Invariant_ConfigurationValidationFailedMultipleTemplate = 'Error_Invariant_ConfigurationValidationFailedMultipleTemplate',
-  Error_ECIESError_RecipientIdSizeTooLargeTemplate = 'Error_ECIESError_RecipientIdSizeTooLargeTemplate',
-  Error_ECIESError_InvalidVersion = 'Error_ECIESError_InvalidVersion',
-  Error_ECIESError_InvalidVersionTemplate = 'Error_ECIESError_InvalidVersionTemplate',
-  Error_ECIESError_InvalidCipherSuite = 'Error_ECIESError_InvalidCipherSuite',
-  Error_ECIESError_InvalidCipherSuiteTemplate = 'Error_ECIESError_InvalidCipherSuiteTemplate',
-}
+  Error_Invariant_ValidationFailedTemplate:
+    'Error_Invariant_ValidationFailedTemplate',
+  Error_Invariant_UnknownInvariantTemplate:
+    'Error_Invariant_UnknownInvariantTemplate',
+  Error_Invariant_ConfigurationValidationFailedMultipleTemplate:
+    'Error_Invariant_ConfigurationValidationFailedMultipleTemplate',
+  Error_ECIESError_RecipientIdSizeTooLargeTemplate:
+    'Error_ECIESError_RecipientIdSizeTooLargeTemplate',
+  Error_ECIESError_InvalidVersion: 'Error_ECIESError_InvalidVersion',
+  Error_ECIESError_InvalidVersionTemplate:
+    'Error_ECIESError_InvalidVersionTemplate',
+  Error_ECIESError_InvalidCipherSuite: 'Error_ECIESError_InvalidCipherSuite',
+  Error_ECIESError_InvalidCipherSuiteTemplate:
+    'Error_ECIESError_InvalidCipherSuiteTemplate',
+} as const);
+
+/**
+ * Type for individual EciesStringKey values (string literal union).
+ * Use this when typing variables or function parameters that accept a string key value.
+ */
+export type EciesStringKeyValue = BrandedStringKeyValue<typeof EciesStringKey>;

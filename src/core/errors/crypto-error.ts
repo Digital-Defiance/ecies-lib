@@ -3,8 +3,12 @@
  * Consolidates ECIESError, MemberError, Pbkdf2Error, etc.
  */
 
-import { EciesStringKey } from '../../enumerations/ecies-string-key';
-import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import {
+  EciesStringKey,
+  EciesStringKeyValue,
+  EciesComponentId,
+} from '../../enumerations/ecies-string-key';
+import { getEciesI18nEngine } from '../../i18n-setup';
 
 /**
  * Error codes for crypto operations.
@@ -50,7 +54,7 @@ export class CryptoError extends Error {
    */
   constructor(
     public readonly code: CryptoErrorCode,
-    public readonly stringKey: EciesStringKey,
+    public readonly stringKey: EciesStringKeyValue,
     public readonly metadata?: Record<string, string | number>,
   ) {
     const engine = getEciesI18nEngine();

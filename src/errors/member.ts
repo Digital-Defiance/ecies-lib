@@ -7,13 +7,15 @@ import {
   HandleableErrorOptions,
   TypedHandleableError,
 } from '@digitaldefiance/i18n-lib';
-import { EciesStringKey } from '../enumerations/ecies-string-key';
+import {
+  EciesStringKeyValue,
+  EciesComponentId,
+} from '../enumerations/ecies-string-key';
 import { MemberErrorType } from '../enumerations/member-error-type';
-import { EciesComponentId } from '../i18n-setup';
 
 export class MemberError extends TypedHandleableError<
   typeof MemberErrorType,
-  EciesStringKey
+  EciesStringKeyValue
 > {
   constructor(
     type: MemberErrorType,
@@ -25,10 +27,10 @@ export class MemberError extends TypedHandleableError<
     super(
       EciesComponentId,
       type,
-      buildReasonMap<typeof MemberErrorType, EciesStringKey>(MemberErrorType, [
-        'Error',
-        'MemberError',
-      ]),
+      buildReasonMap<typeof MemberErrorType, EciesStringKeyValue>(
+        MemberErrorType,
+        ['Error', 'MemberError'],
+      ),
       source,
       options,
       language,

@@ -3,9 +3,11 @@ import {
   TypedHandleableError,
   buildReasonMap,
 } from '@digitaldefiance/i18n-lib';
-import { EciesStringKey } from '../enumerations/ecies-string-key';
+import {
+  EciesStringKeyValue,
+  EciesComponentId,
+} from '../enumerations/ecies-string-key';
 import { IdProviderErrorType } from '../enumerations/id-provider-error-type';
-import { EciesComponentId } from '../i18n-setup';
 
 /**
  * Error class for ID provider operations.
@@ -13,14 +15,14 @@ import { EciesComponentId } from '../i18n-setup';
  */
 export class IdProviderError extends TypedHandleableError<
   typeof IdProviderErrorType,
-  EciesStringKey
+  EciesStringKeyValue
 > {
   /**
    * Reason map cache to avoid rebuilding on every error instantiation.
    */
   private static readonly REASON_MAP = buildReasonMap<
     typeof IdProviderErrorType,
-    EciesStringKey
+    EciesStringKeyValue
   >(IdProviderErrorType, ['Error', 'IdProviderError']);
 
   /**
