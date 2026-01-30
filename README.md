@@ -8,7 +8,7 @@ Production-ready, browser-compatible ECIES (Elliptic Curve Integrated Encryption
 
 Part of [Express Suite](https://github.com/Digital-Defiance/express-suite)
 
-**Current Version: v4.13.0**
+**Current Version: v4.16.0**
 
 This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuring HKDF key derivation, AAD binding, and optimized multi-recipient encryption. It includes a pluggable ID provider system with PlatformID support, memory-efficient streaming encryption, comprehensive internationalization, and a complete cryptographic voting system with 15+ voting methods.
 
@@ -1276,6 +1276,8 @@ The library maintains **100% test coverage** with over 1,200 tests, including:
 - **Property-based Tests**: Fuzzing inputs for robustness.
 
 ## ChangeLog
+
+### v4.16.0 - Voting Keys now derived using both X&Y coordinates for improved security
 
 ### v4.13.0 - API Naming Improvements & Configuration Enhancements
 
