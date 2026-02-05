@@ -3,7 +3,12 @@
  * Uses i18n-lib 2.0 patterns with runtime validation
  */
 
-import type { ComponentConfig, EngineConfig } from '@digitaldefiance/i18n-lib';
+import type {
+  BrandedPluralMasterStringsCollection,
+  ComponentConfig,
+  CoreLanguageCode,
+  EngineConfig,
+} from '@digitaldefiance/i18n-lib';
 import {
   I18nEngine,
   LanguageCodes,
@@ -12,7 +17,8 @@ import {
 } from '@digitaldefiance/i18n-lib';
 import {
   EciesComponentId,
-  EciesStringKeyValue,
+  EciesStringKey,
+  type EciesStringKeyValue,
 } from './enumerations/ecies-string-key';
 import { germanTranslations } from './translations/de';
 import { englishTranslations } from './translations/en-US';
@@ -26,22 +32,32 @@ export const EciesI18nEngineKey = 'DigitalDefiance.Ecies.I18nEngine' as const;
 export { EciesComponentId };
 
 /**
+ * Master strings collection for the ECIES component.
+ * Uses BrandedPluralMasterStringsCollection for type-safe branded enum support
+ * with PluralString values for pluralization.
+ */
+export const EciesComponentStrings: BrandedPluralMasterStringsCollection<
+  typeof EciesStringKey,
+  CoreLanguageCode
+> = {
+  [LanguageCodes.EN_US]: englishTranslations,
+  [LanguageCodes.EN_GB]: englishTranslations,
+  [LanguageCodes.FR]: frenchTranslations,
+  [LanguageCodes.ES]: spanishTranslations,
+  [LanguageCodes.DE]: germanTranslations,
+  [LanguageCodes.ZH_CN]: mandarinChineseTranslations,
+  [LanguageCodes.JA]: japaneseTranslations,
+  [LanguageCodes.UK]: ukrainianTranslations,
+};
+
+/**
  * Create ECIES component configuration with all translations
  * Note: Includes all 8 supported languages
  */
 export function createEciesComponentConfig(): ComponentConfig {
   return {
     id: EciesComponentId,
-    strings: {
-      [LanguageCodes.EN_US]: englishTranslations,
-      [LanguageCodes.EN_GB]: englishTranslations,
-      [LanguageCodes.FR]: frenchTranslations,
-      [LanguageCodes.ES]: spanishTranslations,
-      [LanguageCodes.DE]: germanTranslations,
-      [LanguageCodes.ZH_CN]: mandarinChineseTranslations,
-      [LanguageCodes.JA]: japaneseTranslations,
-      [LanguageCodes.UK]: ukrainianTranslations,
-    },
+    strings: EciesComponentStrings,
   };
 }
 
