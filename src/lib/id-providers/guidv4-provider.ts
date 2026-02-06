@@ -22,7 +22,7 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4Uint8Array> {
    */
   generate(): Uint8Array {
     const guid = GuidUint8Array.v4();
-    return guid.asRawGuidPlatformBufferUnsafe;
+    return guid.asRawGuidPlatformBuffer;
   }
 
   /**
@@ -73,7 +73,7 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4Uint8Array> {
 
     try {
       const guid = GuidUint8Array.parse(str);
-      return guid.asRawGuidPlatformBufferUnsafe;
+      return guid.asRawGuidPlatformBuffer;
     } catch (error) {
       throw new IdProviderError(
         IdProviderErrorType.ParseFailed,
@@ -93,7 +93,7 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4Uint8Array> {
    */
   fromNamespace(namespace: string, name: string): Uint8Array {
     const guid = GuidUint8Array.v5(name, namespace);
-    return guid.asRawGuidPlatformBufferUnsafe;
+    return guid.asRawGuidPlatformBuffer;
   }
 
   /**

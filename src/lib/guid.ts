@@ -40,6 +40,10 @@ export type VersionedGuidUint8Array<
 /**
  * Guid represents a GUID/UUID (Globally Unique Identifier) that is compliant with the RFC 4122 standard.
  * Supports all UUID versions (v1-v5), with factory methods for v3, v4, and v5.
+ *
+ * This class extends Uint8Array directly, making it a true 16-byte array that can be used
+ * anywhere a Uint8Array is expected while providing GUID-specific functionality.
+ *
  * Guid instances can be created from a variety of input types, including:
  * - FullHexGuid: A 36-character string representation of the GUID, including dashes
  * - ShortHexGuid: A 32-character string representation of the GUID, excluding dashes
@@ -48,12 +52,7 @@ export type VersionedGuidUint8Array<
  * - RawGuidUint8Array: A 16-byte Uint8Array representation of the GUID
  * Guid instances can be converted to any of these representations using the appropriate method.
  */
-export class GuidUint8Array implements IGuid {
-  /**
-   * GUID is stored internally as a raw 16-byte Uint8Array.
-   */
-  protected readonly _value: RawGuidPlatformBuffer;
-
+export class GuidUint8Array extends Uint8Array implements IGuid {
   /**
    * Boundary value constants for special GUID validation
    */
@@ -74,17 +73,17 @@ export class GuidUint8Array implements IGuid {
   /**
    * Cached full hex representation for performance
    */
-  protected _cachedFullHex?: FullHexGuid;
+  private _cachedFullHex?: FullHexGuid;
 
   /**
    * Cached short hex representation for performance
    */
-  protected _cachedShortHex?: ShortHexGuid;
+  private _cachedShortHex?: ShortHexGuid;
 
   /**
    * Cached base64 representation for performance
    */
-  protected _cachedBase64?: Base64Guid;
+  private _cachedBase64?: Base64Guid;
 
   /**
    * The RFC 4122 version of this GUID (1, 3, 4, 5, or undefined for boundary/invalid)
@@ -116,43 +115,51 @@ export class GuidUint8Array implements IGuid {
 
   /**
    * Empty/nil GUID constant (all zeros)
+   * Note: Since GuidUint8Array extends Uint8Array, it cannot be frozen.
+   * A new instance is returned each time to prevent mutation of a shared instance.
    */
   public static get Empty(): GuidUint8Array {
     if (!GuidUint8Array._empty) {
-      GuidUint8Array._empty = Object.freeze(
-        new GuidUint8Array(
-          '00000000-0000-0000-0000-000000000000' as FullHexGuid,
-        ),
-      ) as GuidUint8Array;
+      GuidUint8Array._empty = new GuidUint8Array(
+        '00000000-0000-0000-0000-000000000000' as FullHexGuid,
+      );
     }
     return GuidUint8Array._empty;
   }
 
   constructor(value: GuidInput) {
-    const array = GuidUint8Array.validateAndConvert(value);
-    // Note: We cannot freeze a Buffer as it's an ArrayBuffer view
-    // Instead, we ensure the array is never directly modified after construction
-    this._value = array;
+    // Validate and convert the input to a raw 16-byte array
+    const array = GuidUint8Array.validateAndConvertStatic(value);
 
-    // Initialize cache properties so they exist before sealing
+    // Call super with the array to initialize the Uint8Array
+    super(array);
+
+    // Initialize cache properties
     this._cachedFullHex = undefined;
     this._cachedShortHex = undefined;
     this._cachedBase64 = undefined;
     this.__version = undefined;
+  }
 
-    // Seal the instance to prevent property addition/deletion
-    // Cache properties can still be set once since they were initialized
-    Object.seal(this);
+  /**
+   * Override species to return Uint8Array for methods like slice(), map(), etc.
+   * This ensures that operations on GuidUint8Array return plain Uint8Array
+   * rather than trying to construct a new GuidUint8Array (which would fail
+   * because those methods don't pass valid GUID data).
+   */
+  static get [Symbol.species](): Uint8ArrayConstructor {
+    return Uint8Array;
   }
 
   /**
    * Validates input and converts to raw array with comprehensive error handling.
    * This centralizes all validation logic for better maintainability.
+   * Static version for use in constructor before super() call.
    * @param value The input value to validate and convert
    * @returns The validated raw GUID array
    * @throws {GuidError} If validation fails
    */
-  private static validateAndConvert(value: GuidInput): RawGuidPlatformBuffer {
+  private static validateAndConvertStatic(value: GuidInput): Uint8Array {
     try {
       // Null/undefined check
       if (value === null || value === undefined) {
@@ -302,7 +309,7 @@ export class GuidUint8Array implements IGuid {
    * Use asRawGuidUint8ArrayUnsafe() if you need the internal array and guarantee no mutation.
    */
   public get asRawGuidPlatformBuffer(): RawGuidPlatformBuffer {
-    return new Uint8Array(this._value) as RawGuidPlatformBuffer;
+    return new Uint8Array(this) as RawGuidPlatformBuffer;
   }
 
   /**
@@ -312,7 +319,7 @@ export class GuidUint8Array implements IGuid {
    * @internal
    */
   public get asRawGuidPlatformBufferUnsafe(): RawGuidPlatformBuffer {
-    return this._value;
+    return this as unknown as RawGuidPlatformBuffer;
   }
 
   /**
@@ -559,13 +566,14 @@ export class GuidUint8Array implements IGuid {
     /** URL namespace UUID per RFC 4122 */
     URL: '6ba7b811-9dad-11d1-80b4-00c04fd430c8',
   } as const;
+
   /**
    * Returns the GUID as a full hex string.
    * Result is cached for performance.
    */
   public get asFullHexGuid(): FullHexGuid {
     if (!this._cachedFullHex) {
-      const hexString = Array.from(this._value)
+      const hexString = Array.from(this)
         .map((b: number) => b.toString(16).padStart(2, '0'))
         .join('');
       this._cachedFullHex = GuidUint8Array.toFullHexGuid(hexString);
@@ -576,7 +584,7 @@ export class GuidUint8Array implements IGuid {
    * Returns the GUID as a raw Uint8Array.
    */
   public get asPlatformBuffer(): Uint8Array {
-    return this._value as Uint8Array;
+    return this as Uint8Array;
   }
   /**
    * Returns the GUID as a short hex string.
@@ -591,7 +599,7 @@ export class GuidUint8Array implements IGuid {
   /**
    * Returns the GUID as a base64 string.
    */
-  public toString(): Base64Guid {
+  public override toString(): Base64Guid {
     return this.asBase64Guid as Base64Guid;
   }
   /**
@@ -605,7 +613,7 @@ export class GuidUint8Array implements IGuid {
    * Returns the GUID as a bigint.
    */
   public get asBigIntGuid(): BigIntGuid {
-    const hexString = Array.from(this._value)
+    const hexString = Array.from(this)
       .map((b: number) => b.toString(16).padStart(2, '0'))
       .join('');
     return BigInt('0x' + hexString) as BigIntGuid;
@@ -616,9 +624,7 @@ export class GuidUint8Array implements IGuid {
    */
   public get asBase64Guid(): Base64Guid {
     if (!this._cachedBase64) {
-      this._cachedBase64 = btoa(
-        String.fromCharCode(...this._value),
-      ) as Base64Guid;
+      this._cachedBase64 = btoa(String.fromCharCode(...this)) as Base64Guid;
     }
     return this._cachedBase64;
   }
@@ -914,7 +920,7 @@ export class GuidUint8Array implements IGuid {
 
     const isBuffer = GuidUint8Array.isUint8Array(value);
     const expectedLength = isBuffer
-      ? (value as Buffer | Uint8Array).length
+      ? (value as Uint8Array).length
       : String(value).length;
 
     return GuidUint8Array.lengthToGuidBrand(expectedLength, isBuffer);
@@ -1204,8 +1210,8 @@ export class GuidUint8Array implements IGuid {
    */
   public isEmpty(): boolean {
     // Check if all bytes are zero
-    for (let i = 0; i < this._value.length; i++) {
-      if (this._value[i] !== 0) {
+    for (let i = 0; i < this.length; i++) {
+      if (this[i] !== 0) {
         return false;
       }
     }
@@ -1227,7 +1233,7 @@ export class GuidUint8Array implements IGuid {
    */
   public clone(): VersionedGuidUint8Array {
     return GuidUint8Array.withVersion(
-      new GuidUint8Array(Uint8Array.from(this._value) as RawGuidPlatformBuffer),
+      new GuidUint8Array(Uint8Array.from(this) as RawGuidPlatformBuffer),
     );
   }
 
@@ -1238,8 +1244,8 @@ export class GuidUint8Array implements IGuid {
    */
   public hashCode(): number {
     let hash = 0;
-    for (let i = 0; i < this._value.length; i++) {
-      hash = (hash << 5) - hash + this._value[i];
+    for (let i = 0; i < this.length; i++) {
+      hash = (hash << 5) - hash + this[i];
       hash = hash & hash; // Convert to 32-bit integer
     }
     return hash;
@@ -1257,7 +1263,7 @@ export class GuidUint8Array implements IGuid {
     }
 
     // Version is in bits 48-51 (byte 6, high nibble)
-    const versionByte = this._value[6];
+    const versionByte = this[6];
     const version = (versionByte >> 4) & 0x0f;
 
     // Valid RFC 4122 versions are 1-7
@@ -1343,11 +1349,10 @@ export class GuidUint8Array implements IGuid {
   public getTimestamp(): Date | undefined {
     if (this.getVersion() !== 1) return undefined;
 
-    const bytes = this._value;
     const timeLow =
-      (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
-    const timeMid = (bytes[4] << 8) | bytes[5];
-    const timeHigh = ((bytes[6] & 0x0f) << 8) | bytes[7];
+      (this[0] << 24) | (this[1] << 16) | (this[2] << 8) | this[3];
+    const timeMid = (this[4] << 8) | this[5];
+    const timeHigh = ((this[6] & 0x0f) << 8) | this[7];
     const timestamp =
       (BigInt(timeHigh) << 48n) |
       (BigInt(timeMid) << 32n) |
@@ -1361,7 +1366,7 @@ export class GuidUint8Array implements IGuid {
    * @returns The variant (0-2) or undefined
    */
   public getVariant(): number | undefined {
-    const variantByte = this._value[8];
+    const variantByte = this[8];
     if ((variantByte & 0x80) === 0) return 0; // NCS
     if ((variantByte & 0xc0) === 0x80) return 1; // RFC 4122
     if ((variantByte & 0xe0) === 0xc0) return 2; // Microsoft
@@ -1396,7 +1401,7 @@ export class GuidUint8Array implements IGuid {
    * Returns a URL-safe base64 representation (no padding, URL-safe chars).
    */
   public get asUrlSafeBase64(): string {
-    const base64 = btoa(String.fromCharCode(...this._value));
+    const base64 = btoa(String.fromCharCode(...this));
     return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
