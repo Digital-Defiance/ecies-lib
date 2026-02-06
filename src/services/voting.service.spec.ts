@@ -372,11 +372,10 @@ describe('VotingService (Web)', () => {
         );
       }).rejects.toThrow('ECDH private key is required');
 
+      // Need to use a valid 32-byte private key to test empty public key
+      const validPrivKey = crypto.getRandomValues(new Uint8Array(32));
       await expect(async () => {
-        await deriveVotingKeysFromECDH(
-          ecdhKeyPair.privateKey,
-          new Uint8Array(0),
-        );
+        await deriveVotingKeysFromECDH(validPrivKey, new Uint8Array(0));
       }).rejects.toThrow('ECDH public key is required');
     });
   });

@@ -221,6 +221,10 @@ function ___decompressSecp256k1PublicKey(
  * - One-way: computationally infeasible to recover IKM from OKM
  * - Domain separation via 'info' parameter
  *
+ * NOTE: Per RFC 5869, if salt is not provided, it should be set to a string
+ * of HashLen zeros. We explicitly create this zero-filled salt to ensure
+ * consistency with the Node.js implementation which does the same.
+ *
  * @param secret - The input key material (IKM)
  * @param salt - Optional salt value (non-secret random value)
  * @param info - Context string for domain separation
@@ -235,6 +239,13 @@ export async function hkdf(
   length: number,
   hmacAlgorithm: string = 'SHA-512',
 ): Promise<Uint8Array> {
+  // Per RFC 5869: if salt is not provided, use a string of HashLen zeros
+  // SHA-512 = 64 bytes, SHA-256 = 32 bytes
+  // This must match the Node.js implementation exactly
+  const hashLength = hmacAlgorithm === 'SHA-512' ? 64 : 32;
+  const actualSalt =
+    salt && salt.length > 0 ? salt : new Uint8Array(hashLength);
+
   // Import key material
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
@@ -249,7 +260,7 @@ export async function hkdf(
     {
       name: 'HKDF',
       hash: hmacAlgorithm,
-      salt: (salt || new Uint8Array(0)) as BufferSource,
+      salt: actualSalt as BufferSource,
       info: new TextEncoder().encode(info),
     },
     keyMaterial,
@@ -370,6 +381,12 @@ const SMALL_PRIMES = [
 
 /**
  * Generate a deterministic prime number using DRBG (async web version)
+ *
+ * @param drbg - Deterministic random bit generator
+ * @param numBits - Number of bits in the prime
+ * @param primeTestIterations - Miller-Rabin iterations (default: 256)
+ * @param maxAttempts - Maximum attempts (default: 10000)
+ * @returns A prime number of specified bit length
  */
 export async function generateDeterministicPrime(
   drbg: SecureDeterministicDRBG,
@@ -548,10 +565,17 @@ export async function deriveVotingKeysFromECDH(
     throw new Error('ECDH private key is required');
   }
 
-  // Validate private key length (32 bytes for secp256k1)
-  if (ecdhPrivKey.length !== 32) {
+  // Handle private key length - Node.js createECDH can return 31 bytes
+  // when the key has a leading zero (happens ~0.4% of the time)
+  let normalizedPrivKey: Uint8Array = ecdhPrivKey;
+  if (ecdhPrivKey.length === 31) {
+    // Pad with leading zero to get 32 bytes
+    const padded = new Uint8Array(32);
+    padded.set(ecdhPrivKey, 1); // Copy to offset 1, leaving 0 at offset 0
+    normalizedPrivKey = padded;
+  } else if (ecdhPrivKey.length !== 32) {
     throw new Error(
-      `Invalid ECDH private key length: expected 32 bytes, got ${ecdhPrivKey.length}`,
+      `Invalid ECDH private key length: expected 31-32 bytes, got ${ecdhPrivKey.length}`,
     );
   }
 
@@ -586,7 +610,7 @@ export async function deriveVotingKeysFromECDH(
   // Compute shared secret using @noble/secp256k1 (same as Node.js implementation)
   // Use uncompressed format (65 bytes with 0x04 prefix) for maximum entropy
   const sharedSecret = secp256k1.getSharedSecret(
-    ecdhPrivKey,
+    normalizedPrivKey,
     publicKeyForECDH,
     false, // false = uncompressed (65 bytes with 0x04 prefix)
   );
