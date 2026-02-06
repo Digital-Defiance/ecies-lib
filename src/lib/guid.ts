@@ -159,7 +159,7 @@ export class GuidUint8Array extends Uint8Array implements IGuid {
    * @returns The validated raw GUID array
    * @throws {GuidError} If validation fails
    */
-  private static validateAndConvertStatic(value: GuidInput): Uint8Array {
+  protected static validateAndConvertStatic(value: GuidInput): Uint8Array {
     try {
       // Null/undefined check
       if (value === null || value === undefined) {
