@@ -1,7 +1,7 @@
 import { sha256 } from '@noble/hashes/sha2';
 import { Constants } from '../constants';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
-import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { getEciesI18nEngine } from '../i18n-setup';
 import { PlatformID } from '../interfaces';
 import { IECIESConstants } from '../interfaces/ecies-consts';
 import {
@@ -45,8 +45,7 @@ export class ChunkProcessor<TID extends PlatformID = Uint8Array> {
     const engine = getEciesI18nEngine();
     if (data.length < CHUNK_CONSTANTS.HEADER_SIZE) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Chunk_DataTooShortForHeader,
         ),
       );
@@ -57,18 +56,14 @@ export class ChunkProcessor<TID extends PlatformID = Uint8Array> {
     const magic = view.getUint32(0, false);
     if (magic !== CHUNK_CONSTANTS.MAGIC) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
-          EciesStringKey.Error_Chunk_InvalidMagicBytes,
-        ),
+        engine.translateStringKey(EciesStringKey.Error_Chunk_InvalidMagicBytes),
       );
     }
 
     const version = view.getUint16(4, false);
     if (version !== CHUNK_CONSTANTS.VERSION) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Chunk_UnsupportedVersion,
         ),
       );
@@ -165,8 +160,7 @@ export class ChunkProcessor<TID extends PlatformID = Uint8Array> {
     if (encrypted.length !== header.encryptedSize) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Chunk_EncryptedSizeMismatchTemplate,
           { expectedSize: header.encryptedSize, actualSize: encrypted.length },
         ),
@@ -192,8 +186,7 @@ export class ChunkProcessor<TID extends PlatformID = Uint8Array> {
       if (diff !== 0) {
         const engine = getEciesI18nEngine();
         throw new Error(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_Chunk_ChecksumMismatch,
           ),
         );
@@ -204,8 +197,7 @@ export class ChunkProcessor<TID extends PlatformID = Uint8Array> {
     if (decrypted.length !== header.originalSize) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Chunk_DecryptedSizeMismatch,
         ),
       );

@@ -6,7 +6,6 @@
 import {
   EciesStringKey,
   EciesStringKeyValue,
-  EciesComponentId,
 } from '../../enumerations/ecies-string-key';
 import { getEciesI18nEngine } from '../../i18n-setup';
 
@@ -58,7 +57,7 @@ export class CryptoError extends Error {
     public readonly metadata?: Record<string, string | number>,
   ) {
     const engine = getEciesI18nEngine();
-    const message = engine.translate(EciesComponentId, stringKey, metadata);
+    const message = engine.translateStringKey(stringKey, metadata);
     super(message);
     this.name = 'CryptoError';
     Object.setPrototypeOf(this, CryptoError.prototype);

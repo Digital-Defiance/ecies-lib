@@ -4,7 +4,7 @@
 
 import { SignatureUint8Array } from '../../ecies_types';
 import { EciesStringKey } from '../../enumerations';
-import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import { getEciesI18nEngine } from '../../i18n-setup';
 import { SecureString } from '../../secure-string';
 import {
   hexToUint8Array,
@@ -66,8 +66,7 @@ export class EnhancedWebCryptoService {
     } catch (error) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_FailedToDecryptChallengeTemplate,
           { error: String(error) },
         ),
@@ -155,8 +154,7 @@ export class EnhancedWebCryptoService {
 
     if (!isValid) {
       const engine = getEciesI18nEngine();
-      const errorMessage = engine.translate(
-        EciesComponentId,
+      const errorMessage = engine.translateStringKey(
         EciesStringKey.Error_ECIESError_InvalidChallengeSignature,
       );
       throw new Error(errorMessage);

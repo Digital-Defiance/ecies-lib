@@ -5,7 +5,7 @@
 import { II18nEngine } from '@digitaldefiance/i18n-lib';
 import { getRuntimeConfiguration } from '../constants';
 import { EciesStringKey } from '../enumerations';
-import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { getEciesI18nEngine } from '../i18n-setup';
 import { IConstants } from '../interfaces';
 import { IECIESConstants } from '../interfaces/ecies-consts';
 
@@ -38,8 +38,7 @@ export class AESGCMService {
     // Validate key length (AES supports 16, 24, or 32 bytes)
     if (!key || (key.length !== 16 && key.length !== 24 && key.length !== 32)) {
       throw new Error(
-        this.engine.translate(
-          EciesComponentId,
+        this.engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidAESKeyLength,
         ),
       );
@@ -49,8 +48,7 @@ export class AESGCMService {
     if (!data) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_CannotEncryptEmptyData,
         ),
       );
@@ -58,8 +56,7 @@ export class AESGCMService {
     if (data.length > eciesParams.MAX_RAW_DATA_SIZE) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate,
           { messageLength: data.length },
         ),
@@ -167,8 +164,7 @@ export class AESGCMService {
     if (combinedData.length < ivLength + tagLength) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_CombinedDataTooShortForComponents,
         ),
       );
@@ -202,8 +198,7 @@ export class AESGCMService {
     if (!key || (key.length !== 16 && key.length !== 24 && key.length !== 32)) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidAESKeyLength,
         ),
       );
@@ -213,10 +208,7 @@ export class AESGCMService {
     if (!iv || iv.length !== eciesConsts.IV_SIZE) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
-          EciesStringKey.Error_ECIESError_InvalidIV,
-        ),
+        engine.translateStringKey(EciesStringKey.Error_ECIESError_InvalidIV),
       );
     }
 
@@ -224,8 +216,7 @@ export class AESGCMService {
     if (!encryptedData) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_CannotDecryptEmptyData,
         ),
       );

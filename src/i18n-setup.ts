@@ -95,6 +95,9 @@ function createInstance(config?: EngineConfig): I18nEngine {
     );
   }
 
+  // Register the branded string key enum for direct translation support
+  engine.registerStringKeyEnum(EciesStringKey);
+
   return engine;
 }
 
@@ -134,8 +137,7 @@ export function getEciesTranslation(
   variables?: Record<string, string | number>,
   language?: string,
 ): string {
-  return getEciesI18nEngine().translate(
-    EciesComponentId,
+  return getEciesI18nEngine().translateStringKey(
     stringKey,
     variables,
     language,
@@ -150,9 +152,9 @@ export function safeEciesTranslation(
   variables?: Record<string, string | number>,
   language?: string,
 ): string {
-  try {
-    return getEciesTranslation(stringKey, variables, language);
-  } catch {
-    return `[${stringKey}]`;
-  }
+  return getEciesI18nEngine().safeTranslateStringKey(
+    stringKey,
+    variables,
+    language,
+  );
 }

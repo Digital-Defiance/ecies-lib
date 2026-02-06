@@ -3,7 +3,7 @@ import { EciesCipherSuiteEnum } from '../../enumerations/ecies-cipher-suite';
 import { EciesEncryptionTypeEnum } from '../../enumerations/ecies-encryption-type';
 import { EciesStringKey } from '../../enumerations/ecies-string-key';
 import { EciesVersionEnum } from '../../enumerations/ecies-version';
-import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import { getEciesI18nEngine } from '../../i18n-setup';
 import type { IConstants, PlatformID } from '../../interfaces';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
@@ -103,8 +103,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     if (!authTag) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForKeyEncryption,
         ),
       );
@@ -130,8 +129,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     if (encryptedKey.length !== this.eciesConsts.MULTIPLE.ENCRYPTED_KEY_SIZE) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidEncryptedKeyLengthTemplate,
           {
             keySize: this.eciesConsts.MULTIPLE.ENCRYPTED_KEY_SIZE,
@@ -180,8 +178,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
       if (decrypted.length !== this.eciesConsts.SYMMETRIC.KEY_SIZE) {
         const engine = getEciesI18nEngine();
         throw new Error(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_ECIESError_InvalidDataLength,
           ),
         );
@@ -191,8 +188,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
       console.error('Failed to decrypt key:', error);
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_FailedToDecryptKey,
         ),
       );
@@ -211,8 +207,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     const engine = getEciesI18nEngine();
     if (recipients.length > this.eciesConsts.MULTIPLE.MAX_RECIPIENTS) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_TooManyRecipientsTemplate,
           { recipientsCount: recipients.length },
         ),
@@ -228,8 +223,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
 
     if (messageToEncrypt.length > this.eciesConsts.MAX_RAW_DATA_SIZE) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_MessageTooLargeTemplate,
           { length: messageToEncrypt.length },
         ),
@@ -293,8 +287,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     if (!authTag) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForMultiRecipientECIESEncryption,
         ),
       );
@@ -339,8 +332,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     if (recipientIndex === -1) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_RecipientNotFound,
         ),
       );
@@ -352,8 +344,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     if (!encryptedData.ephemeralPublicKey) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_MissingEphemeralPublicKey,
         ),
       );
@@ -407,8 +398,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     if (decrypted.length !== encryptedData.dataLength) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_DecryptedDataLengthMismatch,
         ),
       );
@@ -445,8 +435,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     if (data.recipientIds.length !== data.recipientKeys.length) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_RecipientCountMismatch,
         ),
       );
@@ -458,8 +447,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     ) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidDataLength,
         ),
       );
@@ -476,8 +464,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     if (!data.ephemeralPublicKey) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_MissingEphemeralPublicKey,
         ),
       );
@@ -491,8 +478,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     if (recipientIdSize > 255) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_RecipientIdSizeTooLargeTemplate,
           { size: recipientIdSize },
         ),
@@ -548,8 +534,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     // minimum: 1 (ver) + 1 (suite) + 1 (type) + 33 (pubkey) + 8 (len) + 2 (count) = 46
     if (data.length < 46) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_DataTooShortForMultiRecipientHeader,
         ),
       );
@@ -563,8 +548,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     offset += this.eciesConsts.VERSION_SIZE;
     if (version !== EciesVersionEnum.V1) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidVersionTemplate,
           { version },
         ),
@@ -576,8 +560,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     offset += this.eciesConsts.CIPHER_SUITE_SIZE;
     if (cipherSuite !== EciesCipherSuiteEnum.Secp256k1_Aes256Gcm_Sha256) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate,
           { cipherSuite },
         ),
@@ -589,8 +572,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
     offset += this.eciesConsts.ENCRYPTION_TYPE_SIZE;
     if (encryptionType !== EciesEncryptionTypeEnum.Multiple) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate,
           { encryptionType: encryptionType.toString(16) },
         ),
@@ -616,8 +598,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
 
     if (dataLength <= 0 || dataLength > this.eciesConsts.MAX_RAW_DATA_SIZE) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidDataLength,
         ),
       );
@@ -638,8 +619,7 @@ export class EciesMultiRecipient<TID extends PlatformID = Uint8Array> {
       recipientCount > this.eciesConsts.MULTIPLE.MAX_RECIPIENTS
     ) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidRecipientCount,
         ),
       );

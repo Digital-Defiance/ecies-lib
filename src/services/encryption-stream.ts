@@ -1,7 +1,7 @@
 import { Constants } from '../constants';
 import { EciesEncryptionTypeEnum } from '../enumerations/ecies-encryption-type';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
-import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { getEciesI18nEngine } from '../i18n-setup';
 import { PlatformID } from '../interfaces';
 import { IConstants } from '../interfaces/constants';
 import { IECIESConstants } from '../interfaces/ecies-consts';
@@ -92,8 +92,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
     const engine = getEciesI18nEngine();
     if (data.length < STREAM_HEADER_CONSTANTS.HEADER_SIZE) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Stream_DataTooShortForHeader,
         ),
       );
@@ -104,8 +103,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
     const magic = view.getUint32(0, false);
     if (magic !== STREAM_HEADER_CONSTANTS.MAGIC) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Stream_InvalidMagicBytes,
         ),
       );
@@ -114,8 +112,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
     const version = view.getUint16(4, false);
     if (version !== STREAM_HEADER_CONSTANTS.VERSION) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Stream_UnsupportedVersion,
         ),
       );
@@ -144,8 +141,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
     // Validate public key (65 bytes uncompressed with 0x04 prefix)
     if (!publicKey || (publicKey.length !== 65 && publicKey.length !== 33)) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Stream_InvalidPublicKeyLength,
         ),
       );
@@ -168,8 +164,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
       // Check for cancellation
       if (signal?.aborted) {
         throw new DOMException(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_Stream_EncryptionCancelled,
           ),
           'AbortError',
@@ -179,8 +174,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
       // Prevent buffer exhaustion from single large source chunk
       if (data.length > maxSingleChunk) {
         throw new Error(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_Stream_BufferOverflowTemplate,
             { max: maxSingleChunk },
           ),
@@ -267,16 +261,14 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
     const engine = getEciesI18nEngine();
     if (recipients.length === 0) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Stream_AtLeastOneRecipientRequired,
         ),
       );
     }
     if (recipients.length > 65535) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Stream_MaxRecipientsExceeded,
         ),
       );
@@ -289,8 +281,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
         (recipient.publicKey.length !== 65 && recipient.publicKey.length !== 33)
       ) {
         throw new Error(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_Stream_InvalidRecipientPublicKeyLength,
           ),
         );
@@ -300,8 +291,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
         recipient.id.length !== this.constants.MEMBER_ID_LENGTH
       ) {
         throw new Error(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate,
             { expected: this.constants.MEMBER_ID_LENGTH },
           ),
@@ -405,8 +395,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
       recipientId.length !== this.constants.MEMBER_ID_LENGTH
     ) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Stream_InvalidRecipientIdLengthTemplate,
           { expected: this.constants.MEMBER_ID_LENGTH },
         ),
@@ -414,8 +403,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
     }
     if (!privateKey || privateKey.length !== 32) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes,
         ),
       );
@@ -433,8 +421,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
     for await (const chunkData of source) {
       if (signal?.aborted) {
         throw new DOMException(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_Stream_DecryptionCancelled,
           ),
           'AbortError',
@@ -449,8 +436,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
 
       if (header.chunkIndex !== expectedIndex) {
         throw new Error(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate,
             { expected: expectedIndex, actual: header.chunkIndex },
           ),
@@ -483,8 +469,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
     // Validate private key
     if (!privateKey || privateKey.length !== 32) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Stream_InvalidPrivateKeyMust32Bytes,
         ),
       );
@@ -503,8 +488,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
       // Check for cancellation
       if (signal?.aborted) {
         throw new DOMException(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_Stream_DecryptionCancelled,
           ),
           'AbortError',
@@ -519,8 +503,7 @@ export class EncryptionStream<TID extends PlatformID = Uint8Array> {
       // Validate sequence
       if (header.index !== expectedIndex) {
         throw new Error(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_Stream_ChunkSequenceErrorTemplate,
             { expected: expectedIndex, actual: header.index },
           ),

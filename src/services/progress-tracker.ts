@@ -1,5 +1,5 @@
 import { EciesStringKey } from '../enumerations/ecies-string-key';
-import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { getEciesI18nEngine } from '../i18n-setup';
 import { IStreamProgress } from '../interfaces/stream-progress';
 
 /**
@@ -26,8 +26,7 @@ export class ProgressTracker {
     if (chunkBytes < 0) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Progress_ChunkBytesCannotBeNegative,
         ),
       );

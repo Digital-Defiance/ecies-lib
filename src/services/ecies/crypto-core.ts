@@ -11,7 +11,7 @@ import {
 import { wordlist } from '@scure/bip39/wordlists/english';
 import { Constants } from '../../constants';
 import { EciesStringKey } from '../../enumerations';
-import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import { getEciesI18nEngine } from '../../i18n-setup';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
 import { SecureString } from '../../secure-string';
@@ -48,8 +48,7 @@ export class EciesCryptoCore {
     if (!publicKey) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_ReceivedNullOrUndefinedPublicKey,
         ),
       );
@@ -76,8 +75,7 @@ export class EciesCryptoCore {
     } else {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidPublicKeyFormatOrLengthTemplate,
           { keyLength },
         ),
@@ -96,8 +94,7 @@ export class EciesCryptoCore {
     if (allZeros) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidPublicKeyNotOnCurve,
         ),
       );
@@ -122,8 +119,7 @@ export class EciesCryptoCore {
     if (!mnemonic || !validateMnemonic(mnemonic.value ?? '', wordlist)) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidMnemonic,
         ),
       );
@@ -136,8 +132,7 @@ export class EciesCryptoCore {
     if (!derivedKey.privateKey) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey,
         ),
       );
@@ -163,8 +158,7 @@ export class EciesCryptoCore {
     if (!derivedKey.privateKey) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_FailedToDervivePrivateKey,
         ),
       );

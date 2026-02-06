@@ -3,7 +3,7 @@ import { bytesToHex } from '@noble/hashes/utils';
 import { ECIESErrorTypeEnum, EciesStringKey } from './enumerations';
 import { Pbkdf2ProfileEnum } from './enumerations/pbkdf2-profile';
 import { ECIESError } from './errors/ecies';
-import { EciesComponentId, getEciesI18nEngine } from './i18n-setup';
+import { getEciesI18nEngine } from './i18n-setup';
 import type { IChecksumConsts } from './interfaces/checksum-consts';
 import type { IConfigurationProvenance } from './interfaces/configuration-provenance';
 import type { IConstants } from './interfaces/constants';
@@ -448,8 +448,7 @@ function validateConstants(config: IConstants): void {
   ) {
     const engine = getEciesI18nEngine();
     throw new Error(
-      engine.translate(
-        EciesComponentId,
+      engine.translateStringKey(
         EciesStringKey.Error_ECIESError_InvalidChecksumConstants,
       ),
     );
@@ -697,8 +696,7 @@ export class ConstantsRegistry {
     if (key === DEFAULT_CONFIGURATION_KEY) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_CannotOverwriteDefaultConfiguration,
         ),
       );

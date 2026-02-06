@@ -8,7 +8,17 @@ Production-ready, browser-compatible ECIES (Elliptic Curve Integrated Encryption
 
 Part of [Express Suite](https://github.com/Digital-Defiance/express-suite)
 
-**Current Version: v4.16.0**
+**Current Version: v4.16.25**
+
+## What's New in v4.16.x
+
+✨ **Voting Key Derivation Security Improvements** - Enhanced voting key derivation to use both X and Y coordinates of the shared secret for improved security and cross-platform consistency.
+
+**Key Changes:**
+- **HKDF Salt Handling**: Per RFC 5869, when salt is not provided, it now uses a string of HashLen zeros (64 bytes for SHA-512, 32 bytes for SHA-256) instead of an empty array, ensuring consistency with Node.js implementation
+- **Private Key Normalization**: `deriveVotingKeysFromECDH` now handles 31-byte private keys (which can occur ~0.4% of the time when Node.js createECDH returns keys with leading zeros) by padding to 32 bytes
+- **Uncompressed Public Keys**: Voting key derivation now uses uncompressed format (65 bytes with 0x04 prefix) for maximum entropy in ECDH shared secret computation
+- **Simplified Prime Generation**: Removed constant-time padding in `generateDeterministicPrime` for cleaner implementation
 
 This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuring HKDF key derivation, AAD binding, and optimized multi-recipient encryption. It includes a pluggable ID provider system with PlatformID support, memory-efficient streaming encryption, comprehensive internationalization, and a complete cryptographic voting system with 15+ voting methods.
 
@@ -255,6 +265,47 @@ const encryptedJson = await aesGcm.encryptJson(userData, key);
 const decryptedJson = await aesGcm.decryptJson<typeof userData>(encryptedJson, key);
 console.log(decryptedJson); // { name: 'Alice', email: 'alice@example.com', age: 30 }
 ```
+
+### 2. Internationalization (i18n)
+
+The library provides automatic error translation in 8 languages with helper functions for direct translation:
+
+```typescript
+import { 
+  getEciesI18nEngine,
+  getEciesTranslation,
+  safeEciesTranslation,
+  EciesStringKey 
+} from '@digitaldefiance/ecies-lib';
+
+// Initialize the i18n engine (required once at startup)
+const engine = getEciesI18nEngine();
+
+// Direct translation using branded string keys (v4.16.0+)
+// Component ID is automatically resolved from the branded enum
+const errorMessage = getEciesTranslation(EciesStringKey.Error_ECIESError_InvalidIV);
+
+// With variables
+const message = getEciesTranslation(
+  EciesStringKey.Error_InvalidKeyLength,
+  { expected: 32, actual: 16 }
+);
+
+// With specific language
+const frenchMessage = getEciesTranslation(
+  EciesStringKey.Error_ECIESError_InvalidIV,
+  {},
+  'fr'
+);
+
+// Safe translation (returns placeholder on failure instead of throwing)
+const safeMessage = safeEciesTranslation(EciesStringKey.Error_ECIESError_InvalidIV);
+
+// Or use the engine directly with translateStringKey
+const directTranslation = engine.translateStringKey(EciesStringKey.Error_ECIESError_InvalidIV);
+```
+
+**Supported Languages:** en-US, en-GB, fr, es, de, zh-CN, ja, uk
 
 ## Cryptographic Voting System
 
@@ -1277,7 +1328,16 @@ The library maintains **100% test coverage** with over 1,200 tests, including:
 
 ## ChangeLog
 
-### v4.16.0 - Voting Keys now derived using both X&Y coordinates for improved security
+### v4.16.x (v4.16.0 - v4.16.25)
+
+**Voting Key Derivation Security Improvements**
+
+- **HKDF RFC 5869 Compliance**: When salt is not provided, now uses HashLen zeros (64 bytes for SHA-512) instead of empty array for consistency with Node.js
+- **Private Key Normalization**: `deriveVotingKeysFromECDH` handles 31-byte private keys by padding to 32 bytes (occurs ~0.4% of the time with Node.js createECDH)
+- **Uncompressed Public Keys**: Voting key derivation uses uncompressed format (65 bytes) for maximum entropy
+- **Simplified Prime Generation**: Cleaner `generateDeterministicPrime` implementation
+- **i18n Improvements**: Added `EciesComponentStrings` export with `BrandedPluralMasterStringsCollection` type for type-safe translations
+- **String Key Enum Registration**: Added `registerStringKeyEnum(EciesStringKey)` for direct translation via `translateStringKey()`
 
 ### v4.13.0 - API Naming Improvements & Configuration Enhancements
 

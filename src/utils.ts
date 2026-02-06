@@ -2,7 +2,7 @@ import { EciesStringKey } from './enumerations/ecies-string-key';
 import { LengthEncodingType } from './enumerations/length-encoding-type';
 import { LengthErrorType } from './enumerations/length-error-type';
 import { LengthError } from './errors';
-import { EciesComponentId, getEciesI18nEngine } from './i18n-setup';
+import { getEciesI18nEngine } from './i18n-setup';
 
 /**
  * Encodes the length of the data in the buffer.
@@ -146,24 +146,19 @@ export function hexToUint8Array(hexString: string): Uint8Array {
   const engine = getEciesI18nEngine();
   if (!hexString || typeof hexString !== 'string') {
     throw new Error(
-      engine.translate(
-        EciesComponentId,
-        EciesStringKey.Error_Utils_InvalidHexString,
-      ),
+      engine.translateStringKey(EciesStringKey.Error_Utils_InvalidHexString),
     );
   }
   if (hexString.length % 2 !== 0) {
     throw new Error(
-      engine.translate(
-        EciesComponentId,
+      engine.translateStringKey(
         EciesStringKey.Error_Utils_HexStringMustHaveEvenLength,
       ),
     );
   }
   if (!/^[0-9a-fA-F]*$/.test(hexString)) {
     throw new Error(
-      engine.translate(
-        EciesComponentId,
+      engine.translateStringKey(
         EciesStringKey.Error_Utils_HexStringContainsInvalidCharacters,
       ),
     );
@@ -332,16 +327,14 @@ export function safeBigIntToNumber(value: bigint): number {
   const engine = getEciesI18nEngine();
   if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
     throw new Error(
-      engine.translate(
-        EciesComponentId,
+      engine.translateStringKey(
         EciesStringKey.Error_Utils_ValueExceedsSafeIntegerRange,
       ),
     );
   }
   if (value < BigInt(Number.MIN_SAFE_INTEGER)) {
     throw new Error(
-      engine.translate(
-        EciesComponentId,
+      engine.translateStringKey(
         EciesStringKey.Error_Utils_ValueBelowSafeIntegerRange,
       ),
     );

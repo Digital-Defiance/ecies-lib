@@ -1,7 +1,7 @@
 import { II18nEngine } from '@digitaldefiance/i18n-lib';
 import { Constants } from '../constants';
 import { EciesStringKey } from '../enumerations';
-import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { getEciesI18nEngine } from '../i18n-setup';
 import {
   IECIESConfig,
   IECIESConstants,
@@ -93,8 +93,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
       recipients.length > this.constants.MAX_RECIPIENTS
     ) {
       throw new Error(
-        this.engine.translate(
-          EciesComponentId,
+        this.engine.translateStringKey(
           EciesStringKey.Error_MultiRecipient_InvalidRecipientCountTemplate,
           { count: recipients.length },
         ),
@@ -102,16 +101,14 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     }
     if (symmetricKey.length !== 32) {
       throw new Error(
-        this.engine.translate(
-          EciesComponentId,
+        this.engine.translateStringKey(
           EciesStringKey.Error_MultiRecipient_SymmetricKeyMust32Bytes,
         ),
       );
     }
     if (chunkIndex < 0 || chunkIndex > 0xffffffff) {
       throw new Error(
-        this.engine.translate(
-          EciesComponentId,
+        this.engine.translateStringKey(
           EciesStringKey.Error_MultiRecipient_InvalidChunkIndexTemplate,
           { index: chunkIndex },
         ),
@@ -127,8 +124,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
 
     if (dataToEncrypt.length > 0x7fffffff) {
       throw new Error(
-        this.engine.translate(
-          EciesComponentId,
+        this.engine.translateStringKey(
           EciesStringKey.Error_MultiRecipient_DataSizeExceedsMaximumTemplate,
           { size: dataToEncrypt.length },
         ),
@@ -141,8 +137,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
       const idStr = Buffer.from(recipient.id).toString('hex');
       if (seenIds.has(idStr)) {
         throw new Error(
-          this.engine.translate(
-            EciesComponentId,
+          this.engine.translateStringKey(
             EciesStringKey.Error_MultiRecipient_DuplicateRecipientId,
           ),
         );
@@ -184,8 +179,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
         this.recipientIdSize + this.constants.KEY_SIZE_BYTES + h.keySize;
       if (recipientHeadersSize + headerSize < recipientHeadersSize) {
         throw new Error(
-          this.engine.translate(
-            EciesComponentId,
+          this.engine.translateStringKey(
             EciesStringKey.Error_MultiRecipient_RecipientHeadersSizeOverflow,
           ),
         );
@@ -206,8 +200,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     // Check for integer overflow (max safe: 2^31 - 1 for Uint8Array)
     if (totalSize > 0x7fffffff || totalSize < 0) {
       throw new Error(
-        this.engine.translate(
-          EciesComponentId,
+        this.engine.translateStringKey(
           EciesStringKey.Error_MultiRecipient_ChunkSizeOverflow,
         ),
       );
@@ -296,8 +289,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     const engine = getEciesI18nEngine();
     if (chunkData.length < this.constants.HEADER_SIZE) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_MultiRecipient_ChunkTooSmall,
         ),
       );
@@ -311,8 +303,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     offset += 4;
     if (magic !== this.constants.MAGIC) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_MultiRecipient_InvalidChunkMagic,
         ),
       );
@@ -322,8 +313,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     offset += 2;
     if (version !== this.constants.VERSION) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_MultiRecipient_UnsupportedVersionTemplate,
           { version },
         ),
@@ -337,8 +327,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
       recipientCount > this.constants.MAX_RECIPIENTS
     ) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_MultiRecipient_InvalidRecipientCountTemplate,
           { count: recipientCount },
         ),
@@ -365,8 +354,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
       this.constants.HEADER_SIZE + Constants.ECIES.IV_SIZE + encryptedSize;
     if (chunkData.length < minChunkSize) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_MultiRecipient_ChunkTooSmallForEncryptedSize,
         ),
       );
@@ -380,8 +368,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
       // Check if we have enough data for recipient ID
       if (tempOffset + this.recipientIdSize > chunkData.length) {
         throw new Error(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_MultiRecipient_ChunkTruncatedRecipientId,
           ),
         );
@@ -393,8 +380,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
       // Check if we have enough data for keySize field
       if (tempOffset + this.constants.KEY_SIZE_BYTES > chunkData.length) {
         throw new Error(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_MultiRecipient_ChunkTruncatedKeySize,
           ),
         );
@@ -406,8 +392,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
       // Validate keySize (typical ECIES: 100-400 bytes)
       if (keySize === 0 || keySize > 1000) {
         throw new Error(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_MultiRecipient_InvalidKeySizeTemplate,
             { size: keySize },
           ),
@@ -417,8 +402,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
       // Check if we have enough data for the encrypted key
       if (tempOffset + keySize > chunkData.length) {
         throw new Error(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_MultiRecipient_ChunkTruncatedEncryptedKey,
           ),
         );
@@ -442,8 +426,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
 
     if (!symmetricKey) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_MultiRecipient_RecipientNotFoundInChunk,
         ),
       );
@@ -458,8 +441,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     // Read IV
     if (offset + Constants.ECIES.IV_SIZE > chunkData.length) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_MultiRecipient_ChunkTooSmall,
         ),
       );
@@ -470,8 +452,7 @@ export class MultiRecipientProcessor<TID extends PlatformID = Uint8Array> {
     // Read encrypted data (includes auth tag)
     if (offset + encryptedSize > chunkData.length) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_MultiRecipient_ChunkTooSmall,
         ),
       );

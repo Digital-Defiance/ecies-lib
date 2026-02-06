@@ -17,7 +17,7 @@
 import { EmailString } from '../email-string';
 import { EciesStringKey } from '../enumerations';
 import { MemberType } from '../enumerations/member-type';
-import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { getEciesI18nEngine } from '../i18n-setup';
 import { PlatformID } from '../interfaces';
 import { IMemberWithMnemonic, Member } from '../member';
 import { SecureString } from '../secure-string';
@@ -108,8 +108,7 @@ export class MemberBuilder {
     if (!this.eciesService) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Builder_ECIESServiceMustBeSetBeforeGeneratingMnemonic,
         ),
       );
@@ -127,16 +126,14 @@ export class MemberBuilder {
     const engine = getEciesI18nEngine();
     if (!this.eciesService) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Builder_ECIESServiceIsRequired,
         ),
       );
     }
     if (!this.type || !this.name || !this.email) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Builder_TypeNameAndEmailAreRequired,
         ),
       );

@@ -4,7 +4,7 @@
 
 import { I18nEngine } from '@digitaldefiance/i18n-lib';
 import { EciesStringKey } from '../enumerations/ecies-string-key';
-import { EciesComponentId, getEciesI18nEngine } from '../i18n-setup';
+import { getEciesI18nEngine } from '../i18n-setup';
 import type { IConstants } from '../interfaces/constants';
 
 export enum CryptoServiceKey {
@@ -43,8 +43,7 @@ export class CryptoContainer {
     const service = this.services.get(key);
     if (!service) {
       throw new Error(
-        this.i18n.translate(
-          EciesComponentId,
+        this.i18n.translateStringKey(
           EciesStringKey.Error_Container_ServiceNotFoundTemplate,
           { service: key },
         ),

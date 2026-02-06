@@ -1,5 +1,5 @@
 import { EciesStringKey } from './enumerations';
-import { EciesComponentId, getEciesI18nEngine } from './i18n-setup';
+import { getEciesI18nEngine } from './i18n-setup';
 import { PhoneNumberRegex } from './regexes';
 
 /**
@@ -19,8 +19,7 @@ export class PhoneNumber {
     if (!PhoneNumberRegex.test(number)) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_PhoneNumber_InvalidTemplate,
           { phoneNumber: number },
         ),

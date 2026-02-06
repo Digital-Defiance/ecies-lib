@@ -7,7 +7,7 @@ import {
 import { EciesStringKey } from '../../enumerations/ecies-string-key';
 import { EciesVersionEnum } from '../../enumerations/ecies-version';
 import { TranslatableEciesError } from '../../errors/translatable';
-import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import { getEciesI18nEngine } from '../../i18n-setup';
 import { IConstants } from '../../interfaces';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
@@ -66,8 +66,7 @@ export class EciesSingleRecipient {
     if (message.length > this.eciesConsts.MAX_RAW_DATA_SIZE) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_MessageLengthExceedsMaximumAllowedSizeTemplate,
           { messageLength: message.length },
         ),
@@ -129,8 +128,7 @@ export class EciesSingleRecipient {
     if (!authTag) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_AuthenticationTagIsRequiredForECIESEncryption,
         ),
       );
@@ -141,8 +139,7 @@ export class EciesSingleRecipient {
     if (encrypted.length > maxEncryptedSize) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_EncryptedSizeExceedsExpected,
         ),
       );
@@ -216,8 +213,7 @@ export class EciesSingleRecipient {
     offset += this.eciesConsts.VERSION_SIZE;
     if (version !== EciesVersionEnum.V1) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidVersionTemplate,
           { version },
         ),
@@ -229,8 +225,7 @@ export class EciesSingleRecipient {
     offset += this.eciesConsts.CIPHER_SUITE_SIZE;
     if (cipherSuite !== EciesCipherSuiteEnum.Secp256k1_Aes256Gcm_Sha256) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidCipherSuiteTemplate,
           { cipherSuite },
         ),
@@ -250,8 +245,7 @@ export class EciesSingleRecipient {
         break;
       case this.eciesConsts.ENCRYPTION_TYPE.MULTIPLE:
         throw new Error(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode,
           ),
         );
@@ -261,8 +255,7 @@ export class EciesSingleRecipient {
           .toString(16)
           .padStart(2, '0');
         throw new Error(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_ECIESError_InvalidEncryptionTypeTemplate,
             { encryptionType: encryptionTypeHex },
           ),
@@ -275,8 +268,7 @@ export class EciesSingleRecipient {
       actualEncryptionType !== encryptionType
     ) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_EncryptionTypeMismatchTemplate,
           { encryptionType, actualEncryptionType },
         ),
@@ -291,8 +283,7 @@ export class EciesSingleRecipient {
 
     if (data.length < requiredSize) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_DataTooShortTemplate,
           { requiredSize, dataLength: data.length },
         ),
@@ -345,8 +336,7 @@ export class EciesSingleRecipient {
       (dataLength < 0 || dataLength > this.eciesConsts.MAX_RAW_DATA_SIZE)
     ) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidDataLength,
         ),
       );
@@ -358,8 +348,7 @@ export class EciesSingleRecipient {
       dataLength !== options.dataLength
     ) {
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_DataLengthMismatchTemplate,
           {
             expectedDataLength: dataLength,
@@ -495,8 +484,7 @@ export class EciesSingleRecipient {
     if (!privateKey || privateKey.length !== 32) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidPrivateKey,
         ),
       );
@@ -513,8 +501,7 @@ export class EciesSingleRecipient {
     if (allZeros) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidPrivateKey,
         ),
       );
@@ -524,10 +511,7 @@ export class EciesSingleRecipient {
     if (!iv || iv.length !== this.eciesConsts.IV_SIZE) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
-          EciesStringKey.Error_ECIESError_InvalidIV,
-        ),
+        engine.translateStringKey(EciesStringKey.Error_ECIESError_InvalidIV),
       );
     }
 
@@ -535,8 +519,7 @@ export class EciesSingleRecipient {
     if (!authTag || authTag.length !== this.eciesConsts.AUTH_TAG_SIZE) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidAuthTag,
         ),
       );
@@ -563,8 +546,7 @@ export class EciesSingleRecipient {
     if (sharedSecretAllZeros) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_ECIESError_InvalidSharedSecret,
         ),
       );

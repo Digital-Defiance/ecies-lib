@@ -5,7 +5,7 @@ import {
   EciesEncryptionTypeEnum,
 } from '../../enumerations/ecies-encryption-type';
 import { EciesStringKey } from '../../enumerations/ecies-string-key';
-import { EciesComponentId, getEciesI18nEngine } from '../../i18n-setup';
+import { getEciesI18nEngine } from '../../i18n-setup';
 import { IMember } from '../../interfaces';
 import type { PlatformID } from '../../interfaces';
 import { IConstants } from '../../interfaces/constants';
@@ -542,8 +542,7 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
     if (dataLength < 0) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Service_InvalidDataLength,
         ),
       );
@@ -564,8 +563,7 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
       default: {
         const engine = getEciesI18nEngine();
         throw new Error(
-          engine.translate(
-            EciesComponentId,
+          engine.translateStringKey(
             EciesStringKey.Error_Service_InvalidEncryptionType,
           ),
         );
@@ -583,8 +581,7 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
     if (encryptedDataLength < 0) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Service_InvalidEncryptedDataLength,
         ),
       );
@@ -597,8 +594,7 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
     if (decryptedLength < 0) {
       const engine = getEciesI18nEngine();
       throw new Error(
-        engine.translate(
-          EciesComponentId,
+        engine.translateStringKey(
           EciesStringKey.Error_Service_ComputedDecryptedLengthNegative,
         ),
       );
@@ -618,8 +614,7 @@ export class ECIESService<TID extends PlatformID = Uint8Array> {
   ): Promise<Uint8Array> {
     if (encryptionType === EciesEncryptionTypeEnum.Multiple) {
       throw new Error(
-        getEciesI18nEngine().translate(
-          EciesComponentId,
+        getEciesI18nEngine().translateStringKey(
           EciesStringKey.Error_ECIESError_MultipleEncryptionTypeNotSupportedInSingleRecipientMode,
         ),
       );
