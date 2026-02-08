@@ -8,18 +8,6 @@ Production-ready, browser-compatible ECIES (Elliptic Curve Integrated Encryption
 
 Part of [Express Suite](https://github.com/Digital-Defiance/express-suite)
 
-**Current Version: v4.16.25**
-
-## What's New in v4.16.x
-
-✨ **Voting Key Derivation Security Improvements** - Enhanced voting key derivation to use both X and Y coordinates of the shared secret for improved security and cross-platform consistency.
-
-**Key Changes:**
-- **HKDF Salt Handling**: Per RFC 5869, when salt is not provided, it now uses a string of HashLen zeros (64 bytes for SHA-512, 32 bytes for SHA-256) instead of an empty array, ensuring consistency with Node.js implementation
-- **Private Key Normalization**: `deriveVotingKeysFromECDH` now handles 31-byte private keys (which can occur ~0.4% of the time when Node.js createECDH returns keys with leading zeros) by padding to 32 bytes
-- **Uncompressed Public Keys**: Voting key derivation now uses uncompressed format (65 bytes with 0x04 prefix) for maximum entropy in ECDH shared secret computation
-- **Simplified Prime Generation**: Removed constant-time padding in `generateDeterministicPrime` for cleaner implementation
-
 This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuring HKDF key derivation, AAD binding, and optimized multi-recipient encryption. It includes a pluggable ID provider system with PlatformID support, memory-efficient streaming encryption, comprehensive internationalization, and a complete cryptographic voting system with 15+ voting methods.
 
 ## Features
@@ -36,9 +24,9 @@ This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuri
   - **Symmetric**: `AES-256-GCM` for authenticated symmetric encryption.
   - **Hashing**: `SHA-256` and `SHA-512`.
 - **Modes**:
-  - **Basic**: Minimal overhead (no length prefix).
-  - **WithLength**: Includes data length prefix.
-  - **Multiple**: Efficient encryption for up to 65,535 recipients.
+  - **Basic**: Minimal overhead (no length prefix) - Use for fixed-size data or when size is known
+  - **WithLength**: Includes data length prefix - Use for variable-size data or streaming
+  - **Multiple**: Efficient encryption for up to 65,535 recipients - Use for group messaging
 
 ### 🗳️ Cryptographic Voting System
 
@@ -217,53 +205,59 @@ import {
   AESGCMService
 } from '@digitaldefiance/ecies-lib';
 
-// 1. Initialize i18n (required once)
-getEciesI18nEngine();
+try {
+  // 1. Initialize i18n (required once)
+  getEciesI18nEngine();
 
-// 2. Configure (Optional - defaults to ObjectIdProvider)
-const config = createRuntimeConfiguration({
-  idProvider: new ObjectIdProvider()
-});
+  // 2. Configure (Optional - defaults to ObjectIdProvider)
+  const config = createRuntimeConfiguration({
+    idProvider: new ObjectIdProvider()
+  });
 
-// 3. Initialize Service
-// The constructor accepts either IConstants (from createRuntimeConfiguration)
-// or Partial<IECIESConfig> for backward compatibility
-const ecies = new ECIESService(config);
+  // 3. Initialize Service
+  const ecies = new ECIESService(config);
 
-// 4. Generate Keys
-const mnemonic = ecies.generateNewMnemonic();
-const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
+  // 4. Generate Keys
+  const mnemonic = ecies.generateNewMnemonic();
+  const { privateKey, publicKey } = ecies.mnemonicToSimpleKeyPair(mnemonic);
 
-// 5. Encrypt & Decrypt
-const message = new TextEncoder().encode('Hello, Secure World!');
-const encrypted = await ecies.encryptWithLength(publicKey, message);
-const decrypted = await ecies.decryptWithLengthAndHeader(privateKey, encrypted);
+  // 5. Encrypt & Decrypt
+  const message = new TextEncoder().encode('Hello, Secure World!');
+  const encrypted = await ecies.encryptWithLength(publicKey, message);
+  const decrypted = await ecies.decryptWithLengthAndHeader(privateKey, encrypted);
 
-console.log(new TextDecoder().decode(decrypted)); // "Hello, Secure World!"
+  console.log(new TextDecoder().decode(decrypted)); // "Hello, Secure World!"
 
-// 6. Strong Typing for ID Operations (NEW!)
-const idProvider = getEnhancedIdProvider<ObjectId>();
-const objectId = idProvider.generateTyped(); // Returns ObjectId - strongly typed!
-const serialized = idProvider.serializeTyped(objectId); // Accepts ObjectId directly
-const deserialized = idProvider.deserializeTyped(serialized); // Returns ObjectId
+  // 6. Strong Typing for ID Operations
+  const idProvider = getEnhancedIdProvider<ObjectId>();
+  const objectId = idProvider.generateTyped(); // Returns ObjectId - strongly typed!
+  const serialized = idProvider.serializeTyped(objectId);
+  const deserialized = idProvider.deserializeTyped(serialized);
 
-// 7. AES-GCM Service (Instance-based)
-const aesGcm = new AESGCMService(); // Now instance-based, not static
-const key = crypto.getRandomValues(new Uint8Array(32));
-const data = new TextEncoder().encode('Sensitive Data');
+  // 7. AES-GCM Service (Instance-based)
+  const aesGcm = new AESGCMService();
+  const key = crypto.getRandomValues(new Uint8Array(32));
+  const data = new TextEncoder().encode('Sensitive Data');
 
-// Encrypt with authentication tag
-const { encrypted: aesEncrypted, iv, tag } = await aesGcm.encrypt(data, key, true);
+  // Encrypt with authentication tag
+  const { encrypted: aesEncrypted, iv, tag } = await aesGcm.encrypt(data, key, true);
 
-// Decrypt
-const combined = aesGcm.combineEncryptedDataAndTag(aesEncrypted, tag!);
-const aesDecrypted = await aesGcm.decrypt(iv, combined, key, true);
+  // Decrypt
+  const combined = aesGcm.combineEncryptedDataAndTag(aesEncrypted, tag!);
+  const aesDecrypted = await aesGcm.decrypt(iv, combined, key, true);
 
-// 8. JSON Encryption (NEW!)
-const userData = { name: 'Alice', email: 'alice@example.com', age: 30 };
-const encryptedJson = await aesGcm.encryptJson(userData, key);
-const decryptedJson = await aesGcm.decryptJson<typeof userData>(encryptedJson, key);
-console.log(decryptedJson); // { name: 'Alice', email: 'alice@example.com', age: 30 }
+  // 8. JSON Encryption
+  const userData = { name: 'Alice', email: 'alice@example.com', age: 30 };
+  const encryptedJson = await aesGcm.encryptJson(userData, key);
+  const decryptedJson = await aesGcm.decryptJson<typeof userData>(encryptedJson, key);
+  console.log(decryptedJson); // { name: 'Alice', email: 'alice@example.com', age: 30 }
+} catch (error) {
+  console.error('Encryption error:', error.message);
+  // Handle specific error types
+  if (error.type === 'INVALID_KEY') {
+    console.error('Invalid key provided');
+  }
+}
 ```
 
 ### 2. Internationalization (i18n)
@@ -305,11 +299,28 @@ const safeMessage = safeEciesTranslation(EciesStringKey.Error_ECIESError_Invalid
 const directTranslation = engine.translateStringKey(EciesStringKey.Error_ECIESError_InvalidIV);
 ```
 
+**When to use each method:**
+- `getEciesTranslation()`: Use for error messages and user-facing text (throws on failure)
+- `safeEciesTranslation()`: Use when translation failure should not break execution
+- `engine.translateStringKey()`: Use when you already have the engine instance
+
 **Supported Languages:** en-US, en-GB, fr, es, de, zh-CN, ja, uk
 
 ## Cryptographic Voting System
 
 The library includes a complete cryptographic voting system with government-grade security features, supporting 15+ voting methods from simple plurality to complex ranked choice voting.
+
+**When to use the voting system:**
+- Elections requiring verifiable, tamper-proof results
+- Anonymous voting with receipt verification
+- Multi-round elections (IRV, STAR, STV)
+- Government or organizational voting with audit requirements
+- Stakeholder voting with weighted votes
+
+**When NOT to use:**
+- Simple polls without privacy requirements (use regular encryption)
+- Real-time voting displays (votes are encrypted until tally)
+- Systems requiring instant results (multi-round methods need intermediate decryption)
 
 ### Quick Start - Voting
 
@@ -327,46 +338,53 @@ import {
   VotingMethod 
 } from '@digitaldefiance/ecies-lib/voting';
 
-// 1. Create authority with voting keys
-const ecies = new ECIESService();
-const { member: authority } = Member.newMember(
-  ecies,
-  MemberType.System,
-  'Election Authority',
-  new EmailString('authority@example.com')
-);
-await authority.deriveVotingKeys();
+try {
+  // 1. Create authority with voting keys
+  const ecies = new ECIESService();
+  const { member: authority } = Member.newMember(
+    ecies,
+    MemberType.System,
+    'Election Authority',
+    new EmailString('authority@example.com')
+  );
+  await authority.deriveVotingKeys();
 
-// 2. Create poll
-const poll = PollFactory.createPlurality(
-  ['Alice', 'Bob', 'Charlie'],
-  authority
-);
+  // 2. Create poll
+  const poll = PollFactory.createPlurality(
+    ['Alice', 'Bob', 'Charlie'],
+    authority
+  );
 
-// 3. Create voter and cast vote
-const { member: voter } = Member.newMember(
-  ecies,
-  MemberType.User,
-  'Voter',
-  new EmailString('voter@example.com')
-);
-await voter.deriveVotingKeys();
+  // 3. Create voter and cast vote
+  const { member: voter } = Member.newMember(
+    ecies,
+    MemberType.User,
+    'Voter',
+    new EmailString('voter@example.com')
+  );
+  await voter.deriveVotingKeys();
 
-const encoder = new VoteEncoder(authority.votingPublicKey!);
-const vote = encoder.encodePlurality(0, 3); // Vote for Alice
-const receipt = poll.vote(voter, vote);
+  const encoder = new VoteEncoder(authority.votingPublicKey!);
+  const vote = encoder.encodePlurality(0, 3); // Vote for Alice
+  const receipt = poll.vote(voter, vote);
 
-// 4. Close and tally
-poll.close();
-const tallier = new PollTallier(
-  authority,
-  authority.votingPrivateKey!,
-  authority.votingPublicKey!
-);
-const results = tallier.tally(poll);
+  // 4. Close and tally
+  poll.close();
+  const tallier = new PollTallier(
+    authority,
+    authority.votingPrivateKey!,
+    authority.votingPublicKey!
+  );
+  const results = tallier.tally(poll);
 
-console.log('Winner:', results.choices[results.winner!]);
-console.log('Tallies:', results.tallies);
+  console.log('Winner:', results.choices[results.winner!]);
+  console.log('Tallies:', results.tallies);
+} catch (error) {
+  console.error('Voting error:', error.message);
+  if (error.message.includes('Already voted')) {
+    console.error('This voter has already cast a vote');
+  }
+}
 ```
 
 ### Supported Voting Methods
@@ -656,6 +674,12 @@ public static fromJson(json: string, eciesService: ECIESService): Member {
 ```
 
 ### Available ID Providers
+
+**Choosing an ID Provider:**
+- **ObjectIdProvider**: Use for MongoDB integration, backward compatibility (12 bytes)
+- **GuidV4Provider**: Use for Windows/.NET integration, compact serialization (16 bytes)
+- **UuidProvider**: Use for standard UUID format, maximum compatibility (16 bytes, dash format)
+- **CustomIdProvider**: Use for specialized requirements, legacy systems (1-255 bytes)
 
 #### ObjectIdProvider (Default)
 
@@ -1326,22 +1350,175 @@ The library maintains **100% test coverage** with over 1,200 tests, including:
 - **Vectors**: Validating against known test vectors.
 - **Property-based Tests**: Fuzzing inputs for robustness.
 
+## Troubleshooting
+
+### Encryption/Decryption Errors
+
+**Problem**: `ECIESError: Invalid IV length`
+
+**Solutions**:
+1. Ensure IV is exactly 12 bytes for AES-256-GCM
+2. Don't reuse IVs - generate new one for each encryption
+3. Check that encrypted data hasn't been corrupted
+
+**Problem**: `ECIESError: Decryption failed`
+
+**Solutions**:
+1. Verify you're using the correct private key
+2. Check that data wasn't modified in transit
+3. Ensure using same encryption mode (Basic/WithLength/Multiple)
+4. Verify recipient ID matches if using multi-recipient encryption
+
+### ID Provider Issues
+
+**Problem**: `Member ID length mismatch`
+
+**Solutions**:
+1. Ensure same ID provider used for serialization and deserialization
+2. Check configuration: `ecies.constants.idProvider.byteLength`
+3. Don't mix ID providers in same application
+
+### Voting System Issues
+
+**Problem**: `Already voted` error
+
+**Solutions**:
+1. Each voter can only vote once per poll
+2. Check if voter already has a receipt
+3. Use different Member instance for each voter
+
+**Problem**: `Poll is closed` error
+
+**Solutions**:
+1. Cannot vote after `poll.close()` is called
+2. Check poll status before voting
+3. Create new poll if needed
+
+### Key Management Issues
+
+**Problem**: `Invalid mnemonic phrase`
+
+**Solutions**:
+1. Ensure mnemonic is 12 or 24 words
+2. Use `ecies.generateNewMnemonic()` to create valid mnemonics
+3. Check for typos in mnemonic words
+
+### Cross-Platform Compatibility
+
+**Problem**: Data encrypted in browser won't decrypt in Node.js
+
+**Solutions**:
+1. Ensure both use same protocol version (v4.0)
+2. Use same ID provider configuration
+3. Verify binary compatibility with `@digitaldefiance/node-ecies-lib`
+
+## FAQ
+
+### General Questions
+
+**Q: What's the difference between ecies-lib and node-ecies-lib?**
+
+A: `ecies-lib` is for browsers (Web Crypto API), `node-ecies-lib` is for Node.js (crypto module). They are binary compatible - data encrypted in one can be decrypted in the other.
+
+**Q: Which encryption mode should I use?**
+
+A:
+- **Basic**: Fixed-size data, minimal overhead
+- **WithLength**: Variable-size data, includes length prefix
+- **Multiple**: Encrypting for multiple recipients
+
+**Q: Is this library production-ready?**
+
+A: Yes. It has 1,200+ tests, 100% coverage on critical paths, and implements industry-standard protocols (ECIES v4.0, HKDF, AES-256-GCM).
+
+### ID Providers
+
+**Q: Which ID provider should I use?**
+
+A:
+- **MongoDB app**: ObjectIdProvider (12 bytes)
+- **Windows/.NET app**: GuidV4Provider (16 bytes, compact)
+- **Standard UUID**: UuidProvider (16 bytes, dashed format)
+- **Custom needs**: CustomIdProvider (1-255 bytes)
+
+### Voting System
+
+**Q: Which voting method should I use?**
+
+A:
+- **Simple elections**: Plurality (most votes wins)
+- **Multiple choices**: Approval voting
+- **Ranked preferences**: Ranked Choice (IRV)
+- **Score-based**: Score voting or STAR
+- **Proportional**: STV (Single Transferable Vote)
+
+**Q: Are votes really private?**
+
+A: Yes. Votes are encrypted with Paillier homomorphic encryption. The poll aggregator cannot decrypt individual votes - only the separate PollTallier with the private key can decrypt after poll closure.
+
+**Q: How do I verify my vote was counted?**
+
+A: Each voter receives a cryptographically signed receipt. Use `poll.verifyReceipt(voter, receipt)` to verify it's valid.
+
+### Security
+
+**Q: How secure is the encryption?**
+
+A: Uses industry-standard algorithms:
+- **Curve**: secp256k1 (same as Bitcoin)
+- **Key Derivation**: HKDF-SHA256 (RFC 5869)
+- **Symmetric**: AES-256-GCM (NIST approved)
+- **Hashing**: SHA-256/SHA-512
+
+**Q: How do I securely store private keys?**
+
+A:
+1. Use `SecureString` for in-memory storage
+2. Encrypt keys at rest with user password
+3. Never log or transmit private keys
+4. Call `dispose()` when done
+
+### Performance
+
+**Q: How fast is encryption/decryption?**
+
+A: Typical performance:
+- Small messages (<1KB): <1ms
+- Medium messages (1MB): ~50ms
+- Large files (1GB): ~5 seconds (streaming)
+
+**Q: Can I encrypt large files?**
+
+A: Yes. Use `EncryptionStream` for memory-efficient processing of files of any size (<10MB RAM usage).
+
 ## ChangeLog
 
-### v4.16.x (v4.16.0 - v4.16.25)
+### Recent Versions
 
-**Voting Key Derivation Security Improvements**
+For detailed changelog, see [CHANGELOG.md](CHANGELOG.md) in the repository.
 
-- **HKDF RFC 5869 Compliance**: When salt is not provided, now uses HashLen zeros (64 bytes for SHA-512) instead of empty array for consistency with Node.js
-- **Private Key Normalization**: `deriveVotingKeysFromECDH` handles 31-byte private keys by padding to 32 bytes (occurs ~0.4% of the time with Node.js createECDH)
-- **Uncompressed Public Keys**: Voting key derivation uses uncompressed format (65 bytes) for maximum entropy
-- **Simplified Prime Generation**: Cleaner `generateDeterministicPrime` implementation
-- **i18n Improvements**: Added `EciesComponentStrings` export with `BrandedPluralMasterStringsCollection` type for type-safe translations
-- **String Key Enum Registration**: Added `registerStringKeyEnum(EciesStringKey)` for direct translation via `translateStringKey()`
+**v4.16.x** - Voting key derivation security improvements, HKDF RFC 5869 compliance  
+**v4.13.0** - API naming improvements (SIMPLE→BASIC, SINGLE→WITH_LENGTH)  
+**v4.12.0** - AESGCMService refactoring, JSON encryption  
+**v4.10.7** - Strong typing for ID providers  
+**v4.10.6** - Complete cryptographic voting system (15+ methods)  
+**v4.0.0** - ECIES Protocol v4.0 (breaking changes)  
+**v3.7.0** - Pluggable ID provider system  
+**v3.0.0** - Streaming encryption  
 
-### v4.13.0 - API Naming Improvements & Configuration Enhancements
+### Breaking Changes Summary
 
-**Breaking Changes:**
+**v4.13.0**: Encryption mode renaming, Guid class renamed  
+**v4.12.0**: AESGCMService now instance-based  
+**v4.0.0**: ECIES protocol v4.0, HKDF key derivation, compressed keys  
+
+See [CHANGELOG.md](CHANGELOG.md) for complete version history.
+
+## Testing
+
+### Testing Approach
+
+The ecies-lib package employs a rigorous testing strategy with over 1,200 tests covering all cryptographic operations, protocol flows, and edge cases.
 
 - **Encryption Mode Renaming**: 
   - `SIMPLE` → `BASIC` (constant)
