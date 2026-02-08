@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/%40digitaldefiance%2Fecies-lib.svg)](https://www.npmjs.com/package/@digitaldefiance/ecies-lib)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-1200%2B%20passing-brightgreen)](https://github.com/Digital-Defiance/ecies-lib)
+[![Tests](https://img.shields.io/badge/tests-2429%20passing-brightgreen)](https://github.com/Digital-Defiance/ecies-lib)
 
 Production-ready, browser-compatible ECIES (Elliptic Curve Integrated Encryption Scheme) library for TypeScript. Built on Web Crypto API and @noble/curves with comprehensive encryption, key management, and authentication services. Binary compatible with @digitaldefiance/node-ecies-lib for seamless cross-platform operations.
 
@@ -1336,7 +1336,7 @@ fi
 ```bash
 yarn install         # Install dependencies
 yarn build          # Compile TypeScript
-yarn test           # Run all tests (1200+ specs)
+yarn test           # Run all tests (2429 specs)
 yarn lint           # ESLint check
 yarn format         # Fix all (prettier + lint)
 ```
