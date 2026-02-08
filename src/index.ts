@@ -21,6 +21,7 @@ export * from './lib/index';
 // i18n v2
 export {
   createEciesComponentConfig,
+  createEciesComponentPackage,
   EciesComponentStrings,
   EciesI18nEngineKey,
   getEciesI18nEngine,

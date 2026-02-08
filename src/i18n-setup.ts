@@ -8,6 +8,7 @@ import type {
   ComponentConfig,
   CoreLanguageCode,
   EngineConfig,
+  I18nComponentPackage,
 } from '@digitaldefiance/i18n-lib';
 import {
   I18nEngine,
@@ -58,6 +59,18 @@ export function createEciesComponentConfig(): ComponentConfig {
   return {
     id: EciesComponentId,
     strings: EciesComponentStrings,
+  };
+}
+
+/**
+ * Creates an I18nComponentPackage bundling the ECIES ComponentConfig
+ * with its branded string key enum. Use this with createI18nSetup's
+ * libraryComponents array.
+ */
+export function createEciesComponentPackage(): I18nComponentPackage {
+  return {
+    config: createEciesComponentConfig(),
+    stringKeyEnum: EciesStringKey,
   };
 }
 
