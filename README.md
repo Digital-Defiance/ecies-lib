@@ -23,6 +23,8 @@ This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuri
   - **Curve**: `secp256k1` for ECDH key exchange and ECDSA signatures.
   - **Symmetric**: `AES-256-GCM` for authenticated symmetric encryption.
   - **Hashing**: `SHA-256` and `SHA-512`.
+  - **Key Derivation**: `PBKDF2` with configurable profiles (Fast, Standard, Secure, Maximum).
+  - **Checksums**: `CRC8`, `CRC16-CCITT`, `CRC32` for data integrity.
 - **Modes**:
   - **Basic**: Minimal overhead (no length prefix) - Use for fixed-size data or when size is known
   - **WithLength**: Includes data length prefix - Use for variable-size data or streaming
@@ -53,7 +55,8 @@ This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuri
 
 ### 🚀 Advanced Capabilities
 
-- **Streaming Encryption**: Memory-efficient processing for large files (<10MB RAM usage for any file size)
+- **Streaming Encryption**: Memory-efficient processing for large files (<10MB RAM usage for any file size) with Web Streams API transforms
+- **Fluent Builders**: Type-safe configuration with `ECIESBuilder` and `MemberBuilder` for clean, chainable APIs
 - **Internationalization (i18n)**: Automatic error translation in 8 languages (en-US, en-GB, fr, es, de, zh-CN, ja, uk)
 - **Runtime Configuration**: Injectable configuration profiles via `ConstantsRegistry` for dependency injection and testing
 - **Cross-Platform**: Fully compatible with Node.js 18+ and modern browsers (Chrome, Edge, Firefox, Safari)
@@ -1046,6 +1049,19 @@ class MemberService {
 - **`EciesMultiRecipient`**: Specialized service for handling multi-recipient messages.
 - **`EciesFileService`**: Helper for chunked file encryption.
 - **`PasswordLoginService`**: Secure authentication using PBKDF2 and encrypted key bundles.
+- **`AESGCMService`**: Instance-based AES-256-GCM encryption with JSON support.
+  - **Methods**: `encrypt()`, `decrypt()`, `encryptJson()`, `decryptJson()`, `combineEncryptedDataAndTag()`
+  - Supports authenticated encryption with optional AAD
+- **`Pbkdf2Service`**: Password-based key derivation (PBKDF2).
+  - **Methods**: `deriveKeyFromPasswordAsync()`, `deriveKeyFromPasswordWithProfileAsync()`, `getProfileConfig()`
+  - **Profiles**: Fast, Standard, Secure, Maximum
+- **`CrcService`**: CRC checksum computation and verification.
+  - **Algorithms**: CRC8, CRC16-CCITT, CRC32
+  - **Methods**: `crc8()`, `crc16()`, `crc32()`, `verifyCrc8()`, `verifyCrc16()`, `verifyCrc32()`
+  - Supports async stream processing with `crc8Async()`, `crc16Async()`, `crc32Async()`
+- **`XorService`**: Simple XOR cipher for memory obfuscation.
+  - **Static Methods**: `xor()`, `generateKey()`, `stringToBytes()`, `bytesToString()`
+  - Used internally by `SecureString` and `SecureBuffer`
 
 ### Voting System Services
 
@@ -1095,6 +1111,25 @@ class MemberService {
   - `fromJson(json, eciesService)`: Deserialize from JSON (uses ID provider)
   - `newMember(...)`: Static factory method
   - `fromMnemonic(...)`: Create from BIP39 mnemonic
+- **`MemberBuilder`**: Fluent builder for creating Member instances
+  - **Methods**: `withId()`, `withName()`, `withEmail()`, `withPhone()`, `withType()`, `withKeys()`, `build()`
+  - Provides type-safe member construction with validation
+
+### Builders
+
+- **`ECIESBuilder`**: Fluent builder for ECIESService configuration
+  - **Methods**: `create()`, `withServiceConfig()`, `withConstants()`, `withI18n()`, `build()`
+  - Simplifies service initialization with method chaining
+
+### Stream Transforms
+
+- **`EciesEncryptTransform`**: Web Streams API transform for ECIES encryption
+- **`EciesDecryptTransform`**: Web Streams API transform for ECIES decryption
+- **`ChecksumTransform`**: Stream transform for CRC checksum computation
+- **`XorTransform`**: Stream transform for XOR cipher operations
+- **`XorMultipleTransform`**: Stream transform for multiple XOR operations
+
+All transforms implement the standard `Transformer<I, O>` interface for use with `TransformStream`.
 
 ### Voting System Types & Enumerations
 
