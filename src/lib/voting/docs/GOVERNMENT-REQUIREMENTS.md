@@ -186,17 +186,21 @@
 ## 4. Distributed Trust
 
 ### 4.1 Threshold Cryptography
-**Status:** ❌ Not Started
+**Status:** ✅ Implemented
 
-**CRITICAL:** Single authority holds private key (single point of failure/corruption).
+**Implementation:** `voting/threshold/` module - ThresholdKeyGenerator, GuardianRegistry, CeremonyCoordinator, DecryptionCombiner, PartialDecryptionService, PublicTallyFeed, TallyVerifier, IntervalScheduler, ThresholdPollFactory, and hierarchical ThresholdAggregators (Precinct, County, State, National)
 
 **THE SYSTEM SHALL** split the decryption key among N trustees using Shamir's Secret Sharing.
+✅ Implemented via `ThresholdKeyGenerator.generate()` using Shamir's Secret Sharing for key splitting
 
 **THE SYSTEM SHALL** require K-of-N trustees to cooperate for decryption (configurable threshold).
+✅ Implemented via `DecryptionCombiner.combine()` with Lagrange interpolation requiring k partial decryptions
 
 **IF** fewer than K trustees are available, **THE SYSTEM SHALL** prevent decryption.
+✅ Implemented via threshold enforcement in `DecryptionCombiner` and `CeremonyCoordinator`
 
 **THE SYSTEM SHALL** eliminate single point of trust through distributed key management.
+✅ Implemented via `GuardianRegistry` for Guardian management with key share distribution, ZK proofs for partial decryptions, and ceremony coordination for interval and final decryption
 
 ### 4.2 Multi-Party Computation
 **Status:** ⚠️ Needs Design Review
@@ -749,7 +753,7 @@
 ## Implementation Priority
 
 ### Phase 1: Critical Security (Q1 2025)
-1. Threshold Cryptography (4.1) - **HIGHEST PRIORITY**
+1. Threshold Cryptography (4.1) ✅ - **HIGHEST PRIORITY**
 2. Zero-Knowledge Proofs (5.4)
 3. Public Bulletin Board (1.2)
 4. Secure Key Storage (8.6)
@@ -789,7 +793,7 @@
 
 **Receipt Clarification:** Current implementation provides receipts that prove participation (WHEN voted) but not vote content (HOW voted). This is correct for coercion resistance.
 
-**Distributed Trust:** Single authority model is the primary blocker for government elections. Threshold cryptography (4.1) is highest priority.
+**Distributed Trust:** ~~Single authority model is the primary blocker for government elections.~~ ✅ Threshold cryptography (4.1) is now implemented via the `voting/threshold/` module, enabling k-of-n Guardian-based decryption with ZK proofs, interval decryption ceremonies, and hierarchical aggregation support.
 
 **Testing Requirements:** Each requirement SHALL have corresponding test cases with >95% coverage.
 
@@ -806,15 +810,15 @@
 ## Summary Statistics
 
 **Total Requirements:** 100+
-**Implemented:** 3 (3%)
+**Implemented:** 4 (4%)
 **In Progress:** 0 (0%)
-**Not Started:** 95+ (95%)
+**Not Started:** 94+ (94%)
 **Needs Design Review:** 2 (2%)
 **Under Investigation:** 2 (2%)
 
 **Critical Path Items (Top 3 Blockers for Government Use):**
 1. **Coercion Resistance (3.2)** - Current receipts enable vote buying/coercion
-2. **Distributed Trust (4.1)** - Single authority is unacceptable for elections
+2. ~~**Distributed Trust (4.1)** - Single authority is unacceptable for elections~~ ✅ Resolved via threshold voting module
 3. **Universal Verifiability (5.2)** - Cannot prove election integrity to public
 
 **Additional Critical Items:**

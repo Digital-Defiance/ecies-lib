@@ -52,6 +52,8 @@ All voting methods have interactive React demos in the showcase app:
 
 ### Core Security Features
 - ✅ **Homomorphic Encryption** - Votes remain encrypted until tally using Paillier cryptosystem
+- ✅ **Threshold Decryption** - Distributed trust with k-of-n Guardians; no single party can decrypt alone
+- ✅ **Real-Time Tallies** - Configurable interval decryption during voting with ZK proofs
 - ✅ **Verifiable Receipts** - Cryptographically signed confirmations with ECDSA
 - ✅ **Public Bulletin Board** - Transparent, append-only vote publication with Merkle tree integrity
 - ✅ **Immutable Audit Log** - Cryptographic hash chain for all operations
@@ -706,8 +708,9 @@ const eventExport = eventLogger.export();
 ### What's NOT Protected (By Design)
 
 - ❌ **Coercion Resistance**: Receipts can prove how you voted
-- ❌ **Distributed Trust**: Single authority holds private key
 - ❌ **Anonymity**: Voter IDs are tracked (for duplicate prevention)
+
+> **Note**: Distributed trust is now available via the [Threshold Voting](#threshold-voting) module, which splits the decryption key among multiple Guardians.
 
 ### Threat Model
 
@@ -1058,6 +1061,243 @@ Each voting method has an interactive demo with:
 - **Receipt verification**: Validate vote receipts
 - **Educational content**: Learn about each voting method
 
+## Threshold Voting
+
+The threshold voting module enables real-time, distributed vote tallying where no single party can decrypt votes alone. Based on Damgård et al.'s threshold Paillier scheme, it splits the decryption key among k-of-n Guardians who cooperate to reveal aggregate tallies at configurable intervals during voting.
+
+### Key Concepts
+
+- **Guardians**: Trusted key holders who each possess a share of the threshold decryption key
+- **Threshold (k-of-n)**: Any k Guardians out of n total can cooperate to decrypt; fewer than k reveals nothing
+- **Interval Decryption**: Scheduled decryption events (time-based, vote-count-based, or hybrid) that reveal running tallies without exposing individual votes
+- **Decryption Ceremony**: The coordinated process where k Guardians submit partial decryptions with zero-knowledge proofs
+- **Public Tally Feed**: Real-time subscription API that publishes verified interval tallies with cryptographic proofs
+
+### Quick Start
+
+```typescript
+import {
+  ThresholdKeyGenerator,
+  GuardianRegistry,
+  GuardianStatus,
+  CeremonyCoordinator,
+  IntervalScheduler,
+  PublicTallyFeed,
+  ThresholdPollFactory,
+  IntervalTriggerType,
+} from '@digitaldefiance/ecies-lib/voting/threshold';
+
+// 1. Generate threshold keys (3-of-5 configuration)
+const keyGen = new ThresholdKeyGenerator();
+const keyPair = await keyGen.generate({ totalShares: 5, threshold: 3 });
+
+// 2. Register Guardians
+const registry = new GuardianRegistry<Uint8Array>({ totalShares: 5, threshold: 3 });
+keyPair.keyShares.forEach((share, i) => {
+  registry.register({
+    id: new Uint8Array([i + 1]),
+    name: `Guardian ${i + 1}`,
+    shareIndex: share.index,
+    verificationKey: share.verificationKey,
+    status: GuardianStatus.Online,
+  });
+});
+
+// 3. Create a threshold poll
+const factory = new ThresholdPollFactory(auditLog);
+const poll = factory.createThresholdPoll(
+  ['Alice', 'Bob', 'Charlie'],
+  VotingMethod.Plurality,
+  authority,
+  {
+    thresholdConfig: { totalShares: 5, threshold: 3 },
+    intervalConfig: {
+      triggerType: IntervalTriggerType.TimeBased,
+      timeIntervalMs: 3600000, // hourly
+      minimumIntervalMs: 60000,
+      ceremonyTimeoutMs: 300000,
+    },
+    guardianRegistry: registry,
+    keyPair,
+  }
+);
+
+// 4. Cast votes (same API as standard polls)
+const encoder = new VoteEncoder(keyPair.publicKey);
+const vote = encoder.encodePlurality(0, 3);
+poll.vote(voter, vote);
+
+// 5. Subscribe to real-time tally updates
+poll.tallyFeed.subscribe(poll.id, (tally) => {
+  console.log(`Interval ${tally.intervalNumber}:`, tally.tallies);
+  console.log('Participating Guardians:', tally.participatingGuardians);
+});
+```
+
+### ThresholdKeyGenerator API
+
+```typescript
+const keyGen = new ThresholdKeyGenerator();
+
+// Validate configuration
+keyGen.validateConfig({ totalShares: 5, threshold: 3 }); // OK
+keyGen.validateConfig({ totalShares: 3, threshold: 5 }); // Throws InvalidThresholdConfigError
+
+// Generate threshold key pair
+const keyPair = await keyGen.generate({
+  totalShares: 9,
+  threshold: 5,
+  keyBitLength: 2048, // optional, default 2048
+});
+
+// keyPair contains:
+// - publicKey: standard Paillier public key (compatible with VoteEncoder)
+// - keyShares: array of n KeyShare objects to distribute to Guardians
+// - verificationKeys: public verification keys for ZK proof verification
+// - config: the threshold configuration used
+```
+
+### GuardianRegistry API
+
+```typescript
+const registry = new GuardianRegistry<Uint8Array>({ totalShares: 5, threshold: 3 });
+
+// Register Guardians
+registry.register({
+  id: guardianId,
+  name: 'Guardian 1',
+  shareIndex: 1,
+  verificationKey: keyPair.keyShares[0].verificationKey,
+  status: GuardianStatus.Online,
+});
+
+// Query Guardians
+const guardian = registry.getGuardian(guardianId);
+const allGuardians = registry.getAllGuardians();
+const onlineGuardians = registry.getOnlineGuardians();
+
+// Update status
+registry.updateStatus(guardianId, GuardianStatus.Offline);
+
+// Designate backup
+registry.designateBackup(primaryId, backupId);
+
+// Subscribe to status changes
+registry.onStatusChange((event) => {
+  console.log(`${event.guardianId}: ${event.previousStatus} → ${event.newStatus}`);
+});
+```
+
+### CeremonyCoordinator API
+
+```typescript
+const coordinator = new CeremonyCoordinator<Uint8Array>(
+  registry,
+  partialDecryptionService,
+  decryptionCombiner,
+  keyPair.publicKey,
+  keyPair.config,
+  keyPair.verificationKeys,
+  { ceremonyTimeoutMs: 300000 }
+);
+
+// Start a decryption ceremony
+const ceremony = coordinator.startCeremony(pollId, intervalNumber, encryptedTally);
+
+// Guardians submit partial decryptions
+const accepted = coordinator.submitPartial(ceremony.id, partialDecryption);
+
+// Subscribe to ceremony completion
+coordinator.onCeremonyComplete((ceremony) => {
+  console.log('Decrypted tallies:', ceremony.result?.tallies);
+});
+```
+
+### Tally Verification
+
+Third-party auditors can independently verify any published tally:
+
+```typescript
+import { TallyVerifier } from '@digitaldefiance/ecies-lib/voting/threshold';
+
+const verifier = new TallyVerifier<Uint8Array>();
+const result = verifier.verify(
+  publishedTally,
+  encryptedTally,
+  verificationKeys,
+  publicKey,
+  registeredGuardianIndices
+);
+
+if (result.valid) {
+  console.log('Tally verified successfully');
+} else {
+  console.log('Verification failed:', result.error);
+  console.log('Checks:', result.checks);
+}
+```
+
+### Hierarchical Aggregation
+
+Threshold decryption integrates with the existing hierarchical aggregation system:
+
+```typescript
+import {
+  ThresholdPrecinctAggregator,
+  ThresholdCountyAggregator,
+  ThresholdStateAggregator,
+  ThresholdNationalAggregator,
+} from '@digitaldefiance/ecies-lib/voting/threshold';
+
+// Each level supports threshold decryption with its own Guardian set
+const precinct = new ThresholdPrecinctAggregator(precinctId, config, publicKey);
+const county = new ThresholdCountyAggregator(countyId, config, publicKey);
+const state = new ThresholdStateAggregator(stateId, config, publicKey);
+const national = new ThresholdNationalAggregator(nationalId, config, publicKey);
+
+// Interval decryption at any level
+const tally = await precinct.performIntervalDecryption(coordinator, intervalNumber);
+precinct.propagateToParent(tally);
+```
+
+### Backward Compatibility
+
+Threshold voting is fully optional. Existing single-authority polls continue to work unchanged:
+
+```typescript
+const factory = new ThresholdPollFactory(auditLog);
+
+// Standard poll (no threshold) — same behavior as PollFactory
+const standardPoll = factory.createStandardPoll(['A', 'B'], VotingMethod.Plurality, authority);
+
+// Threshold poll — distributed trust with real-time tallies
+const thresholdPoll = factory.createThresholdPoll(['A', 'B'], VotingMethod.Plurality, authority, thresholdConfig);
+```
+
+### Threshold Voting API Reference
+
+| Export | Type | Purpose |
+|--------|------|---------|
+| `ThresholdKeyGenerator` | Class | Generates threshold Paillier keys with n shares |
+| `GuardianRegistry` | Class | Manages Guardian registration and availability |
+| `PartialDecryptionService` | Class | Computes partial decryptions with ZK proofs |
+| `DecryptionCombiner` | Class | Combines k partial decryptions into plaintext |
+| `IntervalScheduler` | Class | Manages decryption interval triggers |
+| `CeremonyCoordinator` | Class | Orchestrates decryption ceremonies |
+| `PublicTallyFeed` | Class | Real-time subscription API for tally updates |
+| `TallyVerifier` | Class | Third-party tally verification |
+| `ThresholdPoll` | Class | Poll with threshold decryption support |
+| `ThresholdPollFactory` | Class | Creates threshold or standard polls |
+| `ThresholdPrecinctAggregator` | Class | Precinct-level threshold aggregation |
+| `ThresholdCountyAggregator` | Class | County-level threshold aggregation |
+| `ThresholdStateAggregator` | Class | State-level threshold aggregation |
+| `ThresholdNationalAggregator` | Class | National-level threshold aggregation |
+| `ThresholdAuditLog` | Class | Audit logging for threshold operations |
+| `GuardianStatus` | Enum | Guardian availability states |
+| `CeremonyStatus` | Enum | Ceremony lifecycle states |
+| `IntervalTriggerType` | Enum | Interval trigger types |
+| `ThresholdAuditEventType` | Enum | Threshold-specific audit event types |
+
 ## Future Enhancements
 
 ### High Priority - Advanced Features
@@ -1068,7 +1308,7 @@ Each voting method has an interactive demo with:
 - [ ] **STAR Runoff Logic**: Proper two-stage Score Then Automatic Runoff implementation
 
 ### Cryptographic Improvements
-- [ ] Threshold decryption (distributed tallier with multiple key shares)
+- [x] Threshold decryption (distributed tallier with multiple key shares) — see [Threshold Voting](#threshold-voting)
 - [ ] Zero-knowledge proofs (vote validity without revealing content)
 - [ ] Mix-net integration (anonymity through cryptographic shuffling)
 - [ ] Blind signatures (receipt-free voting to prevent coercion)
@@ -1076,7 +1316,7 @@ Each voting method has an interactive demo with:
 
 ### Advanced Voting Features
 - [ ] Liquid democracy (vote delegation with transitive trust)
-- [ ] Multi-authority polls (distributed trust across multiple entities)
+- [x] Multi-authority polls (distributed trust across multiple entities) — see [Threshold Voting](#threshold-voting)
 - [ ] Vote delegation (proxy voting with revocation)
 - [ ] Time-locked voting (scheduled vote revelation)
 - [ ] Conditional voting (votes dependent on other outcomes)

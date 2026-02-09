@@ -33,6 +33,7 @@ This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuri
 ### 🗳️ Cryptographic Voting System
 
 - **15+ Voting Methods**: Plurality, Approval, Weighted, Borda Count, Score, Ranked Choice (IRV), STAR, STV, Yes/No, Supermajority, and more
+- **Threshold Decryption**: Distributed trust with k-of-n Guardians, real-time interval tallies, and zero-knowledge proofs ([details](src/lib/voting/README.md#threshold-voting))
 - **Government-Grade Security**: Homomorphic encryption, verifiable receipts, immutable audit logs, public bulletin board
 - **Role Separation**: Poll aggregators cannot decrypt votes until closure (separate PollTallier)
 - **Multi-Round Support**: True IRV, STAR voting, STV with intermediate decryption
@@ -1075,6 +1076,7 @@ class MemberService {
 - **`PollEventLogger`**: Event tracking with microsecond timestamps
 - **Hierarchical Aggregators**: `PrecinctAggregator`, `CountyAggregator`, `StateAggregator`, `NationalAggregator`
 - **`BatchVoteProcessor`**: Batch processing and checkpoint management
+- **Threshold Voting**: `ThresholdKeyGenerator`, `GuardianRegistry`, `CeremonyCoordinator`, `DecryptionCombiner`, `IntervalScheduler`, `PublicTallyFeed`, `TallyVerifier`, `ThresholdPoll`, `ThresholdPollFactory`, `ThresholdAuditLog` — see [Threshold Voting docs](src/lib/voting/README.md#threshold-voting)
 
 ### ID Providers
 
@@ -1530,8 +1532,7 @@ A: Yes. Use `EncryptionStream` for memory-efficient processing of files of any s
 
 ### Recent Versions
 
-For detailed changelog, see [CHANGELOG.md](CHANGELOG.md) in the repository.
-
+**v4.18.0** - Threshold voting
 **v4.16.x** - Voting key derivation security improvements, HKDF RFC 5869 compliance  
 **v4.13.0** - API naming improvements (SIMPLE→BASIC, SINGLE→WITH_LENGTH)  
 **v4.12.0** - AESGCMService refactoring, JSON encryption  

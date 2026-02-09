@@ -54,3 +54,6 @@ export * from './enumerations';
 
 // Re-export interfaces
 export type * from './interfaces';
+
+// Re-export threshold voting module
+export * from './threshold';
