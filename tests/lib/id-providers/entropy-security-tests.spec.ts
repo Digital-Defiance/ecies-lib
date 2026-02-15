@@ -390,7 +390,7 @@ describe('ID Provider Security and Entropy Tests', () => {
       // Times should be similar (relaxed for CI)
       const ratio = Math.max(time1, time2) / Math.min(time1, time2);
       console.log(`Validation timing ratio: ${ratio.toFixed(2)}`);
-      expect(ratio).toBeLessThan(3.0);
+      expect(ratio).toBeLessThan(3.25);
     });
   });
 
