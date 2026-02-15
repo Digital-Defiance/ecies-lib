@@ -61,47 +61,6 @@ function modInverse(a: bigint, m: bigint): bigint {
 }
 
 /**
- * Helper: Compute Lagrange coefficient for share at index i
- * λ_i = Π_{j≠i} (j / (j - i)) mod m
- */
-function lagrangeCoefficient(
-  shareIndex: number,
-  allIndices: number[],
-  modulus: bigint,
-): bigint {
-  let numerator = 1n;
-  let denominator = 1n;
-
-  for (const j of allIndices) {
-    if (j !== shareIndex) {
-      numerator = (numerator * BigInt(j)) % modulus;
-      denominator = (denominator * BigInt(j - shareIndex)) % modulus;
-    }
-  }
-
-  // Handle negative denominator
-  denominator = ((denominator % modulus) + modulus) % modulus;
-
-  return (numerator * modInverse(denominator, modulus)) % modulus;
-}
-
-/**
- * Helper: Reconstruct secret from k shares using Lagrange interpolation
- * secret = Σ (share_i * λ_i) mod m
- */
-function reconstructSecret(shares: KeyShare[], modulus: bigint): bigint {
-  const indices = shares.map((s) => s.index);
-  let secret = 0n;
-
-  for (const share of shares) {
-    const lambda = lagrangeCoefficient(share.index, indices, modulus);
-    secret = (secret + share.share * lambda) % modulus;
-  }
-
-  return ((secret % modulus) + modulus) % modulus;
-}
-
-/**
  * Helper: Select k random shares from n shares
  */
 function selectRandomShares(
@@ -506,14 +465,68 @@ describe('Property-Based Tests: Threshold Key Generation', () => {
       // Verify the Shamir property: different k-subsets reconstruct the same
       // secret when lifted into the exponent space. Raw Lagrange reconstruction
       // requires the exact modulus used during splitting (n·λ), which is private.
-      // Instead, we verify that g^(reconstructed) mod n² is consistent across
-      // subsets — this is the property that actually matters for threshold decryption.
+      //
+      // The correct approach (matching the real DecryptionCombiner) uses integer
+      // Lagrange coefficients scaled by Δ = n!:
+      //   λ_i' = Δ · Π_{j≠i} j/(j-i)   (exact integer division)
+      // Then the combined exponent value is:
+      //   Π g^(2·λ_i'·s_i) mod n²
+      // This must be consistent across all k-subsets.
       const keyPair = await getKeyPair(2, 4);
+      const n = keyPair.config.totalShares;
       const n2 = keyPair.publicKey.n * keyPair.publicKey.n;
       const g = keyPair.publicKey.g;
 
-      // Reconstruct from multiple random k-subsets and verify consistency
-      // in the exponent space: g^(Σ λ_i·s_i) mod n² should be the same
+      // Δ = n! (totalShares factorial), same as the real combiner
+      let delta = 1n;
+      for (let i = 2; i <= n; i++) {
+        delta *= BigInt(i);
+      }
+
+      /**
+       * Compute integer Lagrange coefficient for share at index i,
+       * matching DecryptionCombiner.lagrangeCoefficientInteger exactly.
+       * λ_i' = Δ · Π_{j≠i} j/(j-i)
+       */
+      function lagrangeCoefficientInteger(
+        i: number,
+        indices: number[],
+      ): bigint {
+        let numerator = delta;
+        let denominator = 1n;
+        for (const j of indices) {
+          if (j !== i) {
+            numerator = numerator * BigInt(j);
+            denominator = denominator * BigInt(j - i);
+          }
+        }
+        // Since delta = n!, the division is exact (integer result)
+        return numerator / denominator;
+      }
+
+      /**
+       * Reconstruct in the exponent space using integer Lagrange coefficients:
+       * result = Π g^(2·λ_i'·s_i) mod n²
+       * Handles negative exponents via modular inverse.
+       */
+      function reconstructInExponent(shares: KeyShare[]): bigint {
+        const indices = shares.map((s) => s.index);
+        let combined = 1n;
+        for (const share of shares) {
+          const lambda = lagrangeCoefficientInteger(share.index, indices);
+          const exponent = 2n * lambda;
+          if (exponent >= 0n) {
+            combined = (combined * modPow(g, exponent * share.share, n2)) % n2;
+          } else {
+            const posExp = -exponent * share.share;
+            const partialPow = modPow(g, posExp, n2);
+            const partialInv = modInverse(partialPow, n2);
+            combined = (combined * partialInv) % n2;
+          }
+        }
+        return ((combined % n2) + n2) % n2;
+      }
+
       let firstExponentValue: bigint | undefined;
       const testedSubsets = new Set<string>();
 
@@ -526,9 +539,7 @@ describe('Property-Based Tests: Threshold Key Generation', () => {
         if (testedSubsets.has(subsetKey)) continue;
         testedSubsets.add(subsetKey);
 
-        const reconstructed = reconstructSecret([...selected], n2);
-        // Lift into exponent space: g^reconstructed mod n²
-        const exponentValue = modPow(g, reconstructed, n2);
+        const exponentValue = reconstructInExponent([...selected]);
 
         if (firstExponentValue === undefined) {
           firstExponentValue = exponentValue;

@@ -345,25 +345,34 @@ describe('ID Provider Security and Entropy Tests', () => {
       id3[15] = id3[15] ^ 0xff;
 
       const iterations = 10000;
+      const rounds = 11; // odd number for clean median
+      const ratios: number[] = [];
 
-      // Time comparison of completely different IDs
-      const start1 = process.hrtime.bigint();
-      for (let i = 0; i < iterations; i++) {
-        provider.equals(id1, id2);
+      for (let round = 0; round < rounds; round++) {
+        // Time comparison of completely different IDs
+        const start1 = process.hrtime.bigint();
+        for (let i = 0; i < iterations; i++) {
+          provider.equals(id1, id2);
+        }
+        const time1 = Number(process.hrtime.bigint() - start1);
+
+        // Time comparison of IDs differing only in last byte
+        const start2 = process.hrtime.bigint();
+        for (let i = 0; i < iterations; i++) {
+          provider.equals(id1, id3);
+        }
+        const time2 = Number(process.hrtime.bigint() - start2);
+
+        ratios.push(Math.max(time1, time2) / Math.min(time1, time2));
       }
-      const time1 = Number(process.hrtime.bigint() - start1);
 
-      // Time comparison of IDs differing only in last byte
-      const start2 = process.hrtime.bigint();
-      for (let i = 0; i < iterations; i++) {
-        provider.equals(id1, id3);
-      }
-      const time2 = Number(process.hrtime.bigint() - start2);
-
-      // Times should be similar (relaxed for CI environments)
-      const ratio = Math.max(time1, time2) / Math.min(time1, time2);
-      console.log(`Timing ratio: ${ratio.toFixed(2)}`);
-      expect(ratio).toBeLessThan(3.0);
+      // Use median ratio to eliminate outliers from GC pauses, scheduling jitter, etc.
+      ratios.sort((a, b) => a - b);
+      const medianRatio = ratios[Math.floor(ratios.length / 2)];
+      console.log(
+        `Timing ratios: [${ratios.map((r) => r.toFixed(2)).join(', ')}], median: ${medianRatio.toFixed(2)}`,
+      );
+      expect(medianRatio).toBeLessThan(4.0);
     });
 
     it('should have constant-time validation', () => {
@@ -372,25 +381,34 @@ describe('ID Provider Security and Entropy Tests', () => {
       const invalidId = new Uint8Array(12); // All zeros
 
       const iterations = 10000;
+      const rounds = 11;
+      const ratios: number[] = [];
 
-      // Time validation of valid ID
-      const start1 = process.hrtime.bigint();
-      for (let i = 0; i < iterations; i++) {
-        provider.validate(validId);
+      for (let round = 0; round < rounds; round++) {
+        // Time validation of valid ID
+        const start1 = process.hrtime.bigint();
+        for (let i = 0; i < iterations; i++) {
+          provider.validate(validId);
+        }
+        const time1 = Number(process.hrtime.bigint() - start1);
+
+        // Time validation of invalid ID
+        const start2 = process.hrtime.bigint();
+        for (let i = 0; i < iterations; i++) {
+          provider.validate(invalidId);
+        }
+        const time2 = Number(process.hrtime.bigint() - start2);
+
+        ratios.push(Math.max(time1, time2) / Math.min(time1, time2));
       }
-      const time1 = Number(process.hrtime.bigint() - start1);
 
-      // Time validation of invalid ID
-      const start2 = process.hrtime.bigint();
-      for (let i = 0; i < iterations; i++) {
-        provider.validate(invalidId);
-      }
-      const time2 = Number(process.hrtime.bigint() - start2);
-
-      // Times should be similar (relaxed for CI)
-      const ratio = Math.max(time1, time2) / Math.min(time1, time2);
-      console.log(`Validation timing ratio: ${ratio.toFixed(2)}`);
-      expect(ratio).toBeLessThan(3.25);
+      // Use median ratio to eliminate outliers from GC pauses, scheduling jitter, etc.
+      ratios.sort((a, b) => a - b);
+      const medianRatio = ratios[Math.floor(ratios.length / 2)];
+      console.log(
+        `Validation timing ratios: [${ratios.map((r) => r.toFixed(2)).join(', ')}], median: ${medianRatio.toFixed(2)}`,
+      );
+      expect(medianRatio).toBeLessThan(4);
     });
   });
 

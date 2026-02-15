@@ -49,16 +49,14 @@ export class ObjectIdProvider extends BaseIdProvider<ObjectId> {
       return false;
     }
 
-    // Check if all bytes are zero (invalid ObjectID)
-    let allZeros = true;
+    // Constant-time check: accumulate OR of all bytes to avoid
+    // timing side-channels that could reveal ID content.
+    let acc = 0;
     for (let i = 0; i < id.length; i++) {
-      if (id[i] !== 0) {
-        allZeros = false;
-        break;
-      }
+      acc |= id[i];
     }
 
-    return !allZeros;
+    return acc !== 0;
   }
 
   /**
