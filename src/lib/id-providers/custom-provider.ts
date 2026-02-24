@@ -120,4 +120,22 @@ export class CustomIdProvider extends BaseIdProvider<Uint8Array> {
   equals(a: Uint8Array, b: Uint8Array): boolean {
     return this.constantTimeEquals(a, b);
   }
+
+  /**
+   * Safely parse an ID from a hex string, returning undefined if invalid instead of throwing.
+   * Accepts:
+   * - Plain hex string of correct length (e.g., 'aabbccdd' for 4-byte provider)
+   * - Hex with '0x' prefix (e.g., '0xaabbccdd')
+   * - Whitespace-padded strings
+   * @param str The string to parse as an ID
+   * @returns The parsed ID as Uint8Array, or undefined if invalid
+   */
+  parseSafe(str: string): Uint8Array | undefined {
+    try {
+      const cleaned = str.trim().replace(/^0x/i, '');
+      return this.deserialize(cleaned);
+    } catch {
+      return undefined;
+    }
+  }
 }

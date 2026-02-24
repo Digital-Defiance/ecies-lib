@@ -156,5 +156,23 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4Uint8Array> {
   override toBytes(id: GuidV4Uint8Array): Uint8Array {
     return id.asRawGuidPlatformBuffer;
   }
+
+  /**
+   * Safely parse a GUID from a string, returning undefined if invalid instead of throwing.
+   * Accepts all formats supported by GuidUint8Array.parse:
+   * - Full hex with dashes (36 chars): '550e8400-e29b-41d4-a716-446655440000'
+   * - Short hex without dashes (32 chars): '550e8400e29b41d4a716446655440000'
+   * - Base64 (24 chars): 'VQ6EAOKbQdSnFkRmVUQAAA=='
+   * - Whitespace-padded strings
+   * @param str The string to parse as a GUID
+   * @returns The parsed GuidV4Uint8Array, or undefined if invalid
+   */
+  parseSafe(str: string): GuidV4Uint8Array | undefined {
+    try {
+      return GuidUint8Array.parse(str.trim()) as GuidV4Uint8Array;
+    } catch {
+      return undefined;
+    }
+  }
 }
 export { GuidV4Provider as GuidProvider };

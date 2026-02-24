@@ -114,4 +114,22 @@ export class Uint8ArrayIdProvider extends BaseIdProvider<Uint8Array> {
   equals(a: Uint8Array, b: Uint8Array): boolean {
     return arraysEqual(a, b);
   }
+
+  /**
+   * Safely parse an ID from a hex string, returning undefined if invalid instead of throwing.
+   * Accepts:
+   * - Plain hex string of correct length
+   * - Hex with '0x' prefix
+   * - Whitespace-padded strings
+   * @param str The string to parse as an ID
+   * @returns The parsed Uint8Array, or undefined if invalid
+   */
+  parseSafe(str: string): Uint8Array | undefined {
+    try {
+      const cleaned = str.trim().replace(/^0x/i, '');
+      return this.deserialize(cleaned);
+    } catch {
+      return undefined;
+    }
+  }
 }

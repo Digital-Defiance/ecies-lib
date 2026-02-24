@@ -82,4 +82,6 @@ export abstract class BaseIdProvider<T> implements IIdProvider<T> {
     }
     return diff === 0;
   }
+
+  abstract parseSafe(str: string): T | undefined;
 }

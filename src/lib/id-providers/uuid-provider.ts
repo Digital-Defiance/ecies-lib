@@ -156,4 +156,41 @@ export class UuidProvider extends BaseIdProvider<string> {
   fromBytes(bytes: Uint8Array): string {
     return this.serialize(bytes); // bytes → UUID string
   }
+
+  /**
+   * Safely parse a UUID from a string, returning undefined if invalid instead of throwing.
+   * Accepts multiple formats:
+   * - Standard with dashes: '550e8400-e29b-41d4-a716-446655440000'
+   * - Without dashes (32 hex chars): '550e8400e29b41d4a716446655440000'
+   * - With braces: '{550e8400-e29b-41d4-a716-446655440000}'
+   * - URN format: 'urn:uuid:550e8400-e29b-41d4-a716-446655440000'
+   * - Whitespace-padded strings
+   * - Case-insensitive
+   * @param str The string to parse as a UUID
+   * @returns The parsed UUID string in standard format, or undefined if invalid
+   */
+  parseSafe(str: string): string | undefined {
+    try {
+      let cleaned = str.trim();
+
+      // Strip urn:uuid: prefix (case-insensitive)
+      if (cleaned.toLowerCase().startsWith('urn:uuid:')) {
+        cleaned = cleaned.slice(9);
+      }
+
+      // Strip braces
+      if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+        cleaned = cleaned.slice(1, -1);
+      }
+
+      // Insert dashes if 32 hex chars without dashes
+      if (/^[0-9a-fA-F]{32}$/.test(cleaned)) {
+        cleaned = `${cleaned.slice(0, 8)}-${cleaned.slice(8, 12)}-${cleaned.slice(12, 16)}-${cleaned.slice(16, 20)}-${cleaned.slice(20)}`;
+      }
+
+      return this.fromBytes(this.deserialize(cleaned));
+    } catch {
+      return undefined;
+    }
+  }
 }

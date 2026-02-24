@@ -144,4 +144,29 @@ export class ObjectIdProvider extends BaseIdProvider<ObjectId> {
   override clone(id: ObjectId): ObjectId {
     return new ObjectId(new Uint8Array(id.id));
   }
+
+  /**
+   * Safely parse an ID from a string, returning undefined if invalid instead of throwing.
+   * Accepts:
+   * - 24-character hex string (e.g., '507f1f77bcf86cd799439011')
+   * - Hex with '0x' prefix (e.g., '0x507f1f77bcf86cd799439011')
+   * - Whitespace-padded strings
+   * @param str The string to parse as an ObjectId
+   * @returns The parsed ObjectId, or undefined if invalid
+   */
+  parseSafe(str: string): ObjectId | undefined {
+    try {
+      const trimmed = str.trim();
+      // Try direct ObjectId string constructor (handles 24-char hex natively)
+      return new ObjectId(trimmed);
+    } catch {
+      try {
+        // Strip 0x prefix and try hex-to-bytes fallback
+        const cleaned = str.trim().replace(/^0x/i, '');
+        return new ObjectId(hexToUint8Array(cleaned));
+      } catch {
+        return undefined;
+      }
+    }
+  }
 }

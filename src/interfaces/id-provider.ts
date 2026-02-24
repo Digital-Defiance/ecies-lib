@@ -63,6 +63,14 @@ export interface IIdProviderBase {
    * @returns The ID in the provider's native format
    */
   fromBytes(bytes: Uint8Array): unknown;
+
+  /**
+   * Safely parse an ID from a string, returning undefined if invalid instead of throwing.
+   * This is useful for parsing user input or environment variables without crashing.
+   * @param str The string to parse as an ID
+   * @returns The parsed ID in the provider's native format, or undefined if invalid
+   */
+  parseSafe(str: string): unknown | undefined;
 }
 
 /**
@@ -122,4 +130,12 @@ export interface IIdProvider<T> extends IIdProviderBase {
    * @returns The ID in the provider's native format
    */
   fromBytes(bytes: Uint8Array): T;
+
+  /**
+   * Safely parse an ID from a string, returning undefined if invalid instead of throwing.
+   * This is useful for parsing user input or environment variables without crashing.
+   * @param str The string to parse as an ID
+   * @returns The parsed ID in the provider's native format, or undefined if invalid
+   */
+  parseSafe(str: string): T | undefined;
 }
