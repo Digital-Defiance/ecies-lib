@@ -1532,6 +1532,7 @@ A: Yes. Use `EncryptionStream` for memory-efficient processing of files of any s
 
 ### Recent Versions
 
+**v4.19.11** - Guid improvements, version sync
 **v4.18.0** - Threshold voting
 **v4.16.x** - Voting key derivation security improvements, HKDF RFC 5869 compliance  
 **v4.13.0** - API naming improvements (SIMPLE→BASIC, SINGLE→WITH_LENGTH)  
