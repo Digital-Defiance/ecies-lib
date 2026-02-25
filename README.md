@@ -1530,177 +1530,170 @@ A: Yes. Use `EncryptionStream` for memory-efficient processing of files of any s
 
 ## ChangeLog
 
-### Recent Versions
-
-**v4.19.11** - Guid improvements, version sync
-**v4.18.0** - Threshold voting
-**v4.16.x** - Voting key derivation security improvements, HKDF RFC 5869 compliance  
-**v4.13.0** - API naming improvements (SIMPLE→BASIC, SINGLE→WITH_LENGTH)  
-**v4.12.0** - AESGCMService refactoring, JSON encryption  
-**v4.10.7** - Strong typing for ID providers  
-**v4.10.6** - Complete cryptographic voting system (15+ methods)  
-**v4.0.0** - ECIES Protocol v4.0 (breaking changes)  
-**v3.7.0** - Pluggable ID provider system  
-**v3.0.0** - Streaming encryption  
-
 ### Breaking Changes Summary
 
-**v4.13.0**: Encryption mode renaming, Guid class renamed  
-**v4.12.0**: AESGCMService now instance-based  
-**v4.0.0**: ECIES protocol v4.0, HKDF key derivation, compressed keys  
+- **v4.13.0**: Encryption mode renaming (`SIMPLE`→`BASIC`, `SINGLE`→`WITH_LENGTH`), `Guid` class renamed to `GuidUint8Array`
+- **v4.12.0**: `AESGCMService` changed from abstract static class to instance-based
+- **v4.0.0**: ECIES protocol v4.0 — HKDF key derivation, AAD binding, compressed keys, new IV/key sizes
+- **v3.0.0**: Streaming encryption API, pluggable ID providers, i18n v2 architecture
 
-See [CHANGELOG.md](CHANGELOG.md) for complete version history.
+---
 
-## Testing
+### Versions 4.19.x (v4.19.0 – v4.19.11)
 
-### Testing Approach
+**Guid improvements, `parseSafe`, provider-to-GUID conversion**
 
-The ecies-lib package employs a rigorous testing strategy with over 1,200 tests covering all cryptographic operations, protocol flows, and edge cases.
+- Added `parseSafe(str)` method to `IIdProvider` and all providers — returns `undefined` instead of throwing on invalid input, useful for parsing user input safely
+- New `guid-provider-utils.ts` module with `fromProviderId()` and `fromProviderIdBytes()` — deterministic conversion from any provider's native ID to `GuidUint8Array` using UUID v5 namespaces
+- All ID providers (`GuidV4Provider`, `ObjectIdProvider`, `UuidProvider`, `CustomIdProvider`, `Uint8ArrayIdProvider`) implement `parseSafe`
+- `TypedConfiguration` updated with new provider utility support
+- Threshold key generator PBT spec improvements
 
-- **Encryption Mode Renaming**: 
+### Version 4.18.0 (v4.18.8)
+
+**Threshold voting system**
+
+- **Threshold Decryption Module**: Complete implementation of Damgård et al.'s threshold Paillier scheme for distributed vote tallying — no single party can decrypt votes alone
+- **ThresholdKeyGenerator**: Generate k-of-n threshold key pairs with configurable bit length (default 2048)
+- **GuardianRegistry**: Register, query, and manage Guardians with status tracking and backup designation
+- **CeremonyCoordinator**: Orchestrate decryption ceremonies where k Guardians submit partial decryptions with zero-knowledge proofs
+- **IntervalScheduler**: Configurable interval decryption (time-based, vote-count-based, or hybrid) for real-time running tallies
+- **PublicTallyFeed**: Real-time subscription API publishing verified interval tallies with cryptographic proofs
+- **TallyVerifier**: Verify interval tally integrity with ZK proof validation
+- **ThresholdAuditLog**: Cryptographic hash chain audit log for threshold operations
+- **ThresholdPollFactory**: Create threshold-enabled polls with the same voting API as standard polls
+- **Hierarchical Aggregators**: Precinct → County → State → National aggregation for threshold polls
+- Comprehensive PBT and unit test suites for all threshold components (10,700+ lines added)
+- Migration guide (`THRESHOLD-MIGRATION.md`) and security documentation (`THRESHOLD-SECURITY.md`)
+
+### Versions 4.17.x (v4.17.0 – v4.17.10)
+
+**i18n component package isolation, README expansion**
+
+- Added `i18n-setup.ts` export for component-level i18n engine initialization
+- New `i18n-component-package.spec.ts` test suite for verifying i18n isolation
+- Major README expansion (~400 lines of documentation updates)
+- Version bumps and package dependency updates
+
+### Versions 4.16.x (v4.16.0 – v4.16.30)
+
+**Voting key derivation security, HKDF RFC 5869 compliance, i18n string key migration**
+
+- **v4.16.0**: Use uncompressed voting keys in HKDF derivation for improved security
+- Migrated all `engine.translate(EciesComponentId, key)` calls to `engine.translateStringKey(key)` — removed `EciesComponentId` parameter throughout the codebase
+- Updated all error classes (`CryptoError`, `GuidError`, `ECIESError`, etc.) to use `translateStringKey`
+- Updated builders (`MemberBuilder`, `ECIESBuilder`), constants, and services
+- `EciesStringKey` enumeration expanded with new string keys
+- i18n string key migration test suite (`i18n-string-key-migration.spec.ts`, 400+ lines)
+- Guid spec improvements and timing attack resistance test updates
+- Showcase application updates across multiple patch versions
+
+### Versions 4.15.x (v4.15.0 – v4.15.6)
+
+**Error class refactoring, i18n translation updates, showcase improvements**
+
+- Refactored all error classes (`CryptoError`, `ECIESError`, `GuidError`, `IdProviderError`, `InvalidEmailError`, `LengthError`, `MemberError`, `Pbkdf2Error`, `SecureStorageError`, `SimpleEciesError`, `DisposedError`) with improved i18n integration
+- `EciesStringKey` enumeration significantly expanded and reorganized
+- Updated `de` and `fr` translation files (~750 lines each reorganized)
+- Constants and invariant validator updates
+- `crypto-core.ts` and `signature.ts` improvements
+- `password-login.ts` refactored
+- Showcase application dependency updates (Vite config, yarn.lock, CSS)
+
+### Versions 4.14.x (v4.14.0 – v4.14.3)
+
+**Module independence testing, Guid spec hardening**
+
+- Enhanced module independence tests (`constants-independence`, `interface-type-imports`, `secure-storage-independence`)
+- Property-based test (PBT) specs for module independence validation
+- Expanded Guid spec with 58+ lines of new test cases
+- `secure-storage-id-provider.spec.ts` and `secure-storage-independence.spec.ts` improvements
+- Jest config and package dependency updates
+
+### Version 4.13.0 (v4.13.0 – v4.13.8)
+
+**API naming improvements (SIMPLE→BASIC, SINGLE→WITH_LENGTH), Guid→GuidUint8Array**
+
+**Breaking Changes:**
+- **Encryption Mode Renaming**:
   - `SIMPLE` → `BASIC` (constant)
   - `SINGLE` → `WITH_LENGTH` (constant)
   - `encryptSimpleOrSingle(isSimple, ...)` → `encryptBasic(...)` / `encryptWithLength(...)`
   - `decryptSimpleOrSingleWithHeader(isSimple, ...)` → `decryptBasicWithHeader(...)` / `decryptWithLengthAndHeader(...)`
-  
-- **Removed Constants**:
-  - `OBJECT_ID_LENGTH` removed - use `idProvider.byteLength` instead
-  
-- **Guid Class Renamed**:
-  - `Guid` → `GuidUint8Array` (browser implementation)
+- **Removed Constants**: `OBJECT_ID_LENGTH` removed — use `idProvider.byteLength` instead
+- **Guid Class Renamed**: `Guid` → `GuidUint8Array` (browser implementation)
   - Added `VersionedGuidUint8Array<V>` type for compile-time version tracking
-  - Methods like `generate()`, `parse()`, `hydrate()` now return `VersionedGuidUint8Array`
 
 **New Features:**
-
-- **ECIES_CONFIG**: New configuration interface and constant for ECIES parameters
-  - `curveName`, `primaryKeyDerivationPath`, `mnemonicStrength`, `symmetricAlgorithm`, etc.
-  
-- **TranslatableEciesError**: New error class with automatic i18n translation
-  ```typescript
-  throw new TranslatableEciesError('INVALID_KEY', { keyLength: 32 });
-  ```
-
-- **Enhanced Type System for GUIDs**:
-  - `VersionedGuidUint8Array<4>` for v4 UUIDs with compile-time version info
-  - `__version` property attached to parsed/generated GUIDs
+- `ECIES_CONFIG`: New configuration interface and constant for ECIES parameters
+- `TranslatableEciesError`: New error class with automatic i18n translation
+- Enhanced type system for GUIDs with `VersionedGuidUint8Array<4>` and `__version` property
+- Massive refactoring across 128 source files (2,250 insertions, 569 deletions)
+- JSDoc improvements, production build support, lint fixes
 
 **Migration Guide:**
 ```typescript
 // BEFORE (v4.12.x)
-const encrypted = await ecies.encryptSimpleOrSingle(false, publicKey, data);  // "single" mode
+const encrypted = await ecies.encryptSimpleOrSingle(false, publicKey, data);
 const decrypted = await ecies.decryptSimpleOrSingleWithHeader(false, privateKey, encrypted);
 
-const encrypted2 = await ecies.encryptSimpleOrSingle(true, publicKey, data);  // "simple" mode
-const decrypted2 = await ecies.decryptSimpleOrSingleWithHeader(true, privateKey, encrypted2);
-
 // AFTER (v4.13.0+)
-const encrypted = await ecies.encryptWithLength(publicKey, data);  // WithLength mode (formerly "single")
+const encrypted = await ecies.encryptWithLength(publicKey, data);
 const decrypted = await ecies.decryptWithLengthAndHeader(privateKey, encrypted);
-
-const encrypted2 = await ecies.encryptBasic(publicKey, data);  // Basic mode (formerly "simple")
-const decrypted2 = await ecies.decryptBasicWithHeader(privateKey, encrypted2);
 ```
 
-### v4.12.0 - AESGCMService Refactoring & JSON Encryption
+### Version 4.12.0 (v4.12.0 – v4.12.8)
+
+**AESGCMService refactoring, JSON encryption, CRC service, stream transforms**
 
 **Breaking Changes:**
 - **AESGCMService is now instance-based**: Changed from abstract static class to regular instance-based class
   - All methods are now instance methods instead of static methods
   - Constructor accepts optional `IConstants` parameter for configuration
-  - Example: `const aesGcm = new AESGCMService(); aesGcm.encrypt(...)` instead of `AESGCMService.encrypt(...)`
 
 **New Features:**
-- **JSON Encryption Methods**: Added convenient methods for encrypting/decrypting JSON data
-  - `encryptJson<T>(data: T, key: Uint8Array): Promise<Uint8Array>` - Encrypts any JSON-serializable data
-  - `decryptJson<T>(encryptedData: Uint8Array, key: Uint8Array): Promise<T>` - Decrypts and parses JSON data
-  - Automatically handles JSON serialization, encryption with auth tags, and IV management
-  - Type-safe with TypeScript generics
-
-**Architecture Improvements:**
-- Added `configuration` and `engine` instance properties to AESGCMService
-- Improved dependency injection support with optional constants parameter
-- Enhanced error handling with i18n support
-- Better alignment with browser/Node.js architectural patterns
+- **JSON Encryption Methods**: `encryptJson<T>()` and `decryptJson<T>()` for convenient typed JSON encryption/decryption
+- **CRC Service**: New `CRC` service with 363-line test suite for checksum operations
+- **Stream Transforms**: New transform modules — `checksumTransform`, `eciesEncryptTransform`, `eciesDecryptTransform`, `xorTransform`, `xorMultipleTransform`
+- **TypedConfiguration**: New `typed-configuration.ts` with 105-line test suite
+- `Uint8ArrayIdProvider` fix, `Member` model updates
+- Multi-recipient processor improvements
 
 **Migration Guide:**
 ```typescript
 // BEFORE (v4.10.x and earlier)
-import { AESGCMService } from '@digitaldefiance/ecies-lib';
-
 const { encrypted, iv, tag } = await AESGCMService.encrypt(data, key, true);
-const combined = AESGCMService.combineEncryptedDataAndTag(encrypted, tag);
 
-// AFTER (v4.11.0+)
-import { AESGCMService } from '@digitaldefiance/ecies-lib';
-
-const aesGcm = new AESGCMService(); // Create instance
+// AFTER (v4.12.0+)
+const aesGcm = new AESGCMService();
 const { encrypted, iv, tag } = await aesGcm.encrypt(data, key, true);
-const combined = aesGcm.combineEncryptedDataAndTag(encrypted, tag);
 
 // NEW: JSON encryption
-const userData = { name: 'Alice', email: 'alice@example.com' };
 const encrypted = await aesGcm.encryptJson(userData, key);
 const decrypted = await aesGcm.decryptJson<typeof userData>(encrypted, key);
 ```
 
-**Testing:**
-- Added 17 comprehensive tests for JSON encryption methods
-- Added 3 e2e tests for real-world JSON scenarios
-- All 1,200+ existing tests updated and passing
+### Versions 4.11.x (v4.11.0 – v4.11.3)
 
-### v4.10.7 - Strong Typing for ID Providers
+**Guid overhaul, versioned GUID types**
 
-**Major Features:**
-- **Strong Typing System**: Added comprehensive strong typing solution for ID provider operations
-  - `getEnhancedIdProvider<T>()`: Drop-in replacement for `Constants.idProvider` with typed methods
-  - `getTypedIdProvider<T>()`: Simple typed provider for minimal API surface
-  - `createObjectIdConfiguration()`: ObjectId-typed configuration factory
-  - `TypedConfiguration<T>`: Configuration wrapper with strongly-typed ID operations
-- **Enhanced Developer Experience**: 
-  - Full IntelliSense support for native ID types (`ObjectId`, `Guid`, `string`, etc.)
-  - Compile-time type checking prevents runtime type errors
-  - Multiple migration paths to choose from based on use case
-- **Zero Breaking Changes**: All existing code continues to work unchanged
-  - Original `Constants.idProvider` pattern still supported
-  - Enhanced providers include all original methods plus typed alternatives
-  - Backward compatibility maintained for all existing APIs
+- Major `GuidUint8Array` rewrite (683 lines changed) — improved parsing, validation, and version tracking
+- New `guid-versions.ts` types module for compile-time GUID version tracking
+- `GuidV4Provider` refactored to align with new GUID architecture
+- `ECIESService` updates for new GUID integration
+- `TypedConfiguration` and `PlatformID` interface updates
+- Showcase and documentation updates across patch versions
 
-**New APIs:**
-- `getEnhancedIdProvider<T>(key?)`: Enhanced provider with typed convenience methods
-- `getTypedIdProvider<T>(key?)`: Simple typed provider
-- `createObjectIdConfiguration(overrides?)`: ObjectId-typed configuration
-- `createGuidV4Configuration(overrides?)`: GuidV4-typed configuration  
-- `createUint8ArrayConfiguration(overrides?)`: Uint8Array-typed configuration
-- `createUuidConfiguration(overrides?)`: UUID string-typed configuration
-- `TypedIdProviderWrapper<T>`: Enhanced wrapper with typed methods
+### Version 4.10.7
 
-**Migration Examples:**
-```typescript
-// BEFORE: Weak typing
-const Constants = getRuntimeConfiguration();
-const id = Constants.idProvider.generate(); // Uint8Array, no strong typing
+**Strong typing for ID providers**
 
-// AFTER: Strong typing (multiple options)
-const enhancedProvider = getEnhancedIdProvider<ObjectId>();
-const objectId = enhancedProvider.generateTyped(); // ObjectId - strongly typed!
-
-const typedProvider = getTypedIdProvider<ObjectId>();
-const typedId = typedProvider.fromBytes(bytes); // ObjectId, not unknown!
-
-const config = createObjectIdConfiguration();
-const configId = config.generateId(); // ObjectId directly!
-```
-
-**Documentation:**
-- Added comprehensive migration guide (`src/migration-guide.md`)
-- Updated README with strong typing examples
-- Added usage examples and real-world migration patterns
-
-**Testing:**
-- 14 new tests covering all strong typing scenarios
-- Property-based tests for type safety validation
-- Migration pattern tests for backward compatibility
+- `getEnhancedIdProvider<T>()`: Drop-in replacement for `Constants.idProvider` with typed methods
+- `getTypedIdProvider<T>()`: Simple typed provider for minimal API surface
+- `createObjectIdConfiguration()`, `createGuidV4Configuration()`, `createUint8ArrayConfiguration()`, `createUuidConfiguration()`: Typed configuration factories
+- `TypedIdProviderWrapper<T>`: Enhanced wrapper with typed convenience methods
+- Full IntelliSense support, compile-time type checking, zero breaking changes
+- 14 new tests, property-based tests for type safety, migration guide
 
 ### v4.10.6 - Voting System & PlatformID Integration
 
@@ -1864,6 +1857,104 @@ console.log(member.id.length); // 16 (correct - uses configured GuidV4Provider)
 - Existing code using default `idProvider` continues to work unchanged
 - The `ECIESService.config` getter still returns `IECIESConfig` for backward compatibility
 - `Member.fromJson()` warns but doesn't fail on ID length mismatch (for compatibility with existing serialized data)
+
+### Versions v4.7.1 - v4.7.11 - idProvider Configuration & Testing
+
+**v4.7.10, v4.7.11 - idProvider Test Coverage**
+
+- Property-based tests for `MemberBuilder` with various `idProvider` configurations
+- Integration tests for documented usage patterns and `idProvider` workflows (578+ lines)
+- `ECIESService` constructor property-based tests (404+ lines)
+- `Member` idProvider unit and property-based tests (486+ lines)
+
+**v4.7.5, v4.7.6 - idProvider Fixes & Showcase Updates**
+
+- `ECIESService` now stores full `IConstants` configuration (not just `IECIESConfig`)
+- `Member.newMember()` uses `eciesService.constants.idProvider.generate()` for ID generation
+- `Member.toJson()` / `Member.fromJson()` use the service's configured `idProvider`
+- Showcase voting demo improvements (RankedChoice demo enhancements)
+
+**v4.7.1 - Voting Bulletin Board & Event Logger Refinements**
+
+- Bulletin board and event logger type signature improvements
+- Poll type refinements
+- RCV demo fixes
+
+### v4.7.0 - Full Voting System (Major Release)
+
+**Massive Feature: Complete Encrypted Voting System** (19,533 insertions)
+
+- **Poll System**: `Poll`, `PollCore`, `PollFactory` — full lifecycle management for encrypted polls with multiple voting methods (Plurality, Approval, RCV, STV, Borda, Score, STAR, Quadratic, Weighted, Supermajority, TwoRound, Consensus, ConsentBased, YesNo, YesNoAbstain)
+- **Audit Trail**: `AuditLog` with cryptographic verification of vote integrity
+- **Bulletin Board**: Public append-only ledger for vote transparency
+- **Vote Encoder**: Ballot encoding/decoding for encrypted transmission
+- **Event Logger**: Comprehensive voting event tracking and logging
+- **Tallier**: Multi-method vote tallying engine (561 lines)
+- **Security Validator**: Vote validation and anti-fraud checks
+- **Poll Factory**: Configurable poll creation with method-specific parameters
+- **Government Requirements**: Detailed compliance documentation (824 lines)
+- **Phase 2 Design Docs**: Architecture diagrams, implementation plans, interface references
+- **Showcase Voting Demos**: Interactive demos for all 16 voting methods (Approval, Borda, Consensus, ConsentBased, Plurality, Quadratic, RankedChoice, STAR, STV, Score, Supermajority, TwoRound, Weighted, YesNo, YesNoAbstain)
+- **Voting Poll Interfaces**: 517-line interface definition for poll configuration and state
+
+### v4.6.0 - Voting Interfaces & Isolated Encryption Modules
+
+**New Features:**
+
+- **Voting Interfaces**: `IVotingService` interface (211 lines) defining the voting service contract
+- **Voting Constants**: `IVotingConstants` interface for voting-specific configuration
+- **Voting Error Types**: `VotingErrorType` enum and `VotingError` class for structured error handling
+- **Isolated Encryption Modules**: `IsolatedPrivate` (178 lines) and `IsolatedPublic` (434 lines) — standalone encryption/decryption without full member context
+- **Isolated Key Interfaces**: `IIsolatedKeys` interface (109 lines) for key management
+- **Platform Buffer Interface**: `IPlatformBuffer` for cross-platform buffer abstraction
+- **ECIES Library Interface**: `IECIESLibrary` interface (347 lines) defining the full library contract
+- Comprehensive tests for isolated modules (688 lines)
+- Expanded voting service tests (349+ lines)
+
+### Versions v4.6.1 - v4.6.3 - Isolated Module Refinements
+
+- Extracted `IIsolatedKeys` interface to dedicated file
+- Refined `IVotingService` interface (reduced from 211 to focused contract)
+- Improved `IsolatedPublic` key handling
+- Minor member interface adjustments
+
+### Versions v4.5.1 - v4.5.18 - Showcase Application & Voting Service Evolution
+
+**v4.5.11 - v4.5.18 - Showcase App Development**
+
+- **Showcase Application**: Full React showcase with Hero, About, Components, Features, and Demo pages
+- **GitHub Pages Deployment**: CI workflow for automated showcase deployment
+- **Voting Demo Integration**: Interactive voting demos added to showcase
+- **Vite Configuration**: Showcase build configuration with library aliasing
+- Buffer-compat and crypto-polyfill improvements for browser environments
+
+**v4.5.1 - v4.5.9 - Voting Service Refinements**
+
+- Expanded `VotingService` implementation (355+ line rewrite)
+- Removed standalone `voting-utils.ts` (192 lines) — functionality merged into `VotingService`
+- Multi-recipient processor improvements
+- Signature service updates
+- Type refinements for voting interfaces
+
+### v4.5.0 - Initial Voting Service
+
+**New Feature: Member Voting & VotingService**
+
+- **VotingService**: Initial implementation (706 lines) for encrypted member voting
+- **Voting Utilities**: `voting-utils.ts` (192 lines) with key derivation and ballot helpers
+- **Member Voting Keys**: Extended `IMember` interface with voting key support
+- **Member Extensions**: Voting key generation and management on `Member` class (49 lines)
+- Comprehensive voting service tests (814 lines) and member voting tests (863 lines)
+
+### Versions v4.4.8 - v4.4.25 - Showcase Foundations & Code Quality
+
+- **Error Class Refactoring**: Modernized all error classes (`DisposedError`, `IdProviderError`, `InvalidEmailError`, `LengthError`, `MemberError`, `Pbkdf2Error`, `SecureStorageError`, `SimpleEciesError`)
+- **i18n Setup Refactoring**: Simplified `i18n-setup.ts` initialization
+- **ESLint Configuration**: Updated linting rules
+- **Jest Configuration**: Improved test setup
+- **Index Exports**: Reorganized barrel exports
+- **ID Provider Interface**: Removed standalone `IIdProvider` (moved to shared lib)
+- Dependency updates and version bumps
 
 ### v4.4.2
 
