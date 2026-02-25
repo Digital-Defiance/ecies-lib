@@ -10,6 +10,14 @@ import { GuidBrandType } from '../enumerations/guid-brand-type';
 import { GuidErrorType } from '../enumerations/guid-error-type';
 import { GuidError } from '../errors/guid';
 import type { IGuid } from '../interfaces/guid';
+import { BaseIdProvider } from './base-id-provider';
+import {
+  CustomIdProvider,
+  GuidV4Provider,
+  ObjectIdProvider,
+  UuidProvider,
+  Uint8ArrayIdProvider,
+} from './id-providers';
 
 // Define a type that can handle all GUID variants
 export type GuidInput =
@@ -1415,5 +1423,88 @@ export class GuidUint8Array extends Uint8Array implements IGuid {
       .replace(/_/g, '/')
       .padEnd(24, '=');
     return GuidUint8Array.withVersion(new GuidUint8Array(base64 as Base64Guid));
+  }
+
+  // ── Provider-to-GUID conversion ──────────────────────────────────────
+  //
+  // Well-known v5 namespace UUIDs for deterministic derivation.
+  // These are arbitrary but fixed UUIDs that scope the v5 hash per provider,
+  // ensuring that the same raw bytes from different providers produce
+  // different GUIDs.
+  /** @internal */ private static readonly NS_OBJECTID =
+    '6ba7b814-9dad-11d1-80b4-00c04fd430c8';
+  /** @internal */ private static readonly NS_CUSTOM =
+    '6ba7b815-9dad-11d1-80b4-00c04fd430c8';
+  /** @internal */ private static readonly NS_UINT8ARRAY =
+    '6ba7b816-9dad-11d1-80b4-00c04fd430c8';
+
+  /**
+   * Convert a provider's native ID to a GuidUint8Array.
+   *
+   * For 16-byte providers (GuidV4Provider, UuidProvider) the bytes are
+   * reinterpreted directly as a GUID — they already are one.
+   *
+   * For non-16-byte providers (ObjectIdProvider, CustomIdProvider,
+   * Uint8ArrayIdProvider) a deterministic UUID v5 is derived using a
+   * provider-specific namespace, so the same input always yields the same
+   * GUID and different providers never collide.
+   *
+   * @param id       The ID in its native provider type (e.g. ObjectId, string, Uint8Array, GuidV4Uint8Array)
+   * @param provider The provider instance that produced the ID
+   * @returns        A VersionedGuidUint8Array representing the ID
+   */
+  public static fromProviderId<T>(
+    id: T,
+    provider: BaseIdProvider<T>,
+  ): VersionedGuidUint8Array {
+    // Convert the native type to raw bytes via the provider
+    const bytes = provider.toBytes(id);
+    return GuidUint8Array.fromProviderIdBytes(bytes, provider);
+  }
+
+  /**
+   * Convert raw ID bytes (from any provider) to a GuidUint8Array.
+   *
+   * Same strategy as {@link fromProviderId} but starts from the Uint8Array
+   * byte representation rather than the provider's native type.
+   *
+   * @param idBytes  The ID as raw bytes (length must match provider.byteLength)
+   * @param provider The provider instance that defines the ID format
+   * @returns        A VersionedGuidUint8Array representing the ID
+   */
+  public static fromProviderIdBytes<T>(
+    idBytes: Uint8Array,
+    provider: BaseIdProvider<T>,
+  ): VersionedGuidUint8Array {
+    // Validate the byte length matches the provider's expectation
+    if (idBytes.length !== provider.byteLength) {
+      throw new GuidError(GuidErrorType.InvalidGuid);
+    }
+
+    // 16-byte providers: the bytes already represent a valid GUID
+    if (
+      provider instanceof GuidV4Provider ||
+      provider instanceof UuidProvider
+    ) {
+      return GuidUint8Array.fromPlatformBuffer(idBytes);
+    }
+
+    // Non-16-byte providers: derive a deterministic v5 GUID
+    const serialized = provider.serialize(idBytes);
+    let namespace: string;
+
+    if (provider instanceof ObjectIdProvider) {
+      namespace = GuidUint8Array.NS_OBJECTID;
+    } else if (provider instanceof CustomIdProvider) {
+      namespace = GuidUint8Array.NS_CUSTOM;
+    } else if (provider instanceof Uint8ArrayIdProvider) {
+      namespace = GuidUint8Array.NS_UINT8ARRAY;
+    } else {
+      // Fallback for unknown providers — use the provider name as extra
+      // entropy inside a generic namespace
+      namespace = GuidUint8Array.NS_CUSTOM;
+    }
+
+    return GuidUint8Array.v5(serialized, namespace);
   }
 }
