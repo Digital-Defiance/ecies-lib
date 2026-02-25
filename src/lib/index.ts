@@ -4,4 +4,5 @@
 
 export * from './crypto-container';
 export * from './guid';
+export * from './guid-provider-utils';
 export * from './id-providers';

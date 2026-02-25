@@ -2,6 +2,10 @@ import { GuidErrorType } from '../../src/enumerations/guid-error-type';
 import { GuidError } from '../../src/errors/guid';
 import { GuidUint8Array } from '../../src/lib/guid';
 import {
+  fromProviderId,
+  fromProviderIdBytes,
+} from '../../src/lib/guid-provider-utils';
+import {
   GuidV4Provider,
   ObjectIdProvider,
   UuidProvider,
@@ -16,7 +20,7 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
     it('should convert a generated GuidV4 id to a GuidUint8Array', () => {
       const rawBytes = provider.generate();
       const nativeId = provider.fromBytes(rawBytes);
-      const guid = GuidUint8Array.fromProviderId(nativeId, provider);
+      const guid = fromProviderId(nativeId, provider);
 
       expect(guid).toBeInstanceOf(GuidUint8Array);
       expect(guid.length).toBe(16);
@@ -24,22 +28,22 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
 
     it('should produce a valid UUID from GuidV4 bytes', () => {
       const rawBytes = provider.generate();
-      const guid = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
+      const guid = fromProviderIdBytes(rawBytes, provider);
 
       expect(guid.isValidV4()).toBe(true);
     });
 
     it('should be deterministic (same input → same output)', () => {
       const rawBytes = provider.generate();
-      const guid1 = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
-      const guid2 = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
+      const guid1 = fromProviderIdBytes(rawBytes, provider);
+      const guid2 = fromProviderIdBytes(rawBytes, provider);
 
       expect(guid1.asFullHexGuid).toBe(guid2.asFullHexGuid);
     });
 
     it('should preserve the original bytes for 16-byte providers', () => {
       const rawBytes = provider.generate();
-      const guid = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
+      const guid = fromProviderIdBytes(rawBytes, provider);
 
       // The raw bytes should match since GuidV4 is already 16 bytes
       const guidBytes = guid.asRawGuidPlatformBuffer;
@@ -55,7 +59,7 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
     it('should convert a UUID string id to a GuidUint8Array via fromProviderId', () => {
       const rawBytes = provider.generate();
       const nativeId = provider.fromBytes(rawBytes); // returns a UUID string
-      const guid = GuidUint8Array.fromProviderId(nativeId, provider);
+      const guid = fromProviderId(nativeId, provider);
 
       expect(guid).toBeInstanceOf(GuidUint8Array);
       expect(guid.length).toBe(16);
@@ -63,14 +67,14 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
 
     it('should produce a valid UUID from UUID bytes', () => {
       const rawBytes = provider.generate();
-      const guid = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
+      const guid = fromProviderIdBytes(rawBytes, provider);
 
       expect(guid.getVersion()).toBeDefined();
     });
 
     it('should preserve the original bytes for UUID provider', () => {
       const rawBytes = provider.generate();
-      const guid = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
+      const guid = fromProviderIdBytes(rawBytes, provider);
 
       const guidBytes = guid.asRawGuidPlatformBuffer;
       expect(Buffer.from(guidBytes).toString('hex')).toBe(
@@ -85,7 +89,7 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
     it('should convert an ObjectId to a GuidUint8Array via fromProviderId', () => {
       const rawBytes = provider.generate();
       const nativeId = provider.fromBytes(rawBytes); // returns ObjectId
-      const guid = GuidUint8Array.fromProviderId(nativeId, provider);
+      const guid = fromProviderId(nativeId, provider);
 
       expect(guid).toBeInstanceOf(GuidUint8Array);
       expect(guid.length).toBe(16);
@@ -93,15 +97,15 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
 
     it('should produce a valid v5 UUID from ObjectId bytes', () => {
       const rawBytes = provider.generate();
-      const guid = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
+      const guid = fromProviderIdBytes(rawBytes, provider);
 
       expect(guid.isValidV5()).toBe(true);
     });
 
     it('should be deterministic (same ObjectId → same GUID)', () => {
       const rawBytes = provider.generate();
-      const guid1 = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
-      const guid2 = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
+      const guid1 = fromProviderIdBytes(rawBytes, provider);
+      const guid2 = fromProviderIdBytes(rawBytes, provider);
 
       expect(guid1.asFullHexGuid).toBe(guid2.asFullHexGuid);
     });
@@ -109,8 +113,8 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
     it('should produce different GUIDs for different ObjectIds', () => {
       const bytes1 = provider.generate();
       const bytes2 = provider.generate();
-      const guid1 = GuidUint8Array.fromProviderIdBytes(bytes1, provider);
-      const guid2 = GuidUint8Array.fromProviderIdBytes(bytes2, provider);
+      const guid1 = fromProviderIdBytes(bytes1, provider);
+      const guid2 = fromProviderIdBytes(bytes2, provider);
 
       expect(guid1.asFullHexGuid).not.toBe(guid2.asFullHexGuid);
     });
@@ -120,14 +124,8 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
       const customProvider = new CustomIdProvider(12, 'Test12');
       const rawBytes = provider.generate();
 
-      const guidFromObjectId = GuidUint8Array.fromProviderIdBytes(
-        rawBytes,
-        provider,
-      );
-      const guidFromCustom = GuidUint8Array.fromProviderIdBytes(
-        rawBytes,
-        customProvider,
-      );
+      const guidFromObjectId = fromProviderIdBytes(rawBytes, provider);
+      const guidFromCustom = fromProviderIdBytes(rawBytes, customProvider);
 
       // Different namespaces should produce different v5 GUIDs
       expect(guidFromObjectId.asFullHexGuid).not.toBe(
@@ -140,7 +138,7 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
     it('should convert a 20-byte custom id to a GuidUint8Array', () => {
       const provider = new CustomIdProvider(20, 'SHA1Hash');
       const rawBytes = provider.generate();
-      const guid = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
+      const guid = fromProviderIdBytes(rawBytes, provider);
 
       expect(guid).toBeInstanceOf(GuidUint8Array);
       expect(guid.length).toBe(16);
@@ -150,7 +148,7 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
     it('should convert a 32-byte custom id to a GuidUint8Array', () => {
       const provider = new CustomIdProvider(32, 'SHA256Hash');
       const rawBytes = provider.generate();
-      const guid = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
+      const guid = fromProviderIdBytes(rawBytes, provider);
 
       expect(guid).toBeInstanceOf(GuidUint8Array);
       expect(guid.isValidV5()).toBe(true);
@@ -160,7 +158,7 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
       const provider = new CustomIdProvider(20, 'Test');
       const rawBytes = provider.generate();
       const nativeId = provider.fromBytes(rawBytes);
-      const guid = GuidUint8Array.fromProviderId(nativeId, provider);
+      const guid = fromProviderId(nativeId, provider);
 
       expect(guid).toBeInstanceOf(GuidUint8Array);
       expect(guid.isValidV5()).toBe(true);
@@ -169,8 +167,8 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
     it('should be deterministic for custom ids', () => {
       const provider = new CustomIdProvider(8, 'Short');
       const rawBytes = provider.generate();
-      const guid1 = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
-      const guid2 = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
+      const guid1 = fromProviderIdBytes(rawBytes, provider);
+      const guid2 = fromProviderIdBytes(rawBytes, provider);
 
       expect(guid1.asFullHexGuid).toBe(guid2.asFullHexGuid);
     });
@@ -180,7 +178,7 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
     it('should convert a 24-byte Uint8Array id to a GuidUint8Array', () => {
       const provider = new Uint8ArrayIdProvider(24, 'Test24');
       const rawBytes = provider.generate();
-      const guid = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
+      const guid = fromProviderIdBytes(rawBytes, provider);
 
       expect(guid).toBeInstanceOf(GuidUint8Array);
       expect(guid.length).toBe(16);
@@ -190,8 +188,8 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
     it('should be deterministic for Uint8Array ids', () => {
       const provider = new Uint8ArrayIdProvider(10, 'Test10');
       const rawBytes = provider.generate();
-      const guid1 = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
-      const guid2 = GuidUint8Array.fromProviderIdBytes(rawBytes, provider);
+      const guid1 = fromProviderIdBytes(rawBytes, provider);
+      const guid2 = fromProviderIdBytes(rawBytes, provider);
 
       expect(guid1.asFullHexGuid).toBe(guid2.asFullHexGuid);
     });
@@ -201,14 +199,8 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
       const customProvider = new CustomIdProvider(12, 'Test12');
       const rawBytes = uint8Provider.generate();
 
-      const guidFromUint8 = GuidUint8Array.fromProviderIdBytes(
-        rawBytes,
-        uint8Provider,
-      );
-      const guidFromCustom = GuidUint8Array.fromProviderIdBytes(
-        rawBytes,
-        customProvider,
-      );
+      const guidFromUint8 = fromProviderIdBytes(rawBytes, uint8Provider);
+      const guidFromCustom = fromProviderIdBytes(rawBytes, customProvider);
 
       // Different provider types use different namespaces
       expect(guidFromUint8.asFullHexGuid).not.toBe(
@@ -222,9 +214,9 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
       const provider = new ObjectIdProvider(); // expects 12 bytes
       const wrongBytes = new Uint8Array(16); // 16 bytes
 
-      expect(() =>
-        GuidUint8Array.fromProviderIdBytes(wrongBytes, provider),
-      ).toThrow(GuidError);
+      expect(() => fromProviderIdBytes(wrongBytes, provider)).toThrow(
+        GuidError,
+      );
     });
 
     it('should throw GuidError with correct type for length mismatch', () => {
@@ -232,7 +224,7 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
       const wrongBytes = new Uint8Array(10);
 
       try {
-        GuidUint8Array.fromProviderIdBytes(wrongBytes, provider);
+        fromProviderIdBytes(wrongBytes, provider);
         fail('Expected GuidError to be thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(GuidError);
@@ -250,18 +242,9 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
 
       const rawBytes = objectIdProvider.generate();
 
-      const guidFromObjectId = GuidUint8Array.fromProviderIdBytes(
-        rawBytes,
-        objectIdProvider,
-      );
-      const guidFromCustom = GuidUint8Array.fromProviderIdBytes(
-        rawBytes,
-        customProvider,
-      );
-      const guidFromUint8 = GuidUint8Array.fromProviderIdBytes(
-        rawBytes,
-        uint8Provider,
-      );
+      const guidFromObjectId = fromProviderIdBytes(rawBytes, objectIdProvider);
+      const guidFromCustom = fromProviderIdBytes(rawBytes, customProvider);
+      const guidFromUint8 = fromProviderIdBytes(rawBytes, uint8Provider);
 
       // All three should be different due to different namespaces
       const guids = new Set([
@@ -279,11 +262,8 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
       const rawBytes = provider.generate();
       const nativeId = provider.fromBytes(rawBytes);
 
-      const guidFromNative = GuidUint8Array.fromProviderId(nativeId, provider);
-      const guidFromBytes = GuidUint8Array.fromProviderIdBytes(
-        rawBytes,
-        provider,
-      );
+      const guidFromNative = fromProviderId(nativeId, provider);
+      const guidFromBytes = fromProviderIdBytes(rawBytes, provider);
 
       expect(guidFromNative.asFullHexGuid).toBe(guidFromBytes.asFullHexGuid);
     });
@@ -293,11 +273,8 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
       const rawBytes = provider.generate();
       const nativeId = provider.fromBytes(rawBytes);
 
-      const guidFromNative = GuidUint8Array.fromProviderId(nativeId, provider);
-      const guidFromBytes = GuidUint8Array.fromProviderIdBytes(
-        rawBytes,
-        provider,
-      );
+      const guidFromNative = fromProviderId(nativeId, provider);
+      const guidFromBytes = fromProviderIdBytes(rawBytes, provider);
 
       expect(guidFromNative.asFullHexGuid).toBe(guidFromBytes.asFullHexGuid);
     });
@@ -307,11 +284,8 @@ describe('GuidUint8Array.fromProviderId / fromProviderIdBytes', () => {
       const rawBytes = provider.generate();
       const nativeId = provider.fromBytes(rawBytes);
 
-      const guidFromNative = GuidUint8Array.fromProviderId(nativeId, provider);
-      const guidFromBytes = GuidUint8Array.fromProviderIdBytes(
-        rawBytes,
-        provider,
-      );
+      const guidFromNative = fromProviderId(nativeId, provider);
+      const guidFromBytes = fromProviderIdBytes(rawBytes, provider);
 
       expect(guidFromNative.asFullHexGuid).toBe(guidFromBytes.asFullHexGuid);
     });
