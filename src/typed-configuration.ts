@@ -193,6 +193,9 @@ export class TypedIdProviderWrapper<TID> implements IIdProvider<TID> {
   parseSafe(str: string): TID | undefined {
     return this._provider.parseSafe(str);
   }
+  toString(id: TID, format: 'hex' | 'base64' | 'int'): string {
+    return this._provider.toString(id, format);
+  }
 
   // Add strongly-typed convenience methods
   /**
