@@ -71,6 +71,15 @@ export interface IIdProviderBase {
    * @returns The parsed ID in the provider's native format, or undefined if invalid
    */
   parseSafe(str: string): unknown | undefined;
+
+  /**
+   * Converts the ID to a string in the specified format.
+   * @param id The ID to convert to a string
+   * @param format The format to use for the string representation
+   * @throws Error if the format is not supported
+   * @returns A string representation of the ID in the specified format
+   */
+  toString(id: unknown, format: 'hex' | 'base64' | 'int'): string;
 }
 
 /**

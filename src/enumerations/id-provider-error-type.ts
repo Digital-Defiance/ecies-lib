@@ -47,4 +47,9 @@ export enum IdProviderErrorType {
    * Invalid UUID format.
    */
   InvalidUuidFormat = 'InvalidUuidFormat',
+
+  /**
+   * Invalid print fomrat ('hex', 'base64', 'int')
+   */
+  InvalidFormat = 'InvalidFormat',
 }

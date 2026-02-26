@@ -1532,6 +1532,7 @@ A: Yes. Use `EncryptionStream` for memory-efficient processing of files of any s
 
 ### Breaking Changes Summary
 
+- **v4.19.0**: Version syncs, id-provider improvements
 - **v4.13.0**: Encryption mode renaming (`SIMPLE`→`BASIC`, `SINGLE`→`WITH_LENGTH`), `Guid` class renamed to `GuidUint8Array`
 - **v4.12.0**: `AESGCMService` changed from abstract static class to instance-based
 - **v4.0.0**: ECIES protocol v4.0 — HKDF key derivation, AAD binding, compressed keys, new IV/key sizes

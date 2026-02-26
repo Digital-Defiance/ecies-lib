@@ -1,6 +1,7 @@
 import { randomBytes } from '@noble/hashes/utils';
 import { IdProviderErrorType } from '../../enumerations/id-provider-error-type';
 import { IdProviderError } from '../../errors/id-provider';
+import { uint8ArrayToHex } from '../../utils';
 import { BaseIdProvider } from '../base-id-provider';
 
 /**
@@ -136,6 +137,19 @@ export class CustomIdProvider extends BaseIdProvider<Uint8Array> {
       return this.deserialize(cleaned);
     } catch {
       return undefined;
+    }
+  }
+
+  toString(id: Uint8Array, format: 'hex' | 'base64' | 'int'): string {
+    switch (format) {
+      case 'hex':
+        return uint8ArrayToHex(id);
+      case 'base64':
+        return btoa(String.fromCharCode(...id));
+      case 'int':
+        return BigInt(`0x${uint8ArrayToHex(id)}`).toString();
+      default:
+        throw new IdProviderError(IdProviderErrorType.InvalidFormat);
     }
   }
 }

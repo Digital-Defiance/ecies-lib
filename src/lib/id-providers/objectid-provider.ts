@@ -169,4 +169,18 @@ export class ObjectIdProvider extends BaseIdProvider<ObjectId> {
       }
     }
   }
+  toString(id: ObjectId, format: 'hex' | 'base64' | 'int'): string {
+    switch (format) {
+      case 'hex':
+        return id.toHexString();
+      case 'base64': {
+        const bytes = this.toBytes(id);
+        return btoa(String.fromCharCode(...bytes));
+      }
+      case 'int':
+        return BigInt(`0x${id.toHexString()}`).toString();
+      default:
+        throw new IdProviderError(IdProviderErrorType.InvalidFormat);
+    }
+  }
 }

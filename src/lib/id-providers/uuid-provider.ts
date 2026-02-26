@@ -193,4 +193,26 @@ export class UuidProvider extends BaseIdProvider<string> {
       return undefined;
     }
   }
+
+  toString(id: string, format: 'hex' | 'base64' | 'int'): string {
+    switch (format) {
+      case 'hex':
+        return this.toBytes(id).reduce(
+          (acc, byte) => acc + byte.toString(16).padStart(2, '0'),
+          '',
+        );
+      case 'base64':
+        return btoa(String.fromCharCode(...this.toBytes(id)));
+      case 'int': {
+        const bytes = this.toBytes(id);
+        let result = BigInt(0);
+        for (let i = 0; i < bytes.length; i++) {
+          result = result * BigInt(256) + BigInt(bytes[i]);
+        }
+        return result.toString();
+      }
+      default:
+        throw new IdProviderError(IdProviderErrorType.InvalidFormat);
+    }
+  }
 }

@@ -84,4 +84,6 @@ export abstract class BaseIdProvider<T> implements IIdProvider<T> {
   }
 
   abstract parseSafe(str: string): T | undefined;
+
+  abstract toString(id: T, format: 'hex' | 'base64' | 'int'): string;
 }

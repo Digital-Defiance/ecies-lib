@@ -132,4 +132,17 @@ export class Uint8ArrayIdProvider extends BaseIdProvider<Uint8Array> {
       return undefined;
     }
   }
+
+  toString(id: Uint8Array, format: 'hex' | 'base64' | 'int'): string {
+    switch (format) {
+      case 'hex':
+        return uint8ArrayToHex(id);
+      case 'base64':
+        return btoa(String.fromCharCode(...id));
+      case 'int':
+        return BigInt(`0x${this.serialize(id)}`).toString();
+      default:
+        throw new IdProviderError(IdProviderErrorType.InvalidFormat);
+    }
+  }
 }
