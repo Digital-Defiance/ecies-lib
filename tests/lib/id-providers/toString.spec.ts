@@ -155,9 +155,9 @@ describe('IIdProvider.toString(id, format)', () => {
     it('hex output should match idToString short hex', () => {
       const id = provider.fromBytes(provider.generate());
       const hex = provider.toString(id, 'hex');
-      // idToString returns full hex with dashes; hex format is short (no dashes)
-      const fullHex = provider.idToString(id);
-      expect(hex).toBe(fullHex.replace(/-/g, ''));
+      // idToString now returns short hex (32 chars, no dashes) — same as toString(id, 'hex')
+      const shortHex = provider.idToString(id);
+      expect(hex).toBe(shortHex);
     });
 
     it('should throw on invalid format', () => {
