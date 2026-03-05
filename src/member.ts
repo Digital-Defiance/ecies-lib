@@ -371,7 +371,7 @@ export class Member<
    * @returns ECDSA signature (64 bytes)
    * @throws {MemberError} If private key is not loaded
    */
-  public sign(data: Uint8Array): SignatureUint8Array {
+  public sign(data: Uint8Array): Uint8Array {
     if (!this._privateKey) {
       throw new MemberError(MemberErrorType.MissingPrivateKey);
     }
@@ -385,7 +385,7 @@ export class Member<
    * @returns ECDSA signature (64 bytes)
    * @throws {MemberError} If private key is not loaded
    */
-  public signData(data: Uint8Array): SignatureUint8Array {
+  public signData(data: Uint8Array): Uint8Array {
     if (!this._privateKey) {
       throw new MemberError(MemberErrorType.MissingPrivateKey);
     }
@@ -401,8 +401,12 @@ export class Member<
    * @param data The data that was signed
    * @returns True if signature is valid
    */
-  public verify(signature: SignatureUint8Array, data: Uint8Array): boolean {
-    return this._eciesService.verifyMessage(this._publicKey, data, signature);
+  public verify(signature: Uint8Array, data: Uint8Array): boolean {
+    return this._eciesService.verifyMessage(
+      this._publicKey,
+      data,
+      signature as SignatureUint8Array,
+    );
   }
 
   /**
@@ -425,7 +429,7 @@ export class Member<
   }
 
   /** Maximum size for encryption operations (10MB) */
-  private static readonly MAX_ENCRYPTION_SIZE = 1024 * 1024 * 10; // 10MB limit
+  protected static readonly MAX_ENCRYPTION_SIZE = 1024 * 1024 * 10; // 10MB limit
   /** Regular expression for valid string content */
   private static readonly _VALID_STRING_REGEX = /^[\x20-\x7E\n\r\t]*$/; // Printable ASCII + common whitespace
 
