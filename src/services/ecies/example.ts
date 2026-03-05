@@ -144,7 +144,7 @@ export async function walletDerivationExample(): Promise<void> {
 
   // Derive wallet
   const { wallet, seed } = ecies.walletAndSeedFromMnemonic(mnemonic);
-  console.log('Seed:', uint8ArrayToHex(seed));
+  console.log('Seed:', uint8ArrayToHex(new Uint8Array(seed.value)));
   console.log(
     'Private key hash:',
     uint8ArrayToHex(wallet.getPrivateKey()).slice(0, 16) + '...',

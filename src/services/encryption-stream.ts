@@ -6,6 +6,7 @@ import { PlatformID } from '../interfaces';
 import { IConstants } from '../interfaces/constants';
 import { IECIESConstants } from '../interfaces/ecies-consts';
 import { IEncryptedChunk } from '../interfaces/encrypted-chunk';
+import { IMemberECIESService } from '../interfaces/member-ecies-service';
 import { IMultiRecipientChunk } from '../interfaces/multi-recipient-chunk';
 import {
   DEFAULT_STREAM_CONFIG,
@@ -44,26 +45,48 @@ export interface IDecryptStreamOptions {
 }
 
 /**
- * Streaming encryption/decryption service
+ * Streaming encryption/decryption service.
+ *
+ * The constructor accepts IMemberECIESService for single-recipient
+ * encrypt/decrypt streaming (the common case used by Member).
+ * Multi-recipient methods require the full ECIESService and will throw
+ * if the service doesn't satisfy that contract.
  */
 export class EncryptionStream<TID extends PlatformID = Uint8Array> {
   private readonly processor: ChunkProcessor<TID>;
-  private readonly multiRecipientProcessor: MultiRecipientProcessor<TID>;
+  private _multiRecipientProcessor?: MultiRecipientProcessor<TID>;
 
   constructor(
-    private readonly _ecies: ECIESService<TID>,
+    private readonly _ecies: IMemberECIESService<TID>,
     private readonly config: IStreamConfig = DEFAULT_STREAM_CONFIG,
     private readonly _eciesConsts: IECIESConstants = Constants.ECIES,
     private readonly constants: IConstants = Constants,
   ) {
     this.processor = new ChunkProcessor<TID>(_ecies, _eciesConsts);
-    this.multiRecipientProcessor = new MultiRecipientProcessor<TID>(
-      constants,
-      constants.ECIES_CONFIG,
-      _ecies,
-      undefined,
-      _eciesConsts,
-    );
+  }
+
+  /**
+   * Lazily creates the MultiRecipientProcessor.
+   * Requires the full ECIESService — throws if the service is only
+   * the narrow IMemberECIESService.
+   */
+  private get multiRecipientProcessor(): MultiRecipientProcessor<TID> {
+    if (!this._multiRecipientProcessor) {
+      if (!(this._ecies instanceof ECIESService)) {
+        throw new Error(
+          'Multi-recipient streaming requires a full ECIESService instance, ' +
+            'not just IMemberECIESService.',
+        );
+      }
+      this._multiRecipientProcessor = new MultiRecipientProcessor<TID>(
+        this.constants,
+        this.constants.ECIES_CONFIG,
+        this._ecies,
+        undefined,
+        this._eciesConsts,
+      );
+    }
+    return this._multiRecipientProcessor;
   }
 
   /**

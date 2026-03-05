@@ -13,6 +13,7 @@ export * from './ecies-library';
 export * from './guid';
 export type { IIdProvider, IIdProviderBase } from './id-provider';
 export type * from './member';
+export type { IMemberECIESService } from './member-ecies-service';
 export * from './member-storage';
 export * from './pbkdf2-config';
 export * from './pbkdf2-consts';

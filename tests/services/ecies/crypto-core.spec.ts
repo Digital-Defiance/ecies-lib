@@ -1,3 +1,4 @@
+import { SecureBuffer } from '@digitaldefiance/ecies-lib';
 import { ECIES } from '../../../src/constants';
 import { getEciesI18nEngine } from '../../../src/i18n-setup';
 import { IECIESConfig } from '../../../src/interfaces';
@@ -65,8 +66,8 @@ describe('EciesCryptoCore', () => {
       const mnemonic = cryptoCore.generateNewMnemonic();
       const { wallet, seed } = cryptoCore.walletAndSeedFromMnemonic(mnemonic);
       expect(wallet).toBeDefined();
-      expect(seed).toBeInstanceOf(Uint8Array);
-      expect(seed.length).toBe(64); // Default seed length for bip39
+      expect(seed).toBeInstanceOf(SecureBuffer);
+      expect(seed.value.length).toBe(64); // Default seed length for bip39
     });
 
     it('should throw when using an invalid mnemonic', () => {
@@ -79,7 +80,7 @@ describe('EciesCryptoCore', () => {
     it('should generate a key pair from a seed', () => {
       const mnemonic = cryptoCore.generateNewMnemonic();
       const { seed } = cryptoCore.walletAndSeedFromMnemonic(mnemonic);
-      const keyPair = cryptoCore.seedToSimpleKeyPair(seed);
+      const keyPair = cryptoCore.seedToSimpleKeyPair(new Uint8Array(seed.value));
       expect(keyPair.privateKey.length).toBe(32);
       expect(keyPair.publicKey.length).toBe(33);
     });

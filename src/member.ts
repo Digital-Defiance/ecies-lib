@@ -1,6 +1,5 @@
 import { Wallet } from '@ethereumjs/wallet';
 import type { PrivateKey, PublicKey } from 'paillier-bigint';
-import { SignatureUint8Array } from './ecies_types';
 import { EmailString } from './email-string';
 import { MemberErrorType } from './enumerations/member-error-type';
 import { MemberType } from './enumerations/member-type';
@@ -10,6 +9,7 @@ import { IECIESConstants } from './interfaces/ecies-consts';
 import { IEncryptedChunk } from './interfaces/encrypted-chunk';
 import { IIdProvider } from './interfaces/id-provider';
 import { IMember } from './interfaces/member';
+import { IMemberECIESService } from './interfaces/member-ecies-service';
 import { IMemberStorageData } from './interfaces/member-storage';
 import { SecureBuffer } from './secure-buffer';
 import { SecureString } from './secure-string';
@@ -71,7 +71,7 @@ export interface IMemberWithMnemonic<TID extends PlatformID = Uint8Array> {
 export class Member<
   TID extends PlatformID = Uint8Array,
 > implements IMember<TID> {
-  protected readonly _eciesService: ECIESService<TID>;
+  protected readonly _eciesService: IMemberECIESService<TID>;
   protected readonly _id: TID;
   protected readonly _idBytes: Uint8Array;
   private readonly _type: MemberType;
@@ -105,7 +105,7 @@ export class Member<
    */
   constructor(
     // Add injected services as parameters
-    eciesService: ECIESService<TID>,
+    eciesService: IMemberECIESService<TID>,
     // Original parameters
     type: MemberType,
     name: string,
@@ -402,11 +402,7 @@ export class Member<
    * @returns True if signature is valid
    */
   public verify(signature: Uint8Array, data: Uint8Array): boolean {
-    return this._eciesService.verifyMessage(
-      this._publicKey,
-      data,
-      signature as SignatureUint8Array,
-    );
+    return this._eciesService.verifyMessage(this._publicKey, data, signature);
   }
 
   /**
@@ -421,11 +417,7 @@ export class Member<
     signature: Uint8Array,
     publicKey: Uint8Array,
   ): boolean {
-    return this._eciesService.verifyMessage(
-      publicKey,
-      data,
-      signature as SignatureUint8Array,
-    );
+    return this._eciesService.verifyMessage(publicKey, data, signature);
   }
 
   /** Maximum size for encryption operations (10MB) */
@@ -650,7 +642,7 @@ export class Member<
   public static fromJson<TID extends PlatformID = Uint8Array>(
     json: string,
     // Add injected services as parameters
-    eciesService?: ECIESService<TID>,
+    eciesService?: IMemberECIESService<TID>,
   ): Member<TID> {
     if (!eciesService) {
       eciesService = new ECIESService<TID>();
@@ -711,7 +703,7 @@ export class Member<
    */
   public static fromMnemonic<TID extends PlatformID = Uint8Array>(
     mnemonic: SecureString,
-    eciesService: ECIESService<TID>,
+    eciesService: IMemberECIESService<TID>,
     __eciesParams?: IECIESConstants,
     name = 'Test User',
     email = new EmailString('test@example.com'),
@@ -746,7 +738,7 @@ export class Member<
    */
   public static newMember<TID extends PlatformID = Uint8Array>(
     // Add injected services as parameters
-    eciesService: ECIESService<TID>,
+    eciesService: IMemberECIESService<TID>,
     // Original parameters
     type: MemberType,
     name: string,

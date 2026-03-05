@@ -14,6 +14,7 @@ import { EciesStringKey } from '../../enumerations';
 import { getEciesI18nEngine } from '../../i18n-setup';
 import { IECIESConfig } from '../../interfaces/ecies-config';
 import { IECIESConstants } from '../../interfaces/ecies-consts';
+import { SecureBuffer } from '../../secure-buffer';
 import { SecureString } from '../../secure-string';
 import { ISimpleKeyPair, IWalletSeed } from './interfaces';
 
@@ -144,7 +145,7 @@ export class EciesCryptoCore {
 
     return {
       wallet,
-      seed,
+      seed: new SecureBuffer(seed),
     };
   }
 
@@ -178,7 +179,7 @@ export class EciesCryptoCore {
    */
   public mnemonicToSimpleKeyPair(mnemonic: SecureString): ISimpleKeyPair {
     const { seed } = this.walletAndSeedFromMnemonic(mnemonic);
-    return this.seedToSimpleKeyPair(seed);
+    return this.seedToSimpleKeyPair(new Uint8Array(seed.value));
   }
 
   /**

@@ -9,14 +9,19 @@ import {
   IChunkHeader,
   IEncryptedChunk,
 } from '../interfaces/encrypted-chunk';
-import { ECIESService } from './ecies/service';
+import { IMemberECIESService } from '../interfaces/member-ecies-service';
 
 /**
- * Processes chunks for streaming encryption/decryption
+ * Processes chunks for streaming encryption/decryption.
+ *
+ * Only requires encryptWithLength / decryptWithLengthAndHeader from the
+ * service, so it accepts the narrow IMemberECIESService interface.
+ * This allows both browser ECIESService and Node ECIESService to be used
+ * without casts.
  */
 export class ChunkProcessor<TID extends PlatformID = Uint8Array> {
   constructor(
-    private readonly ecies: ECIESService<TID>,
+    private readonly ecies: IMemberECIESService<TID>,
     private readonly _eciesConsts: IECIESConstants = Constants.ECIES,
   ) {}
 
