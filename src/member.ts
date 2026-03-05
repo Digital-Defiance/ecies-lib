@@ -71,15 +71,15 @@ export interface IMemberWithMnemonic<TID extends PlatformID = Uint8Array> {
 export class Member<
   TID extends PlatformID = Uint8Array,
 > implements IMember<TID> {
-  private readonly _eciesService: ECIESService<TID>;
-  private readonly _id: TID;
-  private readonly _idBytes: Uint8Array;
+  protected readonly _eciesService: ECIESService<TID>;
+  protected readonly _id: TID;
+  protected readonly _idBytes: Uint8Array;
   private readonly _type: MemberType;
   private readonly _name: string;
   private readonly _email: EmailString;
-  private readonly _publicKey: Uint8Array;
+  protected readonly _publicKey: Uint8Array;
   private readonly _creatorId: TID;
-  private readonly _creatorIdBytes: Uint8Array;
+  protected readonly _creatorIdBytes: Uint8Array;
   private readonly _dateCreated: Date;
   private readonly _dateUpdated: Date;
   private _privateKey?: SecureBuffer;
@@ -562,10 +562,10 @@ export class Member<
    * @returns Encrypted data as Uint8Array
    * @throws {MemberError} If data is missing, too large, or contains invalid characters
    */
-  public async encryptData(
+  public encryptData(
     data: string | Uint8Array,
     recipientPublicKey?: Uint8Array,
-  ): Promise<Uint8Array> {
+  ): Promise<Uint8Array> | Uint8Array {
     // Validate input
     if (!data) {
       throw new MemberError(MemberErrorType.MissingEncryptionData);
@@ -581,7 +581,7 @@ export class Member<
     // Use recipient public key or self public key
     const targetPublicKey = recipientPublicKey || this._publicKey;
 
-    return await this._eciesService.encryptWithLength(targetPublicKey, arr);
+    return this._eciesService.encryptWithLength(targetPublicKey, arr);
   }
 
   /**
@@ -590,12 +590,14 @@ export class Member<
    * @returns Decrypted data as Uint8Array
    * @throws {MemberError} If private key is not loaded
    */
-  public async decryptData(encryptedData: Uint8Array): Promise<Uint8Array> {
+  public decryptData(
+    encryptedData: Uint8Array,
+  ): Promise<Uint8Array> | Uint8Array {
     if (!this._privateKey) {
       throw new MemberError(MemberErrorType.MissingPrivateKey);
     }
     // decryptSingleWithHeader now returns the Uint8Array directly
-    return await this._eciesService.decryptWithLengthAndHeader(
+    return this._eciesService.decryptWithLengthAndHeader(
       new Uint8Array(this._privateKey.value),
       encryptedData,
     );
