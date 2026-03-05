@@ -80,7 +80,9 @@ describe('EciesCryptoCore', () => {
     it('should generate a key pair from a seed', () => {
       const mnemonic = cryptoCore.generateNewMnemonic();
       const { seed } = cryptoCore.walletAndSeedFromMnemonic(mnemonic);
-      const keyPair = cryptoCore.seedToSimpleKeyPair(new Uint8Array(seed.value));
+      const keyPair = cryptoCore.seedToSimpleKeyPair(
+        new Uint8Array(seed.value),
+      );
       expect(keyPair.privateKey.length).toBe(32);
       expect(keyPair.publicKey.length).toBe(33);
     });

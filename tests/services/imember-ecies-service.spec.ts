@@ -72,7 +72,13 @@ describe('IMemberECIESService', () => {
 
     it('should encrypt a chunk via the interface', async () => {
       const data = StreamTestUtils.generateRandomData(1024);
-      const chunk = await processor.encryptChunk(data, publicKey, 0, false, false);
+      const chunk = await processor.encryptChunk(
+        data,
+        publicKey,
+        0,
+        false,
+        false,
+      );
 
       expect(chunk.index).toBe(0);
       expect(chunk.isLast).toBe(false);
@@ -82,8 +88,17 @@ describe('IMemberECIESService', () => {
 
     it('should round-trip encrypt/decrypt via the interface', async () => {
       const original = StreamTestUtils.generateRandomData(2048);
-      const encrypted = await processor.encryptChunk(original, publicKey, 0, true, false);
-      const { data, header } = await processor.decryptChunk(encrypted.data, privateKey);
+      const encrypted = await processor.encryptChunk(
+        original,
+        publicKey,
+        0,
+        true,
+        false,
+      );
+      const { data, header } = await processor.decryptChunk(
+        encrypted.data,
+        privateKey,
+      );
 
       expect(StreamTestUtils.arraysEqual(data, original)).toBe(true);
       expect(header.index).toBe(0);
@@ -92,13 +107,22 @@ describe('IMemberECIESService', () => {
 
     it('should encrypt with checksum via the interface', async () => {
       const data = StreamTestUtils.generateRandomData(512);
-      const chunk = await processor.encryptChunk(data, publicKey, 3, true, true);
+      const chunk = await processor.encryptChunk(
+        data,
+        publicKey,
+        3,
+        true,
+        true,
+      );
 
       expect(chunk.metadata?.checksum).toBeDefined();
       expect(chunk.metadata?.checksum?.length).toBe(32); // SHA-256
 
       // Verify round-trip with checksum verification
-      const { data: decrypted } = await processor.decryptChunk(chunk.data, privateKey);
+      const { data: decrypted } = await processor.decryptChunk(
+        chunk.data,
+        privateKey,
+      );
       expect(StreamTestUtils.arraysEqual(decrypted, data)).toBe(true);
     });
   });
@@ -120,8 +144,12 @@ describe('IMemberECIESService', () => {
 
       // Decrypt — feed each encrypted chunk as a separate iteration
       const decryptedChunks: Uint8Array[] = [];
-      const decryptSource = StreamTestUtils.createAsyncIterableFromChunks(encryptedChunks);
-      for await (const chunk of stream.decryptStream(decryptSource, privateKey)) {
+      const decryptSource =
+        StreamTestUtils.createAsyncIterableFromChunks(encryptedChunks);
+      for await (const chunk of stream.decryptStream(
+        decryptSource,
+        privateKey,
+      )) {
         decryptedChunks.push(chunk);
       }
 
@@ -143,8 +171,12 @@ describe('IMemberECIESService', () => {
       expect(encryptedChunks.length).toBe(1);
 
       const decryptedChunks: Uint8Array[] = [];
-      const decryptSource = StreamTestUtils.createAsyncIterableFromChunks(encryptedChunks);
-      for await (const chunk of stream.decryptStream(decryptSource, privateKey)) {
+      const decryptSource =
+        StreamTestUtils.createAsyncIterableFromChunks(encryptedChunks);
+      for await (const chunk of stream.decryptStream(
+        decryptSource,
+        privateKey,
+      )) {
         decryptedChunks.push(chunk);
       }
 
@@ -164,7 +196,8 @@ describe('IMemberECIESService', () => {
         signMessage: ecies.signMessage.bind(ecies),
         verifyMessage: ecies.verifyMessage.bind(ecies),
         encryptWithLength: ecies.encryptWithLength.bind(ecies),
-        decryptWithLengthAndHeader: ecies.decryptWithLengthAndHeader.bind(ecies),
+        decryptWithLengthAndHeader:
+          ecies.decryptWithLengthAndHeader.bind(ecies),
       };
 
       const stream = new EncryptionStream(minimalService);
@@ -174,13 +207,20 @@ describe('IMemberECIESService', () => {
 
       // Multi-recipient encrypt should throw because minimalService is not instanceof ECIESService
       // Use correct MEMBER_ID_LENGTH (12 bytes default) to pass validation and hit the lazy init error
-      const fakeRecipient = { id: new Uint8Array(ecies.constants.MEMBER_ID_LENGTH), publicKey };
+      const fakeRecipient = {
+        id: new Uint8Array(ecies.constants.MEMBER_ID_LENGTH),
+        publicKey,
+      };
 
       await expect(async () => {
-        for await (const _chunk of stream.encryptStreamMultiple(source, [fakeRecipient])) {
+        for await (const _chunk of stream.encryptStreamMultiple(source, [
+          fakeRecipient,
+        ])) {
           // should not reach here
         }
-      }).rejects.toThrow('Multi-recipient streaming requires a full ECIESService instance');
+      }).rejects.toThrow(
+        'Multi-recipient streaming requires a full ECIESService instance',
+      );
     });
 
     it('should NOT throw for single-recipient encrypt with only IMemberECIESService', async () => {
@@ -193,7 +233,8 @@ describe('IMemberECIESService', () => {
         signMessage: ecies.signMessage.bind(ecies),
         verifyMessage: ecies.verifyMessage.bind(ecies),
         encryptWithLength: ecies.encryptWithLength.bind(ecies),
-        decryptWithLengthAndHeader: ecies.decryptWithLengthAndHeader.bind(ecies),
+        decryptWithLengthAndHeader:
+          ecies.decryptWithLengthAndHeader.bind(ecies),
       };
 
       const stream = new EncryptionStream(minimalService);
