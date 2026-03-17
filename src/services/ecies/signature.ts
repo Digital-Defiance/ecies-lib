@@ -46,25 +46,14 @@ export class EciesSignature {
       const hash = sha256(data);
       const normalizedPublicKey = this.cryptoCore.normalizePublicKey(publicKey);
 
-      // Try direct verification first
-      try {
-        const directResult = secp256k1.verify(
-          signature,
-          hash,
-          normalizedPublicKey,
-          { prehash: false },
-        );
-        if (directResult) return true;
-      } catch {
-        // Continue to alternative verification methods
-      }
-
-      // If direct verification fails, the signature might be from a different library
-      // that uses different nonce generation. Since we can't make @noble/curves
-      // verify signatures from ethereumjs-util directly, we'll return false here.
-      // The calling code should handle cross-platform verification at a higher level.
-
-      return false;
+      // Parse the 64-byte compact signature into a Signature object (r, s bigints).
+      // This bypasses verify()'s internal DER→compact fallback which uses
+      // `instanceof DER.Err` — that check breaks when bundlers (e.g. Vite)
+      // load multiple copies of @noble/curves/abstract/weierstrass.
+      const sig = secp256k1.Signature.fromCompact(signature);
+      return secp256k1.verify(sig, hash, normalizedPublicKey, {
+        prehash: false,
+      });
     } catch (err) {
       console.error('Signature verification failed:', err);
       return false;

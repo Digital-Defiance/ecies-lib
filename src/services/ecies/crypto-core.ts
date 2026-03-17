@@ -320,7 +320,14 @@ export class EciesCryptoCore {
   ): boolean {
     const hash = sha256(message);
     try {
-      return secp256k1.verify(signature, hash, publicKey, { prehash: false });
+      // Parse the 64-byte compact signature into a Signature object (r, s bigints).
+      // This bypasses verify()'s internal DER→compact fallback which uses
+      // `instanceof DER.Err` — that check breaks when bundlers (e.g. Vite)
+      // load multiple copies of @noble/curves/abstract/weierstrass.
+      const sig = secp256k1.Signature.fromCompact(signature);
+      return secp256k1.verify(sig, hash, publicKey, {
+        prehash: false,
+      });
     } catch (_e) {
       return false;
     }
