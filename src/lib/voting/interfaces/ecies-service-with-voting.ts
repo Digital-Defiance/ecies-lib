@@ -55,7 +55,9 @@ export interface IECIESServiceWithVoting {
      * @param privateKey - Private key
      * @returns Serialized buffer
      */
-    votingPrivateKeyToBuffer(privateKey: PrivateKey): PlatformBuffer;
+    votingPrivateKeyToBuffer(
+      privateKey: PrivateKey,
+    ): PlatformBuffer | Promise<PlatformBuffer>;
     /**
      * Deserialize private key from buffer.
      * @param buffer - Serialized buffer

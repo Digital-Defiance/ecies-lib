@@ -10,16 +10,22 @@ export interface IVotingService {
     publicKey: PublicKey,
   ): PlatformBuffer | Promise<PlatformBuffer>;
   bufferToVotingPublicKey(buffer: PlatformBuffer): Promise<PublicKey>;
-  votingPrivateKeyToBuffer(privateKey: PrivateKey): PlatformBuffer;
+  votingPrivateKeyToBuffer(
+    privateKey: PrivateKey,
+  ): PlatformBuffer | Promise<PlatformBuffer>;
   bufferToVotingPrivateKey(
     buffer: PlatformBuffer,
     publicKey: PublicKey,
   ): Promise<PrivateKey>;
-  isolatedPublicKeyToBuffer(publicKey: IIsolatedPublicKey): PlatformBuffer;
+  isolatedPublicKeyToBuffer(
+    publicKey: IIsolatedPublicKey,
+  ): PlatformBuffer | Promise<PlatformBuffer>;
   bufferToIsolatedPublicKey(
     buffer: PlatformBuffer,
   ): Promise<IIsolatedPublicKey>;
-  isolatedPrivateKeyToBuffer(privateKey: IIsolatedPrivateKey): PlatformBuffer;
+  isolatedPrivateKeyToBuffer(
+    privateKey: IIsolatedPrivateKey,
+  ): PlatformBuffer | Promise<PlatformBuffer>;
   bufferToIsolatedPrivateKey(
     buffer: PlatformBuffer,
     publicKey: IIsolatedPublicKey,

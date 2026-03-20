@@ -68,7 +68,7 @@ export interface IVotingConsts {
    * Current version of the voting key format.
    * Increment when serialization format changes.
    */
-  readonly KEY_VERSION: 1;
+  readonly KEY_VERSION: 2;
 
   /**
    * Magic identifier for voting keys.
@@ -93,4 +93,10 @@ export interface IVotingConsts {
    * SHA-256 produces 32 bytes.
    */
   readonly INSTANCE_ID_LENGTH: 32;
+
+  /**
+   * Length of SHA-256 checksum appended to serialized keys (bytes).
+   * Provides integrity protection against buffer corruption.
+   */
+  readonly CHECKSUM_LENGTH: 32;
 }

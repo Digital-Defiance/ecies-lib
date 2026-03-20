@@ -14,6 +14,16 @@ export * from './pbkdf2';
 export * from './progress-tracker';
 export * from './resumable-encryption';
 export { VotingService } from './voting.service';
+export {
+  millerRabinTest,
+  modPow,
+  modInverse,
+  gcd,
+  lcm,
+  generateDeterministicPrime,
+  generateDeterministicKeyPair,
+  deriveVotingKeysFromECDH,
+} from './voting.service';
 export type {
   DeriveVotingKeysOptions,
   SecureDeterministicDRBG,

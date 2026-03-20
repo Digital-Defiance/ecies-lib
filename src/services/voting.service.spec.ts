@@ -115,6 +115,41 @@ describe('VotingService (Web)', () => {
         expect(millerRabinTest(0n, 10)).toBe(false);
         expect(millerRabinTest(1n, 10)).toBe(false);
       });
+
+      it('should execute Phase 2 FNV-derived witnesses when k > 12', () => {
+        // Mersenne prime 2^127 - 1 — known prime, should pass all rounds
+        const mersenne127 = (1n << 127n) - 1n;
+        // k=12 uses only Phase 1 (deterministic small-prime witnesses)
+        expect(millerRabinTest(mersenne127, 12)).toBe(true);
+        // k=50 forces Phase 2 (rounds 13-50 use FNV-derived witnesses)
+        expect(millerRabinTest(mersenne127, 50)).toBe(true);
+        // k=256 exercises the full configured round count
+        expect(millerRabinTest(mersenne127, 256)).toBe(true);
+      });
+
+      it('should produce deterministic results for Phase 2 witnesses', () => {
+        // A known prime — run twice with k > 12 to confirm determinism
+        const p = 104729n; // prime
+        const result1 = millerRabinTest(p, 100);
+        const result2 = millerRabinTest(p, 100);
+        expect(result1).toBe(true);
+        expect(result2).toBe(true);
+
+        // A known composite — should consistently fail
+        const c = 104729n * 3n; // composite
+        const cResult1 = millerRabinTest(c, 100);
+        const cResult2 = millerRabinTest(c, 100);
+        expect(cResult1).toBe(false);
+        expect(cResult2).toBe(false);
+      });
+
+      it('should reject composites even with high round counts', () => {
+        // Carmichael numbers are pseudoprimes to many bases
+        // 561 = 3 × 11 × 17 is the smallest Carmichael number
+        expect(millerRabinTest(561n, 256)).toBe(false);
+        // 1105 = 5 × 13 × 17
+        expect(millerRabinTest(1105n, 256)).toBe(false);
+      });
     });
 
     describe('Modular Arithmetic', () => {
@@ -402,7 +437,7 @@ describe('VotingService (Web)', () => {
         ecdhKeyPair.publicKey,
       );
 
-      const buffer = votingService.votingPrivateKeyToBuffer(
+      const buffer = await votingService.votingPrivateKeyToBuffer(
         votingKeys.privateKey,
       );
       expect(buffer.length).toBeGreaterThan(0);
@@ -879,7 +914,7 @@ describe('VotingService (Web)', () => {
         expect(magic).toBe('BCVK');
 
         // Verify version
-        expect(buffer[4]).toBe(1);
+        expect(buffer[4]).toBe(2);
 
         // Verify keyId length
         const keyId = buffer.slice(5, 37);
@@ -945,8 +980,8 @@ describe('VotingService (Web)', () => {
     });
 
     describe('Private Key Serialization', () => {
-      it('should serialize private key with magic/version', () => {
-        const buffer = votingService.votingPrivateKeyToBuffer(
+      it('should serialize private key with magic/version', async () => {
+        const buffer = await votingService.votingPrivateKeyToBuffer(
           votingKeys.privateKey,
         );
 
@@ -959,11 +994,11 @@ describe('VotingService (Web)', () => {
         expect(magic).toBe('BCVK');
 
         // Verify version
-        expect(buffer[4]).toBe(1);
+        expect(buffer[4]).toBe(2);
       });
 
       it('should deserialize private key with magic/version', async () => {
-        const buffer = votingService.votingPrivateKeyToBuffer(
+        const buffer = await votingService.votingPrivateKeyToBuffer(
           votingKeys.privateKey,
         );
         const recovered = await votingService.bufferToVotingPrivateKey(
@@ -976,7 +1011,7 @@ describe('VotingService (Web)', () => {
       });
 
       it('should reject buffer with wrong magic', async () => {
-        const buffer = votingService.votingPrivateKeyToBuffer(
+        const buffer = await votingService.votingPrivateKeyToBuffer(
           votingKeys.privateKey,
         );
 
@@ -989,7 +1024,7 @@ describe('VotingService (Web)', () => {
       });
 
       it('should reject buffer with wrong version', async () => {
-        const buffer = votingService.votingPrivateKeyToBuffer(
+        const buffer = await votingService.votingPrivateKeyToBuffer(
           votingKeys.privateKey,
         );
 
@@ -1013,7 +1048,7 @@ describe('VotingService (Web)', () => {
       });
 
       it('should maintain decryption capability after serialization', async () => {
-        const buffer = votingService.votingPrivateKeyToBuffer(
+        const buffer = await votingService.votingPrivateKeyToBuffer(
           votingKeys.privateKey,
         );
         const recovered = await votingService.bufferToVotingPrivateKey(
@@ -1077,9 +1112,9 @@ describe('VotingService (Web)', () => {
     });
 
     describe('IsolatedPublicKey Serialization', () => {
-      it('should serialize IsolatedPublicKey with instanceId', () => {
+      it('should serialize IsolatedPublicKey with instanceId', async () => {
         const buffer =
-          votingService.isolatedPublicKeyToBuffer(isolatedPublicKey);
+          await votingService.isolatedPublicKeyToBuffer(isolatedPublicKey);
 
         // Check buffer has correct structure
         expect(buffer.length).toBeGreaterThan(73); // magic(4) + version(1) + keyId(32) + instanceId(32) + n_length(4) + n
@@ -1090,7 +1125,7 @@ describe('VotingService (Web)', () => {
         expect(magic).toBe('BCVK');
 
         // Verify version
-        expect(buffer[4]).toBe(1);
+        expect(buffer[4]).toBe(2);
 
         // Verify keyId
         const keyId = buffer.slice(5, 37);
@@ -1103,7 +1138,7 @@ describe('VotingService (Web)', () => {
 
       it('should deserialize IsolatedPublicKey', async () => {
         const buffer =
-          votingService.isolatedPublicKeyToBuffer(isolatedPublicKey);
+          await votingService.isolatedPublicKeyToBuffer(isolatedPublicKey);
         const recovered = await votingService.bufferToIsolatedPublicKey(buffer);
 
         expect(recovered.n).toBe(isolatedPublicKey.n);
@@ -1114,14 +1149,14 @@ describe('VotingService (Web)', () => {
         const { PublicKey } = await import('paillier-bigint');
         const regularKey = new PublicKey(testN, testG);
 
-        expect(() =>
+        await expect(
           votingService.isolatedPublicKeyToBuffer(regularKey as any),
-        ).toThrow();
+        ).rejects.toThrow();
       });
 
       it('should reject buffer with wrong magic', async () => {
         const buffer =
-          votingService.isolatedPublicKeyToBuffer(isolatedPublicKey);
+          await votingService.isolatedPublicKeyToBuffer(isolatedPublicKey);
         buffer[0] = 88;
 
         await expect(
@@ -1139,9 +1174,9 @@ describe('VotingService (Web)', () => {
     });
 
     describe('IsolatedPrivateKey Serialization', () => {
-      it('should serialize IsolatedPrivateKey', () => {
+      it('should serialize IsolatedPrivateKey', async () => {
         const buffer =
-          votingService.isolatedPrivateKeyToBuffer(isolatedPrivateKey);
+          await votingService.isolatedPrivateKeyToBuffer(isolatedPrivateKey);
 
         // Should use same format as regular private key
         expect(buffer.length).toBeGreaterThan(13);
@@ -1154,7 +1189,7 @@ describe('VotingService (Web)', () => {
 
       it('should deserialize IsolatedPrivateKey', async () => {
         const buffer =
-          votingService.isolatedPrivateKeyToBuffer(isolatedPrivateKey);
+          await votingService.isolatedPrivateKeyToBuffer(isolatedPrivateKey);
         const recovered = await votingService.bufferToIsolatedPrivateKey(
           buffer,
           isolatedPublicKey,
@@ -1169,7 +1204,7 @@ describe('VotingService (Web)', () => {
         const regularKey = new PublicKey(testN, testG);
 
         const buffer =
-          votingService.isolatedPrivateKeyToBuffer(isolatedPrivateKey);
+          await votingService.isolatedPrivateKeyToBuffer(isolatedPrivateKey);
 
         await expect(
           votingService.bufferToIsolatedPrivateKey(buffer, regularKey as any),
@@ -1178,7 +1213,7 @@ describe('VotingService (Web)', () => {
 
       it('should maintain decryption capability after serialization', async () => {
         const buffer =
-          votingService.isolatedPrivateKeyToBuffer(isolatedPrivateKey);
+          await votingService.isolatedPrivateKeyToBuffer(isolatedPrivateKey);
         const recovered = await votingService.bufferToIsolatedPrivateKey(
           buffer,
           isolatedPublicKey,

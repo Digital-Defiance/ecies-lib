@@ -247,11 +247,12 @@ export const VOTING: IVotingConsts = Object.freeze({
   KEY_RADIX: 16 as const,
   KEY_FORMAT: 'hex' as const,
   DIGEST_FORMAT: 'hex' as const,
-  KEY_VERSION: 1 as const,
+  KEY_VERSION: 2 as const,
   KEY_MAGIC: 'BCVK' as const,
   DRBG_PRIME_ATTEMPTS: 20000 as const,
   KEY_ID_LENGTH: 32 as const,
   INSTANCE_ID_LENGTH: 32 as const,
+  CHECKSUM_LENGTH: 32 as const,
 });
 
 /**
