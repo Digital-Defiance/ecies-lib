@@ -51,9 +51,14 @@ export class EciesSignature {
       // `instanceof DER.Err` — that check breaks when bundlers (e.g. Vite)
       // load multiple copies of @noble/curves/abstract/weierstrass.
       const sig = secp256k1.Signature.fromCompact(signature);
-      return secp256k1.verify(sig, hash, normalizedPublicKey, {
-        prehash: false,
-      });
+      return secp256k1.verify(
+        sig.toCompactRawBytes(),
+        hash,
+        normalizedPublicKey,
+        {
+          prehash: false,
+        },
+      );
     } catch (err) {
       console.error('Signature verification failed:', err);
       return false;

@@ -325,7 +325,7 @@ export class EciesCryptoCore {
       // `instanceof DER.Err` — that check breaks when bundlers (e.g. Vite)
       // load multiple copies of @noble/curves/abstract/weierstrass.
       const sig = secp256k1.Signature.fromCompact(signature);
-      return secp256k1.verify(sig, hash, publicKey, {
+      return secp256k1.verify(sig.toCompactRawBytes(), hash, publicKey, {
         prehash: false,
       });
     } catch (_e) {
