@@ -511,6 +511,92 @@ describe('parseSafe() — All ID Providers', () => {
       });
     });
 
+    describe('valid inputs — bigint string', () => {
+      it('should parse a bigint string representation of a v4 GUID', () => {
+        const native = provider.fromBytes(provider.generate());
+        const bigintStr = native.asBigIntGuid.toString();
+        const result = provider.parseSafe(bigintStr);
+
+        expect(result).toBeDefined();
+        expect(provider.equals(native, result!)).toBe(true);
+      });
+
+      it('should round-trip 50 random GUIDs via bigint string', () => {
+        for (let i = 0; i < 50; i++) {
+          const native = provider.fromBytes(provider.generate());
+          const bigintStr = native.asBigIntGuid.toString();
+          const parsed = provider.parseSafe(bigintStr);
+
+          expect(parsed).toBeDefined();
+          expect(provider.equals(native, parsed!)).toBe(true);
+        }
+      });
+
+      it('should parse bigint string for nil GUID (0)', () => {
+        const result = provider.parseSafe('0');
+        expect(result).toBeDefined();
+        expect(result!.isEmpty()).toBe(true);
+      });
+
+      it('should parse bigint string for max GUID', () => {
+        const maxBigint = BigInt(
+          '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
+        ).toString();
+        const result = provider.parseSafe(maxBigint);
+        expect(result).toBeDefined();
+      });
+
+      it('should parse bigint string with leading whitespace', () => {
+        const native = provider.fromBytes(provider.generate());
+        const bigintStr = native.asBigIntGuid.toString();
+        const result = provider.parseSafe(`  ${bigintStr}  `);
+
+        expect(result).toBeDefined();
+        expect(provider.equals(native, result!)).toBe(true);
+      });
+    });
+
+    describe('valid inputs — URL-safe base64', () => {
+      it('should parse a URL-safe base64 representation (22 chars, no padding)', () => {
+        const native = provider.fromBytes(provider.generate());
+        const urlSafe = native.asUrlSafeBase64;
+        const result = provider.parseSafe(urlSafe);
+
+        expect(result).toBeDefined();
+        expect(provider.equals(native, result!)).toBe(true);
+      });
+
+      it('should round-trip 50 random GUIDs via URL-safe base64', () => {
+        for (let i = 0; i < 50; i++) {
+          const native = provider.fromBytes(provider.generate());
+          const urlSafe = native.asUrlSafeBase64;
+          const parsed = provider.parseSafe(urlSafe);
+
+          expect(parsed).toBeDefined();
+          expect(provider.equals(native, parsed!)).toBe(true);
+        }
+      });
+
+      it('should parse URL-safe base64 with leading/trailing whitespace', () => {
+        const native = provider.fromBytes(provider.generate());
+        const urlSafe = native.asUrlSafeBase64;
+        const result = provider.parseSafe(`  ${urlSafe}  `);
+
+        expect(result).toBeDefined();
+        expect(provider.equals(native, result!)).toBe(true);
+      });
+
+      it('should produce same bytes as standard base64 for the same GUID', () => {
+        const native = provider.fromBytes(provider.generate());
+        const fromBase64 = provider.parseSafe(native.asBase64Guid);
+        const fromUrlSafe = provider.parseSafe(native.asUrlSafeBase64);
+
+        expect(fromBase64).toBeDefined();
+        expect(fromUrlSafe).toBeDefined();
+        expect(provider.equals(fromBase64!, fromUrlSafe!)).toBe(true);
+      });
+    });
+
     describe('invalid inputs — should return undefined', () => {
       it('should return undefined for empty string', () => {
         expect(provider.parseSafe('')).toBeUndefined();
@@ -547,6 +633,17 @@ describe('parseSafe() — All ID Providers', () => {
         expect(provider.parseSafe('null')).toBeUndefined();
         expect(provider.parseSafe('undefined')).toBeUndefined();
       });
+
+      it('should return undefined for negative bigint string', () => {
+        expect(provider.parseSafe('-1')).toBeUndefined();
+      });
+
+      it('should return undefined for bigint string exceeding 128-bit max', () => {
+        const tooBig = (
+          BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF') + 1n
+        ).toString();
+        expect(provider.parseSafe(tooBig)).toBeUndefined();
+      });
     });
 
     describe('never throws', () => {
@@ -562,6 +659,9 @@ describe('parseSafe() — All ID Providers', () => {
         '0'.repeat(1000),
         '='.repeat(24),
         String.fromCharCode(0xffff),
+        '99999999999999999999999999999999999999999999999999',
+        '-12345',
+        'abc_def-ghi',
       ];
 
       for (const input of edgeCases) {

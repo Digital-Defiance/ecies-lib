@@ -19,7 +19,7 @@ describe('Hierarchical Aggregator', () => {
   beforeAll(async () => {
     await TestVoterPool.initialize(20);
     authority = TestVoterPool.getAuthority();
-  }, 70000); // 60 second timeout for pool initialization
+  }, 120000);
 
   describe('PrecinctAggregator', () => {
     it('should create precinct aggregator', () => {

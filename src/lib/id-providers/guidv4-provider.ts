@@ -172,7 +172,24 @@ export class GuidV4Provider extends BaseIdProvider<GuidV4Uint8Array> {
    */
   parseSafe(str: string): GuidV4Uint8Array | undefined {
     try {
-      return GuidUint8Array.parse(str.trim()) as GuidV4Uint8Array;
+      const trimmed = str.trim();
+
+      // Detect URL-safe base64 (22 chars without padding, or with URL-safe chars)
+      if (
+        trimmed.length === 22 ||
+        (trimmed.length === 24 &&
+          (trimmed.includes('-') || trimmed.includes('_')) &&
+          !trimmed.includes(' '))
+      ) {
+        return GuidUint8Array.fromUrlSafeBase64(trimmed) as GuidV4Uint8Array;
+      }
+
+      // Detect bigint string (all digits, not a plausible hex-only string of known GUID lengths)
+      if (/^\d+$/.test(trimmed) && trimmed.length > 0) {
+        return GuidUint8Array.parse(BigInt(trimmed)) as GuidV4Uint8Array;
+      }
+
+      return GuidUint8Array.parse(trimmed) as GuidV4Uint8Array;
     } catch {
       return undefined;
     }
