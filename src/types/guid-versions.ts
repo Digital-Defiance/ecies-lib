@@ -24,3 +24,8 @@ export type GuidV4Uint8Array = GuidUint8Array & { readonly __version: 4 };
  * Brand for v5 (SHA-1 namespace) GUIDs
  */
 export type GuidV5Uint8Array = GuidUint8Array & { readonly __version: 5 };
+
+/**
+ * Brand for v7 (time-ordered random) GUIDs
+ */
+export type GuidV7Uint8Array = GuidUint8Array & { readonly __version: 7 };
