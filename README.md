@@ -10,6 +10,10 @@ Part of [Express Suite](https://github.com/Digital-Defiance/express-suite)
 
 This library implements a modern, enterprise-grade ECIES protocol (v4.0) featuring HKDF key derivation, AAD binding, and optimized multi-recipient encryption. It includes a pluggable ID provider system with PlatformID support, memory-efficient streaming encryption, comprehensive internationalization, and a complete cryptographic voting system with 15+ voting methods.
 
+## 📄 DD-ECIES Specification
+
+A formal, language-agnostic specification for the DD-ECIES protocol is available at [`docs/DD-ECIES-SPECIFICATION.md`](docs/DD-ECIES-SPECIFICATION.md). The specification covers all cryptographic parameters, key derivation procedures, wire formats, encryption modes, registries, and test vectors needed to build a fully compatible implementation in any programming language — without reading the TypeScript source.
+
 ## Features
 
 ### 🛡️ Core Cryptography (Protocol v4.0)
