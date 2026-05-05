@@ -8,11 +8,7 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-  ECIES,
-  PBKDF2_PROFILES,
-  VOTING,
-} from '../../src/constants';
+import { ECIES, PBKDF2_PROFILES, VOTING } from '../../src/constants';
 import { Pbkdf2ProfileEnum } from '../../src/enumerations/pbkdf2-profile';
 
 // ecies-lib package root (2 levels up from tests/integration)
@@ -53,9 +49,7 @@ describe('Parameter Consistency', () => {
 
     it('should document the correct signature size (64)', () => {
       expect(ECIES.SIGNATURE_SIZE).toBe(64);
-      expect(spec).toContain(
-        `ECIES.SIGNATURE_SIZE = ${ECIES.SIGNATURE_SIZE}`,
-      );
+      expect(spec).toContain(`ECIES.SIGNATURE_SIZE = ${ECIES.SIGNATURE_SIZE}`);
     });
 
     it('should document the correct public key magic (0x02)', () => {
@@ -115,7 +109,9 @@ describe('Parameter Consistency', () => {
     });
 
     it('should document Cipher Suite Secp256k1_Aes256Gcm_Sha256 = 0x01', () => {
-      expect(spec).toMatch(/Secp256k1_Aes256Gcm_Sha256.*0x01|0x01.*Secp256k1_Aes256Gcm_Sha256/i);
+      expect(spec).toMatch(
+        /Secp256k1_Aes256Gcm_Sha256.*0x01|0x01.*Secp256k1_Aes256Gcm_Sha256/i,
+      );
     });
   });
 
@@ -164,7 +160,9 @@ describe('Parameter Consistency', () => {
       expect(spec).toContain('BROWSER_PASSWORD');
       expect(spec).toMatch(/BROWSER_PASSWORD[\s\S]*?hashBytes.*32/);
       expect(spec).toMatch(/BROWSER_PASSWORD[\s\S]*?saltBytes.*64/);
-      expect(spec).toMatch(/BROWSER_PASSWORD[\s\S]*?iterations.*2[,.]?000[,.]?000/);
+      expect(spec).toMatch(
+        /BROWSER_PASSWORD[\s\S]*?iterations.*2[,.]?000[,.]?000/,
+      );
       expect(spec).toMatch(/BROWSER_PASSWORD[\s\S]*?algorithm.*SHA-512/);
     });
 
@@ -179,7 +177,9 @@ describe('Parameter Consistency', () => {
       expect(spec).toContain('HIGH_SECURITY');
       expect(spec).toMatch(/HIGH_SECURITY[\s\S]*?hashBytes.*64/);
       expect(spec).toMatch(/HIGH_SECURITY[\s\S]*?saltBytes.*32/);
-      expect(spec).toMatch(/HIGH_SECURITY[\s\S]*?iterations.*5[,.]?000[,.]?000/);
+      expect(spec).toMatch(
+        /HIGH_SECURITY[\s\S]*?iterations.*5[,.]?000[,.]?000/,
+      );
       expect(spec).toMatch(/HIGH_SECURITY[\s\S]*?algorithm.*SHA-256/);
     });
 

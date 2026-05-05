@@ -9,9 +9,9 @@
 import { secp256k1 } from '@noble/curves/secp256k1';
 import { hkdf } from '@noble/hashes/hkdf';
 import { sha256 } from '@noble/hashes/sha2';
+import { SecureString } from '../../src/secure-string';
 import { EciesCryptoCore } from '../../src/services/ecies/crypto-core';
 import { EciesSignature } from '../../src/services/ecies/signature';
-import { SecureString } from '../../src/secure-string';
 
 // ── AES-256-GCM helpers using Web Crypto API ─────────────────────────────────
 
@@ -117,11 +117,9 @@ const ECDSA_VECTOR = {
 /** 18.5 AES-256-GCM Test Vector */
 const AES_VECTOR = {
   plaintext: 'DD-ECIES test vector plaintext',
-  plaintextHex:
-    '44442d4543494553207465737420766563746f7220706c61696e74657874',
+  plaintextHex: '44442d4543494553207465737420766563746f7220706c61696e74657874',
   aad: '01012102fbb6f2f3ee200f9cd9f33b86e7de3412eb9aee09f6b10709a595f5ede231494b',
-  ciphertext:
-    'f3c70450f1ac074e93508eb3caed91a900ebc463d4eaa78c4c56389f36ee',
+  ciphertext: 'f3c70450f1ac074e93508eb3caed91a900ebc463d4eaa78c4c56389f36ee',
   authTag: 'e6dbf735d3ef9a4235d5513f9e8829ce',
 };
 

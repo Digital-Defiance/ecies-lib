@@ -157,7 +157,14 @@ function parseBasicHeader(data: Uint8Array): BasicParsedHeader {
   offset += IV_SIZE;
   const authTag = data.slice(offset, offset + AUTH_TAG_SIZE);
 
-  return { version, cipherSuite, encryptionType, ephemeralPublicKey, iv, authTag };
+  return {
+    version,
+    cipherSuite,
+    encryptionType,
+    ephemeralPublicKey,
+    iv,
+    authTag,
+  };
 }
 
 function parseWithLengthHeader(data: Uint8Array): WithLengthParsedHeader {
@@ -284,18 +291,21 @@ const authTagArb = fc.uint8Array({
  * Generate a valid data length for WithLength mode.
  * Uses a BigInt in the range [0, 2^53 - 1] (max safe integer for JS).
  */
-const dataLengthArb = fc.bigInt({ min: 0n, max: BigInt(Number.MAX_SAFE_INTEGER) });
+const dataLengthArb = fc.bigInt({
+  min: 0n,
+  max: BigInt(Number.MAX_SAFE_INTEGER),
+});
 
 /**
  * Generate a valid combined data length for Multiple mode.
  * MSB (bits 63-56) = recipientIdSize (1-255), lower 56 bits = data length.
  */
-function combinedDataLengthArb(recipientIdSize: number): fc.Arbitrary<bigint> {
-  return dataLengthArb.map((dataLen) => {
-    const idSizeBig = BigInt(recipientIdSize);
-    return (idSizeBig << 56n) | dataLen;
-  });
-}
+// function combinedDataLengthArb(recipientIdSize: number): fc.Arbitrary<bigint> {
+//   return dataLengthArb.map((dataLen) => {
+//     const idSizeBig = BigInt(recipientIdSize);
+//     return (idSizeBig << 56n) | dataLen;
+//   });
+// }
 
 // ============================================================
 // Property Tests
@@ -335,7 +345,9 @@ describe('Property 1: Wire Format Header Round-Trip', () => {
             expect(parsed.version).toBe(VERSION_V1);
             expect(parsed.cipherSuite).toBe(CIPHER_SUITE_SECP256K1);
             expect(parsed.encryptionType).toBe(ENC_TYPE_BASIC);
-            expect(arraysEqual(parsed.ephemeralPublicKey, ephemeralPublicKey)).toBe(true);
+            expect(
+              arraysEqual(parsed.ephemeralPublicKey, ephemeralPublicKey),
+            ).toBe(true);
             expect(arraysEqual(parsed.iv, iv)).toBe(true);
             expect(arraysEqual(parsed.authTag, authTag)).toBe(true);
           },
@@ -405,7 +417,9 @@ describe('Property 1: Wire Format Header Round-Trip', () => {
             expect(parsed.version).toBe(VERSION_V1);
             expect(parsed.cipherSuite).toBe(CIPHER_SUITE_SECP256K1);
             expect(parsed.encryptionType).toBe(ENC_TYPE_WITH_LENGTH);
-            expect(arraysEqual(parsed.ephemeralPublicKey, ephemeralPublicKey)).toBe(true);
+            expect(
+              arraysEqual(parsed.ephemeralPublicKey, ephemeralPublicKey),
+            ).toBe(true);
             expect(arraysEqual(parsed.iv, iv)).toBe(true);
             expect(arraysEqual(parsed.authTag, authTag)).toBe(true);
             expect(parsed.dataLength).toBe(dataLength);
@@ -454,7 +468,12 @@ describe('Property 1: Wire Format Header Round-Trip', () => {
           recipientIdSizeArb,
           fc.integer({ min: 1, max: 10 }),
           dataLengthArb,
-          (ephemeralPublicKey, recipientIdSize, recipientCount, rawDataLength) => {
+          (
+            ephemeralPublicKey,
+            recipientIdSize,
+            recipientCount,
+            rawDataLength,
+          ) => {
             // Generate random recipient IDs and encrypted key blocks
             const recipientIds: Uint8Array[] = [];
             const encryptedKeys: Uint8Array[] = [];
@@ -505,15 +524,21 @@ describe('Property 1: Wire Format Header Round-Trip', () => {
             expect(parsed.version).toBe(VERSION_V1);
             expect(parsed.cipherSuite).toBe(CIPHER_SUITE_SECP256K1);
             expect(parsed.encryptionType).toBe(ENC_TYPE_MULTIPLE);
-            expect(arraysEqual(parsed.ephemeralPublicKey, ephemeralPublicKey)).toBe(true);
+            expect(
+              arraysEqual(parsed.ephemeralPublicKey, ephemeralPublicKey),
+            ).toBe(true);
             expect(parsed.combinedDataLength).toBe(combinedDataLength);
             expect(parsed.recipientCount).toBe(recipientCount);
             expect(parsed.recipientIds.length).toBe(recipientCount);
             expect(parsed.encryptedKeys.length).toBe(recipientCount);
 
             for (let i = 0; i < recipientCount; i++) {
-              expect(arraysEqual(parsed.recipientIds[i], recipientIds[i])).toBe(true);
-              expect(arraysEqual(parsed.encryptedKeys[i], encryptedKeys[i])).toBe(true);
+              expect(arraysEqual(parsed.recipientIds[i], recipientIds[i])).toBe(
+                true,
+              );
+              expect(
+                arraysEqual(parsed.encryptedKeys[i], encryptedKeys[i]),
+              ).toBe(true);
             }
           },
         ),
@@ -529,7 +554,13 @@ describe('Property 1: Wire Format Header Round-Trip', () => {
           fc.integer({ min: 1, max: 5 }), // recipientCount (small for perf)
           dataLengthArb,
           fc.infiniteStream(fc.uint8Array({ minLength: 1, maxLength: 1 })),
-          (ephemeralPublicKey, recipientIdSize, recipientCount, rawDataLength, randomStream) => {
+          (
+            ephemeralPublicKey,
+            recipientIdSize,
+            recipientCount,
+            rawDataLength,
+            randomStream,
+          ) => {
             // Generate fully random recipient IDs and encrypted keys from the stream
             const recipientIds: Uint8Array[] = [];
             const encryptedKeys: Uint8Array[] = [];
@@ -580,7 +611,12 @@ describe('Property 1: Wire Format Header Round-Trip', () => {
           fc.integer({ min: 1, max: 32 }), // recipientIdSize
           fc.integer({ min: 1, max: 10 }), // recipientCount
           dataLengthArb,
-          (ephemeralPublicKey, recipientIdSize, recipientCount, rawDataLength) => {
+          (
+            ephemeralPublicKey,
+            recipientIdSize,
+            recipientCount,
+            rawDataLength,
+          ) => {
             const recipientIds: Uint8Array[] = [];
             const encryptedKeys: Uint8Array[] = [];
 

@@ -37,7 +37,7 @@ function findBrightChainRoot(): string {
     }
   }
   throw new Error(
-    'Could not locate BrightChain workspace root from ' + __dirname
+    'Could not locate BrightChain workspace root from ' + __dirname,
   );
 }
 
@@ -47,7 +47,7 @@ const eciesLibRoot = path.resolve(__dirname, '..', '..');
 const DD_ECIES_SPEC_PATH = path.join(
   eciesLibRoot,
   'docs',
-  'DD-ECIES-SPECIFICATION.md'
+  'DD-ECIES-SPECIFICATION.md',
 );
 const README_PATH = path.join(eciesLibRoot, 'README.md');
 
@@ -60,12 +60,12 @@ try {
   BRIGHTCHAIN_DOCS_COPY_PATH = path.join(
     brightChainRoot,
     'docs',
-    'DD-ECIES-SPECIFICATION.md'
+    'DD-ECIES-SPECIFICATION.md',
   );
   WCAP_SPEC_PATH = path.join(
     brightChainRoot,
     'WCAP',
-    'Web Content Authenticity Protocol (WCAP).md'
+    'Web Content Authenticity Protocol (WCAP).md',
   );
 } catch {
   // Will be handled in beforeAll
@@ -123,14 +123,13 @@ describe('Document Structure Validation', () => {
           line
             .replace(/^## /, '')
             .replace(/^\d+\.\s*/, '')
-            .trim()
+            .trim(),
         );
 
       for (const section of requiredSections) {
         const found = sectionHeaders.some((header) =>
-          header.toLowerCase().includes(section.toLowerCase())
+          header.toLowerCase().includes(section.toLowerCase()),
         );
-        expect(found).withContext?.(`Missing section: ${section}`) ?? undefined;
         expect(found).toBe(true);
       }
     });
@@ -141,13 +140,10 @@ describe('Document Structure Validation', () => {
 
       for (const section of requiredSections) {
         // Match ## headers that contain the section name (with optional numbering prefix)
-        const escapedSection = section.replace(
-          /[.*+?^${}()|[\]\\]/g,
-          '\\$&'
-        );
+        const escapedSection = section.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp(
           `^## (?:\\d+\\.\\s*)?.*${escapedSection}`,
-          'im'
+          'im',
         );
         const match = ddEciesSpec.match(regex);
         expect(match).not.toBeNull();
@@ -187,7 +183,7 @@ describe('Document Structure Validation', () => {
     it('should contain the canonical reference header note', () => {
       // The header should indicate this is a copy and reference the canonical location
       expect(brightchainDocsCopy).toMatch(
-        /canonical.*specification.*express-suite\/packages\/digitaldefiance-ecies-lib\/docs\/DD-ECIES-SPECIFICATION\.md/i
+        /canonical.*specification.*express-suite\/packages\/digitaldefiance-ecies-lib\/docs\/DD-ECIES-SPECIFICATION\.md/i,
       );
     });
 

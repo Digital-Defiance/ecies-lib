@@ -15,13 +15,13 @@
  */
 
 import * as fc from 'fast-check';
-import { EciesSingleRecipient } from '../../src/services/ecies/single-recipient';
+import { ECIES_CONFIG, Constants } from '../../src/constants';
 import { EciesEncryptionTypeEnum } from '../../src/enumerations/ecies-encryption-type';
+import { EciesSingleRecipient } from '../../src/services/ecies/single-recipient';
 import {
   encryptionTypeToString,
   ensureEciesEncryptionTypeEnum,
 } from '../../src/utils/encryption-type-utils';
-import { ECIES, ECIES_CONFIG, Constants } from '../../src/constants';
 
 // --- Valid registry values (from DD-ECIES specification) ---
 const VALID_VERSIONS = new Set([0x01]);
