@@ -19,7 +19,7 @@ export class DisposedError extends TranslatableGenericError<EciesStringKeyValue>
   /**
    * Optional timestamp when the object was disposed
    */
-  public disposedAt?: string | Date;
+  public disposedAt?: string | number | Date;
 
   /**
    * Creates a new DisposedError instance.
