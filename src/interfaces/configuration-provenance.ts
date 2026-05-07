@@ -8,6 +8,7 @@ import type { PlatformID } from './platform-id';
  */
 export interface IConfigurationProvenance<
   _TID extends PlatformID = Uint8Array,
+  TDate extends Date | number = Date,
 > {
   /**
    * The base configuration key this was derived from
@@ -22,7 +23,7 @@ export interface IConfigurationProvenance<
   /**
    * When this configuration was created
    */
-  readonly timestamp: Date;
+  readonly timestamp: TDate;
 
   /**
    * Source of the configuration

@@ -29,9 +29,12 @@ import {
  * Interface for a member with their mnemonic phrase.
  * Defined here to avoid circular dependency with interfaces folder.
  */
-export interface IMemberWithMnemonic<TID extends PlatformID = Uint8Array> {
+export interface IMemberWithMnemonic<
+  TID extends PlatformID = Uint8Array,
+  TDate extends Date | number = Date,
+> {
   /** The member instance */
-  member: Member<TID>;
+  member: Member<TID, TDate>;
   /** The member's mnemonic phrase (secured) */
   mnemonic: SecureString;
 }
@@ -70,7 +73,8 @@ export interface IMemberWithMnemonic<TID extends PlatformID = Uint8Array> {
  */
 export class Member<
   TID extends PlatformID = Uint8Array,
-> implements IMember<TID> {
+  TDate extends Date | number = Date,
+> implements IMember<TID, Uint8Array, TDate> {
   protected readonly _eciesService: IMemberECIESService<TID>;
   protected readonly _id: TID;
   protected readonly _idBytes: Uint8Array;
@@ -80,8 +84,10 @@ export class Member<
   protected readonly _publicKey: Uint8Array;
   private readonly _creatorId: TID;
   protected readonly _creatorIdBytes: Uint8Array;
-  private readonly _dateCreated: Date;
-  private readonly _dateUpdated: Date;
+  private readonly _dateCreated: TDate;
+  private readonly _dateUpdated: TDate;
+  protected readonly _dateSerializer: (date: TDate) => string;
+  protected readonly _dateDeserializer: (iso: string) => TDate;
   private _privateKey?: SecureBuffer;
   private _wallet?: Wallet;
 
@@ -102,6 +108,16 @@ export class Member<
    * @param dateCreated Optional creation date
    * @param dateUpdated Optional last update date
    * @param creatorId Optional ID of the member who created this member
+   * @param dateFactory Optional factory for producing the current date as TDate.
+   *   Required when TDate is `number` (e.g. BrightDate) and dateCreated/dateUpdated
+   *   may be omitted — otherwise the fallback would produce a Date object instead of a number.
+   *   Example for BrightDate: `() => BrightDate.now().value`
+   * @param dateSerializer Optional function to serialize TDate to an ISO string for storage.
+   *   Required when TDate is a non-Unix number (e.g. BrightDate decimal days).
+   *   Example for BrightDate: `(d) => BrightDate.fromValue(d).toISO()`
+   * @param dateDeserializer Optional function to deserialize an ISO string back to TDate.
+   *   Required when TDate is a non-Unix number (e.g. BrightDate decimal days).
+   *   Example for BrightDate: `(iso) => BrightDate.fromISO(iso).value`
    */
   constructor(
     // Add injected services as parameters
@@ -114,12 +130,24 @@ export class Member<
     privateKey?: SecureBuffer,
     wallet?: Wallet,
     id?: TID,
-    dateCreated?: Date,
-    dateUpdated?: Date,
+    dateCreated?: TDate,
+    dateUpdated?: TDate,
     creatorId?: TID,
+    dateFactory?: () => TDate,
+    dateSerializer?: (date: TDate) => string,
+    dateDeserializer?: (iso: string) => TDate,
   ) {
     // Assign injected services
     this._eciesService = eciesService;
+    // Assign date serialization helpers with safe defaults for TDate = Date
+    this._dateSerializer =
+      dateSerializer ??
+      ((d: TDate) =>
+        d instanceof Date
+          ? d.toISOString()
+          : new Date(d as number).toISOString());
+    this._dateDeserializer =
+      dateDeserializer ?? ((iso: string) => new Date(iso) as unknown as TDate);
     // Assign original parameters
     this._type = type;
 
@@ -153,15 +181,17 @@ export class Member<
     this._wallet = wallet;
 
     // don't create a new date object with nearly identical values to the existing one
-    let _now: null | Date = null;
-    const now = function () {
-      if (!_now) {
-        _now = new Date();
+    const now: () => TDate =
+      dateFactory ?? (() => new Date() as unknown as TDate);
+    let _now: TDate | null = null;
+    const cachedNow = (): TDate => {
+      if (_now === null) {
+        _now = now();
       }
       return _now;
     };
-    this._dateCreated = dateCreated ?? now();
-    this._dateUpdated = dateUpdated ?? now();
+    this._dateCreated = dateCreated ?? cachedNow();
+    this._dateUpdated = dateUpdated ?? cachedNow();
     this._creatorId = creatorId ?? this._id;
     // Derive creatorIdBytes from creatorId, using idBytes if creator is self
     this._creatorIdBytes =
@@ -203,11 +233,11 @@ export class Member<
     return this._creatorIdBytes;
   }
   /** Gets the date this member was created */
-  public get dateCreated(): Date {
+  public get dateCreated(): TDate {
     return this._dateCreated;
   }
   /** Gets the date this member was last updated */
-  public get dateUpdated(): Date {
+  public get dateUpdated(): TDate {
     return this._dateUpdated;
   }
 
@@ -614,8 +644,8 @@ export class Member<
       creatorId: this._eciesService.constants.idProvider.serialize(
         this._creatorIdBytes,
       ),
-      dateCreated: this._dateCreated.toISOString(),
-      dateUpdated: this._dateUpdated.toISOString(),
+      dateCreated: this._dateSerializer(this._dateCreated),
+      dateUpdated: this._dateSerializer(this._dateUpdated),
     };
     return JSON.stringify(storage);
   }
@@ -639,11 +669,17 @@ export class Member<
    * @returns Deserialized member instance
    * @throws {MemberError} If JSON is invalid
    */
-  public static fromJson<TID extends PlatformID = Uint8Array>(
+  public static fromJson<
+    TID extends PlatformID = Uint8Array,
+    TDate extends Date | number = Date,
+  >(
     json: string,
     // Add injected services as parameters
     eciesService?: IMemberECIESService<TID>,
-  ): Member<TID> {
+    dateDeserializer?: (iso: string) => TDate,
+    dateSerializer?: (date: TDate) => string,
+    dateFactory?: () => TDate,
+  ): Member<TID, TDate> {
     if (!eciesService) {
       eciesService = new ECIESService<TID>();
     }
@@ -675,9 +711,13 @@ export class Member<
       );
     }
 
-    // Pass injected services to constructor
-    const dateCreated = new Date(storage.dateCreated);
-    return new Member<TID>(
+    // Deserialize dates — use provided deserializer or fall back to standard Date
+    const deserialize: (iso: string) => TDate =
+      dateDeserializer ?? ((iso: string) => new Date(iso) as unknown as TDate);
+    const dateCreated = deserialize(storage.dateCreated);
+    const dateUpdated = deserialize(storage.dateUpdated);
+
+    return new Member<TID, TDate>(
       eciesService,
       storage.type,
       storage.name,
@@ -687,8 +727,11 @@ export class Member<
       undefined,
       id,
       dateCreated,
-      new Date(storage.dateUpdated),
+      dateUpdated,
       creatorId,
+      dateFactory,
+      dateSerializer,
+      dateDeserializer,
     );
   }
 
@@ -736,7 +779,10 @@ export class Member<
    * @returns Object containing the new member and its mnemonic
    * @throws {MemberError} If name or email is invalid
    */
-  public static newMember<TID extends PlatformID = Uint8Array>(
+  public static newMember<
+    TID extends PlatformID = Uint8Array,
+    TDate extends Date | number = Date,
+  >(
     // Add injected services as parameters
     eciesService: IMemberECIESService<TID>,
     // Original parameters
@@ -746,7 +792,10 @@ export class Member<
     forceMnemonic?: SecureString,
     _createdBy?: Uint8Array,
     _eciesParams?: IECIESConstants,
-  ): IMemberWithMnemonic<TID> {
+    dateFactory?: () => TDate,
+    dateSerializer?: (date: TDate) => string,
+    dateDeserializer?: (iso: string) => TDate,
+  ): IMemberWithMnemonic<TID, TDate> {
     // Validate inputs first
     if (!name || name.length == 0) {
       throw new MemberError(MemberErrorType.MissingMemberName);
@@ -770,11 +819,14 @@ export class Member<
     // Get compressed public key
     const publicKey = eciesService.getPublicKey(privateKey);
 
-    const dateCreated = new Date();
+    // Use dateFactory for the creation date, or fall back to new Date()
+    const now: () => TDate =
+      dateFactory ?? (() => new Date() as unknown as TDate);
+    const dateCreated = now();
 
     // Create member without specifying ID - let constructor generate it properly
     // This ensures proper idBytes initialization
-    const member = new Member<TID>(
+    const member = new Member<TID, TDate>(
       eciesService,
       type,
       name,
@@ -786,10 +838,11 @@ export class Member<
       dateCreated,
       dateCreated,
       undefined, // creatorId will default to self
+      dateFactory,
+      dateSerializer,
+      dateDeserializer,
     );
 
-    // If createdBy is provided, we need to set it on a new member
-    // For now, the creator defaults to self which is the expected behavior for newMember
     return {
       member,
       mnemonic,

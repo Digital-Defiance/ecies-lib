@@ -21,6 +21,7 @@ import type { PlatformID } from './platform-id';
 export interface IMember<
   TID extends PlatformID = Uint8Array,
   TSignature extends Uint8Array = Uint8Array,
+  TDate extends Date | number = Date,
 > {
   // Required properties
   readonly id: TID;
@@ -30,8 +31,8 @@ export interface IMember<
   readonly email: EmailString;
   readonly publicKey: Uint8Array;
   readonly creatorId: TID;
-  readonly dateCreated: Date;
-  readonly dateUpdated: Date;
+  readonly dateCreated: TDate;
+  readonly dateUpdated: TDate;
 
   // ID provider for voting system compatibility
   readonly idProvider: IIdProvider<TID>;

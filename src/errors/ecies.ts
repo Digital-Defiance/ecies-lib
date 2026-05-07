@@ -13,7 +13,7 @@ import {
  * Context information captured when an error occurs.
  * This provides debugging information beyond just the error message.
  */
-export interface IErrorContext {
+export interface IErrorContext<TDate extends Date | number = Date> {
   /**
    * The operation that was being performed when the error occurred
    * e.g., 'encryptChunk', 'decryptStream', 'validateRecipientId'
@@ -39,7 +39,15 @@ export interface IErrorContext {
   /**
    * Timestamp when error occurred
    */
-  timestamp: Date;
+  timestamp: TDate;
+
+  /**
+   * Optional serializer for the timestamp type.
+   * Required when TDate is a non-Unix number (e.g. BrightDate decimal days).
+   * Defaults to Date.toISOString() for Date, or new Date(n).toISOString() for number.
+   * Example for BrightDate: `(d) => BrightDate.fromValue(d).toISO()`
+   */
+  timestampSerializer?: (date: TDate) => string;
 
   /**
    * Additional metadata specific to the error
@@ -47,21 +55,20 @@ export interface IErrorContext {
   metadata?: Record<string, unknown>;
 }
 
-export class ECIESError extends TypedHandleableError<
-  typeof ECIESErrorTypeEnum,
-  EciesStringKeyValue
-> {
+export class ECIESError<
+  TDate extends Date | number = Date,
+> extends TypedHandleableError<typeof ECIESErrorTypeEnum, EciesStringKeyValue> {
   /**
    * Rich context information for debugging
    */
-  public readonly context?: IErrorContext;
+  public readonly context?: IErrorContext<TDate>;
 
   constructor(
     type: ECIESErrorTypeEnum,
     options?: HandleableErrorOptions,
     language?: string,
     otherVars?: Record<string, string | number>,
-    context?: Partial<IErrorContext>,
+    context?: Partial<IErrorContext<TDate>>,
   ) {
     let source: Error;
     if (
@@ -95,7 +102,8 @@ export class ECIESError extends TypedHandleableError<
         stackTrace:
           context.stackTrace ?? new Error().stack ?? 'stack unavailable',
         config: context.config,
-        timestamp: context.timestamp ?? new Date(),
+        timestamp: context.timestamp ?? (new Date() as unknown as TDate),
+        timestampSerializer: context.timestampSerializer,
         metadata: context.metadata,
       };
     }
@@ -128,7 +136,13 @@ export class ECIESError extends TypedHandleableError<
 
     if (this.context) {
       parts.push(`Operation: ${this.context.operation}`);
-      parts.push(`Timestamp: ${this.context.timestamp.toISOString()}`);
+      const serializeTimestamp =
+        this.context.timestampSerializer ??
+        ((d: TDate) =>
+          d instanceof Date
+            ? d.toISOString()
+            : new Date(d as number).toISOString());
+      parts.push(`Timestamp: ${serializeTimestamp(this.context.timestamp)}`);
 
       if (this.context.config) {
         parts.push('Configuration:');

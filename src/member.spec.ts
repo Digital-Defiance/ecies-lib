@@ -197,6 +197,12 @@ describe('Member (Web)', () => {
       expect(member.hasPrivateKey).toBe(true);
       expect(member.privateKey).toEqual(originalPrivateKey);
     });
+
+    it('should expose walletOptional getter', () => {
+      expect(member.walletOptional).toBeDefined();
+      member.unloadWallet();
+      expect(member.walletOptional).toBeUndefined();
+    });
   });
 
   describe('Cryptographic Operations - Sign/Verify', () => {
@@ -648,6 +654,15 @@ describe('Member (Web)', () => {
         member.votingPrivateKey!.lambda,
       );
     }, 120000);
+
+    it('should handle prime generation edge cases', async () => {
+      const seed = new Uint8Array(64).fill(0x00);
+      const drbg = await votingService.createDRBG(seed);
+
+      await expect(
+        votingService.generateDeterministicPrime(drbg, 1024, 64, 1),
+      ).rejects.toThrow('Failed to generate prime after 1 attempts');
+    });
   });
 
   describe('Voting Operations with Paillier', () => {
@@ -743,6 +758,24 @@ describe('Member (Web)', () => {
 
       expect(parsed.privateKey).toBeUndefined();
       expect(parsed.wallet).toBeUndefined();
+    });
+
+    it('should round-trip through fromJson correctly', () => {
+      const json = member.toJson();
+      const restored = Member.fromJson(json);
+
+      expect(restored.id).toBeDefined();
+      expect(restored.type).toBe(member.type);
+      expect(restored.name).toBe(member.name);
+      expect(restored.email.toString()).toBe(member.email.toString());
+      expect(restored.dateCreated.toISOString()).toBe(
+        member.dateCreated.toISOString(),
+      );
+      expect(restored.dateUpdated.toISOString()).toBe(
+        member.dateUpdated.toISOString(),
+      );
+      // Restored member has no private key (public-only)
+      expect(restored.hasPrivateKey).toBe(false);
     });
   });
 
