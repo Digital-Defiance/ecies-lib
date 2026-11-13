@@ -3,7 +3,7 @@
  * Government-grade requirement: Constant-time operations for cryptographic primitives
  */
 
-import { ECIESService } from '../../src/services/ecies/service';
+import { secp256k1 } from '@noble/curves/secp256k1';
 import { VotingService, modPow } from '../../src/services/voting.service';
 
 jest.setTimeout(300000);
@@ -165,44 +165,60 @@ describe('Timing Attack Resistance', () => {
   });
 
   describe('ECDH Shared Secret Timing', () => {
-    it('should not leak private key through timing', async () => {
-      const ecies = new ECIESService();
+    /** A valid secp256k1 private key with exactly one bit set (bit `bit`). */
+    const sparseKey = (bit: number): Uint8Array => {
+      const key = new Uint8Array(32);
+      key[31 - Math.floor(bit / 8)] = 1 << (bit % 8);
+      return key;
+    };
+    /** A valid private key with (almost) all bits set, below the curve order. */
+    const denseKey = (): Uint8Array => {
+      const key = new Uint8Array(32).fill(0xff);
+      key[0] = 0x7f; // keep it < curve order n
+      return key;
+    };
+    const median = (values: number[]): number => {
+      const sorted = [...values].sort((a, b) => a - b);
+      return sorted[Math.floor(sorted.length / 2)];
+    };
 
-      const timings: number[] = [];
+    it('does not leak private key bit pattern through timing', () => {
+      const peerPublicKey = secp256k1.getPublicKey(
+        secp256k1.utils.randomPrivateKey(),
+        true,
+      );
+      // Two key classes with maximally different Hamming weight.
+      const classes = [
+        (i: number) => sparseKey(1 + (i % 250)),
+        () => denseKey(),
+      ];
+      const samples: number[][] = [[], []];
+      const SAMPLES_PER_CLASS = 1500;
 
-      // Warm up to reduce JIT compilation effects
-      for (let warmup = 0; warmup < 5; warmup++) {
-        const mnemonic = ecies.generateNewMnemonic();
-        const { privateKey: _privateKey, publicKey } =
-          ecies.mnemonicToSimpleKeyPair(mnemonic);
-        const message = crypto.getRandomValues(new Uint8Array(32));
-        await ecies.encryptWithLength(publicKey, message);
+      // Warm up the JIT and precomputation tables.
+      for (let i = 0; i < 100; i++) {
+        secp256k1.getSharedSecret(classes[i % 2](i), peerPublicKey);
       }
 
-      for (let i = 0; i < 30; i++) {
-        // Increased sample size
-        const mnemonic = ecies.generateNewMnemonic();
-        const { privateKey: _privateKey, publicKey } =
-          ecies.mnemonicToSimpleKeyPair(mnemonic);
-
-        const start = performance.now();
-        const message = crypto.getRandomValues(new Uint8Array(32));
-        await ecies.encryptWithLength(publicKey, message);
-        const end = performance.now();
-
-        timings.push(end - start);
+      // Interleave the classes so drift, load spikes and GC pauses hit both
+      // equally instead of biasing one of them.
+      for (let i = 0; i < SAMPLES_PER_CLASS; i++) {
+        for (let c = 0; c < classes.length; c++) {
+          const key = classes[c](i);
+          const start = performance.now();
+          secp256k1.getSharedSecret(key, peerPublicKey);
+          samples[c].push(performance.now() - start);
+        }
       }
 
-      const mean = timings.reduce((a, b) => a + b) / timings.length;
-      const variance =
-        timings.reduce((sum, t) => sum + Math.pow(t - mean, 2), 0) /
-        timings.length;
-      const stdDev = Math.sqrt(variance);
-      const cv = stdDev / mean;
+      // Medians ignore the scheduler/GC outliers that make wall-clock means unstable.
+      const [sparse, dense] = [median(samples[0]), median(samples[1])];
+      const relativeDifference =
+        Math.abs(sparse - dense) / Math.max(sparse, dense);
 
-      // Slightly more lenient threshold for CI environments while maintaining security
-      // 0.5 (50% coefficient of variation) is still well within acceptable bounds
-      expect(cv).toBeLessThan(0.5);
+      // A key-dependent implementation (e.g. naive double-and-add) differs by
+      // far more than 10% between these classes.
+      expect(relativeDifference).toBeLessThan(0.1);
     });
   });
 });
