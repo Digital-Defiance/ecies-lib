@@ -1543,6 +1543,9 @@ A: Yes. Use `EncryptionStream` for memory-efficient processing of files of any s
 - **v3.0.0**: Streaming encryption API, pluggable ID providers, i18n v2 architecture
 
 ---
+### Version 5.2.3
+- Depends on `@digitaldefiance/i18n-lib` 4.8.0
+- Test: the ECDH timing test compares private keys with very different bit patterns using interleaved medians instead of a wall-clock coefficient of variation
 
 ### Versions 4.19.x (v4.19.0 – v4.19.11)
 
